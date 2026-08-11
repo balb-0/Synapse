@@ -1,0 +1,98 @@
+# ==========================================================================
+# .gitignore — G05 (Inteli t13 / Sindusfarma)
+# Regra de ouro: NUNCA commitar secrets nem dados pessoais/sensíveis (LGPD).
+# ==========================================================================
+
+# --- Secrets / ambiente -----------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials.json
+service-account*.json
+
+# --- Dados sensíveis / LGPD --------------------------------------------------
+# Bases brutas e extrações NÃO vão pro repo. Publicar só dados anonimizados
+# e derivados que o time decidir versionar explicitamente (force-add com -f).
+data/raw/
+data/interim/
+data/private/
+*.sqlite
+*.sqlite3
+*.db
+*.parquet
+*.feather
+# CSV/XLSX ficam ignorados por padrão (podem conter PII). Versionar um
+# arquivo específico com `git add -f caminho.csv` quando for seguro.
+*.csv
+*.xlsx
+*.xls
+
+# --- Node / JS-TS (Jest, Cypress, ESLint) ------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+dist/
+build/
+out/
+.next/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+.eslintcache
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# --- Python (análise de dados / estatística) ---------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Docker ------------------------------------------------------------------
+# (Dockerfile, docker-compose.yml e .dockerignore SÃO versionados)
+docker-compose.override.yml
+
+# --- Logs / temporários ------------------------------------------------------
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+
+# --- Editores / IDE ----------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+
+# --- Sistema operacional -----------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Desktop.ini
