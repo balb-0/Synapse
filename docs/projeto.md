@@ -284,9 +284,11 @@ _conteúdo_
 
 # 7. Referências
 
-<a id="ref1"></a>[1] _referência_ <a href="#ref1-link">↩</a>
+[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento de projeto (arquivo `TAPI.pdf`) disponibilizado pela faculdade e pelo parceiro de projeto.
 
-<a id="ref2"></a>[2] _referência_ <a href="#ref2-link">↩</a>
+[2] INTELI; SINDUSFARMA. **Arquitetura de Negócio: Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Documento de projeto (arquivo `Arquitetura de Negócio.pdf`) disponibilizado pela faculdade e pelo parceiro de projeto.
+
+[3] INTELI; SINDUSFARMA. **Data Model Canvas: Data Warehouse — Sindusfarma**. São Paulo, 2026. Artefato de documentação (arquivo `Data Model Canvas.pdf`) disponibilizado pela faculdade e pelo parceiro de projeto.
 
 # 8. Avaliação dos Resultados
 
