@@ -87,11 +87,163 @@ _conteúdo_
 
 ### 4.0.1 Fontes de dados e ferramentas atuais
 
-_conteúdo_
+As bases disponibilizadas pelo parceiro são seis arquivos CSV estruturados (separador `;`), somando cerca de 46 mil registros que cobrem o ciclo de vida das pesquisas — da pesquisa e das empresas participantes até o questionário e as respostas coletadas. O quadro abaixo resume as dimensões de cada base; as "colunas úteis" desconsideram colunas vazias remanescentes da exportação.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)
 
-| Camada | Fonte / ferramenta atual | Observação |
+<div align="center">
+<sub>Tabela X - Inventário das bases disponibilizadas</sub><br>
+
+| Base | Registros | Colunas úteis | Colunas brutas |
+| :--- | ---: | ---: | ---: |
+| `pesquisas.csv` | 366 | 22 | 33 |
+| `empresas.csv` | 779 | 9 | 9 |
+| `clientes.csv` | 5.430 | 5 | 5 |
+| `respondentes.csv` | 18.735 | 6 | 6 |
+| `questoes.csv` | 231 | 13 | 13 |
+| `respostas.csv` | 20.607 | 9 | 9 |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e foram desconsideradas (22 úteis). As tabelas a seguir detalham, por base, os campos e seus tipos — **técnico** (como o dado está armazenado) e **semântico** (o papel do campo na análise).
+
+#### pesquisas.csv
+
+<div align="center">
+<sub>Tabela X - Estrutura de pesquisas.csv</sub><br>
+
+| Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
-| _ | _ | _ |
+| id | inteiro | identificador |
+| titulo | texto | texto |
+| status | texto | categórico |
+| tipo | texto | categórico |
+| area | texto | categórico |
+| participantes | inteiro | numérico |
+| part_mercado | texto | numérico |
+| data_solicitacao | data | temporal |
+| data_aprov | data | temporal |
+| data_divulgacao | data | temporal |
+| data_limite | data | temporal |
+| prorrogada_ate | data | temporal |
+| data_entrega | data | temporal |
+| dias_uteis_para_entrega | inteiro | numérico |
+| complexidade | texto | categórico |
+| tipo de resposta | texto | categórico |
+| tempo_preenchimento | inteiro | numérico |
+| objetivos | texto | texto |
+| dia da semana de lançamento | inteiro | numérico |
+| dias úteis aberta | inteiro | numérico |
+| dias entre a solicitação e a divulgação | inteiro | numérico |
+| dias para tabulação | inteiro | numérico |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### empresas.csv
+
+<div align="center">
+<sub>Tabela X - Estrutura de empresas.csv</sub><br>
+
+| Campo | Tipo técnico | Tipo semântico |
+| :--- | :--- | :--- |
+| ID | inteiro | identificador |
+| Nome Fantasia | texto | texto |
+| % de mercado | texto | numérico |
+| Nacionalidade | texto | categórico |
+| Associado | texto | categórico |
+| Tipo de Associado | texto | categórico |
+| Cidade | texto | categórico |
+| Estado | texto | categórico |
+| País | texto | categórico |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### clientes.csv
+
+<div align="center">
+<sub>Tabela X - Estrutura de clientes.csv</sub><br>
+
+| Campo | Tipo técnico | Tipo semântico |
+| :--- | :--- | :--- |
+| id_cliente | texto | identificador |
+| id_empresa | inteiro | identificador |
+| cargo | texto | categórico |
+| departamento | texto | categórico |
+| e-mail | texto | texto |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### respondentes.csv
+
+<div align="center">
+<sub>Tabela X - Estrutura de respondentes.csv</sub><br>
+
+| Campo | Tipo técnico | Tipo semântico |
+| :--- | :--- | :--- |
+| id_pesq | inteiro | identificador |
+| hora_inicio | data/hora | temporal |
+| hora_termino | data/hora | temporal |
+| id_empresa | inteiro | identificador |
+| market_share | texto | numérico |
+| id_cliente | inteiro | identificador |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### questoes.csv
+
+<div align="center">
+<sub>Tabela X - Estrutura de questoes.csv</sub><br>
+
+| Campo | Tipo técnico | Tipo semântico |
+| :--- | :--- | :--- |
+| id_pergunta | inteiro | identificador |
+| pesquisa_id | inteiro | identificador |
+| pesquisa_titulo | texto | categórico |
+| enunciado | texto | texto |
+| tipo | texto | categórico |
+| qtd_alternativas | inteiro | numérico |
+| alternativas | texto | texto |
+| linhas_matriz | texto | categórico |
+| colunas_matriz | texto | categórico |
+| confianca | texto | categórico |
+| formato_arquivo | texto | categórico |
+| col_origem | texto | texto |
+| observacoes | vazio | — (sem preenchimento) |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### respostas.csv
+
+<div align="center">
+<sub>Tabela X - Estrutura de respostas.csv</sub><br>
+
+| Campo | Tipo técnico | Tipo semântico |
+| :--- | :--- | :--- |
+| id_resposta | inteiro | identificador |
+| pesquisa_id | inteiro | identificador |
+| id_pergunta | inteiro | identificador |
+| respondent_id | inteiro | identificador |
+| id_empresa | inteiro | identificador |
+| alternativa | texto | categórico |
+| linha_matriz | texto | categórico |
+| coluna_matriz | texto | categórico |
+| valor | texto | categórico |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Dois pontos observados na estrutura, a serem quantificados no diagnóstico de qualidade: as medidas de participação de mercado (`part_mercado`, `% de mercado`, `market_share`) são numéricas mas estão armazenadas como texto; e `id_cliente` aparece como texto em `clientes.csv` e como inteiro em `respondentes.csv`, o que exige conciliação de identidade entre as bases.
 
 ### 4.0.2 Fluxo de trabalho atual
 
