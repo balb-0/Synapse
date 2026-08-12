@@ -167,13 +167,139 @@ _conteúdo_
 
 ## 5.3 Qualidade e Validação de Dados
 
-_conteúdo_
+Esta seção diagnostica dados ausentes e registros duplicados nas seis bases disponibilizadas, para apoiar as regras de qualidade da solução. **Nenhuma base apresenta registros duplicados** — nem linhas totalmente idênticas, nem identificadores repetidos. As ausências, por outro lado, exigem leitura cuidadosa: parte é **condicional** — estrutural e esperada, seguindo o tipo da pergunta ou o estágio do ciclo de vida da pesquisa (ex.: `linha_matriz` só existe em perguntas de matriz; `prorrogada_ate` só quando há prorrogação) — e parte é **a investigar**, indicando possível lacuna de preenchimento a tratar antes de automatizar indicadores.[<sup>\[2\]</sup>](#7-referências)
 
-**Nota:** Regras de completude, validação de domínios, deduplicação e consistência entre fontes. Cada tipo de informação tem sua própria regra de completude/validade.
+<div align="center">
+<sub>Tabela X - Resumo de qualidade por base</sub><br>
 
-| Validação | Fonte / campo | Regra | Estado |
-| :--- | :--- | :--- | :--- |
-| _ | _ | _ | _ |
+| Base | Registros | Duplicados | Variáveis com ausência |
+| :--- | ---: | ---: | ---: |
+| `pesquisas.csv` | 366 | 0 | 16 |
+| `empresas.csv` | 779 | 0 | 6 |
+| `clientes.csv` | 5.430 | 0 | 4 |
+| `respondentes.csv` | 18.735 | 0 | 4 |
+| `questoes.csv` | 231 | 0 | 5 |
+| `respostas.csv` | 20.607 | 0 | 5 |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+As tabelas a seguir detalham, por base, apenas as variáveis com ausência — quantidade, percentual e natureza (condicional ou a investigar).
+
+#### pesquisas.csv
+
+<div align="center">
+<sub>Tabela X - Ausências em pesquisas.csv</sub><br>
+
+| Variável | Ausentes | % | Natureza |
+| :--- | ---: | ---: | :--- |
+| data_aprov | 346 | 94,5% | condicional |
+| prorrogada_ate | 298 | 81,4% | condicional |
+| complexidade | 276 | 75,4% | a investigar |
+| tempo_preenchimento | 135 | 36,9% | a investigar |
+| objetivos | 123 | 33,6% | a investigar |
+| part_mercado | 44 | 12,0% | a investigar |
+| dias para tabulação | 36 | 9,8% | condicional |
+| dias_uteis_para_entrega | 35 | 9,6% | condicional |
+| dias entre a solicitação e a divulgação | 34 | 9,3% | condicional |
+| data_entrega | 32 | 8,7% | condicional |
+| participantes | 31 | 8,5% | a investigar |
+| data_divulgacao | 8 | 2,2% | condicional |
+| data_limite | 8 | 2,2% | condicional |
+| data_solicitacao | 4 | 1,1% | a investigar |
+| dia da semana de lançamento | 3 | 0,8% | condicional |
+| dias úteis aberta | 3 | 0,8% | condicional |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### empresas.csv
+
+<div align="center">
+<sub>Tabela X - Ausências em empresas.csv</sub><br>
+
+| Variável | Ausentes | % | Natureza |
+| :--- | ---: | ---: | :--- |
+| Nacionalidade | 69 | 8,9% | a investigar |
+| País | 58 | 7,4% | a investigar |
+| Tipo de Associado | 49 | 6,3% | condicional |
+| Estado | 43 | 5,5% | a investigar |
+| Cidade | 42 | 5,4% | a investigar |
+| Associado | 1 | 0,1% | a investigar |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### clientes.csv
+
+<div align="center">
+<sub>Tabela X - Ausências em clientes.csv</sub><br>
+
+| Variável | Ausentes | % | Natureza |
+| :--- | ---: | ---: | :--- |
+| cargo | 35 | 0,6% | a investigar |
+| departamento | 31 | 0,6% | a investigar |
+| id_empresa | 1 | 0,0% | a investigar |
+| e-mail | 1 | 0,0% | a investigar |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### respondentes.csv
+
+<div align="center">
+<sub>Tabela X - Ausências em respondentes.csv</sub><br>
+
+| Variável | Ausentes | % | Natureza |
+| :--- | ---: | ---: | :--- |
+| hora_inicio | 17.928 | 95,7% | condicional |
+| hora_termino | 17.928 | 95,7% | condicional |
+| id_cliente | 856 | 4,6% | a investigar |
+| market_share | 5 | 0,0% | a investigar |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### questoes.csv
+
+<div align="center">
+<sub>Tabela X - Ausências em questoes.csv</sub><br>
+
+| Variável | Ausentes | % | Natureza |
+| :--- | ---: | ---: | :--- |
+| observacoes | 231 | 100,0% | condicional |
+| linhas_matriz | 228 | 98,7% | condicional |
+| colunas_matriz | 228 | 98,7% | condicional |
+| alternativas | 29 | 12,6% | condicional |
+| qtd_alternativas | 25 | 10,8% | condicional |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+#### respostas.csv
+
+<div align="center">
+<sub>Tabela X - Ausências em respostas.csv</sub><br>
+
+| Variável | Ausentes | % | Natureza |
+| :--- | ---: | ---: | :--- |
+| linha_matriz | 16.603 | 80,6% | condicional |
+| coluna_matriz | 16.603 | 80,6% | condicional |
+| alternativa | 10.266 | 49,8% | condicional |
+| valor | 8.307 | 40,3% | condicional |
+| id_empresa | 10 | 0,0% | a investigar |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+As ausências **a investigar** mais relevantes concentram-se em `pesquisas.csv` (`complexidade`, `objetivos`, `tempo_preenchimento`, `participantes` e `part_mercado`) e nas lacunas cadastrais de `empresas.csv` (localização e nacionalidade). Já `id_cliente` ausente em `respondentes.csv` (4,6%) e `id_empresa` ausente em `respostas.csv` e `clientes.csv` reforçam a necessidade de conciliação de identidade entre as bases antes de consolidar os indicadores.
 
 ## 5.4 Rastreabilidade Analítica
 
