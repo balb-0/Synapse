@@ -28,7 +28,6 @@ data/private/
 *.feather
 # CSV/XLSX ficam ignorados por padrão (podem conter PII). Versionar um
 # arquivo específico com `git add -f caminho.csv` quando for seguro.
-*.csv
 *.xlsx
 *.xls
 
