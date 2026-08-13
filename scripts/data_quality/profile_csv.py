@@ -12,6 +12,7 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 import sys
 from collections import Counter
 from datetime import datetime
@@ -30,12 +31,16 @@ OUTPUT_NAMES = (
     "datas.csv",
     "coerencia_temporal.csv",
     "identidades.csv",
+    "nulos_condicionais.csv",
+    "percentuais.csv",
+    "denormalizados.csv",
+    "dicionario_validacao.csv",
     "manifesto_aplicado.json",
 )
 RELATION_FIELDS = [
     "relacao", "origem", "chave_origem", "referencia", "chave_referencia",
     "linhas_origem", "comparaveis", "encontradas", "orfãs", "percentual_orfas",
-    "status", "interpretação",
+    "chaves_origem_distintas", "chaves_orfas_distintas", "status", "interpretação",
 ]
 DATE_FIELDS = [
     "source", "column", "nulos", "nao_nulos", "parseaveis", "nao_parseaveis",
@@ -48,6 +53,27 @@ TEMPORAL_FIELDS = [
 IDENTITY_FIELDS = [
     "checagem", "sistema_a", "sistema_b", "distintos_a", "distintos_b",
     "intersecao", "somente_a", "somente_b", "observacao",
+]
+CONDITIONAL_FIELDS = [
+    "source", "column", "tipo_questao", "total", "aplicavel", "nao_aplicavel",
+    "presentes_aplicavel", "ausentes_aplicavel", "ausencias_inesperadas",
+    "ausencias_condicionais", "preenchidos_nao_aplicavel", "percentual_inesperadas",
+    "status",
+]
+PERCENT_FIELDS = [
+    "source", "column", "total", "nao_nulos", "sentinelas", "parseaveis",
+    "invalidos", "fora_0_100", "pct_parseaveis", "pct_invalidos", "pct_fora_0_100",
+    "status",
+]
+DENORMALIZED_FIELDS = [
+    "checagem", "origem", "referencia", "chave", "comparaveis", "coincidentes",
+    "divergencias", "percentual_divergencias", "ids_divergentes", "status", "observacao",
+]
+DICTIONARY_FIELDS = [
+    "arquivo", "status", "colunas_esperadas", "colunas_encontradas",
+    "variaveis_esperadas", "variaveis_encontradas", "valor_nulos_dicionario",
+    "valor_nulos_fisicos", "valor_sentinelas", "valor_nulos_semanticos",
+    "divergencia_dicionario_vs_fisico", "divergencia_dicionario_vs_semantico", "observacao",
 ]
 
 
@@ -72,6 +98,26 @@ def normalized(value: str | None) -> str | None:
 def canonical_key(value: str | None) -> str | None:
     value = normalized(value)
     return value.casefold() if value is not None else None
+
+
+def configured_sentinels(source: dict[str, Any], column: str) -> set[str]:
+    sentinels = source.get("sentinels", {}).get(column, [])
+    return {str(value).strip().casefold() for value in sentinels}
+
+
+def is_sentinel(value: str | None, source: dict[str, Any], column: str) -> bool:
+    value = normalized(value)
+    return value is not None and value.casefold() in configured_sentinels(source, column)
+
+
+def semantic_missing(value: str | None, source: dict[str, Any], column: str) -> bool:
+    return is_null(value) or is_sentinel(value, source, column)
+
+
+def comparison_key(value: str | None, source: dict[str, Any], column: str) -> str | None:
+    if semantic_missing(value, source, column):
+        return None
+    return canonical_key(value)
 
 
 def hash_domain(value: str) -> str:
@@ -222,8 +268,8 @@ def read_source(input_dir: Path, source: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def key_tuple(row: dict[str, str], key_columns: list[str]) -> tuple[str, ...] | None:
-    values = tuple(canonical_key(row.get(column)) for column in key_columns)
+def key_tuple(row: dict[str, str], key_columns: list[str], source: dict[str, Any]) -> tuple[str, ...] | None:
+    values = tuple(comparison_key(row.get(column), source, column) for column in key_columns)
     if any(value is None for value in values):
         return None
     return values  # type: ignore[return-value]
@@ -241,11 +287,16 @@ def profile_summary(data: dict[str, Any]) -> dict[str, Any]:
     columns = data["columns"]
     groups, extras = duplicate_extra(rows, columns)
     key_columns = data["config"].get("key", [])
-    key_values = [key_tuple(row, key_columns) for row in rows]
+    key_values = [key_tuple(row, key_columns, data["config"]) for row in rows]
     key_counts = Counter(value for value in key_values if value is not None)
     key_groups = sum(count > 1 for count in key_counts.values())
     key_extras = sum(count - 1 for count in key_counts.values() if count > 1)
     empty_data = [column for column in columns if all(is_null(row.get(column)) for row in rows)]
+    semantic_empty = [
+        column for column in columns
+        if all(semantic_missing(row.get(column), data["config"], column) for row in rows)
+    ]
+    incomplete_keys = sum(value is None for value in key_values)
     return {
         "source": data["id"],
         "file_configurado": data["configured_file"],
@@ -254,11 +305,16 @@ def profile_summary(data: dict[str, Any]) -> dict[str, Any]:
         "colunas": len(columns),
         "colunas_cabecalho_vazio": sum(column.startswith("__empty_") for column in columns),
         "colunas_sem_dado": len(empty_data),
+        "colunas_sem_dado_semantico": len(semantic_empty),
         "linhas_duplicadas_extras": extras,
         "grupos_linhas_duplicadas": groups,
         "chave": ", ".join(key_columns),
         "linhas_chave_duplicadas_extras": key_extras,
         "grupos_chave_duplicados": key_groups,
+        "linhas_chave_incompleta": incomplete_keys,
+        "completude_chave": pct(len(rows) - incomplete_keys, len(rows)),
+        "status_unicidade_chave": "UNICA" if key_extras == 0 else "DUPLICADA",
+        "status_completude_chave": "COMPLETA" if incomplete_keys == 0 else "INCOMPLETA",
         "status_schema": "OK",
     }
 
@@ -281,16 +337,25 @@ def profile_fields(data: dict[str, Any]) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
     for column in data["columns"]:
         values = [row.get(column, "") for row in rows]
-        non_null = [value for value in values if not is_null(value)]
+        physical_nulls = sum(is_null(value) for value in values)
+        sentinels = sum(is_sentinel(value, data["config"], column) for value in values)
+        semantic_nulls = physical_nulls + sentinels
+        comparable = [
+            value for value in values
+            if not semantic_missing(value, data["config"], column)
+        ]
         result.append(
             {
                 "source": data["id"],
                 "column": column,
                 "tipo_inferido": infer_type(data["config"], column, values),
-                "nulos": len(values) - len(non_null),
-                "pct_nulos": pct(len(values) - len(non_null), len(values)),
-                "distintos": len(set(non_null)),
-                "completude": pct(len(non_null), len(values)),
+                "nulos": physical_nulls,
+                "pct_nulos": pct(physical_nulls, len(values)),
+                "sentinelas": sentinels,
+                "nulos_semanticos": semantic_nulls,
+                "pct_nulos_semanticos": pct(semantic_nulls, len(values)),
+                "distintos": len(set(comparable)),
+                "completude": pct(len(values) - semantic_nulls, len(values)),
             }
         )
     return result
@@ -306,6 +371,8 @@ def profile_domains(data: dict[str, Any]) -> list[dict[str, Any]]:
             value = normalized(row.get(column))
             if value is None:
                 label = "<VAZIO>"
+            elif is_sentinel(value, data["config"], column):
+                label = f"<SENTINELA:{value}>"
             elif mode == "hash":
                 label = hash_domain(value)
             else:
@@ -355,19 +422,24 @@ def relation_rows(data_by_id: dict[str, dict[str, Any]], manifest: dict[str, Any
         child_key = relation["child_key"]
         parent_key = relation["parent_key"]
         parent_values = {
-            key_tuple(row, parent_key)
+            key_tuple(row, parent_key, parent["config"])
             for row in parent["rows"]
-            if key_tuple(row, parent_key) is not None
+            if key_tuple(row, parent_key, parent["config"]) is not None
         }
         comparable = 0
         matched = 0
+        child_values: set[tuple[str, ...]] = set()
+        orphan_values: set[tuple[str, ...]] = set()
         for row in child["rows"]:
-            value = key_tuple(row, child_key)
+            value = key_tuple(row, child_key, child["config"])
             if value is None:
                 continue
             comparable += 1
+            child_values.add(value)
             if value in parent_values:
                 matched += 1
+            else:
+                orphan_values.add(value)
         orphan = comparable - matched
         result.append(
             {
@@ -381,6 +453,8 @@ def relation_rows(data_by_id: dict[str, dict[str, Any]], manifest: dict[str, Any
                 "encontradas": matched,
                 "orfãs": orphan,
                 "percentual_orfas": pct(orphan, comparable),
+                "chaves_origem_distintas": len(child_values),
+                "chaves_orfas_distintas": len(orphan_values),
                 "status": "OK" if orphan == 0 else "ORFAOS_DETECTADOS",
                 "interpretação": relation.get("interpretation", "Conferir a chave antes de agregar."),
             }
@@ -393,11 +467,12 @@ def identity_rows(data_by_id: dict[str, dict[str, Any]]) -> list[dict[str, Any]]
     if not required_sources.issubset(data_by_id):
         return []
 
-    def values(source_id: str, column: str, *, ignore_sentinel: bool = True) -> set[str]:
+    def values(source_id: str, column: str) -> set[str]:
         output: set[str] = set()
+        source = data_by_id[source_id]["config"]
         for row in data_by_id[source_id]["rows"]:
-            value = canonical_key(row.get(column))
-            if value is None or (ignore_sentinel and value in {"s/i", "n/a", "na"}):
+            value = comparison_key(row.get(column), source, column)
+            if value is None:
                 continue
             output.add(value)
         return output
@@ -461,6 +536,204 @@ def identity_rows(data_by_id: dict[str, dict[str, Any]]) -> list[dict[str, Any]]
     return result
 
 
+def conditional_null_rows(
+    data_by_id: dict[str, dict[str, Any]], manifest: dict[str, Any]
+) -> list[dict[str, Any]]:
+    if not {"respostas", "questoes"}.issubset(data_by_id):
+        return []
+    question_types = {
+        (
+            comparison_key(row.get("pesquisa_id"), data_by_id["questoes"]["config"], "pesquisa_id"),
+            comparison_key(row.get("id_pergunta"), data_by_id["questoes"]["config"], "id_pergunta"),
+        ): normalized(row.get("tipo")) or "<TIPO_AUSENTE>"
+        for row in data_by_id["questoes"]["rows"]
+    }
+    rules = manifest.get("conditional_nulls", {}).get("respostas", {})
+    result: list[dict[str, Any]] = []
+    response_config = data_by_id["respostas"]["config"]
+    for column, rule in rules.items():
+        applicable_types = set(rule.get("applicable_types", []))
+        required_types = set(rule.get("required_types", []))
+        by_type: dict[str, Counter[str]] = {}
+        for row in data_by_id["respostas"]["rows"]:
+            question_key = (
+                comparison_key(row.get("pesquisa_id"), response_config, "pesquisa_id"),
+                comparison_key(row.get("id_pergunta"), response_config, "id_pergunta"),
+            )
+            question_type = question_types.get(question_key, "<TIPO_DESCONHECIDO>")
+            counter = by_type.setdefault(question_type, Counter())
+            applicable = question_type in applicable_types
+            required = question_type in required_types
+            missing = semantic_missing(row.get(column), response_config, column)
+            counter["total"] += 1
+            counter["applicable"] += applicable
+            counter["not_applicable"] += not applicable
+            if missing and applicable and required:
+                counter["unexpected_missing"] += 1
+            elif missing and applicable:
+                counter["conditional_missing"] += 1
+            elif missing:
+                counter["not_applicable_missing"] += 1
+            elif applicable:
+                counter["present_applicable"] += 1
+            else:
+                counter["present_not_applicable"] += 1
+        for question_type, counter in sorted(by_type.items()):
+            result.append(
+                {
+                    "source": "respostas",
+                    "column": column,
+                    "tipo_questao": question_type,
+                    "total": counter["total"],
+                    "aplicavel": counter["applicable"],
+                    "nao_aplicavel": counter["not_applicable"],
+                    "presentes_aplicavel": counter["present_applicable"],
+                    "ausentes_aplicavel": counter["unexpected_missing"] + counter["conditional_missing"],
+                    "ausencias_inesperadas": counter["unexpected_missing"],
+                    "ausencias_condicionais": counter["conditional_missing"] + counter["not_applicable_missing"],
+                    "preenchidos_nao_aplicavel": counter["present_not_applicable"],
+                    "percentual_inesperadas": pct(counter["unexpected_missing"], counter["applicable"]),
+                    "status": "OK" if counter["unexpected_missing"] == 0 else "AUSENCIA_INESPERADA",
+                }
+            )
+    return result
+
+
+def percentage_rows(data_by_id: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for data in data_by_id.values():
+        for column in data["config"].get("percent_columns", []):
+            values = [row.get(column, "") for row in data["rows"]]
+            sentinel_count = sum(is_sentinel(value, data["config"], column) for value in values)
+            candidates = [
+                value for value in values
+                if not semantic_missing(value, data["config"], column)
+            ]
+            parsed = [parse_number(value) for value in candidates]
+            invalid = sum(number is None for number in parsed)
+            out_of_range = sum(number is not None and not Decimal("0") <= number <= Decimal("100") for number in parsed)
+            result.append(
+                {
+                    "source": data["id"],
+                    "column": column,
+                    "total": len(values),
+                    "nao_nulos": len(candidates),
+                    "sentinelas": sentinel_count,
+                    "parseaveis": len(candidates) - invalid,
+                    "invalidos": invalid,
+                    "fora_0_100": out_of_range,
+                    "pct_parseaveis": pct(len(candidates) - invalid, len(candidates)),
+                    "pct_invalidos": pct(invalid, len(candidates)),
+                    "pct_fora_0_100": pct(out_of_range, len(candidates)),
+                    "status": "OK" if invalid == 0 and out_of_range == 0 else "PERCENTUAL_INVALIDO",
+                }
+            )
+    return result
+
+
+def denormalized_rows(data_by_id: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    if not {"questoes", "pesquisas"}.issubset(data_by_id):
+        return []
+    research = data_by_id["pesquisas"]
+    questions = data_by_id["questoes"]
+    titles = {
+        comparison_key(row.get("id"), research["config"], "id"): normalized(row.get("titulo"))
+        for row in research["rows"]
+    }
+    comparable = 0
+    matching = 0
+    divergent_ids: set[str] = set()
+    for row in questions["rows"]:
+        research_id = comparison_key(row.get("pesquisa_id"), questions["config"], "pesquisa_id")
+        if research_id is None or research_id not in titles:
+            continue
+        comparable += 1
+        if normalized(row.get("pesquisa_titulo")) == titles[research_id]:
+            matching += 1
+        else:
+            divergent_ids.add(research_id)
+    divergences = comparable - matching
+    return [
+        {
+            "checagem": "questoes.pesquisa_titulo_vs_pesquisas.titulo",
+            "origem": "questoes",
+            "referencia": "pesquisas",
+            "chave": "pesquisa_id",
+            "comparaveis": comparable,
+            "coincidentes": matching,
+            "divergencias": divergences,
+            "percentual_divergencias": pct(divergences, comparable),
+            "ids_divergentes": ",".join(sorted(divergent_ids, key=lambda value: int(value) if value.isdigit() else value)),
+            "status": "OK" if divergences == 0 else "DIVERGENCIAS_DETECTADAS",
+            "observacao": "Título denormalizado não substitui a dimensão canônica da pesquisa.",
+        }
+    ]
+
+
+def validate_dictionary(
+    dictionary_path: Path, manifest: dict[str, Any], data_by_id: dict[str, dict[str, Any]]
+) -> dict[str, Any]:
+    config = manifest.get("dictionary", {})
+    expected_columns = list(config.get("required_columns", []))
+    expected_variables = list(config.get("required_variables", []))
+    try:
+        with dictionary_path.open("r", encoding="utf-8-sig", newline="") as stream:
+            reader = csv.DictReader(stream, delimiter=",", strict=True)
+            actual_columns = reader.fieldnames or []
+            if actual_columns != expected_columns:
+                raise fail(
+                    f"[dicionário] cabeçalho incompatível: esperado {expected_columns}, encontrado {actual_columns}"
+                )
+            rows = list(reader)
+    except ProfileError:
+        raise
+    except (OSError, UnicodeError, csv.Error) as exc:
+        raise fail(f"[dicionário] falha ao ler {dictionary_path.name}: {exc}") from exc
+    variables = [normalized(row.get("Variável")) for row in rows]
+    if variables != expected_variables:
+        missing = sorted(set(expected_variables) - set(variables))
+        unexpected = sorted(set(variables) - set(expected_variables))
+        raise fail(
+            f"[dicionário] variáveis incompatíveis; ausentes={missing}; inesperadas={unexpected}"
+        )
+    for row in rows:
+        for column in config.get("required_nonempty_columns", []):
+            if is_null(row.get(column)):
+                raise fail(f"[dicionário] conteúdo mínimo ausente em {row['Variável']}.{column}")
+
+    response = data_by_id.get("respostas")
+    if response is None:
+        raise fail("[dicionário] fonte respostas ausente para validar conteúdo")
+    value_row = rows[expected_variables.index("valor")]
+    claim_text = value_row.get("Valores ou Domínio Esperado", "")
+    claim_match = re.search(r"([0-9.]+)\s+nulos", claim_text)
+    if claim_match is None:
+        raise fail("[dicionário] não foi possível extrair a alegação de nulos de valor")
+    claimed = int(claim_match.group(1).replace(".", ""))
+    expected_claim = int(config.get("claimed_null_counts", {}).get("valor", claimed))
+    if claimed != expected_claim:
+        raise fail(f"[dicionário] alegação de nulos de valor divergente: {claimed} != {expected_claim}")
+    values = [row.get("valor", "") for row in response["rows"]]
+    physical = sum(is_null(value) for value in values)
+    sentinels = sum(is_sentinel(value, response["config"], "valor") for value in values)
+    semantic = physical + sentinels
+    return {
+        "arquivo": dictionary_path.name,
+        "status": "OK",
+        "colunas_esperadas": len(expected_columns),
+        "colunas_encontradas": len(actual_columns),
+        "variaveis_esperadas": len(expected_variables),
+        "variaveis_encontradas": len(variables),
+        "valor_nulos_dicionario": claimed,
+        "valor_nulos_fisicos": physical,
+        "valor_sentinelas": sentinels,
+        "valor_nulos_semanticos": semantic,
+        "divergencia_dicionario_vs_fisico": claimed - physical,
+        "divergencia_dicionario_vs_semantico": claimed - semantic,
+        "observacao": "A diferença dicionário-vazio físico corresponde às sentinelas NA; não há divergência semântica.",
+    }
+
+
 def temporal_rows(data_by_id: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     checks = [
         ("pesquisas", "data_solicitacao", "data_aprov", "solicitacao <= aprovacao"),
@@ -516,6 +789,25 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
     manifest = read_manifest(manifest_path)
     sources = source_by_id(manifest)
     data_by_id = {source_id: read_source(input_dir, source) for source_id, source in sources.items()}
+    dictionary_result = (
+        validate_dictionary(dictionary_path, manifest, data_by_id)
+        if dictionary_path is not None
+        else {
+            "arquivo": "",
+            "status": "NAO_INFORMADO",
+            "colunas_esperadas": len(manifest.get("dictionary", {}).get("required_columns", [])),
+            "colunas_encontradas": 0,
+            "variaveis_esperadas": len(manifest.get("dictionary", {}).get("required_variables", [])),
+            "variaveis_encontradas": 0,
+            "valor_nulos_dicionario": "",
+            "valor_nulos_fisicos": "",
+            "valor_sentinelas": "",
+            "valor_nulos_semanticos": "",
+            "divergencia_dicionario_vs_fisico": "",
+            "divergencia_dicionario_vs_semantico": "",
+            "observacao": "Forneça --dictionary para validar o contrato semântico.",
+        }
+    )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     summary = [profile_summary(data) for data in data_by_id.values()]
@@ -525,6 +817,9 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
     relations = relation_rows(data_by_id, manifest)
     temporal = temporal_rows(data_by_id)
     identities = identity_rows(data_by_id)
+    conditional = conditional_null_rows(data_by_id, manifest)
+    percentages = percentage_rows(data_by_id)
+    denormalized = denormalized_rows(data_by_id)
 
     write_csv(output_dir / "resumo.csv", summary, list(summary[0]))
     write_csv(output_dir / "campos.csv", fields, list(fields[0]))
@@ -533,6 +828,10 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
     write_csv(output_dir / "datas.csv", dates, DATE_FIELDS)
     write_csv(output_dir / "coerencia_temporal.csv", temporal, TEMPORAL_FIELDS)
     write_csv(output_dir / "identidades.csv", identities, IDENTITY_FIELDS)
+    write_csv(output_dir / "nulos_condicionais.csv", conditional, CONDITIONAL_FIELDS)
+    write_csv(output_dir / "percentuais.csv", percentages, PERCENT_FIELDS)
+    write_csv(output_dir / "denormalizados.csv", denormalized, DENORMALIZED_FIELDS)
+    write_csv(output_dir / "dicionario_validacao.csv", [dictionary_result], DICTIONARY_FIELDS)
 
     applied = {
         "manifest_version": manifest.get("version", "desconhecida"),
@@ -551,6 +850,8 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
         ],
         "dictionary_provided": dictionary_path is not None,
         "dictionary_file": dictionary_path.name if dictionary_path else "",
+        "dictionary_status": dictionary_result["status"],
+        "temporal": manifest.get("temporal", {}),
         "outputs": list(OUTPUT_NAMES[:-1]),
         "raw_data_written": False,
     }
@@ -565,7 +866,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--input-dir", "--input", dest="input_dir", type=Path, required=True, help="diretório somente leitura com os CSVs")
     parser.add_argument("--output-dir", "--output", dest="output_dir", type=Path, required=True, help="diretório novo/temporário para agregados")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="manifesto JSON")
-    parser.add_argument("--dictionary", type=Path, help="dicionário local opcional, somente para registrar presença")
+    parser.add_argument("--dictionary", type=Path, required=True, help="dicionário local a validar (CSV separado por vírgula)")
     return parser
 
 

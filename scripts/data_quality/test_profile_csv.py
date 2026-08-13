@@ -68,6 +68,24 @@ class ProfileCsvTest(unittest.TestCase):
             all_output = b"".join(path.read_bytes() for path in output.iterdir())
             self.assertNotIn(b"RESPPOSTA-SEGRETA", all_output)
 
+    def test_arbitrary_dictionary_fails_before_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            input_dir = root / "input"
+            input_dir.mkdir()
+            (root / "manifest.json").write_text(
+                json.dumps(
+                    {"sources": [{"id": "a", "file": "a.csv", "columns": ["id"], "key": ["id"]}]}
+                ),
+                encoding="utf-8",
+            )
+            (input_dir / "a.csv").write_text("\ufeffid\n1\n", encoding="utf-8")
+            dictionary = root / "arbitrario.csv"
+            dictionary.write_text("wrong\nvalue\n", encoding="utf-8")
+            with self.assertRaisesRegex(profile_csv.ProfileError, r"\[dicionário\] cabeçalho incompatível"):
+                profile_csv.run(input_dir, root / "out", root / "manifest.json", dictionary)
+            self.assertFalse((root / "out").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
