@@ -61,6 +61,14 @@ python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
 git diff --check
 ```
 
+Para conferir também a identidade e os trechos usados das duas fontes
+primárias externas, execute:
+
+```bash
+python3 scripts/traceability/validate_traceability.py \
+  --sources-dir /caminho/seguro/das-fontes
+```
+
 Os protótipos possuem instruções próprias em
 [`assets/prototipos-dashboards/README.md`](assets/prototipos-dashboards/README.md).
 A suíte de integração depende dos seis CSVs externos e deve receber o diretório

@@ -106,12 +106,12 @@ implementação, homologação e operação controlada.
 
 # 2. Descrição do Problema
 
-A documentação consolidada atribui ao cenário atual a fragmentação entre
-fontes e etapas, o esforço de cruzamento manual e a baixa rastreabilidade.
-Nesta cópia do repositório, as fontes primárias dessa caracterização estão
-citadas nas referências [1], [2], [13] e [14], mas seus arquivos não estão
-disponíveis para conferência direta. Por isso, essas dores permanecem como
-síntese derivada e pendente de auditoria primária.
+O TAPI [1] confirma que as ferramentas são consolidadas em cada etapa, mas não
+possuem integração estruturada; o dashboard é atualizado manualmente, o acervo
+é isolado, não há rastreabilidade automatizada e decisões dependem de
+cruzamentos em planilhas. A Arquitetura de Negócio [2] confirma a fragmentação
+ao longo do fluxo. A magnitude de esforço, custo, demora e retrabalho não foi
+medida nesta Sprint e continua pendente de linha de base operacional.
 
 Os dados permitem confirmar problemas mais específicos: domínios de
 identificadores não coincidentes, relações órfãs, ausência de ponte comprovada
@@ -184,16 +184,17 @@ essas fronteiras estão delimitadas na §1.4.
 
 # 3. Objetivos
 
-**Objetivo geral proposto:** projetar a espinha dorsal de dados da Central de
-Pesquisas do Sindusfarma, integrando as fontes atribuídas ao processo em uma
-visão governada, rastreável e adequada ao consumo analítico. Banco de dados em
-nuvem, integrações e operação automatizada são decisões de implementação ainda
-pendentes, não capacidades entregues nesta Sprint.[<sup>\[1\]</sup>](#7-referências)
+**Objetivo geral confirmado no TAPI:** construir a espinha dorsal de dados da
+Central de Pesquisas do Sindusfarma, integrando as fontes existentes em uma
+base central na nuvem, com governança, qualidade e consumo por data app. Esta
+Sprint especifica parte dessa arquitetura; banco, integrações e operação
+automatizada ainda não são capacidades entregues.[<sup>\[1\]</sup>](#7-referências)
 
 **Objetivos específicos:** cada objetivo traz o valor pretendido e o indicador
-que permitiria acompanhá-lo (ver §6.4). A síntese atribui a origem aos
-documentos [1]–[3], cujos arquivos primários não estão neste checkout; por isso,
-os objetivos permanecem pendentes de conferência direta.
+que permitiria acompanhá-lo (ver §6.4). Integração, rastreabilidade, redução de
+esforço, adesão, apoio a decisões, governança e LGPD são confirmados no TAPI e
+na Arquitetura de Negócio [1], [2]. Sua implantação e seus resultados ainda
+dependem de medição.
 
 | Objetivo (verbo de ação) | Valor para o parceiro | Como é medido |
 | :--- | :--- | :--- |
@@ -206,20 +207,20 @@ os objetivos permanecem pendentes de conferência direta.
 
 # 4. Arquitetura de Dados (ISO/IEC 10746)
 
-Esta seção separa o diagnóstico observado ou atribuído ao cenário atual da
-arquitetura alvo proposta. O AS-IS da §4.0 combina medições reproduzíveis das
-bases com uma síntese documental ainda pendente de conferência nas fontes
-primárias. As §§4.1–4.4 descrevem contratos de informação, tecnologia,
-engenharia e qualidade; não comprovam infraestrutura implantada.
+Esta seção separa o diagnóstico confirmado documentalmente para o cenário atual
+da arquitetura alvo proposta. O AS-IS da §4.0 combina o TAPI e a Arquitetura de
+Negócio auditados [1], [2] com medições reproduzíveis das bases. As §§4.1–4.4
+descrevem contratos de informação, tecnologia, engenharia e qualidade; não
+comprovam infraestrutura implantada.
 
 ## 4.0 Estado Atual (AS-IS)
 
 O estado atual possui duas camadas de evidência. A estrutura, as contagens e os
 problemas de qualidade são observados diretamente nos seis CSVs identificados
-na §5.3.6. A descrição do processo e das ferramentas é uma síntese derivada de
-[1], [2], [13] e [14], cujos arquivos primários não estão neste checkout. Essa
-segunda camada permanece pendente de conferência e não é tratada como fato
-reconfirmado pelo parceiro.
+na §5.3.6. O processo, as ferramentas e a ausência de integração são
+confirmados no TAPI e na Arquitetura de Negócio [1], [2]. Detalhes atribuídos
+exclusivamente a JTBD ou Problem Canvas continuam pendentes porque esses
+originais não estão disponíveis.
 
 ### 4.0.1 Fontes de dados e ferramentas atuais
 
@@ -399,11 +400,11 @@ Esta subseção detalha limitações organizacionais do AS-IS. A narrativa
 canônica do fluxo de valor, com estados de evidência e comparação com o TO-BE,
 está na §2.1; em caso de divergência, prevalece a qualificação daquela seção.
 
-O documento consolidado atribui ao fluxo atual o uso de planilhas, formulários
-de coleta, gestão de tarefas e repositório publicado, com integração limitada
-entre etapas. Como [1] e [2] não estão disponíveis para conferência direta,
-essa descrição permanece **síntese derivada**. A situação alvo da tabela é uma
-proposta; não comprova implantação.
+O TAPI confirma Excel, SurveyMonkey, Trello, repositório do site e um workflow
+pontual em n8n, sem integração estruturada ao longo do ciclo. A Arquitetura de
+Negócio confirma as dez etapas detalhadas na §2.1 e a necessidade de manter os
+objetos ligados à mesma Pesquisa [1], [2]. A situação alvo da tabela permanece
+uma proposta e não comprova implantação.
 
 - **Solicitação e triagem** — registro e aprovação da demanda de uma nova pesquisa.
 - **Planejamento e validação do questionário** — estruturação das perguntas e revisão técnica com as áreas responsáveis.
@@ -1664,9 +1665,11 @@ Os papéis de governança não equivalem automaticamente aos agentes jurídicos 
 LGPD. A indicação de Data Owner, Data Steward ou Data Custodian é
 organizacional; controlador, operador, suboperador e encarregado devem ser
 definidos pela realidade de cada operação, pelas instruções e pelos contratos.
-A tabela reproduz nomes presentes no baseline documental do DMC como referência
-para validação, não como designação formalizada. Os arquivos primários [1]–[3]
-não estão neste checkout e ainda precisam ser confrontados diretamente.
+A tabela preserva os nomes do baseline documental do DMC como referência, sem
+inferir designação jurídica. O TAPI [1] confirma lideranças do projeto e a
+Arquitetura [2] registra os papéis de Owner, Stewards e Custodian. O DMC em PDF
+[3] continua indisponível para conferência direta, e controlador, operador e
+encarregado ainda dependem da realidade de cada tratamento.
 
 | Papel de governança | Referência do projeto | Responsabilidade proposta, sujeita a validação |
 | :--- | :--- | :--- |
@@ -1790,9 +1793,9 @@ Assim, a governança proposta atende ao ciclo completo — coleta, integração,
 
 # 7. Referências
 
-[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento de projeto (arquivo local `context/Tapi-sinduspharma.txt`) disponibilizado pela faculdade e pelo parceiro de projeto.
+[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
 
-[2] INTELI; SINDUSFARMA. **Arquitetura de Negócio: Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Documento de projeto (arquivo local `context/Arquitetura-de-Negócio-Central-de-Pesquisas-do-Sindusfarma.txt`) disponibilizado pela faculdade e pelo parceiro de projeto.
+[2] INTELI; SINDUSFARMA. **Arquitetura de Negócio: Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Documento externo `Arquitetura-de-Negócio-Central-de-Pesquisas-do-Sindusfarma.txt`, conferido em 13 ago. 2026; SHA-256 `76e50e5f090cadaa39f5fef81473dacccbf069d5071238be84720e0aafb70afd`.
 
 [3] INTELI; SINDUSFARMA. **Data Model Canvas: Data Warehouse — Sindusfarma**. São Paulo, 2026. Artefato de documentação (arquivo `Data Model Canvas.pdf`) disponibilizado pela faculdade e pelo parceiro de projeto.
 
@@ -1843,7 +1846,7 @@ ou funcionamento de uma plataforma produtiva.
 | Modelo dimensional exportado | 4 cubos; Dados e Governança vazios em todos | `scripts/dmc/validate_dmc.py docs/dmc.json` |
 | Testes estruturais do DMC | 17 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
 | Testes do perfilamento | 5 testes aprovados | `python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'` |
-| Testes de rastreabilidade | 10 testes aprovados | `python3 -m unittest discover -s scripts/traceability -p 'test_*.py'` |
+| Testes de rastreabilidade | 13 testes aprovados, incluindo 2 fontes primárias e 12 afirmações conferidas | `SINDUSFARMA_SOURCE_DIR=/caminho/seguro/das/fontes python3 -m unittest discover -s scripts/traceability -p 'test_*.py'` |
 | Reabertura na ferramenta oficial | 4 cards renderizados, sem erro de aplicação ou resposta HTTP falha | importação e reexportação em sessão nova, com comparação semântica do JSON |
 
 ### 8.1.2 Meta / projetado para sprints futuras
@@ -1867,9 +1870,10 @@ ficaram fora do recorte desta Sprint.
 A principal lacuna analítica é o cubo de resultados/questionários. PB10, PB11,
 PB13 e I12–I15 permanecem especificados, mas não possuem um contrato dimensional
 próprio porque a Task 43 não entregou conteúdo exclusivo para integração. As
-fontes primárias [1], [2], [3], [12], [13] e [14] também precisam ser
-recuperadas para auditoria independente. Esses pontos são pendências declaradas,
-não resultados omitidos nem capacidade presumida.
+fontes [3], [12], [13] e [14] ainda precisam ser recuperadas para auditoria
+independente. O TAPI [1] e a Arquitetura [2] foram conferidos pelos hashes
+registrados no mapa de fontes. Esses pontos são pendências declaradas, não
+resultados omitidos nem capacidade presumida.
 
 ## 8.3 Tabela de Fontes e Auditabilidade
 
@@ -1880,7 +1884,7 @@ evidência observada e decisão proposta.
 
 | Bloco | Origem auditável | Classificação e estado |
 | :--- | :--- | :--- |
-| Contexto, escopo, processo e papéis | TAPI [1], Arquitetura de Negócio [2], JTBD [13] e Problem Canvas [14] | Fontes primárias citadas; os arquivos não estão nesta cópia do repositório e a conferência direta permanece pendente |
+| Contexto, escopo, processo e papéis | TAPI [1] e Arquitetura de Negócio [2], identificados por SHA-256 em `docs/fontes-e-dependencias.md`; JTBD [13] e Problem Canvas [14] | TAPI e Arquitetura conferidos diretamente; conteúdo exclusivo de JTBD e Problem Canvas permanece pendente |
 | Estrutura, grão e qualidade das bases | seis CSVs externos identificados pelos hashes da §5.3.6; manifesto, perfilador e testes em `scripts/data_quality/` | Evidência observada no snapshot local; o método é reproduzível quando as fontes e o dicionário estão disponíveis, mas os dados brutos não fazem parte do checkout |
 | Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; histórico das issues #21–#25 e #40–#49 | Síntese derivada; o vínculo específico deve citar issue, branch, commit ou MR e as limitações constam nas §§5.6 e 6.4 |
 | Cadeia analítica executável | `scripts/traceability/manifest.json`, validador e testes; IDs e nomes conferidos contra `docs/dmc.json` | 13 perguntas, 13 requisitos, 25 indicadores e 4 dashboards cobertos; I12–I15 mantidos como lacuna formal da Task 43 |
@@ -1892,18 +1896,19 @@ afirmações exigidos nesta Sprint:
 
 | Afirmação auditada | Origem seguida até a fonte | Tipo | Resultado |
 | :--- | :--- | :--- | :--- |
-| Identidade do parceiro e propósito do projeto | referências TAPI [1] e Arquitetura [2] | fonte primária ausente | **Pendente:** manter como atribuição documental, sem dizer que foi reconfirmada |
-| Fragmentação, cruzamentos manuais e processo AS-IS | referências [1], [2], [13] e [14] | síntese derivada | **Correção aplicada:** narrativa e tabela passaram a declarar a auditoria primária pendente |
+| Identidade do parceiro e propósito do projeto | TAPI [1] e Arquitetura [2], conferidos por hash | fonte primária | **OK:** parceiro, propósito, escopo macro, MVP e públicos confirmados documentalmente |
+| Fragmentação, cruzamentos manuais e processo AS-IS | TAPI [1] e Arquitetura [2] | fonte primária | **OK:** ausência de integração, dashboard manual, silo e cruzamentos em planilhas confirmados; magnitude de esforço continua sem medição |
 | Seis fontes, estrutura, contagens, chaves, nulos e relações órfãs | CSVs externos identificados pelos hashes da §5.3.6 e `scripts/data_quality/` | observado nos dados e no código | **OK:** reproduzível sem publicar os registros |
 | Natureza real ou sintética dos CSVs | nenhuma declaração primária disponível | pendente | **Correção aplicada:** removida a afirmação de que as linhas são fictícias; o uso continua restrito a agregados |
-| Data Owner, Data Steward e Data Custodian | baseline do DMC [3] e `docs/dmc.json` | referência documental derivada | **Correção aplicada:** nomes são referências para validação, não designações formais |
+| Data Owner, Data Steward e Data Custodian | Arquitetura [2], baseline do DMC [3] e `docs/dmc.json` | referência documental | **OK com limitação:** nomes e responsabilidades constam na Arquitetura; designações jurídicas e política final não são inferidas |
 | Riscos de qualidade, exposição e reidentificação | campos, chaves, e-mail e texto livre observados; §6.6 | observado + avaliação de risco | **OK:** nenhuma autorização de publicação é inferida |
-| RF01–RF13 e PB01–PB13 | referências primárias citadas, estrutura observada e síntese do grupo | contrato proposto | **OK com limitação:** necessidade atribuída a fonte ausente permanece pendente; campo observado é citado diretamente |
+| RF01–RF13 e PB01–PB13 | TAPI [1], Arquitetura [2], estrutura observada e síntese do grupo | contrato proposto sustentado por fonte | **OK com limitação:** contratos são da equipe; campos e dependências observáveis são citados diretamente |
 | I01–I25 | CSVs, perfilamento e dependências declaradas nas §§5.6 e 6.4 | observado, mapeamento ou integração futura | **OK:** cada indicador explicita disponibilidade e denominador; indisponível nunca vira zero |
 | Atualização automática, acesso e publicação | ausência de timestamp, política, logs e decisão no snapshot | proposta futura | **Correção aplicada:** removidas afirmações de capacidade atual ou tempo real |
 | Quatro cards dimensionais do DMC | issues #44–#47, §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional preenchido; Dados/Governança vazios por escopo; cubo próprio de resultados permanece dependência da Task 43 |
 
 Nenhuma referência a uma fonte ausente deve ser usada, isoladamente, para
-classificar uma afirmação como confirmada pelo parceiro. Até a recuperação do
-arquivo original, a afirmação permanece como síntese derivada ou pendente de
-auditoria primária.
+classificar uma afirmação como confirmada pelo parceiro. TAPI e Arquitetura só
+sustentam os trechos que afirmam explicitamente; conteúdo exclusivo do DMC em
+PDF, dicionário, JTBD ou Problem Canvas permanece derivado ou pendente até a
+recuperação do original.

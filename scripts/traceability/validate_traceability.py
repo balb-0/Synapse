@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -70,6 +72,66 @@ def _dmc_cubes(document: dict[str, Any]) -> dict[str, str]:
             raise TraceabilityError(f"cubo {cube['id']} deve ter nome textual")
         result[cube["id"]] = fields["nome"]
     return result
+
+
+def _normalized_text(value: str) -> str:
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def validate_primary_sources(
+    manifest: dict[str, Any], sources_dir: Path
+) -> dict[str, int]:
+    sources = manifest.get("primarySources")
+    if not isinstance(sources, list) or not sources:
+        raise TraceabilityError("o manifesto deve registrar as fontes primárias")
+
+    claim_count = 0
+    seen_ids: set[str] = set()
+    for source in sources:
+        if not isinstance(source, dict):
+            raise TraceabilityError("cada fonte primária deve ser um objeto")
+        source_id = source.get("id")
+        filename = source.get("filename")
+        expected_hash = source.get("sha256")
+        claims = source.get("claims")
+        if not all(isinstance(value, str) and value.strip() for value in (
+            source_id, filename, expected_hash
+        )):
+            raise TraceabilityError("fonte primária sem id, arquivo ou SHA-256")
+        if source_id in seen_ids:
+            raise TraceabilityError(f"fonte primária duplicada: {source_id}")
+        seen_ids.add(source_id)
+        if not isinstance(claims, list) or not claims:
+            raise TraceabilityError(f"{source_id} deve registrar afirmações auditáveis")
+
+        path = sources_dir / filename
+        try:
+            raw = path.read_bytes()
+            content = raw.decode("utf-8")
+        except (OSError, UnicodeDecodeError) as error:
+            raise TraceabilityError(f"não foi possível ler a fonte {source_id}: {error}") from error
+        actual_hash = hashlib.sha256(raw).hexdigest()
+        if actual_hash != expected_hash:
+            raise TraceabilityError(f"SHA-256 da fonte {source_id} diverge do manifesto")
+
+        normalized = _normalized_text(content)
+        claim_ids: set[str] = set()
+        for claim in claims:
+            if not isinstance(claim, dict):
+                raise TraceabilityError(f"afirmação inválida em {source_id}")
+            claim_id, phrase = claim.get("id"), claim.get("phrase")
+            if not all(isinstance(value, str) and value.strip() for value in (claim_id, phrase)):
+                raise TraceabilityError(f"afirmação sem id ou trecho em {source_id}")
+            if claim_id in claim_ids:
+                raise TraceabilityError(f"afirmação duplicada em {source_id}: {claim_id}")
+            claim_ids.add(claim_id)
+            if _normalized_text(phrase) not in normalized:
+                raise TraceabilityError(
+                    f"a fonte {source_id} não sustenta a afirmação {claim_id}"
+                )
+            claim_count += 1
+
+    return {"sources": len(sources), "claims": claim_count}
 
 
 def _project_matrix(path: Path) -> list[list[str]]:
@@ -223,20 +285,38 @@ def main() -> int:
     )
     parser.add_argument("--dmc", type=Path, default=Path("docs/dmc.json"))
     parser.add_argument("--project", type=Path, default=Path("docs/projeto.md"))
+    parser.add_argument(
+        "--sources-dir",
+        type=Path,
+        help="diretório externo com TAPI e Arquitetura para conferir hash e trechos",
+    )
     args = parser.parse_args()
     try:
         manifest = load_json(args.manifest)
         summary = validate(manifest, load_json(args.dmc))
         validate_project_matrix(manifest, args.project)
+        source_summary = (
+            validate_primary_sources(manifest, args.sources_dir)
+            if args.sources_dir
+            else None
+        )
     except TraceabilityError as error:
         print(f"Rastreabilidade inválida: {error}", file=sys.stderr)
         return 1
-    print(
+    message = (
         "Rastreabilidade válida: "
         f"{summary['questions']} perguntas; {summary['indicators']} indicadores; "
         f"{summary['cubes']} cubos; {summary['pendingIndicators']} indicadores "
         "com lacuna formal da Task 43"
     )
+    if source_summary:
+        message += (
+            f"; {source_summary['sources']} fontes primárias e "
+            f"{source_summary['claims']} afirmações conferidas"
+        )
+    else:
+        message += "; fontes primárias não conferidas neste comando"
+    print(message)
     return 0
 
 

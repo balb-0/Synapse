@@ -1,5 +1,33 @@
 {
   "schemaVersion": 1,
+  "primarySources": [
+    {
+      "id": "TAPI",
+      "filename": "Tapi-sinduspharma.txt",
+      "sha256": "16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c",
+      "claims": [
+        {"id": "as_is_fragmentado", "phrase": "porém sem integração estruturada entre elas"},
+        {"id": "dashboard_manual", "phrase": "o dashboard é atualizado manualmente"},
+        {"id": "objetivo", "phrase": "Construir a espinha dorsal de dados da Central de Pesquisas"},
+        {"id": "mvp", "phrase": "Versão mínima funcional contendo"},
+        {"id": "publicos", "phrase": "usuário principal = equipe interna da Central de Pesquisas"},
+        {"id": "fora_de_escopo", "phrase": "Substituição das ferramentas operacionais atuais"}
+      ]
+    },
+    {
+      "id": "ARQUITETURA_NEGOCIO",
+      "filename": "Arquitetura-de-Negócio-Central-de-Pesquisas-do-Sindusfarma.txt",
+      "sha256": "76e50e5f090cadaa39f5fef81473dacccbf069d5071238be84720e0aafb70afd",
+      "claims": [
+        {"id": "valor_central", "phrase": "Transformar uma necessidade de informação do setor farmacêutico em conhecimento estruturado e confiável."},
+        {"id": "fluxo_inicio", "phrase": "1. Solicitação"},
+        {"id": "fluxo_fim", "phrase": "10. Entrega e publicação"},
+        {"id": "pessoa_participacao", "phrase": "Cliente representa a pessoa conhecida pela Central, enquanto a participação dela em uma pesquisa é outro evento."},
+        {"id": "grao_resposta", "phrase": "um elemento de resposta de um respondente para uma pergunta de uma pesquisa."},
+        {"id": "papeis", "phrase": "O Data Model Canvas identifica Fabio Moreira como Data Owner"}
+      ]
+    }
+  ],
   "cubes": {
     "C01": {"dmcId": "cubo-1", "name": "Ciclo de Vida das Pesquisas"},
     "C02": {"dmcId": "cubo-2", "name": "Adesão e Participação"},

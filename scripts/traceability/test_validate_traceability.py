@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import os
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -79,6 +82,57 @@ class ValidateTraceabilityTest(unittest.TestCase):
         validate_traceability.validate_project_matrix(
             self.manifest, REPOSITORY_ROOT / "docs/projeto.md"
         )
+
+    @unittest.skipUnless(
+        os.getenv("SINDUSFARMA_SOURCE_DIR"),
+        "fontes primárias externas não informadas",
+    )
+    def test_current_primary_sources_are_valid(self) -> None:
+        summary = validate_traceability.validate_primary_sources(
+            self.manifest, Path(os.environ["SINDUSFARMA_SOURCE_DIR"])
+        )
+        self.assertEqual(summary, {"sources": 2, "claims": 12})
+
+    def test_primary_source_hash_mismatch_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "fonte.txt"
+            path.write_text("Trecho confirmado", encoding="utf-8")
+            manifest = self._primary_source_manifest("0" * 64, "Trecho confirmado")
+            with self.assertRaisesRegex(
+                validate_traceability.TraceabilityError, "SHA-256"
+            ):
+                validate_traceability.validate_primary_sources(
+                    manifest, Path(directory)
+                )
+
+    def test_primary_source_missing_claim_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "fonte.txt"
+            content = "Trecho confirmado"
+            path.write_text(content, encoding="utf-8")
+            manifest = self._primary_source_manifest(
+                hashlib.sha256(content.encode("utf-8")).hexdigest(),
+                "Trecho ausente",
+            )
+            with self.assertRaisesRegex(
+                validate_traceability.TraceabilityError, "não sustenta"
+            ):
+                validate_traceability.validate_primary_sources(
+                    manifest, Path(directory)
+                )
+
+    @staticmethod
+    def _primary_source_manifest(expected_hash: str, phrase: str) -> dict:
+        return {
+            "primarySources": [
+                {
+                    "id": "FONTE_TESTE",
+                    "filename": "fonte.txt",
+                    "sha256": expected_hash,
+                    "claims": [{"id": "afirmacao", "phrase": phrase}],
+                }
+            ]
+        }
 
 
 if __name__ == "__main__":
