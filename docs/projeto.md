@@ -611,7 +611,7 @@ concluída. Essas situações devem permanecer distintas.
 
 - **Comparação temporal:** Dadas pesquisas com datas de referência disponíveis, quando consultar prazos e tempos, então cada medida ou classificação de atraso, duração ou prorrogação identifica o par de campos e os valores usados na comparação, sem usar “período” como referência temporal ambígua.
 - **Prorrogação:** Dada uma pesquisa com `prorrogada_ate` registrada, quando compará-la ao prazo original, então o novo marco é apresentado sem substituir ou ocultar a data limite original.
-- **Filtros:** Dado o conjunto de pesquisas, quando filtrar por período, estado de prazo, prorrogação ou prioridade declarada, então somente os registros compatíveis compõem a lista e as comparações.
+- **Filtros:** Dado o conjunto de pesquisas, quando filtrar por `data_solicitacao` como campo temporal padrão, estado de prazo, prorrogação ou prioridade declarada, então somente os registros compatíveis compõem a lista e as comparações; outro marco temporal só é usado quando selecionado explicitamente e seu campo fica rotulado no resultado.
 - **Informação indisponível:** Dada uma pesquisa sem uma data necessária ou sem prioridade declarada, quando analisá-la, então a classificação dependente aparece como indisponível e não como atraso, ausência de prioridade ou duração igual a zero.
 - **Erro ou acesso:** Dada uma falha da fonte ou um perfil sem acesso aos dados operacionais, quando consultar prazos, então a consulta é interrompida com mensagem própria e sem expor detalhes restritos.
 
