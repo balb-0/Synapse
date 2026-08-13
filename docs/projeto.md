@@ -571,13 +571,23 @@ Os requisitos não funcionais abaixo seguem as características da ISO/IEC 25010
 
 ## 6.3 Perguntas de Negócio
 
-_conteúdo_
-
-**Nota:** Perguntas rastreáveis que o DW precisa responder, cada uma associada a pelo menos um requisito funcional.
+As perguntas abaixo explicitam o vínculo mínimo entre os requisitos e o uso
+analítico. Elas não definem dashboards, visualizações ou critérios de teste;
+essas especificações ficam para as seções e issues próprias.
 
 | ID | Pergunta de negócio | Requisito(s) associado(s) |
 | :--- | :--- | :--- |
-| _ | _ | _ |
+| PB01 | Quais pesquisas compõem o portfólio e como se distribuem por período, tipo, área, complexidade e status? | RF01 |
+| PB02 | Em que etapa está cada pesquisa, quais marcos já ocorreram e quais informações do seu detalhe estão disponíveis? | RF02 |
+| PB03 | Quais pesquisas estão atrasadas, foram prorrogadas ou demandam prioridade, e como os tempos do ciclo se comparam? | RF03 |
+| PB04 | A participação alcançada é suficiente e representa as empresas ou parcelas de mercado relevantes? | RF04 |
+| PB05 | Quais áreas, departamentos e cargos participam mais ou menos? | RF05 |
+| PB06 | Quais dados estão completos e válidos, quais lacunas permanecem e qual é o estado de atualização de cada fonte? | RF06 |
+| PB07 | De qual fonte veio uma pesquisa, quem participou, qual questão originou o resultado e quais respostas o sustentam? | RF07 |
+| PB08 | Que dados cada perfil pode consultar, detalhar ou publicar sem expor informações não autorizadas? | RF08 |
+| PB09 | O resultado foi autorizado, publicado e está consistente com a pesquisa interna correspondente? | RF09 |
+| PB10 | Qual foi a distribuição das respostas para cada questão e como ela varia entre pesquisas ou segmentos permitidos? | RF10 |
+| PB11 | Qual registro de resposta sustenta este agregado e quais contextos devem ser considerados na leitura? | RF11 |
 
 ## 6.4 Indicadores e Métricas de Negócio
 
