@@ -35,8 +35,8 @@ Percentuais informam parseáveis, inválidos e fora de `[0,100]`.
 Sentinelas são configuradas por campo no manifesto: `s/i`, `NA`, `N/A` e
 `n/a` podem ser nulos semânticos; `-` só é sentinela em campos configurados
 (por exemplo, `empresas.Associado`) e permanece texto em `respostas.valor`.
-As contagens física, de sentinelas e semântica ficam separadas. Assim, o
-O perfilador só exige alegações que o dicionário realmente fornece: quando uma
+As contagens física, de sentinelas e semântica ficam separadas. O perfilador só
+exige alegações que o dicionário realmente fornece: quando uma
 linha não declara cardinalidade, faixa ou nulos, o campo é reportado como não
 informado, sem inventar um limiar. Para alegações presentes, as nove variáveis
 são confrontadas com a medição física e semântica; incompatibilidade falha
