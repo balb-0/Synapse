@@ -340,17 +340,26 @@ _conteúdo_
 
 ## 5.2 Cubos Analíticos
 
-_conteúdo_
+Os cubos abaixo são contratos analíticos propostos a partir do snapshot dos seis
+CSV. Eles não afirmam a existência de um data warehouse implantado. A estrutura
+em estrela preserva as chaves recebidas como chaves de origem e só admite uma
+chave canônica depois da reconciliação. Dimensões degeneradas mantêm IDs e
+títulos para auditoria; dimensões de perfil não expõem e-mail nem resposta
+individual nos painéis.
 
-**Nota:** Para cada cubo, definir grão, estrutura (star/snowflake), tipo de fato, fatos/eventos, métricas, dimensões e dimensões especiais.
+| ID / cubo | Grão e estrutura | Tipo de fato e eventos | Métricas | Dimensões e dimensões especiais | Disponibilidade |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| C01 — Portfólio e ciclo | Uma linha por `pesquisas.id`; estrela com snapshot acumulado dos marcos disponíveis | Snapshot acumulado; solicitação, aprovação, divulgação, limite, prorrogação e entrega | I01–I06 | Pesquisa (ID e título como degeneradas), período de `data_solicitacao`, tipo, área, complexidade, status e tipo de resposta; marcos ausentes permanecem nulos | Calculável agora para I01–I05; Exige normalização ou mapeamento para I06 |
+| C02 — Participação e representatividade | Uma linha por registro de `respondentes.csv`, sem afirmar unicidade de pessoa; estrela após conciliação | Fato sem medida de participação observada; início e término quando registrados | I07–I11 | Pesquisa por `id_pesq`, empresa por `id_empresa`, cliente por `id_cliente`, cargo e departamento somente após ponte validada; mercado como medida textual a normalizar | Calculável agora para I07; Exige normalização ou mapeamento para I09–I10; Depende de integração futura para I08 e I11 |
+| C03 — Resultados e questionário | Uma linha por elemento atômico de `respostas.id_resposta`, ligada à questão por `id_pergunta`; estrela | Fato transacional de resposta atômica; definição de questão | I12–I15 | Pesquisa por `pesquisa_id`, questão, tipo, alternativa, linha e coluna de matriz; `respondent_id` fica restrito à contagem distinta na própria fonte, sem ponte individual | Calculável agora para I12–I14; Depende de integração futura para I15 |
+| C04 — Qualidade e governança | Uma linha por fonte, campo, regra e execução de perfilamento; propõe-se identificar cada execução por `execution_id`, hashes dos seis arquivos de entrada, `processado_em` e versão do perfilador | Snapshot periódico de validação; recepção, perfilamento, reconciliação, autorização e publicação quando registrados | I16–I25 | Fonte, campo, regra, execução auditável, estado de linhagem, perfil de acesso e decisão do Data Owner; sistema de origem, versão de carga e autorização são dimensões futuras | Calculável agora para I16–I20; Exige normalização ou mapeamento para I22; Depende de integração futura para I21 e I23–I25 |
 
-A matriz completa de cubos, grãos, métricas, dimensões e estados é dependência
-da issue **#23**. A tabela abaixo permanece como estrutura de trabalho e não
-afirma que cubos ou métricas estejam implementados ou validados.
-
-| Cubo | Grão | Tipo de fato | Métricas principais | Dimensões |
-| :--- | :--- | :--- | :--- | :--- |
-| _ | _ | _ | _ | _ |
+Os fatos C02 e C03 permanecem separados: 3.592 elementos de resposta não podem
+ser convertidos em 3.592 respondentes, e os 542 `respondent_id` distintos em
+`respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem uma
+ponte aprovada. Os quatro `pesquisa_id` 424, 1116, 1139 e 1147 e o `id_pesq=304`
+continuam como chaves de origem em reconciliação, nunca como pesquisas criadas
+artificialmente.
 
 ## 5.3 Qualidade e Validação de Dados
 
@@ -574,19 +583,46 @@ Como proposta inicial, a equipe pode submeter à aprovação do Data Steward os 
 
 O arquivo `scripts/data_quality/README.md` documenta o comando, a validação do dicionário e as salvaguardas. Os testes unitários cobrem BOM, separador, percentual brasileiro, falha de schema, dicionário arbitrário e ausência de valores brutos nas saídas; a validação operacional deste diagnóstico também incluiu `py_compile`, duas execuções independentes e `git diff --check`.
 
+### 5.3.6 Identidade do snapshot usado nos dashboards
+
+Os indicadores e dashboards desta especificação usam o mesmo snapshot local analisado pelo perfilador. A execução separa nulo físico, sentinela e nulo condicional e produz somente agregados. Para permitir a conferência exata das fontes, os seis arquivos recebidos têm os seguintes SHA-256:
+
+| Arquivo recebido | SHA-256 |
+| :--- | :--- |
+| `clientes.csv` | `5073960065f3ce92a3eab34eeebb38af2b0aaa7e398c862963444a5b608719af` |
+| `empresas.csv` | `850aaa1840cd24f43c033a0f06d339c9b5186bdaad10f1b653c956e307d3ded5` |
+| `pesquisas.csv` | `b8b5773018953a59d25fabb0875825660efe1723fdd37af58a2d85b46b80e7dc` |
+| `questoes.csv` | `e2c592898d75d13fd4cc6a5181966707d8c836e7c52ad99ccbaef69b3efbec8f` |
+| `respondentes.csv` | `cb53e8517e7c43793f14131bd76a792f658c808c034f56da95c3235444afca05` |
+| `teste.csv` (nome canônico: `respostas.csv`) | `db4ebd90fdaf203084aff947b50d19a55dab9d0b05b6b692bcbb6eee9f3dd82a` |
+
+O snapshot recebido não informa a data de carga. Para execuções futuras, propõe-se registrar `execution_id`, os hashes dos seis arquivos, `processado_em` e a versão do perfilador. `processado_em` identifica o processamento e não prova carregamento ou atualidade da fonte. O `execution_id` só deve ser emitido quando a serialização canônica do manifesto estiver versionada; até lá, os hashes individuais acima são a identidade reproduzível, sem inventar um hash combinado.
+
 ## 5.4 Rastreabilidade Analítica
 
-_conteúdo_
+A matriz fecha a cadeia PB → RF → indicador → cubo → dashboard. Os vínculos
+indicam cobertura de especificação, não implementação. Os IDs permanecem
+estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5.
 
-**Nota:** Cadeia pergunta de negócio → requisito → indicador → cubo → dashboard. Garantir que todo requisito chegue a um dashboard e todo dashboard atenda a pelo menos um requisito.
-
-A matriz completa de rastreabilidade é dependência da issue **#23**. Nesta
-etapa, a tabela registra apenas o vínculo a detalhar; não representa
-implementação, cálculo validado ou dashboard existente.
-
-| Pergunta de negócio | Requisito | Indicador | Cubo | Dashboard |
+| Pergunta de negócio | Requisito | Indicador(es) | Cubo(s) | Dashboard(s) |
 | :--- | :--- | :--- | :--- | :--- |
-| _ | _ | _ | _ | _ |
+| PB01 | RF01 | I01, I02 | C01 | D01 |
+| PB02 | RF02 | I03, I04 | C01 | D01 |
+| PB03 | RF03 | I04, I05, I06 | C01 | D01 |
+| PB04 | RF04 | I07, I08, I09 | C02 | D02 |
+| PB05 | RF05 | I10, I11 | C02 | D02 |
+| PB06 | RF06 | I16, I17, I18, I19, I20, I21 | C04 | D04 |
+| PB07 | RF07 | I18, I22 | C04 | D04 |
+| PB08 | RF08 | I25 | C04 | D04 |
+| PB09 | RF09 | I23 | C04 | D04 |
+| PB10 | RF10 | I12, I13 | C03 | D03 |
+| PB11 | RF11 | I12, I13, I18, I22 | C03, C04 | D03, D04 |
+| PB12 | RF12 | I17, I19, I21, I24 | C04 | D04 |
+| PB13 | RF13 | I14, I15 | C03 | D03 |
+
+Assim, RF01–RF13 e PB01–PB13 chegam a pelo menos um indicador e um dashboard.
+D01–D04 recebem ao menos um requisito. O cruzamento D03 → D04 em PB11 é uma
+navegação de linhagem agregada, não uma autorização para consultar indivíduos.
 
 ## 5.5 Infraestrutura de Dados
 
@@ -596,23 +632,53 @@ _conteúdo_
 
 ## 5.6 Mapa de Cobertura de Indicadores
 
-_conteúdo_
+Este mapa não confunde disponibilidade de cálculo com indicador implementado.
+São usados exclusivamente os rótulos **Calculável agora**, **Exige normalização
+ou mapeamento** e **Depende de integração futura**. “Calculável agora” significa
+que o snapshot contém os campos necessários; a implementação e a homologação
+do painel continuam propostas.
 
-**Nota:** Matriz de rastreabilidade dos indicadores. A coluna **Estado** separa o que já é **calculado/validado** do que é **proposto**.
-
-| Indicador | Estado | Cubo / fonte | Fórmula / granularidade | Evidência |
-| :--- | :--- | :--- | :--- | :--- |
-| _ | _ | _ | _ | _ |
+| Indicador | Disponibilidade | Cubo / fonte | Evidência ou dependência verificável |
+| :--- | :--- | :--- | :--- |
+| I01 — Pesquisas no portfólio | Calculável agora | C01 / `pesquisas.csv` | `id` e `data_solicitacao`; 366 registros recebidos |
+| I02 — Distribuição do portfólio | Calculável agora | C01 / `pesquisas.csv` | `tipo`, `area`, `complexidade`, `status` e `tipo de resposta`; nulos ficam explícitos |
+| I03 — Cobertura dos marcos do ciclo | Calculável agora | C01 / `pesquisas.csv` | Seis datas documentadas; ausência por marco já perfilada na §5.3 |
+| I04 — Tempo observado entre marcos | Calculável agora | C01 / `pesquisas.csv` | Diferenças calculadas são dias corridos; campos declarados em dias úteis preservam a convenção original e não são tratados como equivalentes sem calendário confirmado |
+| I05 — Taxa observada de prorrogação | Calculável agora | C01 / `pesquisas.csv` | `prorrogada_ate` presente em 68 de 366 linhas; denominador analítico restringe-se às linhas com `data_limite` |
+| I06 — Pesquisas atrasadas ou prioritárias | Exige normalização ou mapeamento | C01 / regra de negócio + `pesquisas.csv` | Faltam data de referência, elegibilidade de atraso e campo/regra aprovada de prioridade |
+| I07 — Empresas participantes distintas | Calculável agora | C02 / `respondentes.csv` | Contagem distinta de `id_empresa` por `id_pesq`; nulos separados |
+| I08 — Taxa de adesão de empresas | Depende de integração futura | C02 / universo de convites | O snapshot não contém empresas convidadas/elegíveis por pesquisa |
+| I09 — Participação de mercado observada | Exige normalização ou mapeamento | C02 / `respondentes.csv` + `empresas.csv` | `market_share` e `% de mercado` estão em texto; divergência entre fontes bloqueia homologação até definir fonte autoritativa, sem precedência presumida |
+| I10 — Engajamento por público | Exige normalização ou mapeamento | C02 / `respondentes.csv` + `clientes.csv` + `pesquisas.csv` | `id_cliente` tem tipos incompatíveis; 856 vazios e 1 `s/i` em respondentes e 1 `s/i` em clientes viram não informado antes da ponte |
+| I11 — Taxa de engajamento do público | Depende de integração futura | C02 / cadastro de convidados elegíveis | Não existe denominador convidado por área, cargo ou departamento |
+| I12 — Distribuição agregada de respostas | Calculável agora | C03 / `respostas.csv` + `questoes.csv` | Elementos atômicos válidos por alternativa/valor/matriz; 8.307 vazios físicos e dois `NA` em `valor` ficam fora da base válida |
+| I13 — Respondentes distintos na fonte de respostas | Calculável agora | C03 / `respostas.csv` | 542 `respondent_id` distintos na fonte; sem ponte para `respondentes.id_cliente` |
+| I14 — Questões por tipo | Calculável agora | C03 / `questoes.csv` | `id_pergunta`, `pesquisa_id` e `tipo`; 43 questões têm pesquisa ausente em `pesquisas.csv` |
+| I15 — Estado de validação e versão do questionário | Depende de integração futura | C03 / repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
+| I16 — Completude aplicável | Calculável agora | C04 / seis CSV | Ausências por campo e natureza documentadas na §5.3; quatro ausências inesperadas nas 4.008 células de matriz aplicáveis |
+| I17 — Taxa de duplicidade | Calculável agora | C04 / seis CSV | Não foram observadas linhas ou IDs primários duplicados; FKs repetidas não são duplicatas |
+| I18 — Integridade referencial | Calculável agora | C04 / chaves dos seis CSV | Por relação: `respondentes → pesquisas`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes → pesquisas`, 188/231, 43 órfãs (18,6%); `respostas → pesquisas`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas usam os IDs 424, 1116, 1139 e 1147; `s/i` é não informado antes do teste |
+| I19 — Parseabilidade por tipo | Calculável agora | C04 / seis CSV | Datas, inteiros e medidas numéricas armazenadas como texto podem ser testados sem imputação; `s/i` é inválido/não informado, não valor de chave |
+| I20 — Divergência de título de pesquisa | Calculável agora | C04 / `pesquisas.csv` + `questoes.csv` | 41 linhas de questão divergentes entre 188 linhas comparáveis |
+| I21 — Frescor da fonte | Depende de integração futura | C04 / metadado de carga | Nenhum timestamp de extração/carga ou regra de frescor foi recebido |
+| I22 — Cobertura da linhagem agregada | Exige normalização ou mapeamento | C04 / chaves dos seis CSV | Chaves permitem elos parciais; sistema de origem e ponte participação–resposta estão ausentes |
+| I23 — Estado de publicação autorizada | Depende de integração futura | C04 / decisão do Data Owner + acervo | Autorização, estado e data de publicação não existem; `data_divulgacao` não os substitui |
+| I24 — Cobertura do processamento das fontes | Depende de integração futura | C04 / catálogo e execuções de ingestão | Faltam catálogo de fontes esperadas, execução, resultado e timestamp de carga |
+| I25 — Conformidade de acesso | Depende de integração futura | C04 / política e auditoria de acesso | Perfis finais, decisões do Data Owner e logs de autorização precisam ser aprovados e integrados |
 
 ## 5.7 Mapa de Cobertura de Dashboards
 
-_conteúdo_
+A disponibilidade do dashboard é a condição mais restritiva entre seus
+indicadores. Mesmo quando o painel completo depende de preparação adicional,
+os indicadores marcados **Calculável agora** podem ser prototipados a partir do
+snapshot, mantendo visível a disponibilidade de cada bloco.
 
-**Nota:** Para cada dashboard, registrar objetivo, perguntas respondidas, indicadores, filtros/segmentações e estado.
-
-| Dashboard | Estado | Objetivo | Indicadores apresentados | Evidência |
-| :--- | :--- | :--- | :--- | :--- |
-| _ | _ | _ | _ | _ |
+| Dashboard | Disponibilidade | Objetivo e cobertura | Indicadores | Filtros principais | Evidência / dependência |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| D01 — Operação: portfólio e prazos | Exige normalização ou mapeamento | Priorizar acompanhamento; PB01–PB03 / RF01–RF03 | I01–I06 | Período com `data_solicitacao` padrão, tipo, área, complexidade, status e tipo de resposta | I01–I05 usam `pesquisas.csv`; I06 aguarda referência temporal, elegibilidade e prioridade aprovadas |
+| D02 — Adesão e representatividade | Depende de integração futura | Avaliar alcance e públicos; PB04–PB05 / RF04–RF05 | I07–I11 | Pesquisa, marco temporal explícito, área, empresa e atributos empresariais; cargo/departamento após reconciliação | I07 é observável; mercado e identidades exigem normalização; taxas aguardam universos convidados |
+| D03 — Resultados e questionários | Depende de integração futura | Interpretar agregados e validar instrumentos; PB10–PB11 e PB13 / RF10–RF11 e RF13 | I12–I15 | Pesquisa, questão, tipo, alternativa, linha e coluna de matriz | Distribuições e contagens usam `questoes.csv`/`respostas.csv`; versão e validação aguardam metadados |
+| D04 — Qualidade e governança | Depende de integração futura | Decidir correção, custódia, acesso e publicação; PB06–PB09 e PB12 / RF06–RF09 e RF12 | I16–I25 | Fonte, campo, regra, natureza do nulo, execução, linhagem, perfil e publicação | Perfilamento atual sustenta I16–I20; demais blocos aguardam reconciliação, carga, política, catálogo ou decisão |
 
 # 6. Requisitos e Governança de Dados
 
@@ -1017,21 +1083,237 @@ essas especificações ficam para as seções e issues próprias.
 
 ## 6.4 Indicadores e Métricas de Negócio
 
-_conteúdo_
+As definições abaixo são independentes de ferramenta de BI e não prescrevem
+DAX. Cada taxa explicita numerador e denominador. Divisão por zero ou denominador
+ausente produz indicador indisponível, nunca zero. Em todos os indicadores,
+duplicidade significa repetição da chave/grão definido; repetição legítima de
+chave estrangeira não é removida.
 
-**Nota:** Para cada indicador: nome, objetivo, significado para o negócio, fórmula, variáveis, granularidade e dimensões de segmentação.
-
-| Indicador | Objetivo | Fórmula | Granularidade | Dimensões |
-| :--- | :--- | :--- | :--- | :--- |
-| _ | _ | _ | _ | _ |
+| ID / indicador; objetivo de decisão | Fórmula e unidade | Grão e segmentações | Fonte e campos | Nulos e duplicidade | Disponibilidade |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| I01 — Pesquisas no portfólio; dimensionar e localizar demandas | `contagem distinta de pesquisas.id`; pesquisas | Período de `data_solicitacao`, tipo, área, complexidade, status e tipo de resposta; uma pesquisa | `pesquisas.csv`: `id`, `data_solicitacao`, `tipo`, `area`, `complexidade`, `status`, `tipo de resposta` | `id` nulo ou duplicado invalida a linha; atributo nulo vira “não informado”, sem imputação | Calculável agora |
+| I02 — Distribuição do portfólio; comparar composição | Numerador = pesquisas distintas da categoria; denominador = I01 no mesmo recorte; `numerador / denominador × 100`; pesquisas e % | Uma categoria por período, tipo, área, complexidade, status ou tipo de resposta | `pesquisas.csv`: campos de I01 | Categoria nula é grupo “não informado”; `id` repetido conta uma vez e é sinalizado por I17 | Calculável agora |
+| I03 — Cobertura dos marcos do ciclo; saber o que está documentado | Para cada marco, numerador = pesquisas distintas com data válida; denominador = pesquisas distintas elegíveis no recorte; `numerador / denominador × 100`; pesquisas e % | Uma pesquisa e um marco; segmentos de I01 | `pesquisas.csv`: `id`, `data_solicitacao`, `data_aprov`, `data_divulgacao`, `data_limite`, `prorrogada_ate`, `data_entrega` | Nulo é “não registrado” e pode ser condicional; ID duplicado não duplica o numerador | Calculável agora |
+| I04 — Tempo observado entre marcos; comparar duração sem inferência | Medida A = diferença em dias corridos entre duas datas válidas explicitamente escolhidas; medida B = valor original de cada campo declarado como dias úteis ou dias, mantendo sua convenção; dias corridos e dias da convenção de origem nunca são somados nem comparados como equivalentes | Uma pesquisa, um par de marcos e uma convenção temporal; segmentos de I01 | `pesquisas.csv`: seis datas de I03, `dias_uteis_para_entrega`, `dias úteis aberta`, `dias entre a solicitação e a divulgação`, `dias para tabulação` | Par incompleto não é calculado e entra na contagem de excluídos; calendário de dias úteis não informado impede recalcular/validar esses campos; uma pesquisa duplicada é erro de grão | Calculável agora |
+| I05 — Taxa observada de prorrogação; medir ocorrência registrada | Numerador = pesquisas distintas com `prorrogada_ate` válida; denominador = pesquisas distintas com `data_limite` válida; `numerador / denominador × 100`; pesquisas e % | Uma pesquisa; período, tipo, área, complexidade e status | `pesquisas.csv`: `id`, `data_limite`, `prorrogada_ate` | `data_limite` nula exclui da base; `prorrogada_ate` nula no elegível conta como sem prorrogação observada; ID repetido conta uma vez e é erro | Calculável agora |
+| I06 — Pesquisas atrasadas ou prioritárias; ordenar acompanhamento | Contagem distinta que satisfaz regra aprovada de atraso ou prioridade; pesquisas, sem taxa implícita | Uma pesquisa; segmentos de I01 e regra aplicada | `pesquisas.csv`: `id`, `status`, `data_limite`, `prorrogada_ate`, `data_entrega`, mais data de referência e regra de prioridade aprovadas | Sem referência, elegibilidade ou prioridade, classificação fica indisponível; duplicação de ID é erro | Exige normalização ou mapeamento |
+| I07 — Empresas participantes distintas; medir alcance observado | `contagem distinta de id_empresa não nulo por id_pesq`; empresas | Uma pesquisa; empresa e atributos empresariais após vínculo | `respondentes.csv`: `id_pesq`, `id_empresa`; `empresas.csv`: `ID` e atributos | `id_empresa` nulo é contado à parte; linhas repetidas são participações, não empresas adicionais; duplicata exata é erro | Calculável agora |
+| I08 — Taxa de adesão de empresas; comparar alcance com universo | Numerador = empresas distintas participantes elegíveis; denominador = empresas distintas convidadas/elegíveis; `numerador / denominador × 100`; empresas e % | Uma pesquisa e um universo versionado; segmentos empresariais | I07 + fonte futura de convites com `pesquisa_id`, `empresa_id`, elegibilidade e versão | IDs nulos ou não conciliados ficam fora e são reportados; convite duplicado pela chave pesquisa–empresa–versão conta uma vez e é erro | Depende de integração futura |
+| I09 — Participação de mercado observada; avaliar representatividade | Após homologação da fonte autoritativa, soma do valor normalizado de cada empresa participante distinta; pontos percentuais, sem chamar de taxa de adesão | Uma pesquisa e empresa; nacionalidade, associação, tipo, cidade, estado e país | `respondentes.csv`: `id_pesq`, `id_empresa`, `market_share`; `empresas.csv`: `ID`, `% de mercado` e atributos | Valor nulo ou não parseável é excluído e contado; conflito entre `market_share` e `% de mercado` bloqueia a homologação do recorte, sem precedência presumida; empresa repetida soma uma vez por pesquisa | Exige normalização ou mapeamento |
+| I10 — Engajamento por público; localizar participação observada | Contagem de registros de participação e, separadamente, contagem distinta de clientes reconciliados; participações e clientes | Pesquisa, área, departamento e cargo | `respondentes.csv`: `id_pesq`, `id_cliente`; `clientes.csv`: `id_cliente`, `departamento`, `cargo`; `pesquisas.csv`: `id`, `area` | Vazio e sentinela `s/i` viram “não informado” antes do vínculo: são 856 vazios e 1 `s/i` em `respondentes.id_cliente`, além de 1 `s/i` em `clientes.id_cliente`; registro repetido só é removido se duplicata exata, nunca por compartilhar FK | Exige normalização ou mapeamento |
+| I11 — Taxa de engajamento do público; comparar públicos com base equivalente | Numerador = identidades participantes distintas elegíveis; denominador = identidades convidadas/elegíveis distintas no mesmo público; `numerador / denominador × 100`; pessoas e % | Pesquisa, área, departamento e cargo, com universo versionado | I10 + cadastro futuro de convidados/elegíveis | Identidade não conciliada é excluída e contada; duplicata na chave pesquisa–identidade–versão conta uma vez e é erro | Depende de integração futura |
+| I12 — Distribuição agregada de respostas; interpretar resultado | Numerador = elementos atômicos válidos da categoria; denominador = elementos atômicos válidos da mesma questão/recorte; `numerador / denominador × 100`; respostas atômicas e % | Pesquisa, questão, tipo, alternativa, linha e coluna de matriz | `respostas.csv`: `id_resposta`, `pesquisa_id`, `id_pergunta`, `alternativa`, `linha_matriz`, `coluna_matriz`, `valor`; `questoes.csv`: definição da questão | Vazio físico, `NA` e valor não aplicável ficam fora do denominador e são contados; `id_resposta` duplicado é erro; uma linha não é um respondente | Calculável agora |
+| I13 — Respondentes distintos na fonte de respostas; dimensionar a base interna dessa fonte | `contagem distinta de respondent_id não nulo`; IDs da fonte de respostas | Pesquisa e questão dentro de `respostas.csv`, sem dimensão pessoal externa | `respostas.csv`: `respondent_id`, `pesquisa_id`, `id_pergunta` | Nulo é excluído e contado; repetição é esperada entre respostas e conta uma vez; não há união com `respondentes.id_cliente` | Calculável agora |
+| I14 — Questões por tipo; avaliar composição do instrumento | `contagem distinta de id_pergunta`; questões | Pesquisa, tipo e quantidade declarada de alternativas | `questoes.csv`: `id_pergunta`, `pesquisa_id`, `tipo`, `qtd_alternativas`, `alternativas`, `linhas_matriz`, `colunas_matriz` | Campos condicionais nulos não são erro; `id_pergunta` duplicado é erro; pesquisa órfã permanece com ID original | Calculável agora |
+| I15 — Estado de validação e versão do questionário; decidir se está apto ao marco | Contagem de versões por estado de validação; versões, sem percentual implícito | Pesquisa, versão, área revisora, estado e marco | Fonte futura: `pesquisa_id`, `versao`, `area_revisora`, `estado_validacao`, `decisao_em`, `marco_associado` | Metadado ausente impede afirmar validação; chave pesquisa–versão duplicada é erro | Depende de integração futura |
+| I16 — Completude aplicável; priorizar correção | Numerador = células não nulas entre as aplicáveis à regra; denominador = células aplicáveis avaliadas; `numerador / denominador × 100`; células e % | Fonte, campo, regra, natureza e execução | Todos os campos dos seis CSV e regra de aplicabilidade | Nulo condicional fica fora da base quando não aplicável; nulo aplicável reduz o numerador; duplicata de linha não corrige completude | Calculável agora |
+| I17 — Taxa de duplicidade; controlar reprocessamento | Numerador = linhas além da primeira na chave do grão; denominador = linhas avaliadas; `numerador / denominador × 100`; linhas e % | Fonte, chave candidata e execução | Seis CSV; chaves primárias descritas na §4.0.1 ou hash da linha completa | Nulo em chave é regra separada; FKs repetidas são legítimas; somente repetição da chave/grão entra no numerador | Calculável agora |
+| I18 — Integridade referencial; localizar elos órfãos | Por relação: numerador = FKs semanticamente informadas com correspondência; denominador = FKs semanticamente informadas avaliadas; `numerador / denominador × 100`; chaves e %; órfãs = denominador − numerador | Uma ocorrência da relação, fonte filha, chave e execução | Medido: `respondentes.id_pesq → pesquisas.id`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes.pesquisa_id → pesquisas.id`, 188/231, 43 órfãs (18,6%); `respostas.pesquisa_id → pesquisas.id`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas concentram-se nos quatro IDs distintos 424, 1116, 1139 e 1147 | FK vazia é completude, não órfã; `s/i` é não informado antes do teste — 856 vazios e 1 `s/i` em `respondentes.id_cliente`, e 1 `s/i` em `clientes.id_cliente`; ocorrências repetidas são avaliadas no grão da relação, sem deduplicação silenciosa | Calculável agora |
+| I19 — Parseabilidade por tipo; validar uso analítico | Numerador = valores semanticamente informados convertíveis para o tipo declarado; denominador = valores semanticamente informados avaliados; `numerador / denominador × 100`; valores e % | Fonte, campo, tipo esperado e execução | Datas/horas, inteiros e textos numéricos das estruturas da §4.0.1 | Nulo físico é reportado por I16; sentinela `s/i` é inválido/não informado antes da conversão — 1 em `clientes.id_cliente`, 1 em `respondentes.id_cliente`, além dos 856 vazios nessa última fonte; valor repetido continua sendo ocorrência avaliada | Calculável agora |
+| I20 — Divergência de título de pesquisa; evitar união por texto | Numerador = linhas de questão comparáveis cujo `pesquisa_titulo` difere do título da pesquisa de mesmo ID; denominador = linhas de questão com ID correspondente e ambos os títulos presentes; `numerador / denominador × 100`; linhas de questão e % | Uma linha de `questoes.csv` comparável à pesquisa de mesmo ID | `pesquisas.csv`: `id`, `titulo`; `questoes.csv`: `id_pergunta`, `pesquisa_id`, `pesquisa_titulo`; resultado medido 41/188 | Título nulo ou ID órfão fica fora e é contado; cada linha de questão comparável permanece no denominador; `id_pergunta` duplicado é erro | Calculável agora |
+| I21 — Frescor da fonte; decidir se o dado é atual | `instante da consulta − maior timestamp de carga concluída`; tempo decorrido, comparado à regra aprovada | Fonte e execução | Metadado futuro: fonte, `carregada_em`, estado e regra de frescor | Timestamp nulo torna o indicador indisponível; execuções duplicadas pela chave fonte–execução são erro | Depende de integração futura |
+| I22 — Cobertura da linhagem agregada; auditar produção | Numerador = elos observados com chave correspondente; denominador = elos elegíveis do caminho selecionado; `numerador / denominador × 100`; elos e % | Resultado agregado, elo, fonte e estado observado/em reconciliação/proposto | Chaves dos seis CSV + catálogo futuro de sistema de origem; caminho fonte–pesquisa–participação–questão–resposta | Chave nula ou órfã fica em reconciliação; aresta repetida conta uma vez e é sinalizada | Exige normalização ou mapeamento |
+| I23 — Estado de publicação autorizada; impedir publicação indevida | Contagem de resultados por estado de autorização/publicação; resultados, sem taxa implícita | Pesquisa, resultado, decisão, estado e data | Fonte futura: pesquisa de origem, resultado, decisão do Data Owner, autorizado em, estado e publicado em; acervo | Ausência de decisão mantém indisponível; chave resultado–decisão duplicada ou estados conflitantes são erro | Depende de integração futura |
+| I24 — Cobertura do processamento das fontes; acompanhar integração | Numerador = fontes esperadas com execução concluída e válida; denominador = fontes esperadas no catálogo/versionamento; `numerador / denominador × 100`; fontes e % | Fonte, versão, execução e ambiente | Catálogo e orquestrador futuros: fonte esperada, versão, execução, estado, início, fim e origem | Fonte sem execução reduz numerador; reprocessamento com mesma chave deve ser idempotente e duplicata é erro | Depende de integração futura |
+| I25 — Conformidade de acesso; verificar proteção por perfil | Numerador = tentativas avaliadas cujo resultado coincide com política aprovada; denominador = tentativas de acesso avaliadas; `numerador / denominador × 100`; tentativas e % | Perfil, recurso, ação, decisão, ambiente e período | Política futura aprovada pelo Data Owner + log de autorização: perfil, recurso, ação, decisão, timestamp | Perfil/regra ausente torna o caso não avaliável e é contado à parte; evento duplicado pelo ID de auditoria é erro | Depende de integração futura |
 
 ## 6.5 Dashboards Analíticos
 
-_conteúdo_
+Os quatro dashboards são propostas de consumo dos contratos das §§5.2 e 6.4.
+Cada gráfico deve ter título, fonte, período, disponibilidade, definição do
+denominador e alternativa tabular ou resumo textual. A identidade visual usa
+azul escuro estrutural, azul médio para ações e laranja somente como anotação,
+sem depender de cor, hover ou tooltip. Foco visível, reflow a 320 CSS px, zoom de
+400% e redução de movimento são obrigatórios.
 
-**Nota:** Nome, objetivo, perguntas respondidas, indicadores apresentados, visualizações, filtros e segmentações. Incluir protótipos/wireframes.
+O mapa de equivalência abaixo torna explícita a alternativa acessível dos
+visuais principais. Ela contém os mesmos filtros, unidades, numeradores,
+denominadores e estados do gráfico, e não depende de cor ou tooltip.
 
-<!-- Inserir wireframe/protótipo do dashboard -->
+| Indicador(es) | Visual principal | Alternativa acessível equivalente |
+| :--- | :--- | :--- |
+| I01 | Linha mensal | Tabela período × quantidade de pesquisas, com resumo de tendência |
+| I02 | Barras horizontais por categoria | Tabela categoria × numerador × denominador × proporção, na mesma ordem das barras |
+| I03–I06 | Diagrama de marcos, boxplot e parte-do-todo | Tabela por pesquisa/marco e tabela de estatísticas com unidade e base; I06 inclui motivo da indisponibilidade |
+| I07–I08 | Tabela por pesquisa e parte-do-todo | A própria tabela com empresas observadas e, para I08, numerador, denominador e disponibilidade |
+| I09 | Barras de participação de mercado | Tabela empresa/pesquisa × valor normalizado × fonte × estado de conflito; recorte conflitante fica bloqueado |
+| I10 | Small multiples por área, departamento e cargo | Tabela público × participações × clientes reconciliados × não informados, com a base de cada grupo |
+| I11 | Barra de parte-do-todo | Tabela público × numerador × denominador × taxa ou motivo de indisponibilidade |
+| I12–I15 | Barras, heatmap e histórico | Tabelas de distribuição, matriz com rótulo por célula, questões e versões, preservando `n`, `N` e estado |
+| I16–I20 e I22 | Matriz fonte × regra e fluxo de linhagem | Tabela fonte/campo/regra × afetados × avaliados e lista ordenada de elos com estado textual |
+| I21 e I23–I25 | Tabelas de execução, decisão e acesso | Tabelas com timestamp disponível, origem, perfil, recurso, ação, decisão e motivo de indisponibilidade |
+
+### D01 — Operação: portfólio e prazos
+
+**Objetivo, usuários e decisão.** Permitir que gestores e analistas da Central
+priorizem o acompanhamento do portfólio sem confundir marco ausente com etapa
+concluída. Atende RF01–RF03 e PB01–PB03. Apresenta I01–I06; atraso e prioridade
+só aparecem quando a regra e a referência temporal estiverem aprovadas.
+
+**Visuais justificados.** Uma tabela ordenável de pesquisas é o visual principal
+porque preserva `pesquisas.id`, título, status e marcos auditáveis. Barras
+horizontais mostram I02 por categoria com contagem e proporção, evitando a
+comparação imprecisa de setores circulares. Uma linha mensal usa
+`data_solicitacao` como período padrão para I01. Um diagrama de marcos por
+pesquisa mostra somente datas observadas; I04 usa boxplot e tabela de quantis
+apenas para pares comparáveis; I05 usa barra de parte-do-todo com numerador e
+denominador explícitos. I06 fica como tabela indisponível até haver regra, pois
+um alerta visual inventado induziria prioridade operacional falsa.
+
+O detalhe enumera todo o ciclo solicitado e não transforma falta de campo em
+conclusão. Cada etapa recebe um dos estados **observado**, **derivado**,
+**proposto** ou **indisponível**:
+
+| Etapa | Evidência e classificação permitida |
+| :--- | :--- |
+| Solicitação | **observado** quando `data_solicitacao` é válida; caso contrário, **indisponível** |
+| Aprovação | **observado** quando `data_aprov` é válida; caso contrário, **indisponível**, sem inferência pelo status |
+| Divulgação | **observado** quando `data_divulgacao` é válida; caso contrário, **indisponível** |
+| Coleta | **derivado** somente quando regra aprovada e participações reconciliadas sustentarem início/fim; enquanto a regra estiver desenhada mas não integrada, **proposto**; sem regra ou evidência suficiente, **indisponível** |
+| Entrega | **observado** quando `data_entrega` é válida; caso contrário, **indisponível** |
+| Tabulação | O campo `dias para tabulação` é uma duração observada, não um marco; a etapa só pode ser **derivada** com regra aprovada e datas suficientes; enquanto a regra estiver por integrar, **proposto**; sem regra ou evidência, **indisponível** |
+| Publicação | **proposto** até existirem autorização, estado e data de publicação; `data_divulgacao` não a torna observada |
+
+**Filtros e interações.** Período por `data_solicitacao` (padrão), tipo, área,
+complexidade, status e tipo de resposta; a troca do marco temporal exige seleção
+explícita e altera o rótulo do período. Selecionar uma barra filtra a tabela;
+abrir uma pesquisa revela seus campos e a classificação do marco como observado,
+derivado ou proposto, sem acessar resposta individual. “Limpar filtros” restaura
+o período padrão e a URL/estado exportado registra os filtros aplicados.
+
+**Estados operacionais.** Vazio significa consulta concluída sem pesquisas no
+recorte e mostra os filtros ativos. Erro significa falha de leitura ou cálculo,
+não exibe parcial como total e oferece tentativa novamente. Desatualizado só é
+usado quando existir timestamp de carga e a regra de frescor estiver vencida;
+enquanto I21 não existir, exibe “data de atualização indisponível”, nunca “em
+tempo real”. Nulo de marco é mostrado como “não registrado”.
+
+**Permissões e limitações.** Gestor e analista consultam o agregado e o detalhe
+operacional permitido; demais perfis recebem somente o recorte autorizado. Não
+há dado individual. `data_divulgacao` não prova publicação, prioridade não tem
+campo próprio, e ausência de data impede classificar atraso ou duração.
+
+### D02 — Adesão e representatividade
+
+**Objetivo, usuários e decisão.** Ajudar gestores e analistas a identificar onde
+ampliar participação sem chamar contagem observada de taxa de adesão. Atende
+RF04–RF05 e PB04–PB05. Apresenta I07–I11, sempre separando empresa participante,
+registro de participação, cliente conciliado e respondente da fonte de respostas.
+
+**Visuais justificados.** Uma tabela por pesquisa apresenta empresas distintas
+observadas (I07) e, quando existirem, numerador e denominador de I08. Barras
+horizontais ordenadas com valores e base exibem I09 por empresa ou pesquisa.
+Small multiples por área, departamento e cargo exibem I10 sem ocultar diferenças
+de base. I11 usa barra de parte-do-todo somente após o universo elegível ser
+registrado; antes disso, um bloco metodológico informa a indisponibilidade em
+vez de desenhar zero. Nenhum visual lista pessoa, e-mail ou resposta individual.
+
+**Filtros e interações.** Pesquisa (`id_pesq` preservado), período do marco
+explicitamente escolhido, área, empresa, nacionalidade, associação, tipo de
+associado, estado, departamento e cargo; os últimos recortes só são habilitados
+para vínculos reconciliados e permissões aprovadas. A seleção cruza apenas
+agregados. Comparações mostram a base de cada grupo e desabilitam taxa quando o
+denominador for ausente ou zero.
+
+**Estados operacionais.** Vazio informa que o recorte não contém participações;
+não equivale a adesão zero. Erro de fonte ou reconciliação bloqueia os números
+afetados e identifica o elo. Desatualizado segue I21; sem timestamp, mostra “data
+de atualização indisponível”. Nulos de mercado ou identidade são “não
+informado” ou “em reconciliação”, sem imputação.
+
+**Permissões e limitações.** Gestor e analista veem agregados; Data Steward pode
+ver diagnóstico de vínculo; áreas e solicitantes externos veem apenas recortes
+autorizados. A política final depende do Data Owner. Não existe universo
+convidado, as medidas de mercado estão em texto e `id_cliente` tem tipos
+incompatíveis; por isso I08, I09, I10 e I11 respeitam sua disponibilidade e os
+542 IDs da fonte de respostas não são unidos por semelhança.
+
+### D03 — Resultados e questionários
+
+**Objetivo, usuários e decisão.** Permitir que analistas, áreas técnicas e
+leitores autorizados interpretem distribuições agregadas e avaliem a estrutura
+do questionário sem exposição individual. Atende RF10, RF11 e RF13 e PB10, PB11
+e PB13. Apresenta I12–I15.
+
+**Visuais justificados.** Barras ordenadas exibem a distribuição I12 por
+alternativa ou valor; matrizes usam tabela/heatmap com rótulo textual em cada
+célula e alternativa tabular. Toda proporção mostra `n` da categoria e `N` de
+elementos válidos da questão. Uma tabela de questões apresenta I14, enunciado,
+tipo e quantidade declarada de alternativas. I13 aparece como contagem distinta
+na própria `respostas.csv`, nunca como substituto do número de participações. Um
+histórico de versão e validação mostra I15 somente após os metadados existirem.
+
+**Filtros e interações.** Pesquisa e questão preservam os IDs de origem; tipo de
+questão, alternativa, linha e coluna de matriz segmentam resultados. Selecionar
+uma questão atualiza a distribuição e o resumo metodológico. Drill-through leva
+à linhagem agregada de D04, não à resposta individual. Recortes por empresa ou
+pessoa ficam desabilitados até identidade, autorização e limiar de agregação
+serem aprovados.
+
+**Estados operacionais.** Vazio distingue “questão sem elemento válido no
+recorte” de “questão não encontrada”. Erro de parse, fonte ou vínculo bloqueia o
+agregado afetado e aponta D04. Desatualizado depende de I21; sem timestamp,
+exibe “data de atualização indisponível”. Valores fisicamente vazios e `NA` não
+entram no denominador válido e são informados separadamente.
+
+**Permissões e limitações.** Analistas e áreas técnicas consultam agregados
+autorizados; leitor externo só recebe resultado com regra de acesso e publicação
+aprovadas. Auditor autorizado chega à evidência agregada, não à pessoa. Há 43
+questões e 3.592 elementos ligados a pesquisas ausentes, e não há ponte entre
+`respondent_id` e `id_cliente`; versão e validação do questionário também não
+estão representadas no snapshot.
+
+### D04 — Qualidade e governança
+
+**Objetivo, usuários e decisão.** Dar ao Data Steward, Data Custodian/TI, Data
+Owner e auditor evidência para aceitar, corrigir, restringir ou publicar um dado.
+Atende RF06–RF09 e RF12 e PB06–PB09 e PB12. Apresenta I16–I25.
+
+**Visuais justificados.** Uma matriz fonte × regra mostra somente I16–I20 com
+contagem afetada e base avaliada; tabela é preferida porque expõe a definição e
+permite auditoria. Um fluxo textual fonte → pesquisa → participação → questão →
+resposta apresenta I22 com cada elo marcado exatamente como **observado**, **em
+reconciliação** ou **proposto**. Uma tabela de execuções mostra I21 e I24 quando
+houver timestamps. Uma fila de decisões apresenta I23 somente com autorização,
+estado, data e pesquisa de origem registrados; `data_divulgacao` nunca ocupa
+esses campos. I25 aparece separadamente em uma tabela perfil × recurso/ação ×
+decisão, alimentada pela política aprovada e pelo log de autorização, para não
+misturar conformidade de acesso com qualidade de campo.
+
+**Filtros e interações.** Fonte, campo, regra, natureza do nulo (condicional ou a
+investigar), execução, estado de linhagem, pesquisa de origem, perfil e estado
+de publicação. Selecionar uma célula abre a definição e contagens agregadas; o
+drill-through preserva chaves de origem e não revela resposta individual.
+Exportação inclui filtros, execução, fórmula e disponibilidade.
+
+**Estados operacionais.** Vazio significa regra executada sem ocorrência ou
+consulta sem itens, conforme rótulo distinto. Erro significa validação não
+concluída e não pode ser exibido como zero. Desatualizado exige timestamp e regra
+de frescor; sem ambos, I21 fica indisponível. Nulos condicionais não recebem
+alerta de erro. Decisão de publicação ausente mantém o conteúdo indisponível.
+
+**Permissões e limitações.** Data Steward consulta qualidade e reconciliação;
+Custodian/TI consulta execuções e sustenta disponibilização; Data Owner decide
+acesso e publicação; auditor consulta linhagem agregada. Perfis de negócio veem
+somente diagnósticos agregados permitidos. A matriz de perfis ainda precisa de
+aprovação do parceiro, e o snapshot não contém sistema de origem, timestamp de
+carga, autorização, versão ou histórico de execução.
+
+A matriz abaixo é uma **proposta para validação**, não uma política atual nem
+evidência de autorização. “Condicionado” exige escopo atribuído, finalidade e
+registro da decisão; “não proposto no dashboard” mantém a ação fora dos painéis.
+A aprovação final de todas as células cabe ao Data Owner.
+
+| Perfil | Classe de dado | Consultar | Detalhar | Exportar | Publicar |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Gestor/analista da Central | Operacional não pessoal e agregado interno | Proposto: condicionado ao escopo | Proposto: pesquisa e agregado | Proposto: agregado com filtros e auditoria | Não proposto; depende de decisão do Data Owner |
+| Área técnica | Questionário e agregado interno da área | Proposto: condicionado à área atribuída | Proposto: questão e agregado, sem pessoa | Proposto: agregado autorizado | Não proposto; encaminha para aprovação |
+| Solicitante/leitor externo | Agregado autorizado para publicação | Proposto: somente conteúdo autorizado | Proposto: somente contexto publicado | Proposto: se a decisão permitir | Não proposto |
+| Data Steward | Qualidade, metadados e linhagem agregada | Proposto: condicionado à função | Proposto: regra, campo e elo agregado | Proposto: diagnóstico sem dado individual | Não proposto |
+| Data Custodian/TI | Metadados técnicos, execução e conteúdo autorizado | Proposto: condicionado à função | Proposto: execução e falha técnica | Proposto: log/diagnóstico auditável | Proposto: somente executar decisão explícita do Data Owner |
+| Data Owner | Agregados, governança e decisões | Proposto: condicionado à função | Proposto: evidência agregada da decisão | Proposto: registro auditável | Proposto: aprovar ou negar; disponibilização técnica cabe ao Custodian/TI |
+| Auditor de dados | Qualidade e linhagem agregada | Proposto: condicionado ao mandato | Proposto: evidência e elo agregados | Proposto: evidência auditável autorizada | Não proposto |
+| Qualquer perfil nos dashboards | Resposta individual, e-mail ou identidade pessoal | Não proposto no dashboard | Não proposto no dashboard | Não proposto no dashboard | Não proposto no dashboard |
 
 ## 6.6 Governança, Segurança da Informação e LGPD
 
