@@ -26,6 +26,7 @@
 - [1. Introdução](#1-introdução)
   - [1.4 Escopo do Projeto](#14-escopo-do-projeto)
 - [2. Descrição do Problema](#2-descrição-do-problema)
+  - [2.1 Fluxo de Valor](#21-fluxo-de-valor)
 - [3. Objetivos](#3-objetivos)
 - [4. Arquitetura de Dados (ISO/IEC 10746)](#4-arquitetura-de-dados-isoiec-10746)
   - [4.0 Estado Atual (AS-IS)](#40-estado-atual-as-is)
@@ -123,6 +124,58 @@ para alguns indicadores. A matriz completa separa cada dor, causa, impacto,
 necessidade, objetivo, KPI, público, papel e risco em
 [`docs/matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md).
 Ela também indica o artefato de destino e o estado da evidência.
+
+## 2.1 Fluxo de Valor
+
+O valor pretendido é transformar uma necessidade de informação do setor em
+resultado estruturado, rastreável e autorizado. Essa formulação é uma síntese
+derivada das referências [1], [2], [13] e [14] e permanece pendente de
+auditoria nas fontes primárias. O fluxo abaixo descreve criação de valor; as
+ferramentas aparecem apenas como contexto operacional.
+
+### Fluxo atual (AS-IS)
+
+| Atividade | Entrada | Saída de valor | Atores | Referência disponível | Estado e limitação |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Solicitar e triar | necessidade de informação e contexto da área | demanda avaliada e decisão de seguir | solicitante, Central de Pesquisas e área técnica | referências [1], [2] e síntese da §4.0.2 | **Pendente de validação:** fluxo derivado; continuidade até a publicação não comprovada |
+| Planejar e elaborar o questionário | demanda aceita, objetivo e público | proposta de questionário e cronograma | Central e área técnica | referências [1], [2], [13], [14] | **Pendente de validação:** versão, aprovação e autoria não estão no snapshot |
+| Validar e divulgar | proposta de questionário | instrumento revisado e convite distribuído | área técnica, Central e participantes | referências [1], [2] e §4.0.2 | **Pendente de validação:** regras e marcos de validação incompletos nas fontes analisadas |
+| Coletar e acompanhar | instrumento divulgado | registros de participação e elementos de resposta | empresas participantes, pessoas/contatos quando identificados e Central | `respondentes.csv`, `respostas.csv` e §4.0.2 | **Síntese derivada:** registros observados; universo elegível e ponte de identidade indisponíveis |
+| Encerrar e tabular | coleta encerrada e elementos de resposta | base preparada para análise | Central e área técnica | referências [1], [2] e CSVs | **Pendente de validação:** cruzamentos exigem reconciliação; elemento de resposta não equivale a pessoa |
+| Analisar e entregar | base preparada e perguntas de negócio | indicadores e resultado contextualizado | Central, área técnica, gestores e solicitante | PB01–PB13, I01–I25 e §4.0.2 | **Síntese derivada:** denominadores, mercado, atualização e autorização podem estar indisponíveis |
+| Publicar e preservar | resultado e contexto de origem | resultado autorizado no acervo e histórico consultável | Central e público autorizado; papel de governança a validar | RF09, referências [1], [2] e §6.6 | **Pendente de validação:** decisão, data, versão e logs não comprovados |
+
+### Fluxo alvo (TO-BE)
+
+No fluxo alvo, propõe-se usar a **Pesquisa** como eixo de continuidade,
+condicionado à reconciliação das chaves de origem e à aprovação do contrato de
+identidade. Cada etapa preserva a origem e produz uma saída consumida pela
+etapa seguinte, sem unir identidades por semelhança nem preencher ausência com
+estimativa.
+
+```text
+Necessidade de informação
+  → demanda triada
+  → pesquisa planejada
+  → questionário validado e versionado
+  → divulgação e participação acompanhadas
+  → coleta encerrada, com reconciliação registrada
+  → resultado agregado e rastreável
+  → entrega autorizada
+  → publicação vinculada ao acervo
+```
+
+| Mudança de valor | Contribuição proposta da solução | Critério de validação proposto |
+| :--- | :--- | :--- |
+| Continuidade entre etapas | Pesquisa como referência proposta de continuidade, com origens preservadas | marcos, versões e elos consultáveis sem perda ou criação silenciosa de identidade |
+| Menos reconciliação manual | dados padronizados e tratamento explícito de anomalias e conflitos | anomalias explicadas, decisões registradas e correções verificáveis |
+| Indicadores consistentes | perguntas, fórmulas, grãos e denominadores compartilhados pelos dashboards | o mesmo recorte produz o mesmo indicador e indisponibilidade aparece como indisponibilidade |
+| Decisão no momento certo | visões de negócio para gargalos, participação, resultados e qualidade | usuário identifica a ação apoiada, a fonte, o período e a limitação do indicador |
+| Publicação responsável | autorização, agregação, linhagem e vínculo com a pesquisa antes do acervo | resultado publicado possui decisão, versão, origem e perfil autorizado |
+
+O TO-BE é contrato de arquitetura e processo. Ele não prova que pipeline,
+autenticação, data warehouse ou publicação automática já estejam implantados;
+essas fronteiras estão delimitadas na §1.4.
 
 # 3. Objetivos
 
@@ -317,6 +370,10 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 Dois pontos observados na estrutura, a serem quantificados no diagnóstico de qualidade: as medidas de participação de mercado (`part_mercado`, `% de mercado`, `market_share`) são numéricas mas estão armazenadas como texto; e `id_cliente` aparece como texto em `clientes.csv` e como inteiro em `respondentes.csv`, o que exige conciliação de identidade entre as bases.
 
 ### 4.0.2 Fluxo de trabalho atual
+
+Esta subseção detalha limitações organizacionais do AS-IS. A narrativa
+canônica do fluxo de valor, com estados de evidência e comparação com o TO-BE,
+está na §2.1; em caso de divergência, prevalece a qualificação daquela seção.
 
 O fluxo de trabalho atual da Central de Pesquisas percorre ferramentas consolidadas em cada etapa (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), mas sem integração estruturada entre elas: o único ponto de conexão apenas replica novas solicitações, sem consolidar o dado ao longo do ciclo de vida da pesquisa. A seguir estão os principais processos organizacionais impactados pela solução, com a situação atual, as limitações existentes e as melhorias esperadas após a implantação.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)
 
