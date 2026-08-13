@@ -510,16 +510,22 @@ mas o snapshot não fornece timestamp de carga. A identidade auditável proposta
 para execuções futuras é
 `execution_id` + hashes dos seis arquivos + `processado_em` + versão do
 perfilador; `processado_em` identifica o processamento, não o carregamento ou o
-frescor da fonte. Para fixar a evidência desta análise, o snapshot combinado dos
-seis arquivos tem SHA-256
-`c342e04e43313471876ff2ececf4f3bdf4493165d5270c9ae30f97f0e914f5e3` e a
-execução reproduzida tem identificador
-`c4b1ad942f7eecb84023bee655fbb442d50d93896c24a04159b140e2a4113235`.
-O identificador foi calculado sobre JSON canônico com a versão do contrato, o
-hash do snapshot, o hash do perfilador e o hash do manifesto; a data de
-processamento fica fora desse hash para preservar o determinismo. Os hashes
-individuais permanecem no inventário das fontes, sem transformar a data do
-arquivo em frescor do dado.
+frescor da fonte. Esta análise fixa diretamente os SHA-256 reproduzíveis por
+`sha256sum`, sem criar um hash combinado cuja serialização ainda não tenha sido
+versionada:
+
+| Arquivo recebido | SHA-256 |
+| :--- | :--- |
+| `clientes.csv` | `5073960065f3ce92a3eab34eeebb38af2b0aaa7e398c862963444a5b608719af` |
+| `empresas.csv` | `850aaa1840cd24f43c033a0f06d339c9b5186bdaad10f1b653c956e307d3ded5` |
+| `pesquisas.csv` | `b8b5773018953a59d25fabb0875825660efe1723fdd37af58a2d85b46b80e7dc` |
+| `questoes.csv` | `e2c592898d75d13fd4cc6a5181966707d8c836e7c52ad99ccbaef69b3efbec8f` |
+| `respondentes.csv` | `cb53e8517e7c43793f14131bd76a792f658c808c034f56da95c3235444afca05` |
+| `teste.csv` (nome canônico: `respostas.csv`) | `db4ebd90fdaf203084aff947b50d19a55dab9d0b05b6b692bcbb6eee9f3dd82a` |
+
+O `execution_id` só será emitido quando o gerador e a serialização canônica do
+manifesto estiverem versionados. A ausência atual fica explícita e não impede
+reproduzir os resultados contra os seis arquivos acima.
 
 ## 5.4 Rastreabilidade Analítica
 
