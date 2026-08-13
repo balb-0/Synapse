@@ -1,10 +1,10 @@
 # Protótipos de Dashboards (D01-D04) — Sindusfarma / Central de Pesquisas
 
-Este repositório contém a suíte completa autocontida de protótipos de dashboards institucionais (D01 Operação, D02 Adesão e Representatividade, D03 Resultados e Questionários, D04 Qualidade e Governança), gerador determinístico de dados agregados, suíte de testes unitários e script de renderização visual automatizada.
+Este diretório contém a suíte autocontida dos protótipos institucionais (D01 Operação, D02 Participação Observada, D03 Resultados e Questionários, D04 Qualidade e Governança), o gerador determinístico de agregados, os testes e o script de renderização.
 
 ---
 
-## 📁 Estrutura de Arquivos
+## Estrutura de arquivos
 
 ```
 docs/assets/prototipos-dashboards/
@@ -14,55 +14,57 @@ docs/assets/prototipos-dashboards/
 ├── index.html                      # Aplicação web autocontida (HTML/CSS/JS)
 ├── renderizar-prototipos.mjs       # Script Playwright para captura de imagens
 ├── README.md                       # Documentação técnica e guia de execução
-└── imagens/                        # Diretório de screenshots (Desktop e Mobile QA)
+└── imagens/                        # Capturas desktop e mobile para QA
 ```
 
 ---
 
-## ⚙️ Diretrizes e Regras de Negócio Implementadas
+## Diretrizes e regras de negócio implementadas
 
-1. **Privacidade e Proteção de Dados (LGPD/PGI)**:
+0. **Privacidade e proteção de dados (LGPD)**:
    - Nenhum e-mail, nome de empresa, `id_cliente`, `respondent_id`, `id_resposta` ou lista de empresas é exposto no JSON ou na interface.
-   - Respostas abertas e texto livre foram 100% omitidos.
-   - Na View D03, apenas **dois exemplos fechados allowlisted da Pesquisa 238** (Questão 110 Múltipla Escolha e Questão 104 Checkbox) são exibidos.
-2. **Denominadores e Taxas Percentuais**:
+   - Respostas abertas e texto livre foram omitidos.
+   - Na view D03, somente **dois exemplos fechados selecionados internamente** são exibidos com rótulos neutros, sem IDs de pesquisa ou questão. Essa seleção não representa autorização de publicação.
+0. **Denominadores e taxas percentuais**:
    - Toda taxa percentual possui **numerador e denominador explícitos**.
    - Ausência de dado ou denominador zero resulta estritamente em `null` (nunca `0%`).
    - Todos os percentuais são arredondados com 1 casa decimal via `ROUND_HALF_UP` (ex: `19,0%`, `21,8%`).
-3. **Identificação de Participação x Adesão**:
+0. **Identificação de participação e adesão**:
    - A contagem em `respondentes.csv` é denominada estritamente como **Participações Observadas** (18.735), evitando a rotulagem indevida como "adesão" (já que o universo de empresas contratadas não é informado na fonte).
-4. **Respostas Atômicas x Respondentes**:
-   - Cada linha em `teste.csv` (`respostas.csv`) é tratada como um **elemento atômico de resposta**, não como um respondente individual.
-5. **Autocontido e Acessível (WCAG AA)**:
+0. **Respostas atômicas e respondentes**:
+   - Cada linha do arquivo recebido como `teste.csv`, nomeado conceitualmente `respostas.csv`, é tratada como **elemento atômico de resposta**, não como respondente individual.
+0. **Autocontido e acessível (WCAG AA)**:
    - Sem dependências de CDN, bibliotecas remotas ou backend.
    - Reflow até **320px** e suporte a **zoom de 400%** sem transbordo global.
    - Skip link, foco visível de 3px, navegação por teclado e suporte a `prefers-reduced-motion`.
 
 ---
 
-## 🚀 Comandos de Execução (Relativos à Pasta do Módulo)
+## Comandos de execução
 
-### 1. Execução do Gerador de Dados Determinístico
-Gera o arquivo `dados-dashboard.json` a partir das fontes CSV em `/home/marlos/projects/ultimo/context/csv`:
+### 1. Execução do gerador de dados determinístico
+
+Gera o arquivo `dados-dashboard.json` a partir do diretório informado. O diretório deve conter os seis CSVs recebidos; `teste.csv` também pode estar normalizado fisicamente como `respostas.csv`:
 
 ```bash
 cd docs/assets/prototipos-dashboards
-python3 gerar-dados-prototipos.py --input-dir /home/marlos/projects/ultimo/context/csv --output dados-dashboard.json
+python3 gerar-dados-prototipos.py --input-dir <diretorio-das-fontes> --output dados-dashboard.json
 ```
 
 Para garantir reprodução byte a byte determinística via timestamp fixo:
 ```bash
-python3 gerar-dados-prototipos.py --processado-em "2026-08-13T00:00:00Z"
+python3 gerar-dados-prototipos.py --input-dir <diretorio-das-fontes> --output dados-dashboard.json --processado-em "2026-08-13T00:00:00Z"
 ```
 
-### 2. Execução da Suíte de Testes Unitários
-Valida esquemas, invariantes numéricas, golden numbers (D01-D04), regras de privacidade denylist/allowlist e determinismo:
+### 2. Execução da suíte de testes
+
+Valida esquemas, invariantes numéricas, valores de referência (D01–D04), regras de privacidade e determinismo. Por padrão, a suíte procura `context/csv` na estrutura do workspace; em outro ambiente, informe o diretório sem alterar o teste:
 
 ```bash
-python3 -m unittest test_gerar_dados_prototipos.py
+SINDUSFARMA_CSV_DIR=<diretorio-das-fontes> python3 -m unittest test_gerar_dados_prototipos.py
 ```
 
-### 3. Servidor HTTP Local Simples
+### 3. Servidor HTTP local simples
 Para visualizar o dashboard interativo `index.html` em qualquer navegador:
 
 ```bash
@@ -70,16 +72,21 @@ python3 -m http.server 8000
 ```
 Acesse no navegador: `http://localhost:8000/index.html` (ou com hash `#d01`, `#d02`, `#d03`, `#d04`).
 
-### 4. Renderização Automatizada de Screenshots (Playwright)
-Gera as capturas de tela Desktop (`1600x1000 @ dsf 2`) e Mobile QA (`390x844 @ dsf 2`) na pasta `imagens/` e valida se o console não emitiu erros:
+### 4. Renderização automatizada das imagens
+
+Gera as capturas desktop (`1600×1000`, escala 2) e mobile (`390×844`, escala 2) na pasta `imagens/` e falha se o console emitir erros. Instale o Playwright fora do repositório e informe seu diretório ao script:
 
 ```bash
-node renderizar-prototipos.mjs
+diretorio_playwright=$(mktemp -d)
+npm install --prefix "$diretorio_playwright" playwright
+PLAYWRIGHT_MODULE="$diretorio_playwright/node_modules/playwright" node renderizar-prototipos.mjs
 ```
+
+Se o navegador do Playwright não estiver instalado, informe um Chromium já disponível no ambiente com `CHROMIUM_EXECUTABLE=<caminho-do-chromium>`.
 
 ---
 
-## 📊 Metodologia e Fontes de Dados Utilizadas
+## Metodologia e fontes de dados utilizadas
 
 | ID | Nome do Arquivo | Descrição da Fonte | Contagem Auditada |
 |---|---|---|---|
@@ -88,15 +95,15 @@ node renderizar-prototipos.mjs
 | `clientes` | `clientes.csv` | Mapeamento de contatos/clientes | 5.430 linhas |
 | `respondentes` | `respondentes.csv` | Participações registradas por pesquisa/empresa | 18.735 linhas |
 | `questoes` | `questoes.csv` | Estrutura de perguntas dos questionários | 231 linhas |
-| `teste` | `teste.csv` (`respostas.csv`) | Respostas atômicas registradas | 20.607 linhas |
+| `respostas` | recebido como `teste.csv`; nome canônico `respostas.csv` | Respostas atômicas registradas | 20.607 linhas |
 | **TOTAL** | — | **Linhas totais auditadas nas fontes** | **46.148 linhas** |
 
 ---
 
-## ⚠️ Limitações Identificadas e Indicadores Indisponíveis
+## Limitações identificadas e indicadores indisponíveis
 
-- **I06 (Cumprimento de Prazo)**: Indisponível devido à ausência de dados sistemáticos de entrega no histórico.
+- **I06 (Pesquisas atrasadas ou prioritárias)**: indisponível sem data de referência, elegibilidade de atraso e regra de prioridade aprovadas.
 - **I08 (Taxa de Adesão por Pesquisa)**: Indisponível por falta do universo de contratadas por pesquisa.
-- **I11 (Representatividade de Mercado)**: Indisponível sem dados do mercado total por segmento.
-- **I09 (Conflito de Identificação)**: Registra conflito entre `id_cliente` e `id_empresa` em 857 participações, tratado como diagnóstico aberto sem precedência artificial.
+- **I11 (Taxa de engajamento do público)**: indisponível sem o universo elegível por área, cargo ou departamento.
+- **I09 (Participação de mercado observada)**: fica bloqueado porque `market_share` e `% de mercado` divergem entre fontes e ainda não há fonte autoritativa homologada.
 - **I21, I23, I24, I25**: Indisponíveis por ausência de logs de sistema, controle de acessos ou histórico de versões de regras nas cargas legadas.

@@ -13,7 +13,7 @@
       "percentual": 19.0
     },
     "i06_estado": {
-      "motivo": "Falta de informação de data nas fontes de origem",
+      "motivo": "Faltam data de referência, elegibilidade de atraso e regra aprovada de prioridade",
       "status": "indisponivel"
     },
     "marcos_temporais": {
@@ -82,12 +82,12 @@
       "q75": 69
     },
     "i08_estado": {
-      "motivo": "Fonte não contém universo de empresas contratadas por pesquisa",
+      "motivo": "Fonte não contém universo de empresas convidadas ou elegíveis por pesquisa",
       "status": "indisponivel"
     },
     "i09_diagnostico": {
-      "descricao": "Conflito de identificação entre id_cliente e id_empresa em participações",
-      "regra": "sem soma/precedência",
+      "descricao": "Conflito entre market_share e % de mercado; fonte autoritativa não definida",
+      "regra": "sem soma nem precedência presumida",
       "status": "conflito"
     },
     "i11_estado": {
@@ -98,9 +98,7 @@
     "id_cliente_si": 1,
     "id_cliente_vazios": 856,
     "participacoes_orfas": {
-      "pesquisa_ids_orfaos": [
-        "304"
-      ],
+      "pesquisas_orfas_distintas": 1,
       "total": 55
     },
     "pesquisas_distintas": 327,
@@ -108,8 +106,9 @@
   },
   "d03_resultados": {
     "elementos_orfaos_count": 3592,
-    "exemplos_allowlisted": [
+    "exemplos_selecionados": [
       {
+        "codigo_exemplo": "A",
         "distribuicao": [
           {
             "denominador": 58,
@@ -128,12 +127,11 @@
             "quantidade": 8
           }
         ],
-        "id_pergunta": "110",
-        "pesquisa_id": "238",
         "tipo": "multipla_escolha",
         "validos": 58
       },
       {
+        "codigo_exemplo": "B",
         "distribuicao": [
           {
             "denominador": 299,
@@ -184,9 +182,7 @@
             "quantidade": 38
           }
         ],
-        "id_pergunta": "104",
         "nota_denominador": "Denominador é total de seleções (299), não respondentes.",
-        "pesquisa_id": "238",
         "tipo": "caixas",
         "total_selecoes": 299
       }
@@ -231,18 +227,18 @@
     },
     "i22_estado": {
       "status": "sem_percentual",
-      "valor": "Auditoria de Linhagem Técnica Ativa"
+      "valor": "Evidência parcial; percentual indisponível até definir elos elegíveis"
     },
     "i23_estado": {
-      "motivo": "Sem registro histórico de versões de regras",
+      "motivo": "Autorização, estado e data de publicação não existem no snapshot",
       "status": "indisponivel"
     },
     "i24_estado": {
-      "motivo": "Histórico de execuções de validação não monitorado",
+      "motivo": "Catálogo de fontes esperadas e execuções de ingestão não existem no snapshot",
       "status": "indisponivel"
     },
     "i25_estado": {
-      "motivo": "Logs de controle de acesso indisponíveis",
+      "motivo": "Política aprovada e logs de autorização não existem no snapshot",
       "status": "indisponivel"
     },
     "integridade": {
@@ -277,53 +273,53 @@
     },
     "matriz_regras_i16_i20": [
       {
-        "denominador": 6,
-        "descricao": "Todas as 6 fontes de dados possuem delimitador ; e UTF-8 BOM Válido.",
-        "formatado": "100,0%",
+        "denominador": 4008,
+        "descricao": "4 ausências inesperadas em 4008 elementos de matriz aplicáveis.",
+        "formatado": "99,9%",
         "id_regra": "I16",
-        "nome": "Conformidade de Esquema de Dados",
-        "numerador": 6,
+        "nome": "Completude aplicável da matriz",
+        "numerador": 4004,
+        "percentual": 99.9,
+        "status": "divergencia_observada"
+      },
+      {
+        "denominador": 46148,
+        "descricao": "Nenhuma duplicata adicional por linha completa ou chave configurada nas seis fontes.",
+        "formatado": "0,0%",
+        "id_regra": "I17",
+        "nome": "Taxa de duplicidade",
+        "numerador": 0,
+        "percentual": 0.0,
+        "status": "conforme"
+      },
+      {
+        "denominador": 39573,
+        "descricao": "Por relação: 55 participações, 43 questões e 3592 elementos de resposta órfãos.",
+        "formatado": "90,7%",
+        "id_regra": "I18",
+        "nome": "Integridade referencial (três relações)",
+        "numerador": 35883,
+        "percentual": 90.7,
+        "status": "divergencia_observada"
+      },
+      {
+        "denominador": 11,
+        "descricao": "Oito campos temporais e três percentuais foram parseáveis entre valores semanticamente informados.",
+        "formatado": "100,0%",
+        "id_regra": "I19",
+        "nome": "Parseabilidade dos campos configurados",
+        "numerador": 11,
         "percentual": 100.0,
         "status": "conforme"
       },
       {
-        "denominador": 18735,
-        "descricao": "55 participações associadas a pesquisa_id 304 inexistente no cadastro.",
-        "formatado": "99,7%",
-        "id_regra": "I17",
-        "nome": "Integridade Referencial de Pesquisas",
-        "numerador": 18680,
-        "percentual": 99.7,
-        "status": "divergencia_observada"
-      },
-      {
-        "denominador": 231,
-        "descricao": "43 questões pertencentes a 4 pesquisas órfãs (424, 1147, 1139, 1116).",
-        "formatado": "81,4%",
-        "id_regra": "I18",
-        "nome": "Integridade de Questionários",
-        "numerador": 188,
-        "percentual": 81.4,
-        "status": "divergencia_observada"
-      },
-      {
-        "denominador": 20607,
-        "descricao": "3.592 respostas vinculadas a pesquisas órfãs.",
-        "formatado": "82,6%",
-        "id_regra": "I19",
-        "nome": "Integridade de Respostas Atômicas",
-        "numerador": 17015,
-        "percentual": 82.6,
-        "status": "divergencia_observada"
-      },
-      {
         "denominador": 188,
-        "descricao": "41 questões com títulos divergentes entre pesquisas.csv e questoes.csv.",
-        "formatado": "78,2%",
+        "descricao": "41 linhas de questão divergentes entre 188 comparáveis.",
+        "formatado": "21,8%",
         "id_regra": "I20",
-        "nome": "Consistência de Títulos Registrados",
-        "numerador": 147,
-        "percentual": 78.2,
+        "nome": "Divergência de títulos registrados",
+        "numerador": 41,
+        "percentual": 21.8,
         "status": "divergencia_observada"
       }
     ],

@@ -14,6 +14,7 @@ import hashlib
 import unittest
 import tempfile
 import importlib.util
+from pathlib import Path
 
 # Importar o módulo gerador
 GENERATOR_PATH = os.path.join(os.path.dirname(__file__), "gerar-dados-prototipos.py")
@@ -26,7 +27,12 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.input_dir = "/home/marlos/projects/ultimo/context/csv"
+        default_input = Path(__file__).resolve().parents[5] / "context" / "csv"
+        cls.input_dir = os.environ.get("SINDUSFARMA_CSV_DIR", str(default_input))
+        if not Path(cls.input_dir).is_dir():
+            raise unittest.SkipTest(
+                "Fontes CSV ausentes; informe SINDUSFARMA_CSV_DIR para executar os testes de integração."
+            )
         cls.fixed_timestamp = "2026-08-13T00:00:00Z"
         cls.data = gerar_dados_prototipos.process_data(cls.input_dir, cls.fixed_timestamp)
 
@@ -104,7 +110,7 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
 
         orfas = d02['participacoes_orfas']
         self.assertEqual(orfas['total'], 55)
-        self.assertEqual(orfas['pesquisa_ids_orfaos'], ['304'])
+        self.assertEqual(orfas['pesquisas_orfas_distintas'], 1)
 
         self.assertEqual(d02['i08_estado']['status'], 'indisponivel')
         self.assertEqual(d02['i11_estado']['status'], 'indisponivel')
@@ -137,19 +143,17 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         self.assertEqual(matriz['ausencias_inesperadas'], 4)
         self.assertEqual(matriz['aplicaveis'], 4008)
 
-        # Allowlist check (Apenas P238 Q110 e Q104)
-        exs = d03['exemplos_allowlisted']
+        # Seleção fechada com rótulos neutros; IDs de origem não saem no snapshot.
+        exs = d03['exemplos_selecionados']
         self.assertEqual(len(exs), 2)
         
-        q110 = next(e for e in exs if e['id_pergunta'] == '110')
-        self.assertEqual(q110['pesquisa_id'], '238')
+        q110 = next(e for e in exs if e['codigo_exemplo'] == 'A')
         self.assertEqual(q110['validos'], 58)
         dist_110 = {d['opcao']: d['quantidade'] for d in q110['distribuicao']}
         self.assertEqual(dist_110['Sim'], 50)
         self.assertEqual(dist_110['Não'], 8)
 
-        q104 = next(e for e in exs if e['id_pergunta'] == '104')
-        self.assertEqual(q104['pesquisa_id'], '238')
+        q104 = next(e for e in exs if e['codigo_exemplo'] == 'B')
         self.assertEqual(q104['total_selecoes'], 299)
         dist_104 = [d['quantidade'] for d in q104['distribuicao']]
         self.assertEqual(dist_104, [56, 55, 52, 50, 48, 38])
@@ -182,6 +186,13 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         self.assertEqual(div_tit['denominador'], 188)
         self.assertEqual(div_tit['percentual'], 21.8)
         self.assertEqual(div_tit['formatado'], '21,8%')
+
+        regras = {r['id_regra']: r for r in d04['matriz_regras_i16_i20']}
+        self.assertEqual(set(regras), {'I16', 'I17', 'I18', 'I19', 'I20'})
+        self.assertEqual((regras['I16']['numerador'], regras['I16']['denominador']), (4004, 4008))
+        self.assertEqual((regras['I17']['numerador'], regras['I17']['denominador']), (0, 46148))
+        self.assertEqual((regras['I18']['numerador'], regras['I18']['denominador']), (35883, 39573))
+        self.assertEqual((regras['I20']['numerador'], regras['I20']['denominador']), (41, 188))
 
         self.assertEqual(d04['i21_estado']['status'], 'indisponivel')
         self.assertEqual(d04['i22_estado']['status'], 'sem_percentual')
@@ -226,9 +237,12 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
             with open(file1, "rb") as f1, open(file2, "rb") as f2:
                 self.assertEqual(f1.read(), f2.read())
 
-    def test_privacidade_denylist_recursiva(self):
+    def test_privacidade_por_lista_de_bloqueio_recursiva(self):
         """Valida que nenhum dado pessoal/identificador individual vazou no JSON."""
-        forbidden_keys = {'email', 'e-mail', 'nome_fantasia', 'id_cliente', 'respondent_id', 'id_resposta', 'id_empresa'}
+        forbidden_keys = {
+            'email', 'e-mail', 'nome_fantasia', 'id_cliente', 'respondent_id',
+            'id_resposta', 'id_empresa', 'pesquisa_id', 'id_pergunta'
+        }
 
         def check_node(obj):
             if isinstance(obj, dict):

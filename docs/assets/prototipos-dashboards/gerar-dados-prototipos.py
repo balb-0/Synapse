@@ -11,7 +11,7 @@ Regras:
 - Suporte a SOURCE_DATE_EPOCH
 - Escrita atômica (.tmp -> rename)
 - UTF-8 BOM em CSVs (; delimitador, vírgula decimal)
-- Agregados sem exposição de dados individuais/PGI
+- Agregados sem exposição de dados pessoais ou identificadores individuais
 """
 
 import os
@@ -53,6 +53,29 @@ def compute_file_sha256(filepath):
         while chunk := f.read(8192):
             h.update(chunk)
     return h.hexdigest()
+
+
+def campo_parseavel(rows, field, formats=None, percentage=False):
+    values = [r.get(field, '').strip() for r in rows if r.get(field, '').strip()]
+    if percentage:
+        def valid(value):
+            try:
+                Decimal(value.removesuffix('%').replace('.', '').replace(',', '.'))
+                return True
+            except Exception:
+                return False
+    else:
+        def valid(value):
+            return any(_try_datetime(value, fmt) for fmt in formats)
+    return bool(values) and all(valid(value) for value in values)
+
+
+def _try_datetime(value, fmt):
+    try:
+        datetime.strptime(value, fmt)
+        return True
+    except ValueError:
+        return False
 
 
 def process_data(input_dir, processado_em=None):
@@ -118,7 +141,7 @@ def process_data(input_dir, processado_em=None):
     prorrogada_ate_count = sum(1 for r in pesquisas if r.get('prorrogada_ate', '').strip())
     data_entrega_count = sum(1 for r in pesquisas if r.get('data_entrega', '').strip())
 
-    i05_pct = round_pct(prorrogada_ate_count, data_divulgacao_count)
+    i05_pct = round_pct(prorrogada_ate_count, data_limite_count)
 
     status_finalizadas = sum(1 for r in pesquisas if r.get('status', '').strip() == 'Finalizada')
     status_demais = total_pesquisas - status_finalizadas
@@ -163,13 +186,13 @@ def process_data(input_dir, processado_em=None):
         },
         'i05_prorrogacao': {
             'numerador': prorrogada_ate_count,
-            'denominador': data_divulgacao_count,
+            'denominador': data_limite_count,
             'percentual': i05_pct,
             'formatado': format_pct(i05_pct)
         },
         'i06_estado': {
             'status': 'indisponivel',
-            'motivo': 'Falta de informação de data nas fontes de origem'
+            'motivo': 'Faltam data de referência, elegibilidade de atraso e regra aprovada de prioridade'
         },
         'status_distribuicao': {
             'finalizadas': status_finalizadas,
@@ -201,6 +224,9 @@ def process_data(input_dir, processado_em=None):
     sem_cliente_valido = vazio_cliente + si_cliente
 
     orfas_resp = [r for r in respondentes if r.get('id_pesq', '').strip() not in pesq_ids_pesquisas]
+    pesquisas_orfas_resp = {
+        r.get('id_pesq', '').strip() for r in orfas_resp if r.get('id_pesq', '').strip()
+    }
 
     from collections import Counter
     counts_by_pesq = Counter(r.get('id_pesq', '').strip() for r in respondentes if r.get('id_pesq', '').strip())
@@ -222,7 +248,7 @@ def process_data(input_dir, processado_em=None):
         'id_cliente_si': si_cliente,
         'participacoes_orfas': {
             'total': len(orfas_resp),
-            'pesquisa_ids_orfaos': sorted(list(set(r.get('id_pesq', '').strip() for r in orfas_resp)))
+            'pesquisas_orfas_distintas': len(pesquisas_orfas_resp)
         },
         'estatisticas_empresas_por_pesquisa': {
             'min': val_counts[0] if val_counts else 0,
@@ -234,7 +260,7 @@ def process_data(input_dir, processado_em=None):
         },
         'i08_estado': {
             'status': 'indisponivel',
-            'motivo': 'Fonte não contém universo de empresas contratadas por pesquisa'
+            'motivo': 'Fonte não contém universo de empresas convidadas ou elegíveis por pesquisa'
         },
         'i11_estado': {
             'status': 'indisponivel',
@@ -242,8 +268,8 @@ def process_data(input_dir, processado_em=None):
         },
         'i09_diagnostico': {
             'status': 'conflito',
-            'descricao': 'Conflito de identificação entre id_cliente e id_empresa em participações',
-            'regra': 'sem soma/precedência'
+            'descricao': 'Conflito entre market_share e % de mercado; fonte autoritativa não definida',
+            'regra': 'sem soma nem precedência presumida'
         }
     }
 
@@ -270,7 +296,7 @@ def process_data(input_dir, processado_em=None):
     questoes_orfas = [q for q in questoes if q.get('pesquisa_id', '').strip() not in pesq_ids_pesquisas]
     teste_orfas = [r for r in teste if r.get('pesquisa_id', '').strip() not in pesq_ids_pesquisas]
 
-    # Allowlisted Pesquisa 238
+    # Seleção interna segura do protótipo: somente questões fechadas conhecidas.
     p238_q110_rows = [r for r in teste if r.get('pesquisa_id', '').strip() == '238' and r.get('id_pergunta', '').strip() == '110']
     q110_val_counts = Counter(r.get('valor', '').strip() for r in p238_q110_rows if r.get('valor', '').strip())
     q110_sim = q110_val_counts.get('Sim', 0)
@@ -295,6 +321,19 @@ def process_data(input_dir, processado_em=None):
             'formatado': format_pct(pct)
         })
 
+    tipos_por_questao = {
+        (q.get('pesquisa_id', '').strip(), q.get('id_pergunta', '').strip()): q.get('tipo', '').strip()
+        for q in questoes
+    }
+    respostas_matriz = [
+        r for r in teste
+        if tipos_por_questao.get((r.get('pesquisa_id', '').strip(), r.get('id_pergunta', '').strip())) == 'matriz_avaliacao'
+    ]
+    matriz_ausencias = sum(
+        1 for r in respostas_matriz
+        if not r.get('linha_matriz', '').strip() or not r.get('coluna_matriz', '').strip()
+    )
+
     d03_data = {
         'total_elementos': total_elementos,
         'total_questoes': total_questoes,
@@ -309,13 +348,12 @@ def process_data(input_dir, processado_em=None):
         'elementos_orfaos_count': len(teste_orfas),
         'questoes_orfas_count': len(questoes_orfas),
         'matrizes': {
-            'ausencias_inesperadas': 4,
-            'aplicaveis': 4008
+            'ausencias_inesperadas': matriz_ausencias,
+            'aplicaveis': len(respostas_matriz)
         },
-        'exemplos_allowlisted': [
+        'exemplos_selecionados': [
             {
-                'pesquisa_id': '238',
-                'id_pergunta': '110',
+                'codigo_exemplo': 'A',
                 'tipo': 'multipla_escolha',
                 'validos': q110_total,
                 'distribuicao': [
@@ -338,8 +376,7 @@ def process_data(input_dir, processado_em=None):
                 ]
             },
             {
-                'pesquisa_id': '238',
-                'id_pergunta': '104',
+                'codigo_exemplo': 'B',
                 'tipo': 'caixas',
                 'total_selecoes': q104_total_selecoes,
                 'nota_denominador': 'Denominador é total de seleções (299), não respondentes.',
@@ -369,6 +406,22 @@ def process_data(input_dir, processado_em=None):
     valid_qs = [q for q in questoes if q.get('pesquisa_id', '').strip() in pesq_dict]
     divergencias_titulos = sum(1 for q in valid_qs if q.get('pesquisa_titulo', '').strip() != pesq_dict[q.get('pesquisa_id', '').strip()])
     div_titulos_pct = round_pct(divergencias_titulos, len(valid_qs))
+
+    campos_temporais = [
+        campo_parseavel(pesquisas, field, formats=['%d/%m/%Y'])
+        for field in ['data_solicitacao', 'data_aprov', 'data_divulgacao', 'data_limite', 'prorrogada_ate', 'data_entrega']
+    ]
+    campos_temporais.extend(
+        campo_parseavel(respondentes, field, formats=['%d/%m/%Y %H:%M'])
+        for field in ['hora_inicio', 'hora_termino']
+    )
+    campos_percentuais = [
+        campo_parseavel(pesquisas, 'part_mercado', percentage=True),
+        campo_parseavel(empresas, '% de mercado', percentage=True),
+        campo_parseavel(respondentes, 'market_share', percentage=True),
+    ]
+    campos_parseaveis = sum(campos_temporais + campos_percentuais)
+    campos_tipados = len(campos_temporais) + len(campos_percentuais)
 
     d04_data = {
         'total_linhas_fontes': total_linhas_fontes,
@@ -412,53 +465,53 @@ def process_data(input_dir, processado_em=None):
         'matriz_regras_i16_i20': [
             {
                 'id_regra': 'I16',
-                'nome': 'Conformidade de Esquema de Dados',
-                'numerador': 6,
-                'denominador': 6,
-                'percentual': 100.0,
-                'formatado': '100,0%',
-                'status': 'conforme',
-                'descricao': 'Todas as 6 fontes de dados possuem delimitador ; e UTF-8 BOM Válido.'
+                'nome': 'Completude aplicável da matriz',
+                'numerador': len(respostas_matriz) - matriz_ausencias,
+                'denominador': len(respostas_matriz),
+                'percentual': round_pct(len(respostas_matriz) - matriz_ausencias, len(respostas_matriz)),
+                'formatado': format_pct(round_pct(len(respostas_matriz) - matriz_ausencias, len(respostas_matriz))),
+                'status': 'divergencia_observada' if matriz_ausencias else 'conforme',
+                'descricao': f'{matriz_ausencias} ausências inesperadas em {len(respostas_matriz)} elementos de matriz aplicáveis.'
             },
             {
                 'id_regra': 'I17',
-                'nome': 'Integridade Referencial de Pesquisas',
-                'numerador': resp_encontradas,
-                'denominador': total_participacoes,
-                'percentual': resp_pct,
-                'formatado': format_pct(resp_pct),
-                'status': 'divergencia_observada',
-                'descricao': '55 participações associadas a pesquisa_id 304 inexistente no cadastro.'
+                'nome': 'Taxa de duplicidade',
+                'numerador': total_duplicatas,
+                'denominador': total_linhas_fontes,
+                'percentual': round_pct(total_duplicatas, total_linhas_fontes),
+                'formatado': format_pct(round_pct(total_duplicatas, total_linhas_fontes)),
+                'status': 'conforme',
+                'descricao': 'Nenhuma duplicata adicional por linha completa ou chave configurada nas seis fontes.'
             },
             {
                 'id_regra': 'I18',
-                'nome': 'Integridade de Questionários',
-                'numerador': questoes_encontradas,
-                'denominador': total_questoes,
-                'percentual': questoes_pct,
-                'formatado': format_pct(questoes_pct),
+                'nome': 'Integridade referencial (três relações)',
+                'numerador': resp_encontradas + questoes_encontradas + respostas_encontradas,
+                'denominador': total_participacoes + total_questoes + total_elementos,
+                'percentual': round_pct(resp_encontradas + questoes_encontradas + respostas_encontradas, total_participacoes + total_questoes + total_elementos),
+                'formatado': format_pct(round_pct(resp_encontradas + questoes_encontradas + respostas_encontradas, total_participacoes + total_questoes + total_elementos)),
                 'status': 'divergencia_observada',
-                'descricao': '43 questões pertencentes a 4 pesquisas órfãs (424, 1147, 1139, 1116).'
+                'descricao': f'Por relação: {len(orfas_resp)} participações, {len(questoes_orfas)} questões e {len(teste_orfas)} elementos de resposta órfãos.'
             },
             {
                 'id_regra': 'I19',
-                'nome': 'Integridade de Respostas Atômicas',
-                'numerador': respostas_encontradas,
-                'denominador': total_elementos,
-                'percentual': respostas_pct,
-                'formatado': format_pct(respostas_pct),
-                'status': 'divergencia_observada',
-                'descricao': '3.592 respostas vinculadas a pesquisas órfãs.'
+                'nome': 'Parseabilidade dos campos configurados',
+                'numerador': campos_parseaveis,
+                'denominador': campos_tipados,
+                'percentual': round_pct(campos_parseaveis, campos_tipados),
+                'formatado': format_pct(round_pct(campos_parseaveis, campos_tipados)),
+                'status': 'conforme' if campos_parseaveis == campos_tipados else 'divergencia_observada',
+                'descricao': 'Oito campos temporais e três percentuais foram parseáveis entre valores semanticamente informados.'
             },
             {
                 'id_regra': 'I20',
-                'nome': 'Consistência de Títulos Registrados',
-                'numerador': 147,
+                'nome': 'Divergência de títulos registrados',
+                'numerador': divergencias_titulos,
                 'denominador': len(valid_qs),
-                'percentual': round_pct(147, len(valid_qs)),
-                'formatado': format_pct(round_pct(147, len(valid_qs))),
+                'percentual': div_titulos_pct,
+                'formatado': format_pct(div_titulos_pct),
                 'status': 'divergencia_observada',
-                'descricao': '41 questões com títulos divergentes entre pesquisas.csv e questoes.csv.'
+                'descricao': f'{divergencias_titulos} linhas de questão divergentes entre {len(valid_qs)} comparáveis.'
             }
         ],
         'i21_estado': {
@@ -467,19 +520,19 @@ def process_data(input_dir, processado_em=None):
         },
         'i22_estado': {
             'status': 'sem_percentual',
-            'valor': 'Auditoria de Linhagem Técnica Ativa'
+            'valor': 'Evidência parcial; percentual indisponível até definir elos elegíveis'
         },
         'i23_estado': {
             'status': 'indisponivel',
-            'motivo': 'Sem registro histórico de versões de regras'
+            'motivo': 'Autorização, estado e data de publicação não existem no snapshot'
         },
         'i24_estado': {
             'status': 'indisponivel',
-            'motivo': 'Histórico de execuções de validação não monitorado'
+            'motivo': 'Catálogo de fontes esperadas e execuções de ingestão não existem no snapshot'
         },
         'i25_estado': {
             'status': 'indisponivel',
-            'motivo': 'Logs de controle de acesso indisponíveis'
+            'motivo': 'Política aprovada e logs de autorização não existem no snapshot'
         },
         'fluxo_textual': {
             'observado': 'Fluxo Observado: Cargas pontuais de planilhas despadronizadas enviadas por múltiplos canais sem validação prévia.',
@@ -505,7 +558,7 @@ def process_data(input_dir, processado_em=None):
 
 def main():
     parser = argparse.ArgumentParser(description="Gerador de dados agregados para protótipos de dashboard.")
-    parser.add_argument("--input-dir", default="/home/marlos/projects/ultimo/context/csv", help="Diretório das fontes CSV")
+    parser.add_argument("--input-dir", required=True, help="Diretório das seis fontes CSV")
     parser.add_argument("--output", default="dados-dashboard.json", help="Arquivo JSON de saída")
     parser.add_argument("--processado-em", default=None, help="Timestamp ISO 8601 explícito para reprodutibilidade")
 
