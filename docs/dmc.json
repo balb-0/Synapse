@@ -13,7 +13,7 @@
             "Garantir rastreabilidade ponta a ponta do ciclo de vida da pesquisa, da solicitação à publicação.",
             "Reduzir o esforço manual e o tempo de entrega das pesquisas.",
             "Ampliar a adesão e o engajamento das indústrias participantes.",
-            "Sustentar decisões estratégicas com dashboards operacionais e estratégicos atualizados automaticamente.",
+            "Objetivo proposto — sustentar decisões com dashboards operacionais e estratégicos; a atualização depende das integrações e metadados futuros.",
             "Assegurar governança, segurança da informação e conformidade com a LGPD no tratamento de dados de empresas e de respostas individuais."
         ],
         "perguntasNegocio": [
@@ -39,32 +39,26 @@
             "Publicação e acervo — entregar resultados autorizados e disponibilizá-los no repositório."
         ],
         "indicadoresConsumo": [
-            "Volume de pesquisas por período (total, ano, trimestre, mês, semana).",
-            "Fluxo móvel de pesquisas a finalizar (em tabulação + em andamento + em desenvolvimento + em análise).",
-            "Taxa de adesão por pesquisa, por empresa e por área.",
-            "Variação da adesão entre períodos.",
-            "Tempo médio/mediana de validação (solicitação → divulgação).",
-            "Tempo médio/mediana de coleta (divulgação → encerramento da coleta).",
-            "Tempo médio/mediana de tabulação (encerramento da coleta → entrega).",
-            "Tempo médio/mediana de ciclo total (solicitação → entrega).",
-            "Percentual de pesquisas prorrogadas.",
-            "Nº de respondentes únicos e engajamento por cargo/departamento.",
-            "Representatividade de mercado das participantes.",
-            "Empresas associadas sem nenhuma participação.",
-            "OBS 1) para tempo médio usamos dias úteis;",
-            "OBS 2) as pessoas e empresas que aparecem nos dados disponibilizados são fictícios."
+            "Portfólio e ciclo — I01–I05 calculáveis no snapshot; I06 aguarda regra de atraso, prioridade e data de referência.",
+            "Adesão e participação — I07 calculável; I09–I10 exigem reconciliação; I08 e I11 aguardam universo convidado ou elegível.",
+            "Resultados e questionários — I12–I14 calculáveis; I15 aguarda versão, área revisora e decisão de validação.",
+            "Qualidade, rastreabilidade e publicação — I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 dependem de metadados e integrações futuras."
         ],
         "usuariosCanais": [
-            "Equipe interna da Central de Pesquisas — data warehouse e dashboards operacionais (uso diário para gestão do fluxo e indicadores).",
-            "Áreas técnicas do Sindusfarma — dashboards e relatórios de adesão/status das pesquisas que validam.",
-            "Solicitantes e participantes externos — repositório público do site para consulta ao acervo e download de resultados."
+            "Central de Pesquisas — proposta de D01–D04, filtros, relatórios e detalhe condicionado à autorização para acompanhar portfólio, participação, resultados e qualidade.",
+            "Áreas técnicas — proposta de dashboards e resultados agregados para validar instrumentos e acompanhar pesquisas sob sua responsabilidade.",
+            "Gestores — proposta de indicadores consolidados para priorizar o portfólio, alocar capacidade e acompanhar decisões operacionais.",
+            "Solicitantes e participantes externos — proposta de acervo, consulta e download somente de resultados autorizados.",
+            "Papéis de governança — Data Owner, Data Steward, Data Custodian/TI e auditor permanecem propostos, sem designação formal confirmada."
         ],
         "decisoesRiscos": [
-            "Confirmar a plataforma de banco de dados na nuvem.",
-            "Definir o papel do n8n atual (mantido como orquestração ou substituído).",
-            "Definir a política de controle de acesso por perfil de usuário.",
-            "Definir como o repositório público será alimentado automaticamente.",
-            "Dados de origem com campos incompletos/inválidos pode exigir esforço extra de limpeza."
+            "Decisão apoiada — priorizar pesquisas, localizar gargalos e avaliar prorrogações com a convenção temporal explícita.",
+            "Decisão apoiada — atuar sobre baixa participação; taxas de adesão e engajamento ficam indisponíveis sem universo elegível.",
+            "Decisão apoiada — interpretar resultados agregados sem tratar elemento de resposta como pessoa ou ligar identidades sem ponte validada.",
+            "Decisão apoiada — priorizar correções de qualidade e investigar órfãos; acesso e publicação exigem política, logs e autorização.",
+            "Pendente — universo elegível, fonte autoritativa de mercado, reconciliação de identidades, timestamps, versões e decisões de publicação.",
+            "Proposta a validar — plataforma de dados, papel do n8n, perfis de acesso e alimentação automática do acervo.",
+            "Risco observado — campos incompletos, inválidos ou identificáveis exigem tratamento, minimização e controles antes do consumo detalhado."
         ]
     },
     "governancaCorporativa": {

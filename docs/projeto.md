@@ -452,10 +452,10 @@ _conteúdo_
 
 O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
 ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
-Governança Corporativa e dois cards de cubo. Como não havia exportação JSON
-anterior, Consumo Analítico, Governança Corporativa e os metadados foram
-transcritos conservadoramente do PDF recebido [3]. Os dois cubos continuam
-vazios: C01–C04 da §5.2 são contratos analíticos propostos em outro nível de
+Governança Corporativa e dois cards de cubo. Negócio e Consumo Analítico
+consolidam os contratos das §§5.6–6.5; Governança Corporativa e os metadados
+preservam o baseline do PDF recebido [3]. Os dois cubos continuam vazios:
+C01–C04 da §5.2 são contratos analíticos propostos em outro nível de
 documentação e não substituem os cards do baseline.
 
 ### Síntese do negócio
@@ -501,12 +501,52 @@ confundir as ferramentas atuais com a arquitetura-alvo:
 0. Encerramento, tabulação e análise — validar e consolidar respostas para produzir indicadores agregados.
 0. Publicação e acervo — entregar resultados autorizados e disponibilizá-los no repositório.
 
+### Síntese do consumo analítico
+
+O consumo analítico conecta perguntas, indicadores e decisões sem presumir que
+os dashboards, perfis ou integrações já estejam implantados. A disponibilidade
+de cada indicador segue a §5.6: **calculável agora** descreve o que o snapshot
+permite calcular, não uma entrega produtiva; **exige normalização ou
+mapeamento** identifica uma regra ou reconciliação pendente; e **depende de
+integração futura** indica que falta uma fonte ou metadado.
+No JSON, os quatro eixos abaixo compactam a matriz detalhada da §5.6 sem mudar
+essas classificações de disponibilidade.
+
+| Eixo de consumo | Indicadores | Usuário e forma de consumo propostos | Decisões apoiadas |
+| :--- | :--- | :--- | :--- |
+| Portfólio e ciclo | I01–I05 calculáveis; I06 aguarda regra de atraso, prioridade e data de referência | Central de Pesquisas e gestores; D01, filtros, detalhe condicionado à autorização e relatório | Priorizar pesquisas, localizar marcos ausentes, comparar durações e avaliar prorrogação sem misturar dias corridos e úteis |
+| Adesão e participação | I07 calculável; I09–I10 exigem reconciliação; I08 e I11 aguardam o universo elegível | Central, áreas técnicas e gestores; D02 e tabelas com numerador, denominador e indisponibilidade | Identificar empresas participantes e públicos com menor participação; taxa de adesão ou engajamento só apoia decisão quando o denominador existir |
+| Resultados e questionários | I12–I14 calculáveis; I15 aguarda versão e decisão de validação | Áreas técnicas, Central e gestores; D03, filtros por questão e resultados agregados | Interpretar distribuições, avaliar a composição do instrumento e verificar validação sem tratar elemento de resposta como pessoa |
+| Qualidade, rastreabilidade e publicação | I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança ainda a designar; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções, investigar órfãos, avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
+
+Os públicos de consumo são distintos. A **Central de Pesquisas** acompanha o
+fluxo operacional; as **áreas técnicas** validam instrumentos e interpretam
+resultados agregados; os **gestores** usam recortes consolidados para priorizar
+portfólio e capacidade; e **solicitantes ou participantes externos** acessam
+apenas resultados autorizados no acervo. Data Owner, Data Steward, Data
+Custodian/TI e auditor são papéis de governança propostos, ainda sem designação
+formal confirmada. Dashboards D01–D04, relatórios, tabelas equivalentes, filtros,
+drill-down agregado e downloads autorizados são formas propostas de consumo;
+os protótipos não comprovam operação produtiva, atualização automática ou
+controle de acesso implantado.
+
+As seguintes decisões permanecem abertas e limitam o consumo:
+
+| Decisão ou risco | Efeito analítico | Estado |
+| :--- | :--- | :--- |
+| Universo de empresas e pessoas convidadas/elegíveis | Sem denominador, I08 e I11 ficam indisponíveis | Pendente de fonte e regra |
+| Fonte autoritativa de participação de mercado | Divergências impedem homologar I09 | Pendente de decisão do parceiro |
+| Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes | Pendente de reconciliação |
+| Timestamp de carga, catálogo, versões, autorização e logs | Limita I15 e I21–I25 | Depende de integração futura |
+| Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação, sem alterar o contrato analítico | Proposta da equipe a validar |
+| Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controles antes de detalhar ou exportar | Risco observado no snapshot e condicionado à governança |
+
 ### Evidência e proposta
 
 | Elemento do canvas | Evidência disponível | Proposta ainda a validar ou implementar |
 | :--- | :--- | :--- |
 | Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [1], [2], [13], [14]. O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
-| Consumo Analítico | O JSON preserva literalmente indicadores, usuários/canais e riscos visíveis no PDF [3], inclusive observações e trechos truncados. | Dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanecem propostas conforme §§5.6–6.5. |
+| Consumo Analítico | A síntese relaciona PB01–PB13, I01–I25 e D01–D04 às decisões e à disponibilidade comprovada nas §§5.6–6.5. Os campos observáveis vêm dos seis CSV; os textos do PDF [3] permanecem como origem documental, não como prova de implantação. | Dashboards produtivos, perfis, downloads, atualização automática, taxas sem denominador e integrações continuam propostas ou pendências. |
 | Governança Corporativa | O JSON preserva os nomes e textos do PDF como baseline documental [3]. | Atribuição de Data Owner e Data Steward continua “a designar pelo parceiro”; a atribuição nominal de Data Custodian/TI também deve ser validada, conforme §6.6. Portanto, os nomes do PDF não confirmam ocupantes atuais desses papéis. Política de acesso, retenção, auditoria e publicação ainda requer aprovação. |
 | Cubos | O PDF mostra dois cards sem modelagem preenchida, reproduzidos vazios no JSON. | C01–C04 da §5.2 descrevem contratos propostos e só devem entrar no canvas após validação específica; não foram copiados para os cubos vazios. |
 
