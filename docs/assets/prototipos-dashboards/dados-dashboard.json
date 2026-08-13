@@ -1,0 +1,369 @@
+{
+  "d01_operacao": {
+    "complexidade_distribuicao": {
+      "alta": 53,
+      "baixa": 10,
+      "media": 27,
+      "nao_informado": 276
+    },
+    "i05_prorrogacao": {
+      "denominador": 358,
+      "formatado": "19,0%",
+      "numerador": 68,
+      "percentual": 19.0
+    },
+    "i06_estado": {
+      "motivo": "Falta de informação de data nas fontes de origem",
+      "status": "indisponivel"
+    },
+    "marcos_temporais": {
+      "data_aprov": {
+        "preenchidas": 20,
+        "total": 366
+      },
+      "data_divulgacao": {
+        "preenchidas": 358,
+        "total": 366
+      },
+      "data_entrega": {
+        "preenchidas": 334,
+        "total": 366
+      },
+      "data_limite": {
+        "preenchidas": 358,
+        "total": 366
+      },
+      "data_solicitacao": {
+        "preenchidas": 362,
+        "total": 366
+      },
+      "prorrogada_ate": {
+        "preenchidas": 68,
+        "total": 366
+      }
+    },
+    "nota_duracoes": "Durações de origem ficam separadas de dias corridos.",
+    "solicitacoes_por_ano": {
+      "2022": 5,
+      "2023": 95,
+      "2024": 99,
+      "2025": 119,
+      "2026": 41,
+      "2027": 3,
+      "sem data": 4
+    },
+    "status_distribuicao": {
+      "demais": 34,
+      "detalhes": {
+        "Aguardando data predefinida": 19,
+        "Em andamento": 5,
+        "Em análise da Central de Pesquisas": 3,
+        "Em análise da Área Técnica": 3,
+        "Em desenvolvimento": 1,
+        "Em tabulação": 3,
+        "Finalizada": 332
+      },
+      "finalizadas": 332
+    },
+    "tipo_resposta_distribuicao": {
+      "empresa": 342,
+      "individuo": 24
+    },
+    "total_pesquisas": 366
+  },
+  "d02_adesao": {
+    "empresas_distintas": 419,
+    "estatisticas_empresas_por_pesquisa": {
+      "max": 187,
+      "media": 57.293577981651374,
+      "mediana": 54,
+      "min": 7,
+      "q25": 40,
+      "q75": 69
+    },
+    "i08_estado": {
+      "motivo": "Fonte não contém universo de empresas contratadas por pesquisa",
+      "status": "indisponivel"
+    },
+    "i09_diagnostico": {
+      "descricao": "Conflito de identificação entre id_cliente e id_empresa em participações",
+      "regra": "sem soma/precedência",
+      "status": "conflito"
+    },
+    "i11_estado": {
+      "motivo": "Sem informação do universo do mercado por segmento",
+      "status": "indisponivel"
+    },
+    "id_cliente_sem_valor": 857,
+    "id_cliente_si": 1,
+    "id_cliente_vazios": 856,
+    "participacoes_orfas": {
+      "pesquisa_ids_orfaos": [
+        "304"
+      ],
+      "total": 55
+    },
+    "pesquisas_distintas": 327,
+    "total_participacoes": 18735
+  },
+  "d03_resultados": {
+    "elementos_orfaos_count": 3592,
+    "exemplos_allowlisted": [
+      {
+        "distribuicao": [
+          {
+            "denominador": 58,
+            "formatado": "86,2%",
+            "numerador": 50,
+            "opcao": "Sim",
+            "percentual": 86.2,
+            "quantidade": 50
+          },
+          {
+            "denominador": 58,
+            "formatado": "13,8%",
+            "numerador": 8,
+            "opcao": "Não",
+            "percentual": 13.8,
+            "quantidade": 8
+          }
+        ],
+        "id_pergunta": "110",
+        "pesquisa_id": "238",
+        "tipo": "multipla_escolha",
+        "validos": 58
+      },
+      {
+        "distribuicao": [
+          {
+            "denominador": 299,
+            "formatado": "18,7%",
+            "numerador": 56,
+            "opcao": "Diretores",
+            "percentual": 18.7,
+            "quantidade": 56
+          },
+          {
+            "denominador": 299,
+            "formatado": "18,4%",
+            "numerador": 55,
+            "opcao": "Colaboradores de Campo",
+            "percentual": 18.4,
+            "quantidade": 55
+          },
+          {
+            "denominador": 299,
+            "formatado": "17,4%",
+            "numerador": 52,
+            "opcao": "Presidente",
+            "percentual": 17.4,
+            "quantidade": 52
+          },
+          {
+            "denominador": 299,
+            "formatado": "16,7%",
+            "numerador": 50,
+            "opcao": "Gerentes",
+            "percentual": 16.7,
+            "quantidade": 50
+          },
+          {
+            "denominador": 299,
+            "formatado": "16,1%",
+            "numerador": 48,
+            "opcao": "Gerentes Sr.",
+            "percentual": 16.1,
+            "quantidade": 48
+          },
+          {
+            "denominador": 299,
+            "formatado": "12,7%",
+            "numerador": 38,
+            "opcao": "Vice-presidente",
+            "percentual": 12.7,
+            "quantidade": 38
+          }
+        ],
+        "id_pergunta": "104",
+        "nota_denominador": "Denominador é total de seleções (299), não respondentes.",
+        "pesquisa_id": "238",
+        "tipo": "caixas",
+        "total_selecoes": 299
+      }
+    ],
+    "ids_distintos_fonte": 542,
+    "matrizes": {
+      "aplicaveis": 4008,
+      "ausencias_inesperadas": 4
+    },
+    "pesquisas_orfas_count": 4,
+    "questoes_orfas_count": 43,
+    "tipos_questao": {
+      "aberta": 4,
+      "caixas": 80,
+      "matriz": 3,
+      "multipla_escolha": 123,
+      "numerica": 21
+    },
+    "total_elementos": 20607,
+    "total_questoes": 231,
+    "valores_vazios_ou_na": {
+      "na": 2,
+      "total": 8309,
+      "vazios": 8307
+    }
+  },
+  "d04_qualidade": {
+    "divergencia_titulos": {
+      "denominador": 188,
+      "formatado": "21,8%",
+      "numerador": 41,
+      "percentual": 21.8
+    },
+    "fluxo_textual": {
+      "em_reconciliacao": "Fluxo em Reconciliação: Aplicação do pipeline determinístico com geração de hashes SHA-256 e segregação de registros órfãos.",
+      "observado": "Fluxo Observado: Cargas pontuais de planilhas despadronizadas enviadas por múltiplos canais sem validação prévia.",
+      "proposto": "Fluxo Proposto: Ingestão automatizada com validação de esquema na origem e rejeição imediata de IDs inconsistentes."
+    },
+    "i21_estado": {
+      "motivo": "Métrica não calculada na carga atual",
+      "status": "indisponivel"
+    },
+    "i22_estado": {
+      "status": "sem_percentual",
+      "valor": "Auditoria de Linhagem Técnica Ativa"
+    },
+    "i23_estado": {
+      "motivo": "Sem registro histórico de versões de regras",
+      "status": "indisponivel"
+    },
+    "i24_estado": {
+      "motivo": "Histórico de execuções de validação não monitorado",
+      "status": "indisponivel"
+    },
+    "i25_estado": {
+      "motivo": "Logs de controle de acesso indisponíveis",
+      "status": "indisponivel"
+    },
+    "integridade": {
+      "questoes_para_pesquisas": {
+        "denominador": 231,
+        "formatado": "81,4%",
+        "numerador": 188,
+        "orfas": 43,
+        "percentual": 81.4
+      },
+      "respondentes_para_pesquisas": {
+        "denominador": 18735,
+        "formatado": "99,7%",
+        "numerador": 18680,
+        "orfas": 55,
+        "percentual": 99.7
+      },
+      "respostas_para_pesquisas": {
+        "denominador": 20607,
+        "formatado": "82,6%",
+        "numerador": 17015,
+        "orfas": 3592,
+        "percentual": 82.6
+      },
+      "respostas_para_questoes": {
+        "denominador": 20607,
+        "formatado": "100,0%",
+        "numerador": 20607,
+        "orfas": 0,
+        "percentual": 100.0
+      }
+    },
+    "matriz_regras_i16_i20": [
+      {
+        "denominador": 6,
+        "descricao": "Todas as 6 fontes de dados possuem delimitador ; e UTF-8 BOM Válido.",
+        "formatado": "100,0%",
+        "id_regra": "I16",
+        "nome": "Conformidade de Esquema de Dados",
+        "numerador": 6,
+        "percentual": 100.0,
+        "status": "conforme"
+      },
+      {
+        "denominador": 18735,
+        "descricao": "55 participações associadas a pesquisa_id 304 inexistente no cadastro.",
+        "formatado": "99,7%",
+        "id_regra": "I17",
+        "nome": "Integridade Referencial de Pesquisas",
+        "numerador": 18680,
+        "percentual": 99.7,
+        "status": "divergencia_observada"
+      },
+      {
+        "denominador": 231,
+        "descricao": "43 questões pertencentes a 4 pesquisas órfãs (424, 1147, 1139, 1116).",
+        "formatado": "81,4%",
+        "id_regra": "I18",
+        "nome": "Integridade de Questionários",
+        "numerador": 188,
+        "percentual": 81.4,
+        "status": "divergencia_observada"
+      },
+      {
+        "denominador": 20607,
+        "descricao": "3.592 respostas vinculadas a pesquisas órfãs.",
+        "formatado": "82,6%",
+        "id_regra": "I19",
+        "nome": "Integridade de Respostas Atômicas",
+        "numerador": 17015,
+        "percentual": 82.6,
+        "status": "divergencia_observada"
+      },
+      {
+        "denominador": 188,
+        "descricao": "41 questões com títulos divergentes entre pesquisas.csv e questoes.csv.",
+        "formatado": "78,2%",
+        "id_regra": "I20",
+        "nome": "Consistência de Títulos Registrados",
+        "numerador": 147,
+        "percentual": 78.2,
+        "status": "divergencia_observada"
+      }
+    ],
+    "total_duplicatas": 0,
+    "total_linhas_fontes": 46148
+  },
+  "manifesto_fontes": [
+    {
+      "arquivo_recebido": "clientes.csv",
+      "id": "clientes",
+      "sha256": "5073960065f3ce92a3eab34eeebb38af2b0aaa7e398c862963444a5b608719af"
+    },
+    {
+      "arquivo_recebido": "empresas.csv",
+      "id": "empresas",
+      "sha256": "850aaa1840cd24f43c033a0f06d339c9b5186bdaad10f1b653c956e307d3ded5"
+    },
+    {
+      "arquivo_recebido": "pesquisas.csv",
+      "id": "pesquisas",
+      "sha256": "b8b5773018953a59d25fabb0875825660efe1723fdd37af58a2d85b46b80e7dc"
+    },
+    {
+      "arquivo_recebido": "questoes.csv",
+      "id": "questoes",
+      "sha256": "e2c592898d75d13fd4cc6a5181966707d8c836e7c52ad99ccbaef69b3efbec8f"
+    },
+    {
+      "arquivo_recebido": "respondentes.csv",
+      "id": "respondentes",
+      "sha256": "cb53e8517e7c43793f14131bd76a792f658c808c034f56da95c3235444afca05"
+    },
+    {
+      "arquivo_recebido": "teste.csv",
+      "id": "respostas",
+      "sha256": "db4ebd90fdaf203084aff947b50d19a55dab9d0b05b6b692bcbb6eee9f3dd82a"
+    }
+  ],
+  "nota_frescor": "A data de processamento registra o momento da execução do pipeline e não mede o frescor dos dados de origem.",
+  "processado_em": "2026-08-13T00:00:00Z",
+  "snapshot_sha256": "c342e04e43313471876ff2ececf4f3bdf4493165d5270c9ae30f97f0e914f5e3",
+  "versao_schema": "1.0.0"
+}
