@@ -506,11 +506,20 @@ inesperadas em 4.008 linhas de matriz aplicáveis; 41 títulos divergentes em 18
 linhas de questão comparáveis; 3.592 elementos atômicos de resposta cujo
 `pesquisa_id` não existe em `pesquisas.csv`; e 55 registros de participação cujo
 `id_pesq=304` não existe nessa fonte. Esses números foram conferidos localmente,
-mas esta documentação não registra hash nem timestamp de carga que o snapshot
-não fornece. A identidade auditável proposta para execuções futuras é
+mas o snapshot não fornece timestamp de carga. A identidade auditável proposta
+para execuções futuras é
 `execution_id` + hashes dos seis arquivos + `processado_em` + versão do
 perfilador; `processado_em` identifica o processamento, não o carregamento ou o
-frescor da fonte.
+frescor da fonte. Para fixar a evidência desta análise, o snapshot combinado dos
+seis arquivos tem SHA-256
+`c342e04e43313471876ff2ececf4f3bdf4493165d5270c9ae30f97f0e914f5e3` e a
+execução reproduzida tem identificador
+`c4b1ad942f7eecb84023bee655fbb442d50d93896c24a04159b140e2a4113235`.
+O identificador foi calculado sobre JSON canônico com a versão do contrato, o
+hash do snapshot, o hash do perfilador e o hash do manifesto; a data de
+processamento fica fora desse hash para preservar o determinismo. Os hashes
+individuais permanecem no inventário das fontes, sem transformar a data do
+arquivo em frescor do dado.
 
 ## 5.4 Rastreabilidade Analítica
 
@@ -571,7 +580,7 @@ do painel continuam propostas.
 | I15 — Estado de validação e versão do questionário | Depende de integração futura | C03 / repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
 | I16 — Completude aplicável | Calculável agora | C04 / seis CSV | Ausências por campo e natureza documentadas na §5.3; quatro ausências inesperadas nas 4.008 células de matriz aplicáveis |
 | I17 — Taxa de duplicidade | Calculável agora | C04 / seis CSV | Não foram observadas linhas ou IDs primários duplicados; FKs repetidas não são duplicatas |
-| I18 — Integridade referencial | Calculável agora | C04 / chaves dos seis CSV | 55 `respondentes` órfãos no ID 304, 43 `questoes` e 3.592 `respostas` órfãs nos quatro IDs 424, 1116, 1139 e 1147; `s/i` é não informado antes do teste |
+| I18 — Integridade referencial | Calculável agora | C04 / chaves dos seis CSV | Por relação: `respondentes → pesquisas`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes → pesquisas`, 188/231, 43 órfãs (18,6%); `respostas → pesquisas`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas usam os IDs 424, 1116, 1139 e 1147; `s/i` é não informado antes do teste |
 | I19 — Parseabilidade por tipo | Calculável agora | C04 / seis CSV | Datas, inteiros e medidas numéricas armazenadas como texto podem ser testados sem imputação; `s/i` é inválido/não informado, não valor de chave |
 | I20 — Divergência de título de pesquisa | Calculável agora | C04 / `pesquisas.csv` + `questoes.csv` | 41 linhas de questão divergentes entre 188 linhas comparáveis |
 | I21 — Frescor da fonte | Depende de integração futura | C04 / metadado de carga | Nenhum timestamp de extração/carga ou regra de frescor foi recebido |
@@ -1022,7 +1031,7 @@ chave estrangeira não é removida.
 | I15 — Estado de validação e versão do questionário; decidir se está apto ao marco | Contagem de versões por estado de validação; versões, sem percentual implícito | Pesquisa, versão, área revisora, estado e marco | Fonte futura: `pesquisa_id`, `versao`, `area_revisora`, `estado_validacao`, `decisao_em`, `marco_associado` | Metadado ausente impede afirmar validação; chave pesquisa–versão duplicada é erro | Depende de integração futura |
 | I16 — Completude aplicável; priorizar correção | Numerador = células não nulas entre as aplicáveis à regra; denominador = células aplicáveis avaliadas; `numerador / denominador × 100`; células e % | Fonte, campo, regra, natureza e execução | Todos os campos dos seis CSV e regra de aplicabilidade | Nulo condicional fica fora da base quando não aplicável; nulo aplicável reduz o numerador; duplicata de linha não corrige completude | Calculável agora |
 | I17 — Taxa de duplicidade; controlar reprocessamento | Numerador = linhas além da primeira na chave do grão; denominador = linhas avaliadas; `numerador / denominador × 100`; linhas e % | Fonte, chave candidata e execução | Seis CSV; chaves primárias descritas na §4.0.1 ou hash da linha completa | Nulo em chave é regra separada; FKs repetidas são legítimas; somente repetição da chave/grão entra no numerador | Calculável agora |
-| I18 — Integridade referencial; localizar elos órfãos | Por relação: numerador = FKs semanticamente informadas com correspondência; denominador = FKs semanticamente informadas avaliadas; `numerador / denominador × 100`; chaves e %; órfãs = denominador − numerador | Uma ocorrência da relação, fonte filha, chave e execução | Medido: `respondentes.id_pesq → pesquisas.id`, 55 órfãs no ID 304; `questoes.pesquisa_id → pesquisas.id`, 43 órfãs; `respostas.pesquisa_id → pesquisas.id`, 3.592 órfãs; as duas últimas concentram-se nos quatro IDs distintos 424, 1116, 1139 e 1147 | FK vazia é completude, não órfã; `s/i` é não informado antes do teste — 856 vazios e 1 `s/i` em `respondentes.id_cliente`, e 1 `s/i` em `clientes.id_cliente`; ocorrências repetidas são avaliadas no grão da relação, sem deduplicação silenciosa | Calculável agora |
+| I18 — Integridade referencial; localizar elos órfãos | Por relação: numerador = FKs semanticamente informadas com correspondência; denominador = FKs semanticamente informadas avaliadas; `numerador / denominador × 100`; chaves e %; órfãs = denominador − numerador | Uma ocorrência da relação, fonte filha, chave e execução | Medido: `respondentes.id_pesq → pesquisas.id`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes.pesquisa_id → pesquisas.id`, 188/231, 43 órfãs (18,6%); `respostas.pesquisa_id → pesquisas.id`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas concentram-se nos quatro IDs distintos 424, 1116, 1139 e 1147 | FK vazia é completude, não órfã; `s/i` é não informado antes do teste — 856 vazios e 1 `s/i` em `respondentes.id_cliente`, e 1 `s/i` em `clientes.id_cliente`; ocorrências repetidas são avaliadas no grão da relação, sem deduplicação silenciosa | Calculável agora |
 | I19 — Parseabilidade por tipo; validar uso analítico | Numerador = valores semanticamente informados convertíveis para o tipo declarado; denominador = valores semanticamente informados avaliados; `numerador / denominador × 100`; valores e % | Fonte, campo, tipo esperado e execução | Datas/horas, inteiros e textos numéricos das estruturas da §4.0.1 | Nulo físico é reportado por I16; sentinela `s/i` é inválido/não informado antes da conversão — 1 em `clientes.id_cliente`, 1 em `respondentes.id_cliente`, além dos 856 vazios nessa última fonte; valor repetido continua sendo ocorrência avaliada | Calculável agora |
 | I20 — Divergência de título de pesquisa; evitar união por texto | Numerador = linhas de questão comparáveis cujo `pesquisa_titulo` difere do título da pesquisa de mesmo ID; denominador = linhas de questão com ID correspondente e ambos os títulos presentes; `numerador / denominador × 100`; linhas de questão e % | Uma linha de `questoes.csv` comparável à pesquisa de mesmo ID | `pesquisas.csv`: `id`, `titulo`; `questoes.csv`: `id_pergunta`, `pesquisa_id`, `pesquisa_titulo`; resultado medido 41/188 | Título nulo ou ID órfão fica fora e é contado; cada linha de questão comparável permanece no denominador; `id_pergunta` duplicado é erro | Calculável agora |
 | I21 — Frescor da fonte; decidir se o dado é atual | `instante da consulta − maior timestamp de carga concluída`; tempo decorrido, comparado à regra aprovada | Fonte e execução | Metadado futuro: fonte, `carregada_em`, estado e regra de frescor | Timestamp nulo torna o indicador indisponível; execuções duplicadas pela chave fonte–execução são erro | Depende de integração futura |
