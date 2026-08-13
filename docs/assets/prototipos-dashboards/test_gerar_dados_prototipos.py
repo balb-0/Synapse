@@ -85,6 +85,28 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
             self.assertEqual(perfil['duplicatas_linha_completa'], 1)
             self.assertEqual(perfil['duplicatas_chave'], 1)
 
+    def test_duplicata_da_chave_de_respondentes_com_horarios_distintos(self):
+        """I17 usa pesquisa, empresa e cliente; horários não alteram o grão."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.copiar_fontes(tmpdir)
+            respondentes = Path(tmpdir) / 'respondentes.csv'
+            linhas = respondentes.read_bytes().splitlines(keepends=True)
+            campos = linhas[1].decode('utf-8').rstrip('\r\n').split(';')
+            campos[1] = '01/01/2030 10:00'
+            campos[2] = '01/01/2030 10:05'
+            with respondentes.open('ab') as arquivo:
+                arquivo.write((';'.join(campos) + '\r\n').encode('utf-8'))
+
+            data = gerar_dados_prototipos.process_data(tmpdir, self.fixed_timestamp)
+            perfil = data['d04_qualidade']['duplicatas_por_fonte']['respondentes']
+            self.assertEqual(perfil['chave'], ['id_pesq', 'id_empresa', 'id_cliente'])
+            self.assertEqual(perfil['duplicatas_unicas'], 1)
+            self.assertEqual(perfil['duplicatas_linha_completa'], 0)
+            self.assertEqual(perfil['duplicatas_chave'], 1)
+            self.assertEqual(perfil['chaves_incompletas'], 857)
+            self.assertEqual(perfil['chaves_com_nulo_fisico'], 856)
+            self.assertEqual(perfil['chaves_com_sentinela'], 1)
+
     def test_golden_numbers_d01(self):
         """Valida os números já verificados do D01."""
         d01 = self.data['d01_operacao']
@@ -148,6 +170,9 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         self.assertEqual(d02['i11_estado']['status'], 'indisponivel')
         self.assertEqual(d02['i09_diagnostico']['status'], 'conflito')
         stats = d02['estatisticas_empresas_distintas_por_pesquisa']
+        self.assertTrue(stats['inclui_pesquisas_em_reconciliacao'])
+        self.assertEqual(stats['pesquisas_no_calculo'], 327)
+        self.assertIn('pesquisa 304', stats['nota_escopo'])
         self.assertEqual((stats['min'], stats['q25'], stats['mediana'], stats['q75'], stats['max']), (7, 40, 54, 69, 187))
         self.assertAlmostEqual(stats['media'], 57.26605504587156)
 

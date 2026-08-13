@@ -52,7 +52,7 @@ CHAVES_CANDIDATAS = {
     'empresas': ('ID',),
     'pesquisas': ('id',),
     'questoes': ('id_pergunta',),
-    'respondentes': None,
+    'respondentes': ('id_pesq', 'id_empresa', 'id_cliente'),
     'respostas': ('id_resposta',),
 }
 
@@ -132,6 +132,9 @@ def perfil_duplicatas(rows, key_fields):
     indices_duplicados = set()
     duplicatas_linha = 0
     duplicatas_chave = 0
+    chaves_incompletas = 0
+    chaves_com_nulo_fisico = 0
+    chaves_com_sentinela = 0
 
     for index, row in enumerate(rows):
         assinatura = tuple((field, row.get(field, '')) for field in sorted(row))
@@ -142,18 +145,28 @@ def perfil_duplicatas(rows, key_fields):
             vistos_linha.add(assinatura)
 
         if key_fields:
-            key = tuple(valor_semantico(row.get(field, '')) for field in key_fields)
+            raw_key = tuple(row.get(field, '').strip() for field in key_fields)
+            key = tuple(valor_semantico(part) for part in raw_key)
             if all(part is not None for part in key):
                 if key in vistos_chave:
                     duplicatas_chave += 1
                     indices_duplicados.add(index)
                 else:
                     vistos_chave.add(key)
+            else:
+                chaves_incompletas += 1
+                if any(not part for part in raw_key):
+                    chaves_com_nulo_fisico += 1
+                if any(part.lower() in {'s/i', 'na', 'n/a'} for part in raw_key):
+                    chaves_com_sentinela += 1
 
     return {
         'duplicatas_unicas': len(indices_duplicados),
         'duplicatas_linha_completa': duplicatas_linha,
         'duplicatas_chave': duplicatas_chave,
+        'chaves_incompletas': chaves_incompletas,
+        'chaves_com_nulo_fisico': chaves_com_nulo_fisico,
+        'chaves_com_sentinela': chaves_com_sentinela,
         'chave': list(key_fields) if key_fields else ['hash_linha_completa'],
         'linhas_avaliadas': len(rows),
     }
@@ -349,6 +362,9 @@ def process_data(input_dir, processado_em=None):
             'pesquisas_orfas_distintas': len(pesquisas_orfas_resp)
         },
         'estatisticas_empresas_distintas_por_pesquisa': {
+            'inclui_pesquisas_em_reconciliacao': True,
+            'nota_escopo': 'Inclui a pesquisa 304, preservada como chave de origem em reconciliação, pois o painel resume todas as participações observadas.',
+            'pesquisas_no_calculo': n_pesq,
             'min': val_counts[0] if val_counts else 0,
             'q25': calc_percentile(val_counts, 0.25),
             'mediana': calc_percentile(val_counts, 0.50),

@@ -74,10 +74,13 @@
   "d02_adesao": {
     "empresas_distintas": 419,
     "estatisticas_empresas_distintas_por_pesquisa": {
+      "inclui_pesquisas_em_reconciliacao": true,
       "max": 187,
       "media": 57.26605504587156,
       "mediana": 54,
       "min": 7,
+      "nota_escopo": "Inclui a pesquisa 304, preservada como chave de origem em reconciliação, pois o painel resume todas as participações observadas.",
+      "pesquisas_no_calculo": 327,
       "q25": 40,
       "q75": 69
     },
@@ -222,6 +225,9 @@
         "chave": [
           "id_cliente"
         ],
+        "chaves_com_nulo_fisico": 0,
+        "chaves_com_sentinela": 1,
+        "chaves_incompletas": 1,
         "duplicatas_chave": 0,
         "duplicatas_linha_completa": 0,
         "duplicatas_unicas": 0,
@@ -231,6 +237,9 @@
         "chave": [
           "ID"
         ],
+        "chaves_com_nulo_fisico": 0,
+        "chaves_com_sentinela": 0,
+        "chaves_incompletas": 0,
         "duplicatas_chave": 0,
         "duplicatas_linha_completa": 0,
         "duplicatas_unicas": 0,
@@ -240,6 +249,9 @@
         "chave": [
           "id"
         ],
+        "chaves_com_nulo_fisico": 0,
+        "chaves_com_sentinela": 0,
+        "chaves_incompletas": 0,
         "duplicatas_chave": 0,
         "duplicatas_linha_completa": 0,
         "duplicatas_unicas": 0,
@@ -249,6 +261,9 @@
         "chave": [
           "id_pergunta"
         ],
+        "chaves_com_nulo_fisico": 0,
+        "chaves_com_sentinela": 0,
+        "chaves_incompletas": 0,
         "duplicatas_chave": 0,
         "duplicatas_linha_completa": 0,
         "duplicatas_unicas": 0,
@@ -256,8 +271,13 @@
       },
       "respondentes": {
         "chave": [
-          "hash_linha_completa"
+          "id_pesq",
+          "id_empresa",
+          "id_cliente"
         ],
+        "chaves_com_nulo_fisico": 856,
+        "chaves_com_sentinela": 1,
+        "chaves_incompletas": 857,
         "duplicatas_chave": 0,
         "duplicatas_linha_completa": 0,
         "duplicatas_unicas": 0,
@@ -267,6 +287,9 @@
         "chave": [
           "id_resposta"
         ],
+        "chaves_com_nulo_fisico": 0,
+        "chaves_com_sentinela": 0,
+        "chaves_incompletas": 0,
         "duplicatas_chave": 0,
         "duplicatas_linha_completa": 0,
         "duplicatas_unicas": 0,
