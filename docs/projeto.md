@@ -334,9 +334,70 @@ _conteúdo_
 
 ## 5.1 Visão Geral do Modelo Dimensional (Data Model Canvas)
 
-_conteúdo_
+O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
+ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
+Governança Corporativa e dois cards de cubo. Como não havia exportação JSON
+anterior, Consumo Analítico, Governança Corporativa e os metadados foram
+transcritos conservadoramente do PDF recebido [3]. Os dois cubos continuam
+vazios: C01–C04 da §5.2 são contratos analíticos propostos em outro nível de
+documentação e não substituem os cards do baseline.
 
-**Nota:** Resumir o Data Model Canvas (Negócio, Consumo Analítico, Governança Corporativa) e referenciar o `dmc.json` exportado.
+### Síntese do negócio
+
+Os três arrays de Negócio são a única ampliação de conteúdo em relação ao
+baseline do PDF. Eles consolidam o objetivo geral e os objetivos específicos da
+§3, as PB01–PB13 da §6.3 e os macroprocessos observados na §4.0.2.
+
+**Objetivos de negócio.** O objetivo geral é construir a espinha dorsal de dados
+da Central de Pesquisas, com os seguintes resultados pretendidos:
+
+0. Construir a espinha dorsal de dados da Central de Pesquisas, cobrindo integração, centralização, governança, qualidade e visualização ao longo do ciclo das pesquisas.
+0. Integrar as fontes hoje dispersas em um repositório central único.
+0. Garantir rastreabilidade ponta a ponta, da solicitação à publicação.
+0. Reduzir esforço manual e tempo de entrega das pesquisas.
+0. Ampliar adesão e engajamento das indústrias participantes.
+0. Sustentar decisões estratégicas com dashboards operacionais e estratégicos atualizados a partir do banco central.
+0. Assegurar governança, segurança da informação e conformidade com a LGPD.
+
+**Perguntas de negócio.** O modelo deve sustentar as treze decisões analíticas
+formalizadas na §6.3:
+
+0. PB01 — Quais pesquisas compõem o portfólio e como se distribuem por período, tipo, área, complexidade e status?
+0. PB02 — Em que etapa está cada pesquisa, quais marcos foram observados ou derivados e quais informações do seu detalhe estão disponíveis?
+0. PB03 — Quais pesquisas estão atrasadas, foram prorrogadas ou demandam prioridade, qual denominador sustenta cada comparação e como os tempos do ciclo se comparam?
+0. PB04 — A participação alcançada é suficiente e representa as empresas ou parcelas de mercado relevantes, e qual denominador sustenta essa leitura?
+0. PB05 — Quais áreas, departamentos e cargos participam mais ou menos, e qual é o denominador disponível para o engajamento?
+0. PB06 — Quais dados estão completos e válidos, quais lacunas permanecem e qual é o estado de atualização de cada fonte?
+0. PB07 — Qual sistema ou arquivo sustenta cada elo do agregado, qual é o estado observado, em reconciliação ou proposto, e como tratar os quatro `pesquisa_id` (424, 1116, 1139 e 1147) sem correspondência e as 55 participações com `id_pesq=304` ausente?
+0. PB08 — Que dados cada perfil pode consultar, detalhar ou publicar sem expor informações não autorizadas?
+0. PB09 — O resultado foi autorizado e publicado, quais metadados sustentam essa decisão e ele está consistente com a pesquisa interna correspondente?
+0. PB10 — Qual foi a distribuição das respostas para cada questão, qual denominador está disponível e como ela varia entre pesquisas ou segmentos permitidos?
+0. PB11 — Qual evidência agregada sustenta este resultado, que contexto está disponível e a consulta individual é autorizada e suportada pelos dados?
+0. PB12 — Quais fontes foram recebidas, atualizadas e padronizadas, quais registros foram deduplicados e qual origem sustenta cada dado?
+0. PB13 — Qual versão do questionário foi revisada por qual área técnica, em que estado de validação e antes de qual marco do ciclo?
+
+**Processos de negócio.** Os macroprocessos cobrem o ciclo completo sem
+confundir as ferramentas atuais com a arquitetura-alvo:
+
+0. Solicitação e triagem — registrar, avaliar e aprovar a demanda de uma nova pesquisa.
+0. Planejamento e validação do questionário — estruturar perguntas, cronograma e revisão técnica.
+0. Divulgação, coleta e participação — disponibilizar a pesquisa e acompanhar empresas e respondentes.
+0. Encerramento, tabulação e análise — validar e consolidar respostas para produzir indicadores agregados.
+0. Publicação e acervo — entregar resultados autorizados e disponibilizá-los no repositório.
+
+### Evidência e proposta
+
+| Elemento do canvas | Evidência disponível | Proposta ainda a validar ou implementar |
+| :--- | :--- | :--- |
+| Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [1], [2], [13], [14]. O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
+| Consumo Analítico | O JSON preserva literalmente indicadores, usuários/canais e riscos visíveis no PDF [3], inclusive observações e trechos truncados. | Dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanecem propostas conforme §§5.6–6.5. |
+| Governança Corporativa | O JSON preserva os nomes e textos do PDF como baseline documental [3]. | Atribuição de Data Owner e Data Steward continua “a designar pelo parceiro”; a atribuição nominal de Data Custodian/TI também deve ser validada, conforme §6.6. Portanto, os nomes do PDF não confirmam ocupantes atuais desses papéis. Política de acesso, retenção, auditoria e publicação ainda requer aprovação. |
+| Cubos | O PDF mostra dois cards sem modelagem preenchida, reproduzidos vazios no JSON. | C01–C04 da §5.2 descrevem contratos propostos e só devem entrar no canvas após validação específica; não foram copiados para os cubos vazios. |
+
+Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON;
+nenhuma continuação foi reconstruída a partir do TAPI, da Arquitetura de
+Negócio ou do Problem Canvas. Essa preservação separa o que o artefato recebido
+efetivamente evidencia do que os demais documentos apenas permitiriam inferir.
 
 ## 5.2 Cubos Analíticos
 
