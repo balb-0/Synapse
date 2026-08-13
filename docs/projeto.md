@@ -26,6 +26,7 @@
 - [1. Introdução](#1-introdução)
   - [1.4 Escopo do Projeto](#14-escopo-do-projeto)
 - [2. Descrição do Problema](#2-descrição-do-problema)
+  - [2.1 Fluxo de Valor](#21-fluxo-de-valor)
 - [3. Objetivos](#3-objetivos)
 - [4. Arquitetura de Dados (ISO/IEC 10746)](#4-arquitetura-de-dados-isoiec-10746)
   - [4.0 Estado Atual (AS-IS)](#40-estado-atual-as-is)
@@ -129,6 +130,67 @@ para alguns indicadores. A matriz completa separa cada dor, causa, impacto,
 necessidade, objetivo, KPI, público, papel e risco em
 [`docs/matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md).
 Ela também indica o artefato de destino e o estado da evidência.
+
+## 2.1 Fluxo de Valor
+
+O valor central confirmado na Arquitetura de Negócio [2] é **“transformar uma
+necessidade de informação do setor farmacêutico em conhecimento estruturado e
+confiável”**. Rastreabilidade e autorização são condições propostas para que
+esse conhecimento percorra o fluxo sem perder origem nem expor conteúdo
+indevido. As ferramentas aparecem apenas como contexto operacional.
+
+### Fluxo atual (AS-IS)
+
+| Etapa e atividade | Entrada | Saída de valor | Atores | Fontes/sistemas relacionados | Limitação atual e contribuição da solução |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1. Solicitação — registrar a necessidade | necessidade, objetivo e contexto da área | demanda registrada | solicitante e Central | `pesquisas.csv`; ferramentas operacionais citadas no TAPI | integrar a origem da demanda à pesquisa |
+| 2. Triagem e aprovação — decidir continuidade | demanda registrada | decisão e pesquisa priorizada | Central, gestor e área técnica | `pesquisas.csv` | preservar decisão, status e responsáveis; prioridade ainda não existe no snapshot |
+| 3. Planejamento — definir cronograma e questionário | demanda aprovada | plano, prazos e instrumento proposto | Central | `pesquisas.csv` e `questoes.csv` | vincular cronograma e perguntas à mesma pesquisa |
+| 4. Validação técnica — revisar o conteúdo | questionário proposto | instrumento validado | áreas técnicas e Central | `questoes.csv`; metadados operacionais futuros | versionar revisão, decisão e autoria; esses metadados não estão no snapshot |
+| 5. Divulgação — disponibilizar a pesquisa | instrumento validado | convite e prazo comunicados | Central e participantes | `pesquisas.csv` e ferramentas de coleta | ligar divulgação e prazo ao ciclo rastreável |
+| 6. Coleta e monitoramento — acompanhar participação | pesquisa divulgada | participações observadas | Central, empresas e pessoas participantes | `respondentes.csv`, `clientes.csv` e `empresas.csv` | consolidar participação sem inventar o universo elegível |
+| 7. Registro das respostas — capturar elementos | questão apresentada ao participante | elementos atômicos de resposta | participantes e Central | `respostas.csv` e `questoes.csv` | manter questão, pesquisa e origem; não tratar linha como questionário ou pessoa |
+| 8. Encerramento e validação — verificar os dados | coleta encerrada | conjunto classificado por validade e completude | Central e Data Stewards | CSVs e dicionário | aplicar regras por tipo, reconciliar chaves e preservar anomalias |
+| 9. Tabulação e análise — produzir indicadores | conjunto validado e perguntas de negócio | resultados agregados e contextualizados | Central, áreas técnicas e gestores | conjunto integrado, PB01–PB13 e I01–I25 | usar fórmulas e denominadores consistentes; mostrar indisponibilidade quando necessário |
+| 10. Entrega e publicação — disponibilizar resultado | resultado agregado e contexto de origem | entrega autorizada e acervo consistente | Central, solicitante e público autorizado | `pesquisas.csv` e repositório público | registrar autorização, versão e linhagem antes da publicação |
+
+As dez etapas são confirmadas na Arquitetura de Negócio [2]. Os CSVs
+comprovam objetos e campos associados a parte delas; não comprovam, sozinhos,
+que cada controle operacional ou integração esteja implantado.
+
+### Fluxo alvo (TO-BE)
+
+No fluxo alvo, propõe-se usar a **Pesquisa** como eixo de continuidade,
+condicionado à reconciliação das chaves de origem e à aprovação do contrato de
+identidade. Cada etapa preserva a origem e produz uma saída consumida pela
+etapa seguinte, sem unir identidades por semelhança nem preencher ausência com
+estimativa.
+
+```text
+Necessidade de informação
+  → solicitação registrada
+  → triagem e aprovação rastreáveis
+  → pesquisa e questionário planejados
+  → questionário validado e versionado
+  → divulgação vinculada ao prazo
+  → participação monitorada
+  → respostas atômicas registradas
+  → coleta encerrada e dados validados
+  → tabulação e análise agregadas
+  → entrega e publicação autorizadas
+```
+
+| Mudança de valor | Contribuição proposta da solução | Critério de validação proposto |
+| :--- | :--- | :--- |
+| Continuidade entre etapas | Pesquisa como referência proposta de continuidade, com origens preservadas | marcos, versões e elos consultáveis sem perda ou criação silenciosa de identidade |
+| Menos reconciliação manual | dados padronizados e tratamento explícito de anomalias e conflitos | anomalias explicadas, decisões registradas e correções verificáveis |
+| Indicadores consistentes | perguntas, fórmulas, grãos e denominadores compartilhados pelos dashboards | o mesmo recorte produz o mesmo indicador e indisponibilidade aparece como indisponibilidade |
+| Decisão no momento certo | visões de negócio para gargalos, participação, resultados e qualidade | usuário identifica a ação apoiada, a fonte, o período e a limitação do indicador |
+| Publicação responsável | autorização, agregação, linhagem e vínculo com a pesquisa antes do acervo | resultado publicado possui decisão, versão, origem e perfil autorizado |
+
+O TO-BE é contrato de arquitetura e processo. Ele não prova que pipeline,
+autenticação, data warehouse ou publicação automática já estejam implantados;
+essas fronteiras estão delimitadas na §1.4.
 
 # 3. Objetivos
 
@@ -323,6 +385,10 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 Dois pontos observados na estrutura, a serem quantificados no diagnóstico de qualidade: as medidas de participação de mercado (`part_mercado`, `% de mercado`, `market_share`) são numéricas mas estão armazenadas como texto; e `id_cliente` aparece como texto em `clientes.csv` e como inteiro em `respondentes.csv`, o que exige conciliação de identidade entre as bases.
 
 ### 4.0.2 Fluxo de trabalho atual
+
+Esta subseção detalha limitações organizacionais do AS-IS. A narrativa
+canônica do fluxo de valor, com estados de evidência e comparação com o TO-BE,
+está na §2.1; em caso de divergência, prevalece a qualificação daquela seção.
 
 O fluxo de trabalho atual da Central de Pesquisas percorre ferramentas consolidadas em cada etapa (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), mas sem integração estruturada entre elas: o único ponto de conexão apenas replica novas solicitações, sem consolidar o dado ao longo do ciclo de vida da pesquisa. A seguir estão os principais processos organizacionais impactados pela solução, com a situação atual, as limitações existentes e as melhorias esperadas após a implantação.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)
 
