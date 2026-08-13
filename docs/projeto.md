@@ -1618,10 +1618,20 @@ _conteúdo_
 
 ## 8.3 Tabela de Fontes e Auditabilidade
 
-_conteúdo_
+O mapa completo de origem e dependências está em
+[`docs/fontes-e-dependencias.md`](fontes-e-dependencias.md). A tabela abaixo
+mantém no documento canônico a distinção necessária entre fonte primária,
+evidência observada e decisão proposta.
 
-**Nota:** Cada afirmação quantitativa da §8.1 deve ter fonte auditável (commit, MR, artefato, coleta ou documento do parceiro).
-
-| Documento/Evento | Referência (auditável) | Data |
+| Bloco | Origem auditável | Classificação e estado |
 | :--- | :--- | :--- |
-| _ | _ | _ |
+| Contexto, escopo, processo e papéis | TAPI [1], Arquitetura de Negócio [2], JTBD [13] e Problem Canvas [14] | Fontes primárias citadas; os arquivos não estão nesta cópia do repositório e a conferência direta permanece pendente |
+| Estrutura, grão e qualidade das bases | seis CSVs externos identificados pelos hashes da §5.3.6; manifesto, perfilador e testes em `scripts/data_quality/` | Evidência observada no snapshot local; o método é reproduzível quando as fontes e o dicionário estão disponíveis, mas os dados brutos não fazem parte do checkout |
+| Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; histórico das issues #21–#25 e #40–#49 | Síntese derivada; o vínculo específico deve citar issue, branch, commit ou MR e as limitações constam nas §§5.6 e 6.4 |
+| Negócio, Consumo Analítico e Governança Corporativa do canvas | DMC em PDF [3] e exportação `docs/dmc.json` | Baseline documental derivado; papéis e políticas continuam sujeitos a validação |
+| Cubos C01–C04 | contratos da §5.2, derivados das perguntas, indicadores e dados observados | Proposta de modelagem; não prova implantação de data warehouse |
+
+Nenhuma referência a uma fonte ausente deve ser usada, isoladamente, para
+classificar uma afirmação como confirmada pelo parceiro. Até a recuperação do
+arquivo original, a afirmação permanece como síntese derivada ou pendente de
+auditoria primária.
