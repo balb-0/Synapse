@@ -1,0 +1,69 @@
+{
+  "version": "1.0",
+  "purpose": "Perfilamento local e agregado das fontes da Central de Pesquisas",
+  "encoding": "UTF-8 BOM aceito (utf-8-sig)",
+  "delimiter": ";",
+  "decimal": "vírgula",
+  "percent": "sufixo %",
+  "grain": "um elemento atômico de resposta de um respondente para uma pergunta de uma pesquisa; não é um questionário completo",
+  "conceptual_mapping": {
+    "teste.csv": "respostas.csv (alias local protegido; o arquivo bruto não é publicado nem copiado)"
+  },
+  "sources": [
+    {
+      "id": "pesquisas",
+      "file": "pesquisas.csv",
+      "columns": ["id", "titulo", "status", "tipo", "area", "participantes", "part_mercado", "data_solicitacao", "data_aprov", "data_divulgacao", "data_limite", "prorrogada_ate", "data_entrega", "dias_uteis_para_entrega", "complexidade", "tipo de resposta", "tempo_preenchimento", "objetivos", "dia da semana de lançamento", "dias úteis aberta", "dias entre a solicitação e a divulgação", "dias para tabulação"],
+      "empty_header_columns": 11,
+      "key": ["id"],
+      "percent_columns": ["part_mercado"],
+      "date_columns": ["data_solicitacao", "data_aprov", "data_divulgacao", "data_limite", "prorrogada_ate", "data_entrega"],
+      "domain_columns": {"status": "plain", "tipo": "plain", "area": "plain", "complexidade": "plain", "tipo de resposta": "plain"}
+    },
+    {
+      "id": "empresas",
+      "file": "empresas.csv",
+      "columns": ["ID", "Nome Fantasia", "% de mercado", "Nacionalidade", "Associado", "Tipo de Associado", "Cidade", "Estado", "País"],
+      "key": ["ID"],
+      "percent_columns": ["% de mercado"],
+      "domain_columns": {"Nacionalidade": "plain", "Associado": "plain", "Tipo de Associado": "plain", "Estado": "plain", "País": "plain"}
+    },
+    {
+      "id": "clientes",
+      "file": "clientes.csv",
+      "columns": ["id_cliente", "id_empresa", "cargo", "departamento", "e-mail"],
+      "key": ["id_cliente"]
+    },
+    {
+      "id": "respondentes",
+      "file": "respondentes.csv",
+      "columns": ["id_pesq", "hora_inicio", "hora_termino", "id_empresa", "market_share", "id_cliente"],
+      "key": ["id_pesq", "id_empresa", "id_cliente"],
+      "percent_columns": ["market_share"],
+      "date_columns": ["hora_inicio", "hora_termino"]
+    },
+    {
+      "id": "questoes",
+      "file": "questoes.csv",
+      "columns": ["id_pergunta", "pesquisa_id", "pesquisa_titulo", "enunciado", "tipo", "qtd_alternativas", "alternativas", "linhas_matriz", "colunas_matriz", "confianca", "formato_arquivo", "col_origem", "observacoes"],
+      "key": ["id_pergunta"],
+      "domain_columns": {"tipo": "plain", "confianca": "plain", "formato_arquivo": "plain"}
+    },
+    {
+      "id": "respostas",
+      "file": "respostas.csv",
+      "aliases": ["teste.csv"],
+      "columns": ["id_resposta", "pesquisa_id", "id_pergunta", "respondent_id", "id_empresa", "alternativa", "linha_matriz", "coluna_matriz", "valor"],
+      "key": ["id_resposta"]
+    }
+  ],
+  "relations": [
+    {"name": "clientes_empresa", "child": "clientes", "child_key": ["id_empresa"], "parent": "empresas", "parent_key": ["ID"], "interpretation": "Cliente sem empresa correspondente não deve entrar em KPI por empresa."},
+    {"name": "respondentes_empresa", "child": "respondentes", "child_key": ["id_empresa"], "parent": "empresas", "parent_key": ["ID"], "interpretation": "Participação sem empresa correspondente exige auditoria de origem."},
+    {"name": "respostas_empresa", "child": "respostas", "child_key": ["id_empresa"], "parent": "empresas", "parent_key": ["ID"], "interpretation": "Resposta sem empresa correspondente não deve ser silenciosamente atribuída."},
+    {"name": "respondentes_cliente", "child": "respondentes", "child_key": ["id_cliente"], "parent": "clientes", "parent_key": ["id_cliente"], "interpretation": "A comparação normalizada não resolve, sozinha, identidade entre sistemas."},
+    {"name": "questoes_pesquisa", "child": "questoes", "child_key": ["pesquisa_id"], "parent": "pesquisas", "parent_key": ["id"], "interpretation": "IDs históricos ausentes em pesquisas exigem mapeamento canônico."},
+    {"name": "respostas_questoes", "child": "respostas", "child_key": ["pesquisa_id", "id_pergunta"], "parent": "questoes", "parent_key": ["pesquisa_id", "id_pergunta"], "interpretation": "Cada elemento de resposta deve apontar para pergunta e pesquisa conhecidas."},
+    {"name": "respostas_pesquisa", "child": "respostas", "child_key": ["pesquisa_id"], "parent": "pesquisas", "parent_key": ["id"], "interpretation": "Não agregar respostas a pesquisa sem identidade canônica confirmada."}
+  ]
+}
