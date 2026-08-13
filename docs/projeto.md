@@ -106,11 +106,16 @@ As bases disponibilizadas pelo parceiro são seis arquivos CSV estruturados (sep
 | `clientes.csv` | 5.430 | 5 | 5 |
 | `respondentes.csv` | 18.735 | 6 | 6 |
 | `questoes.csv` | 231 | 13 | 13 |
-| `respostas.csv` | 20.607 | 9 | 9 |
+| `teste.csv` (nome canônico: `respostas.csv`) | 20.607 | 9 | 9 |
 
 <sup>Material produzido pelos autores (2026)</sup>
 
 </div><br>
+
+O arquivo recebido como `teste.csv` é tratado neste documento pelo nome
+canônico de negócio `respostas.csv`, adotado nas tabelas de estrutura, no
+dicionário e nos requisitos. Essa equivalência é de nomenclatura; a integração
+entre a fonte recebida e as demais bases ainda precisa ser verificada.
 
 Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e foram desconsideradas (22 úteis). As tabelas a seguir detalham, por base, os campos e seus tipos — **técnico** (como o dado está armazenado) e **semântico** (o papel do campo na análise).
 
@@ -339,6 +344,10 @@ _conteúdo_
 
 **Nota:** Para cada cubo, definir grão, estrutura (star/snowflake), tipo de fato, fatos/eventos, métricas, dimensões e dimensões especiais.
 
+A matriz completa de cubos, grãos, métricas, dimensões e estados é dependência
+da issue **#23**. A tabela abaixo permanece como estrutura de trabalho e não
+afirma que cubos ou métricas estejam implementados ou validados.
+
 | Cubo | Grão | Tipo de fato | Métricas principais | Dimensões |
 | :--- | :--- | :--- | :--- | :--- |
 | _ | _ | _ | _ | _ |
@@ -357,7 +366,7 @@ Esta seção diagnostica dados ausentes e registros duplicados nas seis bases di
 | `clientes.csv` | 5.430 | 0 | 4 |
 | `respondentes.csv` | 18.735 | 0 | 4 |
 | `questoes.csv` | 231 | 0 | 5 |
-| `respostas.csv` | 20.607 | 0 | 5 |
+| `teste.csv` (nome canônico: `respostas.csv`) | 20.607 | 0 | 5 |
 
 <sup>Material produzido pelos autores (2026)</sup>
 
@@ -485,6 +494,10 @@ _conteúdo_
 
 **Nota:** Cadeia pergunta de negócio → requisito → indicador → cubo → dashboard. Garantir que todo requisito chegue a um dashboard e todo dashboard atenda a pelo menos um requisito.
 
+A matriz completa de rastreabilidade é dependência da issue **#23**. Nesta
+etapa, a tabela registra apenas o vínculo a detalhar; não representa
+implementação, cálculo validado ou dashboard existente.
+
 | Pergunta de negócio | Requisito | Indicador | Cubo | Dashboard |
 | :--- | :--- | :--- | :--- | :--- |
 | _ | _ | _ | _ | _ |
@@ -526,9 +539,9 @@ observáveis de consulta, acompanhamento, análise, controle e publicação. Os
 identificadores são estáveis e a cobertura considera os objetivos (§3), os
 processos atuais (§4.0.2), o dicionário de dados (§4.0.1), o diagnóstico de
 qualidade (§5.3), o TAPI e a Arquitetura de Negócio ([1] e [2]), o Data Model
-Canvas ([3]) e as análises de JTBD/HMW, Problem Canvas e das conversas de
-levantamento. A menção a uma fonte sem campo correspondente no dicionário
-registra uma necessidade a confirmar, não um dado já disponível.
+Canvas ([3]) e os artefatos locais de JTBD/HMW e Problem Canvas ([4] e [5]).
+A menção a uma fonte sem campo correspondente no dicionário registra uma
+necessidade a confirmar, não um dado já disponível.
 
 Esta tabela delimita escopo e comportamento funcional; não prescreve tecnologia,
 SLA, periodicidade ou atualização em tempo real. Critérios de aceitação
@@ -536,19 +549,32 @@ completos e testes de usuário serão definidos e validados na issue **#19**;
 portanto, não são repetidos aqui nem devem ser inferidos a partir da coluna de
 funcionalidade analítica.
 
+As personas usadas nas User Stories correspondem aos públicos do projeto:
+analista ou operador da Central (acompanha e analisa o ciclo), gestor da Central
+(prioriza e autoriza), responsável de área técnica (valida e versiona o
+questionário), auditor de dados (confere qualidade e linhagem) e solicitante ou
+participante autorizado (consulta resultados permitidos). “Leitor autorizado”
+é a forma curta para o solicitante ou participante com permissão de consulta;
+“auditor de dados” é um papel funcional de governança, não uma afirmação de
+cargo adicional na organização. Esses papéis são derivados dos usuários
+primário, secundário e terciário do TAPI [1] e dos públicos do Problem Canvas
+[5].
+
 | ID | Nome curto | User Story | Funcionalidade analítica | Pergunta(s) de negócio | Fonte/motivação |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| RF01 | Portfólio de pesquisas | Como gestor ou analista da Central, quero consultar o portfólio de pesquisas por período, tipo, área, complexidade e status, para decidir quais demandas acompanhar. | Listar e segmentar as pesquisas e apresentar a distribuição do portfólio pelos atributos disponíveis, preservando o identificador e o título de cada pesquisa. | Quais pesquisas compõem o portfólio e como elas se distribuem por período, tipo, área, complexidade e status? | Objetivos (§3); processos de solicitação e triagem (§4.0.2); campos de `pesquisas.csv` (§4.0.1); TAPI, JTBD/HMW e Problem Canvas. |
-| RF02 | Ciclo e detalhe da pesquisa | Como analista da Central, quero acompanhar a etapa e abrir o detalhe de uma pesquisa, para entender sua situação e o que precisa ser acompanhado. | Exibir, para cada pesquisa, o status e os marcos disponíveis do ciclo — solicitação, aprovação, divulgação, coleta, entrega, tabulação e publicação — com seus dados de detalhe, objetivos, participantes e questionário quando existirem. | Em que etapa está cada pesquisa, quais marcos já ocorreram e quais informações do seu detalhe estão disponíveis? | Fluxo de trabalho e processos (§4.0.2); datas, status, objetivos e participantes de `pesquisas.csv`, além de `questoes.csv` (§4.0.1); Arquitetura de Negócio [2]. |
-| RF03 | Prazos e prioridades | Como gestor ou analista da Central, quero analisar prazos, tempos, atrasos, prorrogações e a prioridade informada, para ordenar o acompanhamento das pesquisas. | Comparar datas de solicitação, divulgação, limite, prorrogação e entrega e consultar medidas de tempo disponíveis, como dias em aberto e para tabulação; sinalizar atraso, prorrogação ou prioridade somente quando houver dados que sustentem a classificação. | Quais pesquisas estão atrasadas, foram prorrogadas ou demandam prioridade, e como os tempos do ciclo se comparam entre elas? | Objetivos (§3); `data_limite`, `prorrogada_ate`, `data_entrega`, `dias úteis aberta`, `dias para tabulação`, `complexidade` e demais campos temporais (§4.0.1); necessidade de priorização registrada no JTBD/HMW e no Problem Canvas. O dicionário atual não lista campo próprio de prioridade. |
-| RF04 | Adesão e representatividade | Como analista da Central, quero comparar adesão e participação de empresas com a participação de mercado disponível, para avaliar a representatividade da pesquisa. | Calcular e segmentar adesão por pesquisa e empresa e relacionar respondentes, empresas e medidas de mercado quando presentes, distinguindo ausência de dado de baixa participação. | A participação alcançada é suficiente e representa as empresas ou parcelas de mercado relevantes para cada pesquisa? | Objetivo de ampliar adesão (§3); processo de divulgação, coleta e participação (§4.0.2); `participantes`, `part_mercado`, `market_share`, `empresas.csv` e `respondentes.csv` (§4.0.1); TAPI, JTBD/HMW e Problem Canvas. |
-| RF05 | Engajamento dos públicos | Como gestor ou analista da Central, quero analisar o engajamento por área, departamento e cargo, para identificar públicos mais ou menos participantes. | Agrupar pesquisas, respondentes e respostas por área da pesquisa, departamento e cargo do cliente, preservando a possibilidade de distinguir empresa e pesquisa nos recortes. | Quais áreas, departamentos e cargos participam mais ou menos, e onde há oportunidade de ampliar o engajamento? | Objetivo de ampliar adesão (§3); `area` de `pesquisas.csv`, `departamento` e `cargo` de `clientes.csv`, e vínculos de `respondentes.csv` (§4.0.1); JTBD/HMW e Problem Canvas. |
-| RF06 | Qualidade e atualização | Como responsável pela análise, quero verificar a completude, a validade e a atualização das fontes, para interpretar os indicadores com confiança. | Consultar, por fonte e campo, registros de ausência, inconsistências de identidade, tipos armazenados e data ou estado de atualização disponível, distinguindo ausência condicional de lacuna a investigar e indicando quando a fonte não oferece a informação. | Quais dados estão completos e válidos para análise, quais lacunas permanecem e qual é o estado de atualização de cada fonte? | Diagnóstico de qualidade (§5.3), dicionário (§4.0.1), rastreabilidade (§5.4), objetivo de governança e qualidade (§3), DMC [3] e análise da conversa de levantamento. |
-| RF07 | Rastreabilidade ponta a ponta | Como analista ou auditor, quero percorrer a origem de um resultado até a resposta correspondente, para verificar como o dado foi produzido. | Permitir seguir a cadeia fonte → pesquisa → participação → questão → resposta por identificadores e exibir o elo disponível em cada etapa, inclusive a ausência de vínculo ou a necessidade de conciliação de identidade. | De qual fonte veio uma pesquisa, quem participou, qual questão originou o resultado e quais respostas o sustentam? | Objetivo de rastreabilidade (§3); processos de planejamento, coleta, tabulação e publicação (§4.0.2); chaves de `pesquisas.csv`, `respondentes.csv`, `questoes.csv` e `respostas.csv` (§4.0.1); DMC [3] e Problem Canvas. |
-| RF08 | Acesso por perfil | Como responsável pela Central, quero que cada perfil veja apenas os dados permitidos, para proteger informações de empresas e respondentes. | Aplicar a visibilidade definida para perfis internos, áreas técnicas e solicitantes externos, diferenciando dados operacionais, respostas identificáveis e resultados agregados; registrar a decisão de acesso quando aplicável. | Que dados cada perfil pode consultar, detalhar ou publicar sem expor informações não autorizadas? | Objetivo de governança, segurança e LGPD (§3); processo de publicação e acervo (§4.0.2); requisito não funcional de segurança (RNF02); TAPI [1], Arquitetura de Negócio [2] e análise da conversa. |
-| RF09 | Publicação autorizada | Como gestor da Central, quero publicar somente resultados autorizados e acompanhar seu estado de publicação, para manter o acervo público coerente com o processo interno. | Registrar a autorização e o estado de publicação de cada pesquisa ou resultado e disponibilizar no acervo apenas o conteúdo autorizado, mantendo o vínculo com a pesquisa de origem. | O resultado foi autorizado, publicado e está consistente com a pesquisa interna correspondente? | Processo de publicação e acervo (§4.0.2); `data_divulgacao` e status de `pesquisas.csv` (§4.0.1); objetivo de rastreabilidade (§3); Arquitetura de Negócio [2], DMC [3] e Problem Canvas. |
-| RF10 | Resultados agregados | Como analista ou leitor autorizado, quero consultar resultados agregados por pesquisa e questão, para interpretar as respostas sem expor registros individuais. | Apresentar contagens ou distribuições por alternativa, valor e, quando aplicável, linha e coluna de matriz, com recortes por pesquisa e questão; indicar ausência de respostas ou de campos suportados. | Qual foi a distribuição das respostas para cada questão e como ela varia entre pesquisas ou segmentos permitidos? | Processo de encerramento, tabulação e análise (§4.0.2); `questoes.csv` e `respostas.csv` (§4.0.1); cubos e medidas previstos no DMC [3]; objetivo de apoiar decisões (§3). |
-| RF11 | Evidência da resposta | Como auditor ou analista autorizado, quero consultar a evidência de uma resposta agregada sem perder seu contexto, para conferir a interpretação do resultado. | Relacionar cada agregado à questão, pesquisa, segmento e participação que o suportam e, conforme o perfil e o suporte dos dados, permitir consulta da resposta registrada sem transformar a publicação em exposição de dados pessoais. | Qual registro de resposta sustenta este agregado e quais contextos de pesquisa e participação devem ser considerados na leitura? | Rastreabilidade analítica (§5.4); chaves e atributos de `respostas.csv`, `questoes.csv` e `respondentes.csv` (§4.0.1); requisitos de acesso e publicação (RF08 e RF09); DMC [3] e análise da conversa de levantamento. |
+| RF01 | Portfólio de pesquisas | Como gestor ou analista da Central, quero consultar o portfólio de pesquisas por período, tipo, área, complexidade e status, para decidir quais demandas acompanhar. | Listar e segmentar as pesquisas e apresentar a distribuição do portfólio pelos atributos disponíveis, preservando o identificador e o título de cada pesquisa. | Quais pesquisas compõem o portfólio e como elas se distribuem por período, tipo, área, complexidade e status? | Objetivos (§3); processos de solicitação e triagem (§4.0.2); campos de `pesquisas.csv` (§4.0.1); TAPI [1], JTBD/HMW [4] e Problem Canvas [5]. |
+| RF02 | Ciclo e detalhe da pesquisa | Como analista da Central, quero acompanhar a etapa e abrir o detalhe de uma pesquisa, para entender sua situação e o que precisa ser acompanhado. | Exibir status, datas e detalhes do ciclo — solicitação, aprovação, divulgação, coleta, entrega, tabulação e publicação — classificando cada marco como observado (registrado na fonte), derivado (inferido de dados disponíveis) ou futuro/proposto (ainda não representado); ausência de registro não deve ser apresentada como conclusão do marco. | Em que etapa está cada pesquisa, quais marcos foram observados ou derivados e quais informações do seu detalhe estão disponíveis? | Fluxo de trabalho e processos (§4.0.2); datas, status, objetivos e participantes de `pesquisas.csv`, além de `questoes.csv` (§4.0.1); Arquitetura de Negócio [2]. |
+| RF03 | Prazos e prioridades | Como gestor ou analista da Central, quero analisar prazos, tempos, atrasos, prorrogações e as prioridades informadas, para ordenar o acompanhamento das pesquisas. | Comparar datas de solicitação, divulgação, limite, prorrogação e entrega e consultar medidas de tempo disponíveis, como dias em aberto e para tabulação; informar marcos ausentes e não classificar atraso, duração ou prorrogação quando faltar data de referência, denominador ou outro dado necessário. A prioridade é uma regra proposta e só deve ser usada quando houver prioridade declarada. | Quais pesquisas estão atrasadas, foram prorrogadas ou demandam prioridade, qual denominador sustenta cada comparação e como os tempos do ciclo se comparam entre elas? | Objetivos (§3); `data_limite`, `prorrogada_ate`, `data_entrega`, `dias úteis aberta`, `dias para tabulação`, `complexidade` e demais campos temporais (§4.0.1); Arquitetura de Negócio [2], JTBD/HMW [4] e Problem Canvas [5]. O dicionário atual não lista campo próprio de prioridade; a regra é proposta. |
+| RF04 | Adesão e representatividade | Como analista da Central, quero comparar adesão e participação de empresas com a participação de mercado disponível, para avaliar a representatividade da pesquisa. | Calcular e segmentar adesão por pesquisa e empresa somente quando houver universo convidado, esperado ou outro denominador documentado; exibir numerador e denominador, declarando denominador indisponível quando não existir. Relacionar respondentes, empresas e medidas de mercado somente após conciliação de identidade e distinguir ausência de dado de baixa participação. | A participação alcançada é suficiente e representa as empresas ou parcelas de mercado relevantes, e qual denominador sustenta essa leitura? | Objetivo de ampliar adesão (§3); processo de divulgação, coleta e participação (§4.0.2); `participantes`, `part_mercado`, `market_share`, `empresas.csv` e `respondentes.csv` (§4.0.1); TAPI [1], JTBD/HMW [4] e Problem Canvas [5]. |
+| RF05 | Engajamento dos públicos | Como gestor ou analista da Central, quero analisar o engajamento por área, departamento e cargo, para identificar públicos mais ou menos participantes. | Agrupar pesquisas, participações e respostas por área da pesquisa, departamento e cargo do cliente, após conciliação dos identificadores; apresentar contagens e calcular taxas apenas quando houver denominador documentado, declarando-o indisponível quando não houver. | Quais áreas, departamentos e cargos participam mais ou menos, qual é o denominador disponível e onde há oportunidade de ampliar o engajamento? | Objetivo de ampliar adesão (§3); `area` de `pesquisas.csv`, `departamento` e `cargo` de `clientes.csv`, e vínculos de `respondentes.csv` (§4.0.1); JTBD/HMW [4] e Problem Canvas [5]. |
+| RF06 | Qualidade e atualização | Como analista da Central, quero verificar a completude, a validade e a atualização das fontes, para interpretar os indicadores com confiança. | Consultar, por fonte e campo, registros de ausência, inconsistências de identidade, tipos armazenados e data ou estado de atualização disponível, distinguindo ausência condicional de lacuna a investigar e indicando quando a fonte não oferece a informação. | Quais dados estão completos e válidos para análise, quais lacunas permanecem e qual é o estado de atualização de cada fonte? | Diagnóstico de qualidade (§5.3), dicionário (§4.0.1), rastreabilidade (§5.4), objetivo de governança e qualidade (§3), DMC [3], JTBD/HMW [4] e Problem Canvas [5]. |
+| RF07 | Linhagem agregada ponta a ponta | Como auditor de dados, quero rastrear a origem de um resultado agregado, para verificar como o dado foi produzido sem presumir uma consulta individual. | Exibir a linhagem agregada fonte → pesquisa → participação → questão → resposta somente pelos elos e identificadores disponíveis; indicar onde a conciliação de identidade é necessária. Não prometer vínculo individual: não há ponte explícita entre `respostas.respondent_id` e `respondentes.id_cliente` nos arquivos recebidos. | Qual fonte sustenta o agregado, quais elos estão disponíveis e quais relações ainda precisam de conciliação? | Objetivo de rastreabilidade (§3); processos de planejamento, coleta, tabulação e publicação (§4.0.2); chaves de `pesquisas.csv`, `respondentes.csv`, `questoes.csv` e `respostas.csv` (§4.0.1); Arquitetura de Negócio [2], DMC [3], Problem Canvas [5] e dicionário [6]. |
+| RF08 | Acesso por perfil | Como gestor da Central, quero que cada perfil veja apenas os dados permitidos, para proteger informações de empresas e respondentes. | Aplicar a visibilidade definida para perfis internos, áreas técnicas e solicitantes externos, diferenciando dados operacionais, respostas identificáveis e resultados agregados; registrar a decisão de acesso quando aplicável. | Que dados cada perfil pode consultar, detalhar ou publicar sem expor informações não autorizadas? | Objetivo de governança, segurança e LGPD (§3); processo de publicação e acervo (§4.0.2); requisito não funcional de segurança (RNF02); TAPI [1], Arquitetura de Negócio [2] e Problem Canvas [5]. |
+| RF09 | Publicação autorizada | Como gestor da Central, quero publicar somente resultados autorizados e acompanhar seu estado de publicação, para manter o acervo público coerente com o processo interno. | Tratar autorização, estado e data de publicação como metadados propostos, dependentes da integração futura com o acervo; disponibilizar no acervo apenas conteúdo explicitamente autorizado e manter o vínculo com a pesquisa de origem. `data_divulgacao` é uma data da pesquisa e não prova autorização ou publicação. | O resultado foi autorizado e publicado, quais metadados sustentam essa decisão e ele está consistente com a pesquisa interna correspondente? | Processo de publicação e acervo (§4.0.2); `data_divulgacao` e status de `pesquisas.csv` (§4.0.1), que não comprovam publicação; objetivo de rastreabilidade (§3); Arquitetura de Negócio [2], DMC [3] e Problem Canvas [5]. |
+| RF10 | Resultados agregados | Como analista da Central ou leitor autorizado, quero consultar resultados agregados por pesquisa e questão, para interpretar as respostas sem expor registros individuais. | Apresentar contagens ou distribuições por alternativa, valor e, quando aplicável, linha e coluna de matriz, com recortes por pesquisa e questão; informar o número de respostas válidas e declarar denominador populacional indisponível quando não houver universo de referência, sem inferir uma taxa. | Qual foi a distribuição das respostas para cada questão, qual denominador está disponível e como ela varia entre pesquisas ou segmentos permitidos? | Processo de encerramento, tabulação e análise (§4.0.2); `questoes.csv` e `respostas.csv` (§4.0.1); cubos propostos no DMC [3]; objetivo de apoiar decisões (§3); JTBD/HMW [4] e Problem Canvas [5]. |
+| RF11 | Contexto de resposta autorizado | Como auditor de dados ou analista da Central autorizado, quero consultar o contexto disponível de uma resposta agregada, para conferir a interpretação sem expor dados individuais. | Relacionar o agregado à questão, pesquisa e participação somente pelos elos disponíveis; declarar denominador de respostas ou da população indisponível quando não houver base para calculá-lo. Qualquer consulta individual fica limitada a ambiente e perfil autorizados e depende de uma ponte de identidade existente. Nos arquivos recebidos, não há ponte explícita entre `respostas.respondent_id` e `respondentes.id_cliente`; ausência dessa ponte deve ser exibida, não compensada por inferência. | Qual evidência agregada sustenta este resultado, que contexto está disponível e a consulta individual é autorizada e suportada pelos dados? | Rastreabilidade analítica (§5.4); chaves e atributos de `respostas.csv`, `questoes.csv` e `respondentes.csv` (§4.0.1); requisitos de acesso e publicação (RF08 e RF09); DMC [3], Problem Canvas [5] e dicionário [6]. |
+| RF12 | Integração e atualização das fontes | Como analista da Central, quero acompanhar a integração e a atualização das fontes, para usar dados padronizados, não duplicados e com origem preservada. | Consolidar registros recebidos com padronização de nomes, tipos e domínios; detectar duplicidades e tratar reprocessamentos com idempotência, sem duplicar registros; preservar a origem de cada dado e informar o estado ou a data de atualização disponível. Integrações automáticas entre ferramentas são dependência futura e não são pressupostas neste requisito. | Quais fontes foram recebidas, atualizadas e padronizadas, quais registros foram deduplicados e qual origem sustenta cada dado? | Objetivo de integrar fontes (§3); limitações e melhoria esperada do fluxo (§4.0.2); dicionário (§4.0.1); TAPI [1], Arquitetura de Negócio [2], DMC [3], JTBD/HMW [4] e Problem Canvas [5]. |
+| RF13 | Questionário validado e versionado | Como responsável de uma área técnica, quero revisar e versionar o questionário associado à pesquisa, para assegurar que perguntas e validações estejam identificadas antes da divulgação. | Associar a cada versão a pesquisa, área revisora, estado da validação e histórico de alterações quando esses metadados estiverem registrados; classificar a validação como observada ou proposta e não afirmar que uma versão foi validada quando não houver registro. | Qual versão do questionário foi revisada por qual área técnica, em que estado de validação e antes de qual marco do ciclo? | Processo de planejamento e validação (§4.0.2); `questoes.csv` (§4.0.1); capacidade de validação técnica da Arquitetura de Negócio [2]; TAPI [1], JTBD/HMW [4] e Problem Canvas [5]. |
 
 ## 6.2 Requisitos Não Funcionais (ISO/IEC 25010)
 
@@ -578,16 +604,18 @@ essas especificações ficam para as seções e issues próprias.
 | ID | Pergunta de negócio | Requisito(s) associado(s) |
 | :--- | :--- | :--- |
 | PB01 | Quais pesquisas compõem o portfólio e como se distribuem por período, tipo, área, complexidade e status? | RF01 |
-| PB02 | Em que etapa está cada pesquisa, quais marcos já ocorreram e quais informações do seu detalhe estão disponíveis? | RF02 |
-| PB03 | Quais pesquisas estão atrasadas, foram prorrogadas ou demandam prioridade, e como os tempos do ciclo se comparam? | RF03 |
-| PB04 | A participação alcançada é suficiente e representa as empresas ou parcelas de mercado relevantes? | RF04 |
-| PB05 | Quais áreas, departamentos e cargos participam mais ou menos? | RF05 |
+| PB02 | Em que etapa está cada pesquisa, quais marcos foram observados ou derivados e quais informações do seu detalhe estão disponíveis? | RF02 |
+| PB03 | Quais pesquisas estão atrasadas, foram prorrogadas ou demandam prioridade, qual denominador sustenta cada comparação e como os tempos do ciclo se comparam? | RF03 |
+| PB04 | A participação alcançada é suficiente e representa as empresas ou parcelas de mercado relevantes, e qual denominador sustenta essa leitura? | RF04 |
+| PB05 | Quais áreas, departamentos e cargos participam mais ou menos, e qual é o denominador disponível para o engajamento? | RF05 |
 | PB06 | Quais dados estão completos e válidos, quais lacunas permanecem e qual é o estado de atualização de cada fonte? | RF06 |
-| PB07 | De qual fonte veio uma pesquisa, quem participou, qual questão originou o resultado e quais respostas o sustentam? | RF07 |
+| PB07 | Qual fonte sustenta o agregado, quais elos estão disponíveis e quais relações ainda precisam de conciliação? | RF07 |
 | PB08 | Que dados cada perfil pode consultar, detalhar ou publicar sem expor informações não autorizadas? | RF08 |
-| PB09 | O resultado foi autorizado, publicado e está consistente com a pesquisa interna correspondente? | RF09 |
-| PB10 | Qual foi a distribuição das respostas para cada questão e como ela varia entre pesquisas ou segmentos permitidos? | RF10 |
-| PB11 | Qual registro de resposta sustenta este agregado e quais contextos devem ser considerados na leitura? | RF11 |
+| PB09 | O resultado foi autorizado e publicado, quais metadados sustentam essa decisão e ele está consistente com a pesquisa interna correspondente? | RF09 |
+| PB10 | Qual foi a distribuição das respostas para cada questão, qual denominador está disponível e como ela varia entre pesquisas ou segmentos permitidos? | RF10 |
+| PB11 | Qual evidência agregada sustenta este resultado, que contexto está disponível e a consulta individual é autorizada e suportada pelos dados? | RF11 |
+| PB12 | Quais fontes foram recebidas, atualizadas e padronizadas, quais registros foram deduplicados e qual origem sustenta cada dado? | RF12 |
+| PB13 | Qual versão do questionário foi revisada por qual área técnica, em que estado de validação e antes de qual marco do ciclo? | RF13 |
 
 ## 6.4 Indicadores e Métricas de Negócio
 
@@ -626,6 +654,12 @@ _conteúdo_
 [2] INTELI; SINDUSFARMA. **Arquitetura de Negócio: Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Documento de projeto (arquivo `Arquitetura de Negócio.pdf`) disponibilizado pela faculdade e pelo parceiro de projeto.
 
 [3] INTELI; SINDUSFARMA. **Data Model Canvas: Data Warehouse — Sindusfarma**. São Paulo, 2026. Artefato de documentação (arquivo `Data Model Canvas.pdf`) disponibilizado pela faculdade e pelo parceiro de projeto.
+
+[4] GRUPO 5. **JTBD a partir do Data Model Canvas — Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Artefato local de levantamento (arquivo `context/JTBD-a-partir-do-Data-Model-Canvas.txt`).
+
+[5] GRUPO 5. **Problem Canvas — Gestão integrada de pesquisas setoriais**. São Paulo, 2026. Artefato local de levantamento (arquivo `context/problem_canvas_sindusfarma_completo (1).html`).
+
+[6] GRUPO 5. **Dicionário de variáveis de respostas**. São Paulo, 2026. Artefato local de dados (arquivo `context/Dicionario_Variaveis_Respostas_Grupo6.xlsx - Dicionário.csv`).
 
 # 8. Avaliação dos Resultados
 
