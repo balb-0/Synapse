@@ -7,7 +7,7 @@ síntese do grupo seja citada como confirmação do parceiro.
 
 ## Como ler o mapa
 
-- **Confirmada pelo parceiro:** afirmação atribuída a um artefato primário do parceiro. Nesta cópia do repositório, a classificação só pode ser auditada quando o arquivo primário estiver disponível.
+- **Confirmada pelo parceiro:** afirmação explícita em artefato primário do parceiro, conferido diretamente e identificado por hash nesta auditoria.
 - **Observada nos dados ou no código:** resultado reproduzível nos CSVs, JSON ou scripts.
 - **Inferência:** conclusão compatível com as evidências, mas não confirmada diretamente.
 - **Proposta da equipe:** decisão de desenho ou resultado futuro ainda sujeito a validação ou implementação.
@@ -17,8 +17,8 @@ síntese do grupo seja citada como confirmação do parceiro.
 
 | Fonte | Conteúdo suportado | Artefato / seção | Tipo de evidência nesta cópia | Limitações |
 | :--- | :--- | :--- | :--- | :--- |
-| TAPI [[1]](projeto.md#7-referências) | contexto, objetivos, escopo macro e resultados pretendidos | contexto e requisitos; §§3, 4 e 6 | Pendente de auditoria primária | `context/Tapi-sinduspharma.txt` é citado, mas não está no checkout |
-| Arquitetura de Negócio [[2]](projeto.md#7-referências) | atores, processo atual, sistemas e necessidades de integração | contexto e requisitos; §§4.0 e 6 | Pendente de auditoria primária | arquivo citado não está no checkout |
+| TAPI [[1]](projeto.md#7-referências) | contexto, objetivo, escopo macro, MVP, públicos, exclusões e resultados pretendidos | contexto e requisitos; §§1.4, 3, 4 e 6 | Confirmada pelo parceiro | conferido no arquivo externo `Tapi-sinduspharma.txt`; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c` |
+| Arquitetura de Negócio [[2]](projeto.md#7-referências) | capacidades, atores, fluxo de dez etapas, objetos informacionais, integrações e responsabilidades | contexto e requisitos; §§2.1, 4.0 e 6 | Confirmada pelo parceiro | conferido no arquivo externo `Arquitetura-de-Negócio-Central-de-Pesquisas-do-Sindusfarma.txt`; SHA-256 `76e50e5f090cadaa39f5fef81473dacccbf069d5071238be84720e0aafb70afd` |
 | Data Model Canvas em PDF [[3]](projeto.md#7-referências) | baseline de Negócio, Consumo Analítico e Governança Corporativa | DMC; §5.1 e `docs/dmc.json` | Pendente de auditoria primária | PDF citado não está no checkout; somente o JSON e a distinção registrada na §5.1 podem ser observados |
 | JTBD [[13]](projeto.md#7-referências) | necessidades, públicos e decisões esperadas | contexto, perguntas de negócio e consumo analítico | Pendente de auditoria primária | arquivo citado não está no checkout |
 | Problem Canvas [[14]](projeto.md#7-referências) | dores, causas, impactos, necessidades, públicos, governança e riscos | contexto, requisitos e matriz de evidências | Pendente de auditoria primária | HTML citado não está no checkout |
@@ -50,7 +50,8 @@ CSVs + dicionário + perfilamento reproduzível
 
 | Dependência | O que ela impede quando ausente | Tratamento adotado |
 | :--- | :--- | :--- |
-| Fonte primária do parceiro | confirmar escopo, processo, papéis e dores | manter a referência e marcar a auditoria como pendente; não promover síntese a fato |
+| TAPI ou Arquitetura de Negócio | confirmar escopo, processo, públicos, papéis e dores | fontes conferidas diretamente; manter como pendente somente o que elas não afirmam ou não medem |
+| DMC em PDF, JTBD ou Problem Canvas | confirmar o conteúdo específico atribuído a cada artefato | manter a referência e marcar a auditoria como pendente; não promover síntese a fato |
 | Universo de convidados ou elegíveis | calcular adesão e engajamento | indicadores ficam indisponíveis, nunca iguais a zero |
 | Identidade canônica entre sistemas | unir participação, cliente e resposta individual | preservar chaves de origem e não inferir vínculos por semelhança |
 | Fonte autoritativa de participação de mercado | homologar representatividade | manter valores em reconciliação e bloquear o indicador conflitante |
@@ -59,7 +60,8 @@ CSVs + dicionário + perfilamento reproduzível
 
 ## Fronteiras de responsabilidade
 
-O mapa não confirma a natureza sintética ou real dos CSVs, não define política
-de acesso e não preenche lacunas das fontes primárias por inferência. Os dados
-brutos continuam ignorados; somente agregados sem identificação podem ser
-versionados depois dos controles aplicáveis.
+O mapa não confirma a natureza sintética ou real dos CSVs, não transforma o
+MVP descrito no TAPI em capacidade já implantada, não define a política final
+de acesso e não preenche lacunas das demais fontes primárias por inferência. Os
+dados brutos continuam ignorados; somente agregados sem identificação podem
+ser versionados depois dos controles aplicáveis.
