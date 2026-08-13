@@ -24,6 +24,39 @@ from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 
+ESQUEMAS = {
+    'clientes': ['id_cliente', 'id_empresa', 'cargo', 'departamento', 'e-mail'],
+    'empresas': ['ID', 'Nome Fantasia', '% de mercado', 'Nacionalidade', 'Associado', 'Tipo de Associado', 'Cidade', 'Estado', 'País'],
+    'pesquisas': [
+        'id', 'titulo', 'status', 'tipo', 'area', 'participantes', 'part_mercado',
+        'data_solicitacao', 'data_aprov', 'data_divulgacao', 'data_limite',
+        'prorrogada_ate', 'data_entrega', 'dias_uteis_para_entrega',
+        'complexidade', 'tipo de resposta', 'tempo_preenchimento', 'objetivos',
+        'dia da semana de lançamento', 'dias úteis aberta',
+        'dias entre a solicitação e a divulgação', 'dias para tabulação',
+    ] + [''] * 11,
+    'questoes': [
+        'id_pergunta', 'pesquisa_id', 'pesquisa_titulo', 'enunciado', 'tipo',
+        'qtd_alternativas', 'alternativas', 'linhas_matriz', 'colunas_matriz',
+        'confianca', 'formato_arquivo', 'col_origem', 'observacoes',
+    ],
+    'respondentes': ['id_pesq', 'hora_inicio', 'hora_termino', 'id_empresa', 'market_share', 'id_cliente'],
+    'respostas': [
+        'id_resposta', 'pesquisa_id', 'id_pergunta', 'respondent_id',
+        'id_empresa', 'alternativa', 'linha_matriz', 'coluna_matriz', 'valor',
+    ],
+}
+
+CHAVES_CANDIDATAS = {
+    'clientes': ('id_cliente',),
+    'empresas': ('ID',),
+    'pesquisas': ('id',),
+    'questoes': ('id_pergunta',),
+    'respondentes': None,
+    'respostas': ('id_resposta',),
+}
+
+
 def round_pct(num, den):
     if den is None or den == 0:
         return None
@@ -38,11 +71,16 @@ def format_pct(val):
     return f"{s}%"
 
 
-def load_csv(filepath):
+def load_csv(filepath, source_id):
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Arquivo CSV obrigatório não encontrado: {filepath}")
     with open(filepath, 'r', encoding='utf-8-sig') as f:
         reader = csv.DictReader(f, delimiter=';')
+        if reader.fieldnames != ESQUEMAS[source_id]:
+            raise ValueError(
+                f"Esquema incompatível em {os.path.basename(filepath)}: "
+                f"esperado {ESQUEMAS[source_id]!r}; recebido {reader.fieldnames!r}"
+            )
         rows = list(reader)
     return rows
 
@@ -55,19 +93,70 @@ def compute_file_sha256(filepath):
     return h.hexdigest()
 
 
-def campo_parseavel(rows, field, formats=None, percentage=False):
-    values = [r.get(field, '').strip() for r in rows if r.get(field, '').strip()]
-    if percentage:
-        def valid(value):
-            try:
-                Decimal(value.removesuffix('%').replace('.', '').replace(',', '.'))
-                return True
-            except Exception:
-                return False
-    else:
-        def valid(value):
-            return any(_try_datetime(value, fmt) for fmt in formats)
-    return bool(values) and all(valid(value) for value in values)
+def valor_semantico(value):
+    value = value.strip()
+    return value if value and value.lower() not in {'s/i', 'na', 'n/a'} else None
+
+
+def decimal_localizado(value):
+    value = value.removesuffix('%').strip()
+    if ',' in value:
+        value = value.replace('.', '').replace(',', '.')
+    return Decimal(value)
+
+
+def perfil_parseabilidade(rows, field, kind, formats=None):
+    values = [value for row in rows if (value := valor_semantico(row.get(field, ''))) is not None]
+
+    def valid(value):
+        try:
+            if kind == 'data':
+                return any(_try_datetime(value, fmt) for fmt in formats)
+            parsed = decimal_localizado(value)
+            return kind != 'inteiro' or parsed == parsed.to_integral_value()
+        except (ValueError, ArithmeticError):
+            return False
+
+    validos = sum(1 for value in values if valid(value))
+    return {
+        'campo': field,
+        'tipo': kind,
+        'validos': validos,
+        'avaliados': len(values),
+    }
+
+
+def perfil_duplicatas(rows, key_fields):
+    vistos_linha = set()
+    vistos_chave = set()
+    indices_duplicados = set()
+    duplicatas_linha = 0
+    duplicatas_chave = 0
+
+    for index, row in enumerate(rows):
+        assinatura = tuple((field, row.get(field, '')) for field in sorted(row))
+        if assinatura in vistos_linha:
+            duplicatas_linha += 1
+            indices_duplicados.add(index)
+        else:
+            vistos_linha.add(assinatura)
+
+        if key_fields:
+            key = tuple(valor_semantico(row.get(field, '')) for field in key_fields)
+            if all(part is not None for part in key):
+                if key in vistos_chave:
+                    duplicatas_chave += 1
+                    indices_duplicados.add(index)
+                else:
+                    vistos_chave.add(key)
+
+    return {
+        'duplicatas_unicas': len(indices_duplicados),
+        'duplicatas_linha_completa': duplicatas_linha,
+        'duplicatas_chave': duplicatas_chave,
+        'chave': list(key_fields) if key_fields else ['hash_linha_completa'],
+        'linhas_avaliadas': len(rows),
+    }
 
 
 def _try_datetime(value, fmt):
@@ -108,17 +197,17 @@ def process_data(input_dir, processado_em=None):
             if os.path.exists(alt_path):
                 fpath = alt_path
                 fname = 'respostas.csv'
-        
+
         file_sha = compute_file_sha256(fpath)
         manifesto_fontes.append({
             'arquivo_recebido': fname,
             'id': file_id,
             'sha256': file_sha
         })
-        data_sources[file_id] = load_csv(fpath)
+        data_sources[file_id] = load_csv(fpath, file_id)
 
     manifesto_fontes.sort(key=lambda x: x['id'])
-    
+
     snapshot_json_bytes = json.dumps(
         manifesto_fontes, ensure_ascii=False, sort_keys=True, separators=(',', ':')
     ).encode('utf-8')
@@ -133,7 +222,7 @@ def process_data(input_dir, processado_em=None):
 
     # --- D01 OPERAÇÃO ---
     total_pesquisas = len(pesquisas)
-    
+
     data_solicitacao_count = sum(1 for r in pesquisas if r.get('data_solicitacao', '').strip())
     data_aprov_count = sum(1 for r in pesquisas if r.get('data_aprov', '').strip())
     data_divulgacao_count = sum(1 for r in pesquisas if r.get('data_divulgacao', '').strip())
@@ -228,9 +317,17 @@ def process_data(input_dir, processado_em=None):
         r.get('id_pesq', '').strip() for r in orfas_resp if r.get('id_pesq', '').strip()
     }
 
-    from collections import Counter
-    counts_by_pesq = Counter(r.get('id_pesq', '').strip() for r in respondentes if r.get('id_pesq', '').strip())
-    val_counts = sorted(counts_by_pesq.values())
+    from collections import Counter, defaultdict
+    empresas_por_pesquisa = defaultdict(set)
+    id_empresa_vazios = 0
+    for row in respondentes:
+        pesquisa_id = valor_semantico(row.get('id_pesq', ''))
+        empresa_id = valor_semantico(row.get('id_empresa', ''))
+        if empresa_id is None:
+            id_empresa_vazios += 1
+        elif pesquisa_id is not None:
+            empresas_por_pesquisa[pesquisa_id].add(empresa_id)
+    val_counts = sorted(len(empresas) for empresas in empresas_por_pesquisa.values())
     n_pesq = len(val_counts)
 
     def calc_percentile(arr, p):
@@ -246,11 +343,12 @@ def process_data(input_dir, processado_em=None):
         'id_cliente_sem_valor': sem_cliente_valido,
         'id_cliente_vazios': vazio_cliente,
         'id_cliente_si': si_cliente,
+        'id_empresa_vazios': id_empresa_vazios,
         'participacoes_orfas': {
             'total': len(orfas_resp),
             'pesquisas_orfas_distintas': len(pesquisas_orfas_resp)
         },
-        'estatisticas_empresas_por_pesquisa': {
+        'estatisticas_empresas_distintas_por_pesquisa': {
             'min': val_counts[0] if val_counts else 0,
             'q25': calc_percentile(val_counts, 0.25),
             'mediana': calc_percentile(val_counts, 0.50),
@@ -264,7 +362,7 @@ def process_data(input_dir, processado_em=None):
         },
         'i11_estado': {
             'status': 'indisponivel',
-            'motivo': 'Sem informação do universo do mercado por segmento'
+            'motivo': 'Sem universo elegível por área, cargo ou departamento'
         },
         'i09_diagnostico': {
             'status': 'conflito',
@@ -276,12 +374,12 @@ def process_data(input_dir, processado_em=None):
     # --- D03 RESULTADOS E QUESTIONÁRIOS ---
     total_elementos = len(teste)
     total_questoes = len(questoes)
-    
+
     respondent_ids_teste = set(r.get('respondent_id', '').strip() for r in teste if r.get('respondent_id', '').strip())
     ids_distintos_fonte = len(respondent_ids_teste)
 
     tipos_q_counts = Counter(r.get('tipo', '').strip() for r in questoes)
-    
+
     tipos_questao = {
         'aberta': tipos_q_counts.get('aberta', 0),
         'caixas': tipos_q_counts.get('caixas_de_selecao', 0),
@@ -387,7 +485,13 @@ def process_data(input_dir, processado_em=None):
 
     # --- D04 QUALIDADE E GOVERNANÇA ---
     total_linhas_fontes = sum(len(v) for v in data_sources.values())
-    total_duplicatas = 0
+    duplicatas_por_fonte = {
+        source_id: perfil_duplicatas(rows, CHAVES_CANDIDATAS[source_id])
+        for source_id, rows in data_sources.items()
+    }
+    total_duplicatas = sum(
+        profile['duplicatas_unicas'] for profile in duplicatas_por_fonte.values()
+    )
 
     resp_encontradas = total_participacoes - len(orfas_resp)
     resp_pct = round_pct(resp_encontradas, total_participacoes)
@@ -407,25 +511,41 @@ def process_data(input_dir, processado_em=None):
     divergencias_titulos = sum(1 for q in valid_qs if q.get('pesquisa_titulo', '').strip() != pesq_dict[q.get('pesquisa_id', '').strip()])
     div_titulos_pct = round_pct(divergencias_titulos, len(valid_qs))
 
-    campos_temporais = [
-        campo_parseavel(pesquisas, field, formats=['%d/%m/%Y'])
+    especificacoes_parseabilidade = [
+        (pesquisas, 'pesquisas', field, 'data', ['%d/%m/%Y'])
         for field in ['data_solicitacao', 'data_aprov', 'data_divulgacao', 'data_limite', 'prorrogada_ate', 'data_entrega']
-    ]
-    campos_temporais.extend(
-        campo_parseavel(respondentes, field, formats=['%d/%m/%Y %H:%M'])
+    ] + [
+        (respondentes, 'respondentes', field, 'data', ['%d/%m/%Y %H:%M'])
         for field in ['hora_inicio', 'hora_termino']
-    )
-    campos_percentuais = [
-        campo_parseavel(pesquisas, 'part_mercado', percentage=True),
-        campo_parseavel(empresas, '% de mercado', percentage=True),
-        campo_parseavel(respondentes, 'market_share', percentage=True),
+    ] + [
+        (pesquisas, 'pesquisas', 'part_mercado', 'percentual', None),
+        (empresas, 'empresas', '% de mercado', 'percentual', None),
+        (respondentes, 'respondentes', 'market_share', 'percentual', None),
+    ] + [
+        (source_rows, source_id, field, 'inteiro', None)
+        for source_rows, source_id, fields in [
+            (pesquisas, 'pesquisas', ['id', 'participantes', 'dias_uteis_para_entrega', 'tempo_preenchimento', 'dias úteis aberta', 'dias entre a solicitação e a divulgação', 'dias para tabulação']),
+            (empresas, 'empresas', ['ID']),
+            (clientes, 'clientes', ['id_cliente', 'id_empresa']),
+            (respondentes, 'respondentes', ['id_pesq', 'id_empresa', 'id_cliente']),
+            (questoes, 'questoes', ['id_pergunta', 'pesquisa_id', 'qtd_alternativas']),
+            (teste, 'respostas', ['id_resposta', 'pesquisa_id', 'id_pergunta', 'respondent_id', 'id_empresa']),
+        ]
+        for field in fields
     ]
-    campos_parseaveis = sum(campos_temporais + campos_percentuais)
-    campos_tipados = len(campos_temporais) + len(campos_percentuais)
+    parseabilidade_por_campo = []
+    for rows, source_id, field, kind, formats in especificacoes_parseabilidade:
+        profile = perfil_parseabilidade(rows, field, kind, formats)
+        profile['fonte'] = source_id
+        parseabilidade_por_campo.append(profile)
+    valores_parseaveis = sum(profile['validos'] for profile in parseabilidade_por_campo)
+    valores_avaliados = sum(profile['avaliados'] for profile in parseabilidade_por_campo)
 
     d04_data = {
         'total_linhas_fontes': total_linhas_fontes,
         'total_duplicatas': total_duplicatas,
+        'duplicatas_por_fonte': duplicatas_por_fonte,
+        'parseabilidade_por_campo': parseabilidade_por_campo,
         'integridade': {
             'respondentes_para_pesquisas': {
                 'numerador': resp_encontradas,
@@ -480,28 +600,53 @@ def process_data(input_dir, processado_em=None):
                 'denominador': total_linhas_fontes,
                 'percentual': round_pct(total_duplicatas, total_linhas_fontes),
                 'formatado': format_pct(round_pct(total_duplicatas, total_linhas_fontes)),
-                'status': 'conforme',
-                'descricao': 'Nenhuma duplicata adicional por linha completa ou chave configurada nas seis fontes.'
+                'status': 'divergencia_observada' if total_duplicatas else 'conforme',
+                'descricao': f'{total_duplicatas} linhas além da primeira por linha completa ou chave candidata; cada linha é contada uma vez.'
             },
-            {
-                'id_regra': 'I18',
-                'nome': 'Integridade referencial (três relações)',
-                'numerador': resp_encontradas + questoes_encontradas + respostas_encontradas,
-                'denominador': total_participacoes + total_questoes + total_elementos,
-                'percentual': round_pct(resp_encontradas + questoes_encontradas + respostas_encontradas, total_participacoes + total_questoes + total_elementos),
-                'formatado': format_pct(round_pct(resp_encontradas + questoes_encontradas + respostas_encontradas, total_participacoes + total_questoes + total_elementos)),
-                'status': 'divergencia_observada',
-                'descricao': f'Por relação: {len(orfas_resp)} participações, {len(questoes_orfas)} questões e {len(teste_orfas)} elementos de resposta órfãos.'
-            },
+            *[
+                {
+                    'id_regra': 'I18',
+                    'nome': name,
+                    'numerador': relationship['numerador'],
+                    'denominador': relationship['denominador'],
+                    'percentual': relationship['percentual'],
+                    'formatado': relationship['formatado'],
+                    'status': 'divergencia_observada' if relationship['orfas'] else 'conforme',
+                    'descricao': f"{relationship['orfas']} ocorrências órfãs na relação avaliada.",
+                }
+                for name, relationship in [
+                    ('Integridade: participações → pesquisas', {
+                        'numerador': resp_encontradas,
+                        'denominador': total_participacoes,
+                        'orfas': len(orfas_resp),
+                        'percentual': resp_pct,
+                        'formatado': format_pct(resp_pct),
+                    }),
+                    ('Integridade: questões → pesquisas', {
+                        'numerador': questoes_encontradas,
+                        'denominador': total_questoes,
+                        'orfas': len(questoes_orfas),
+                        'percentual': questoes_pct,
+                        'formatado': format_pct(questoes_pct),
+                    }),
+                    ('Integridade: respostas → pesquisas', {
+                        'numerador': respostas_encontradas,
+                        'denominador': total_elementos,
+                        'orfas': len(teste_orfas),
+                        'percentual': respostas_pct,
+                        'formatado': format_pct(respostas_pct),
+                    }),
+                ]
+            ],
             {
                 'id_regra': 'I19',
-                'nome': 'Parseabilidade dos campos configurados',
-                'numerador': campos_parseaveis,
-                'denominador': campos_tipados,
-                'percentual': round_pct(campos_parseaveis, campos_tipados),
-                'formatado': format_pct(round_pct(campos_parseaveis, campos_tipados)),
-                'status': 'conforme' if campos_parseaveis == campos_tipados else 'divergencia_observada',
-                'descricao': 'Oito campos temporais e três percentuais foram parseáveis entre valores semanticamente informados.'
+                'nome': 'Parseabilidade dos valores configurados',
+                'numerador': valores_parseaveis,
+                'denominador': valores_avaliados,
+                'percentual': round_pct(valores_parseaveis, valores_avaliados),
+                'formatado': format_pct(round_pct(valores_parseaveis, valores_avaliados)),
+                'status': 'conforme' if valores_parseaveis == valores_avaliados else 'divergencia_observada',
+                'descricao': f'{len(parseabilidade_por_campo)} campos temporais, percentuais e inteiros; a unidade é valor semanticamente informado.'
             },
             {
                 'id_regra': 'I20',
@@ -535,9 +680,9 @@ def process_data(input_dir, processado_em=None):
             'motivo': 'Política aprovada e logs de autorização não existem no snapshot'
         },
         'fluxo_textual': {
-            'observado': 'Fluxo Observado: Cargas pontuais de planilhas despadronizadas enviadas por múltiplos canais sem validação prévia.',
-            'em_reconciliacao': 'Fluxo em Reconciliação: Aplicação do pipeline determinístico com geração de hashes SHA-256 e segregação de registros órfãos.',
-            'proposto': 'Fluxo Proposto: Ingestão automatizada com validação de esquema na origem e rejeição imediata de IDs inconsistentes.'
+            'observado': 'Fluxo observado: seis arquivos CSV recebidos, identificados por hash SHA-256 e processados sem alterar os originais.',
+            'em_reconciliacao': 'Fluxo em reconciliação: relações órfãs permanecem separadas e a ponte entre participação e resposta não foi comprovada.',
+            'proposto': 'Fluxo proposto: integrar catálogo, sistema de origem, execuções e regras aprovadas antes de calcular a cobertura da linhagem.'
         }
     }
 
@@ -566,12 +711,12 @@ def main():
 
     try:
         output_data = process_data(args.input_dir, args.processado_em)
-        
+
         tmp_output = args.output + ".tmp"
         with open(tmp_output, "w", encoding="utf-8") as f:
             json.dump(output_data, f, ensure_ascii=False, indent=2, sort_keys=True)
             f.write("\n")
-        
+
         os.replace(tmp_output, args.output)
         print(f"Sucesso: Dados gerados com sucesso em {args.output}")
     except Exception as e:

@@ -64,6 +64,8 @@ Valida esquemas, invariantes numéricas, valores de referência (D01–D04), reg
 SINDUSFARMA_CSV_DIR=<diretorio-das-fontes> python3 -m unittest test_gerar_dados_prototipos.py
 ```
 
+A suíte também cria cópias temporárias controladas para provar que uma linha duplicada altera I17 e que um cabeçalho incompatível interrompe a execução. Os arquivos brutos nunca são modificados.
+
 ### 3. Servidor HTTP local simples
 Para visualizar o dashboard interativo `index.html` em qualquer navegador:
 
@@ -107,3 +109,5 @@ Se o navegador do Playwright não estiver instalado, informe um Chromium já dis
 - **I11 (Taxa de engajamento do público)**: indisponível sem o universo elegível por área, cargo ou departamento.
 - **I09 (Participação de mercado observada)**: fica bloqueado porque `market_share` e `% de mercado` divergem entre fontes e ainda não há fonte autoritativa homologada.
 - **I21, I23, I24, I25**: Indisponíveis por ausência de logs de sistema, controle de acessos ou histórico de versões de regras nas cargas legadas.
+
+I17 contabiliza, por fonte, linhas além da primeira segundo a chave candidata declarada ou o hash da linha completa, sem contar a mesma linha duas vezes. I18 permanece separado por relação. I19 mede valores semanticamente informados e parseáveis nos campos temporais, percentuais e inteiros configurados; o detalhamento por campo fica no JSON.

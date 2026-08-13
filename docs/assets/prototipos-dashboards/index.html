@@ -204,7 +204,7 @@
       font-family: var(--font-body);
       cursor: pointer;
       border-radius: 3px;
-      transition: all 0.2s;
+      transition: none;
     }
     .btn-state:hover {
       background: var(--action-data);
@@ -297,6 +297,9 @@
     }
     .tab-panel.active {
       display: block;
+    }
+    [hidden] {
+      display: none !important;
     }
 
     /* Editorial Panel Layout & Asymmetry */
@@ -522,6 +525,9 @@
       text-transform: uppercase;
       border-radius: 2px;
     }
+    .panel-card [style*="justify-content: space-between"] {
+      flex-wrap: wrap;
+    }
     .badge-unavailable {
       background: #ECEFF1;
       color: #546E7A;
@@ -570,13 +576,13 @@
     }
     .state-banner.error {
       background: var(--state-error-bg);
-      border-color: var(--state-error);
-      color: var(--state-error);
+      border-color: #B71C1C;
+      color: #B71C1C;
     }
     .state-banner.denied {
       background: #FFF3E0;
       border-color: var(--accent-orange);
-      color: #E65100;
+      color: #8A3100;
     }
 
     /* Footer */
@@ -662,13 +668,13 @@
     <div class="toolbar-content">
       <div class="state-switcher" role="group" aria-label="Demonstrador de estados da interface">
         <label>Estado UI:</label>
-        <button type="button" class="btn-state active" data-state="normal">Normal</button>
-        <button type="button" class="btn-state" data-state="loading">Carregando</button>
-        <button type="button" class="btn-state" data-state="empty">Vazio</button>
-        <button type="button" class="btn-state" data-state="unavailable">Indisponível</button>
-        <button type="button" class="btn-state" data-state="error">Erro</button>
-        <button type="button" class="btn-state" data-state="denied">Acesso Negado</button>
-        <button type="button" class="btn-state" data-state="no-time">Sem Timestamp</button>
+        <button type="button" class="btn-state active" data-state="normal" aria-pressed="true">Normal</button>
+        <button type="button" class="btn-state" data-state="loading" aria-pressed="false">Carregando</button>
+        <button type="button" class="btn-state" data-state="empty" aria-pressed="false">Vazio</button>
+        <button type="button" class="btn-state" data-state="unavailable" aria-pressed="false">Indisponível</button>
+        <button type="button" class="btn-state" data-state="error" aria-pressed="false">Erro</button>
+        <button type="button" class="btn-state" data-state="denied" aria-pressed="false">Acesso negado</button>
+        <button type="button" class="btn-state" data-state="no-time" aria-pressed="false">Sem timestamp</button>
       </div>
 
       <div>
@@ -1105,7 +1111,7 @@
             </div>
             <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 0.75rem; font-size: 0.8125rem;">
               <strong style="color: var(--structure-blue);">I22 (Linhagem):</strong> <span class="badge badge-conforme">SEM PERCENTUAL</span>
-              <p style="color: var(--ink-muted); margin-top: 0.2rem;">Métrica qualitativa de rastreabilidade técnica ativa.</p>
+              <p style="color: var(--ink-muted); margin-top: 0.2rem;">Evidência parcial; percentual indisponível até definir os elos elegíveis.</p>
             </div>
             <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 0.75rem; font-size: 0.8125rem;">
               <strong style="color: var(--structure-blue);">I23 (Publicação autorizada):</strong> <span class="badge badge-unavailable">INDISPONÍVEL</span>
@@ -1349,7 +1355,7 @@
           `${formatarInteiro(orfas.pesquisas_orfas_distintas)} pesquisa de origem sem correspondência`;
 
         const containerDistrib = document.getElementById('d02-chart-distrib');
-        const stats = d02.estatisticas_empresas_por_pesquisa;
+        const stats = d02.estatisticas_empresas_distintas_por_pesquisa;
 
         containerDistrib.innerHTML = `
           <div class="bar-row">
@@ -1595,8 +1601,12 @@
       function setupStateSwitcher() {
         stateButtons.forEach(btn => {
           btn.addEventListener('click', () => {
-            stateButtons.forEach(b => b.classList.remove('active'));
+            stateButtons.forEach(b => {
+              b.classList.remove('active');
+              b.setAttribute('aria-pressed', 'false');
+            });
             btn.classList.add('active');
+            btn.setAttribute('aria-pressed', 'true');
 
             const state = btn.getAttribute('data-state');
             currentUIState = state;
@@ -1608,7 +1618,13 @@
       function applyUIState(state) {
         stateBannerContainer.innerHTML = '';
         const mainContent = document.getElementById('main-content');
-        mainContent.style.opacity = '1';
+        const dataRegions = [mainContent.querySelector('nav'), ...tabPanels];
+        const ocultaDados = ['loading', 'empty', 'unavailable', 'error', 'denied'].includes(state);
+        mainContent.setAttribute('aria-busy', state === 'loading' ? 'true' : 'false');
+        dataRegions.forEach(region => {
+          region.hidden = ocultaDados;
+          if ('inert' in region) region.inert = ocultaDados;
+        });
 
         const freshnessNote = document.getElementById('freshness-note');
         const snapTime = document.getElementById('snap-time');
@@ -1622,7 +1638,6 @@
         switch (state) {
           case 'loading':
             renderStateBanner('loading', 'Carregando dados agregados do servidor local...');
-            mainContent.style.opacity = '0.4';
             break;
 
           case 'empty':
@@ -1634,11 +1649,11 @@
             break;
 
           case 'error':
-            renderStateBanner('error', 'Erro 500: Falha interna de comunicação com a fonte de dados.');
+            renderStateBanner('error', 'Erro 500: falha interna de comunicação com a fonte de dados.');
             break;
 
           case 'denied':
-            renderStateBanner('denied', 'Acesso Negado (HTTP 403): Permissões insuficientes para visualizar detalhes restritos.');
+            renderStateBanner('denied', 'Acesso negado (HTTP 403): permissões insuficientes para visualizar detalhes restritos.');
             break;
 
           case 'no-time':
@@ -1655,9 +1670,16 @@
       }
 
       function renderStateBanner(type, message) {
+        const labels = {
+          loading: 'CARREGANDO',
+          empty: 'VAZIO',
+          unavailable: 'INDISPONÍVEL',
+          error: 'ERRO',
+          denied: 'ACESSO NEGADO'
+        };
         stateBannerContainer.innerHTML = `
           <div class="state-banner ${type}" role="alert">
-            <strong>ESTADO [${type.toUpperCase()}]:</strong>
+            <strong>ESTADO [${labels[type] || 'INFORMAÇÃO'}]:</strong>
             <span>${message}</span>
           </div>
         `;

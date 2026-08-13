@@ -73,9 +73,9 @@
   },
   "d02_adesao": {
     "empresas_distintas": 419,
-    "estatisticas_empresas_por_pesquisa": {
+    "estatisticas_empresas_distintas_por_pesquisa": {
       "max": 187,
-      "media": 57.293577981651374,
+      "media": 57.26605504587156,
       "mediana": 54,
       "min": 7,
       "q25": 40,
@@ -91,12 +91,13 @@
       "status": "conflito"
     },
     "i11_estado": {
-      "motivo": "Sem informação do universo do mercado por segmento",
+      "motivo": "Sem universo elegível por área, cargo ou departamento",
       "status": "indisponivel"
     },
     "id_cliente_sem_valor": 857,
     "id_cliente_si": 1,
     "id_cliente_vazios": 856,
+    "id_empresa_vazios": 0,
     "participacoes_orfas": {
       "pesquisas_orfas_distintas": 1,
       "total": 55
@@ -216,10 +217,66 @@
       "numerador": 41,
       "percentual": 21.8
     },
+    "duplicatas_por_fonte": {
+      "clientes": {
+        "chave": [
+          "id_cliente"
+        ],
+        "duplicatas_chave": 0,
+        "duplicatas_linha_completa": 0,
+        "duplicatas_unicas": 0,
+        "linhas_avaliadas": 5430
+      },
+      "empresas": {
+        "chave": [
+          "ID"
+        ],
+        "duplicatas_chave": 0,
+        "duplicatas_linha_completa": 0,
+        "duplicatas_unicas": 0,
+        "linhas_avaliadas": 779
+      },
+      "pesquisas": {
+        "chave": [
+          "id"
+        ],
+        "duplicatas_chave": 0,
+        "duplicatas_linha_completa": 0,
+        "duplicatas_unicas": 0,
+        "linhas_avaliadas": 366
+      },
+      "questoes": {
+        "chave": [
+          "id_pergunta"
+        ],
+        "duplicatas_chave": 0,
+        "duplicatas_linha_completa": 0,
+        "duplicatas_unicas": 0,
+        "linhas_avaliadas": 231
+      },
+      "respondentes": {
+        "chave": [
+          "hash_linha_completa"
+        ],
+        "duplicatas_chave": 0,
+        "duplicatas_linha_completa": 0,
+        "duplicatas_unicas": 0,
+        "linhas_avaliadas": 18735
+      },
+      "respostas": {
+        "chave": [
+          "id_resposta"
+        ],
+        "duplicatas_chave": 0,
+        "duplicatas_linha_completa": 0,
+        "duplicatas_unicas": 0,
+        "linhas_avaliadas": 20607
+      }
+    },
     "fluxo_textual": {
-      "em_reconciliacao": "Fluxo em Reconciliação: Aplicação do pipeline determinístico com geração de hashes SHA-256 e segregação de registros órfãos.",
-      "observado": "Fluxo Observado: Cargas pontuais de planilhas despadronizadas enviadas por múltiplos canais sem validação prévia.",
-      "proposto": "Fluxo Proposto: Ingestão automatizada com validação de esquema na origem e rejeição imediata de IDs inconsistentes."
+      "em_reconciliacao": "Fluxo em reconciliação: relações órfãs permanecem separadas e a ponte entre participação e resposta não foi comprovada.",
+      "observado": "Fluxo observado: seis arquivos CSV recebidos, identificados por hash SHA-256 e processados sem alterar os originais.",
+      "proposto": "Fluxo proposto: integrar catálogo, sistema de origem, execuções e regras aprovadas antes de calcular a cobertura da linhagem."
     },
     "i21_estado": {
       "motivo": "Métrica não calculada na carga atual",
@@ -284,7 +341,7 @@
       },
       {
         "denominador": 46148,
-        "descricao": "Nenhuma duplicata adicional por linha completa ou chave configurada nas seis fontes.",
+        "descricao": "0 linhas além da primeira por linha completa ou chave candidata; cada linha é contada uma vez.",
         "formatado": "0,0%",
         "id_regra": "I17",
         "nome": "Taxa de duplicidade",
@@ -293,22 +350,42 @@
         "status": "conforme"
       },
       {
-        "denominador": 39573,
-        "descricao": "Por relação: 55 participações, 43 questões e 3592 elementos de resposta órfãos.",
-        "formatado": "90,7%",
+        "denominador": 18735,
+        "descricao": "55 ocorrências órfãs na relação avaliada.",
+        "formatado": "99,7%",
         "id_regra": "I18",
-        "nome": "Integridade referencial (três relações)",
-        "numerador": 35883,
-        "percentual": 90.7,
+        "nome": "Integridade: participações → pesquisas",
+        "numerador": 18680,
+        "percentual": 99.7,
         "status": "divergencia_observada"
       },
       {
-        "denominador": 11,
-        "descricao": "Oito campos temporais e três percentuais foram parseáveis entre valores semanticamente informados.",
+        "denominador": 231,
+        "descricao": "43 ocorrências órfãs na relação avaliada.",
+        "formatado": "81,4%",
+        "id_regra": "I18",
+        "nome": "Integridade: questões → pesquisas",
+        "numerador": 188,
+        "percentual": 81.4,
+        "status": "divergencia_observada"
+      },
+      {
+        "denominador": 20607,
+        "descricao": "3592 ocorrências órfãs na relação avaliada.",
+        "formatado": "82,6%",
+        "id_regra": "I18",
+        "nome": "Integridade: respostas → pesquisas",
+        "numerador": 17015,
+        "percentual": 82.6,
+        "status": "divergencia_observada"
+      },
+      {
+        "denominador": 195911,
+        "descricao": "32 campos temporais, percentuais e inteiros; a unidade é valor semanticamente informado.",
         "formatado": "100,0%",
         "id_regra": "I19",
-        "nome": "Parseabilidade dos campos configurados",
-        "numerador": 11,
+        "nome": "Parseabilidade dos valores configurados",
+        "numerador": 195911,
         "percentual": 100.0,
         "status": "conforme"
       },
@@ -321,6 +398,232 @@
         "numerador": 41,
         "percentual": 21.8,
         "status": "divergencia_observada"
+      }
+    ],
+    "parseabilidade_por_campo": [
+      {
+        "avaliados": 362,
+        "campo": "data_solicitacao",
+        "fonte": "pesquisas",
+        "tipo": "data",
+        "validos": 362
+      },
+      {
+        "avaliados": 20,
+        "campo": "data_aprov",
+        "fonte": "pesquisas",
+        "tipo": "data",
+        "validos": 20
+      },
+      {
+        "avaliados": 358,
+        "campo": "data_divulgacao",
+        "fonte": "pesquisas",
+        "tipo": "data",
+        "validos": 358
+      },
+      {
+        "avaliados": 358,
+        "campo": "data_limite",
+        "fonte": "pesquisas",
+        "tipo": "data",
+        "validos": 358
+      },
+      {
+        "avaliados": 68,
+        "campo": "prorrogada_ate",
+        "fonte": "pesquisas",
+        "tipo": "data",
+        "validos": 68
+      },
+      {
+        "avaliados": 334,
+        "campo": "data_entrega",
+        "fonte": "pesquisas",
+        "tipo": "data",
+        "validos": 334
+      },
+      {
+        "avaliados": 807,
+        "campo": "hora_inicio",
+        "fonte": "respondentes",
+        "tipo": "data",
+        "validos": 807
+      },
+      {
+        "avaliados": 807,
+        "campo": "hora_termino",
+        "fonte": "respondentes",
+        "tipo": "data",
+        "validos": 807
+      },
+      {
+        "avaliados": 322,
+        "campo": "part_mercado",
+        "fonte": "pesquisas",
+        "tipo": "percentual",
+        "validos": 322
+      },
+      {
+        "avaliados": 779,
+        "campo": "% de mercado",
+        "fonte": "empresas",
+        "tipo": "percentual",
+        "validos": 779
+      },
+      {
+        "avaliados": 18730,
+        "campo": "market_share",
+        "fonte": "respondentes",
+        "tipo": "percentual",
+        "validos": 18730
+      },
+      {
+        "avaliados": 366,
+        "campo": "id",
+        "fonte": "pesquisas",
+        "tipo": "inteiro",
+        "validos": 366
+      },
+      {
+        "avaliados": 335,
+        "campo": "participantes",
+        "fonte": "pesquisas",
+        "tipo": "inteiro",
+        "validos": 335
+      },
+      {
+        "avaliados": 331,
+        "campo": "dias_uteis_para_entrega",
+        "fonte": "pesquisas",
+        "tipo": "inteiro",
+        "validos": 331
+      },
+      {
+        "avaliados": 231,
+        "campo": "tempo_preenchimento",
+        "fonte": "pesquisas",
+        "tipo": "inteiro",
+        "validos": 231
+      },
+      {
+        "avaliados": 363,
+        "campo": "dias úteis aberta",
+        "fonte": "pesquisas",
+        "tipo": "inteiro",
+        "validos": 363
+      },
+      {
+        "avaliados": 332,
+        "campo": "dias entre a solicitação e a divulgação",
+        "fonte": "pesquisas",
+        "tipo": "inteiro",
+        "validos": 332
+      },
+      {
+        "avaliados": 330,
+        "campo": "dias para tabulação",
+        "fonte": "pesquisas",
+        "tipo": "inteiro",
+        "validos": 330
+      },
+      {
+        "avaliados": 779,
+        "campo": "ID",
+        "fonte": "empresas",
+        "tipo": "inteiro",
+        "validos": 779
+      },
+      {
+        "avaliados": 5429,
+        "campo": "id_cliente",
+        "fonte": "clientes",
+        "tipo": "inteiro",
+        "validos": 5429
+      },
+      {
+        "avaliados": 5429,
+        "campo": "id_empresa",
+        "fonte": "clientes",
+        "tipo": "inteiro",
+        "validos": 5429
+      },
+      {
+        "avaliados": 18735,
+        "campo": "id_pesq",
+        "fonte": "respondentes",
+        "tipo": "inteiro",
+        "validos": 18735
+      },
+      {
+        "avaliados": 18735,
+        "campo": "id_empresa",
+        "fonte": "respondentes",
+        "tipo": "inteiro",
+        "validos": 18735
+      },
+      {
+        "avaliados": 17878,
+        "campo": "id_cliente",
+        "fonte": "respondentes",
+        "tipo": "inteiro",
+        "validos": 17878
+      },
+      {
+        "avaliados": 231,
+        "campo": "id_pergunta",
+        "fonte": "questoes",
+        "tipo": "inteiro",
+        "validos": 231
+      },
+      {
+        "avaliados": 231,
+        "campo": "pesquisa_id",
+        "fonte": "questoes",
+        "tipo": "inteiro",
+        "validos": 231
+      },
+      {
+        "avaliados": 206,
+        "campo": "qtd_alternativas",
+        "fonte": "questoes",
+        "tipo": "inteiro",
+        "validos": 206
+      },
+      {
+        "avaliados": 20607,
+        "campo": "id_resposta",
+        "fonte": "respostas",
+        "tipo": "inteiro",
+        "validos": 20607
+      },
+      {
+        "avaliados": 20607,
+        "campo": "pesquisa_id",
+        "fonte": "respostas",
+        "tipo": "inteiro",
+        "validos": 20607
+      },
+      {
+        "avaliados": 20607,
+        "campo": "id_pergunta",
+        "fonte": "respostas",
+        "tipo": "inteiro",
+        "validos": 20607
+      },
+      {
+        "avaliados": 20607,
+        "campo": "respondent_id",
+        "fonte": "respostas",
+        "tipo": "inteiro",
+        "validos": 20607
+      },
+      {
+        "avaliados": 20597,
+        "campo": "id_empresa",
+        "fonte": "respostas",
+        "tipo": "inteiro",
+        "validos": 20597
       }
     ],
     "total_duplicatas": 0,

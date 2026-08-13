@@ -71,6 +71,35 @@ function startServer() {
   });
 }
 
+async function auditHorizontalOverflow(page, viewId) {
+  const overflowAudit = await page.evaluate(() => {
+    const limite = document.documentElement.clientWidth;
+    const elementos = Array.from(document.querySelectorAll('body *'))
+      .filter(elemento => {
+        const retangulo = elemento.getBoundingClientRect();
+        const dentroDeRolagemLocal = elemento.closest('.nav-tabs, .table-container');
+        return !dentroDeRolagemLocal && (retangulo.right > limite + 1 || retangulo.left < -1);
+      })
+      .slice(0, 8)
+      .map(elemento => ({
+        tag: elemento.tagName.toLowerCase(),
+        id: elemento.id,
+        classe: elemento.className,
+        esquerda: Math.round(elemento.getBoundingClientRect().left),
+        direita: Math.round(elemento.getBoundingClientRect().right)
+      }));
+    return {
+      pixels: document.documentElement.scrollWidth - limite,
+      elementos
+    };
+  });
+  if (overflowAudit.elementos.length) {
+    throw new Error(
+      `Transbordo horizontal na visão ${viewId}: ` + JSON.stringify(overflowAudit.elementos)
+    );
+  }
+}
+
 async function run() {
   console.log("Iniciando servidor HTTP local na porta", PORT, "...");
   const serverProc = await startServer();
@@ -153,32 +182,7 @@ async function run() {
       await page.click(v.tabId);
       await page.waitForTimeout(300);
 
-      const overflowAudit = await page.evaluate(() => {
-        const limite = document.documentElement.clientWidth;
-        const elementos = Array.from(document.querySelectorAll('body *'))
-          .filter(elemento => {
-            const retangulo = elemento.getBoundingClientRect();
-            return retangulo.right > limite + 1 || retangulo.left < -1;
-          })
-          .slice(0, 8)
-          .map(elemento => ({
-            tag: elemento.tagName.toLowerCase(),
-            id: elemento.id,
-            classe: elemento.className,
-            esquerda: Math.round(elemento.getBoundingClientRect().left),
-            direita: Math.round(elemento.getBoundingClientRect().right)
-          }));
-        return {
-          pixels: document.documentElement.scrollWidth - limite,
-          elementos
-        };
-      });
-      if (overflowAudit.pixels > 1) {
-        throw new Error(
-          `Transbordo horizontal de ${overflowAudit.pixels}px na visão mobile ${v.id}: ` +
-          JSON.stringify(overflowAudit.elementos)
-        );
-      }
+      await auditHorizontalOverflow(page, `${v.id} em 390px`);
 
       const imgPath = resolve(IMAGES_DIR, `dashboard-${v.name}-mobile.png`);
       await page.screenshot({ path: imgPath, fullPage: true });
@@ -186,6 +190,23 @@ async function run() {
       await page.close();
     }
     await mobileContext.close();
+
+    console.log("\n--- Auditando refluxo mínimo (320px) ---");
+    const narrowContext = await browser.newContext({
+      viewport: { width: 320, height: 800 },
+      deviceScaleFactor: 1,
+      isMobile: true,
+      hasTouch: true
+    });
+    for (const v of views) {
+      const page = await narrowContext.newPage();
+      await page.goto(`${BASE_URL}${v.hash}`, { waitUntil: 'networkidle' });
+      await page.click(v.tabId);
+      await auditHorizontalOverflow(page, `${v.id} em 320px`);
+      console.log(`  -> Sem transbordo global: ${v.id}`);
+      await page.close();
+    }
+    await narrowContext.close();
     await browser.close();
 
     if (hasConsoleErrors) {

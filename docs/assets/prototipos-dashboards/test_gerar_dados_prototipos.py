@@ -14,6 +14,7 @@ import hashlib
 import unittest
 import tempfile
 import importlib.util
+import shutil
 from pathlib import Path
 
 # Importar o módulo gerador
@@ -36,6 +37,10 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         cls.fixed_timestamp = "2026-08-13T00:00:00Z"
         cls.data = gerar_dados_prototipos.process_data(cls.input_dir, cls.fixed_timestamp)
 
+    def copiar_fontes(self, destino):
+        for nome in ['clientes.csv', 'empresas.csv', 'pesquisas.csv', 'questoes.csv', 'respondentes.csv', 'teste.csv']:
+            shutil.copyfile(Path(self.input_dir) / nome, Path(destino) / nome)
+
     def test_schema_e_cabecalhos(self):
         """Valida a presença de campos obrigatórios no topo do schema."""
         self.assertEqual(self.data.get('versao_schema'), '1.0.0')
@@ -53,11 +58,38 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
             with self.assertRaises(FileNotFoundError):
                 gerar_dados_prototipos.process_data(tmpdir, self.fixed_timestamp)
 
+    def test_esquema_incompativel_lanca_erro(self):
+        """Valida falha explícita quando uma fonte perde coluna ou ordem contratada."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.copiar_fontes(tmpdir)
+            clientes = Path(tmpdir) / 'clientes.csv'
+            linhas = clientes.read_text(encoding='utf-8-sig').splitlines()
+            linhas[0] = linhas[0].replace(';e-mail', '')
+            clientes.write_text('\n'.join(linhas) + '\n', encoding='utf-8-sig')
+            with self.assertRaisesRegex(ValueError, 'Esquema incompatível'):
+                gerar_dados_prototipos.process_data(tmpdir, self.fixed_timestamp)
+
+    def test_duplicata_introduzida_e_detectada(self):
+        """Valida que I17 reage a duplicata de linha e chave em fixture controlada."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.copiar_fontes(tmpdir)
+            pesquisas = Path(tmpdir) / 'pesquisas.csv'
+            linhas = pesquisas.read_bytes().splitlines(keepends=True)
+            with pesquisas.open('ab') as arquivo:
+                arquivo.write(linhas[1])
+            data = gerar_dados_prototipos.process_data(tmpdir, self.fixed_timestamp)
+            d04 = data['d04_qualidade']
+            self.assertEqual(d04['total_duplicatas'], 1)
+            perfil = d04['duplicatas_por_fonte']['pesquisas']
+            self.assertEqual(perfil['duplicatas_unicas'], 1)
+            self.assertEqual(perfil['duplicatas_linha_completa'], 1)
+            self.assertEqual(perfil['duplicatas_chave'], 1)
+
     def test_golden_numbers_d01(self):
         """Valida os números já verificados do D01."""
         d01 = self.data['d01_operacao']
         self.assertEqual(d01['total_pesquisas'], 366)
-        
+
         marcos = d01['marcos_temporais']
         self.assertEqual(marcos['data_solicitacao']['preenchidas'], 362)
         self.assertEqual(marcos['data_aprov']['preenchidas'], 20)
@@ -103,7 +135,7 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         self.assertEqual(d02['total_participacoes'], 18735)
         self.assertEqual(d02['pesquisas_distintas'], 327)
         self.assertEqual(d02['empresas_distintas'], 419)
-        
+
         self.assertEqual(d02['id_cliente_sem_valor'], 857)
         self.assertEqual(d02['id_cliente_vazios'], 856)
         self.assertEqual(d02['id_cliente_si'], 1)
@@ -115,6 +147,9 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         self.assertEqual(d02['i08_estado']['status'], 'indisponivel')
         self.assertEqual(d02['i11_estado']['status'], 'indisponivel')
         self.assertEqual(d02['i09_diagnostico']['status'], 'conflito')
+        stats = d02['estatisticas_empresas_distintas_por_pesquisa']
+        self.assertEqual((stats['min'], stats['q25'], stats['mediana'], stats['q75'], stats['max']), (7, 40, 54, 69, 187))
+        self.assertAlmostEqual(stats['media'], 57.26605504587156)
 
     def test_golden_numbers_d03(self):
         """Valida os números já verificados do D03."""
@@ -146,7 +181,7 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         # Seleção fechada com rótulos neutros; IDs de origem não saem no snapshot.
         exs = d03['exemplos_selecionados']
         self.assertEqual(len(exs), 2)
-        
+
         q110 = next(e for e in exs if e['codigo_exemplo'] == 'A')
         self.assertEqual(q110['validos'], 58)
         dist_110 = {d['opcao']: d['quantidade'] for d in q110['distribuicao']}
@@ -187,12 +222,15 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         self.assertEqual(div_tit['percentual'], 21.8)
         self.assertEqual(div_tit['formatado'], '21,8%')
 
-        regras = {r['id_regra']: r for r in d04['matriz_regras_i16_i20']}
-        self.assertEqual(set(regras), {'I16', 'I17', 'I18', 'I19', 'I20'})
-        self.assertEqual((regras['I16']['numerador'], regras['I16']['denominador']), (4004, 4008))
-        self.assertEqual((regras['I17']['numerador'], regras['I17']['denominador']), (0, 46148))
-        self.assertEqual((regras['I18']['numerador'], regras['I18']['denominador']), (35883, 39573))
-        self.assertEqual((regras['I20']['numerador'], regras['I20']['denominador']), (41, 188))
+        regras = d04['matriz_regras_i16_i20']
+        unicas = {r['id_regra']: r for r in regras if r['id_regra'] != 'I18'}
+        self.assertEqual(set(r['id_regra'] for r in regras), {'I16', 'I17', 'I18', 'I19', 'I20'})
+        self.assertEqual((unicas['I16']['numerador'], unicas['I16']['denominador']), (4004, 4008))
+        self.assertEqual((unicas['I17']['numerador'], unicas['I17']['denominador']), (0, 46148))
+        relacoes_i18 = [(r['numerador'], r['denominador']) for r in regras if r['id_regra'] == 'I18']
+        self.assertEqual(relacoes_i18, [(18680, 18735), (188, 231), (17015, 20607)])
+        self.assertEqual((unicas['I19']['numerador'], unicas['I19']['denominador']), (195911, 195911))
+        self.assertEqual((unicas['I20']['numerador'], unicas['I20']['denominador']), (41, 188))
 
         self.assertEqual(d04['i21_estado']['status'], 'indisponivel')
         self.assertEqual(d04['i22_estado']['status'], 'sem_percentual')
@@ -292,13 +330,13 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         """Valida o cálculo dos hashes individuais e do snapshot_sha256."""
         manifesto = self.data['manifesto_fontes']
         self.assertEqual(len(manifesto), 6)
-        
+
         # Snapshot SHA256 spec validation
         snapshot_json_bytes = json.dumps(
             manifesto, ensure_ascii=False, sort_keys=True, separators=(',', ':')
         ).encode('utf-8')
         expected_snapshot_hash = hashlib.sha256(snapshot_json_bytes).hexdigest()
-        
+
         self.assertEqual(self.data['snapshot_sha256'], expected_snapshot_hash)
 
 
