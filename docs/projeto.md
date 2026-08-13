@@ -61,9 +61,20 @@ _conteúdo_
 
 # 2. Descrição do Problema
 
-_conteúdo_
+A documentação consolidada atribui ao cenário atual a fragmentação entre
+fontes e etapas, o esforço de cruzamento manual e a baixa rastreabilidade.
+Nesta cópia do repositório, as fontes primárias dessa caracterização estão
+citadas nas referências [1], [2], [13] e [14], mas seus arquivos não estão
+disponíveis para conferência direta. Por isso, essas dores permanecem como
+síntese derivada e pendente de auditoria primária.
 
-**Nota:** Descrever a dor de negócio que o projeto ataca — fragmentação das fontes, esforço manual, baixa rastreabilidade/qualidade, ausência de fonte única da verdade.
+Os dados permitem confirmar problemas mais específicos: domínios de
+identificadores não coincidentes, relações órfãs, ausência de ponte comprovada
+entre participação e resposta, percentuais textuais e metadados insuficientes
+para alguns indicadores. A matriz completa separa cada dor, causa, impacto,
+necessidade, objetivo, KPI, público, papel e risco em
+[`docs/matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md).
+Ela também indica o artefato de destino e o estado da evidência.
 
 # 3. Objetivos
 
