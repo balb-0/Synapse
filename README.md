@@ -27,6 +27,8 @@ jq empty docs/dmc.json
 python3 scripts/dmc/validate_dmc.py docs/dmc.json
 python3 -m unittest discover -s scripts/dmc -p 'test_*.py'
 python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'
+python3 scripts/traceability/validate_traceability.py
+python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
 git diff --check
 ```
 

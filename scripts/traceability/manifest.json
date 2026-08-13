@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "cubes": {
+    "C01": {"dmcId": "cubo-1", "name": "Ciclo de Vida das Pesquisas"},
+    "C02": {"dmcId": "cubo-2", "name": "Adesão e Participação"},
+    "C03": {"dmcId": "cubo-3", "name": "Desempenho Operacional"},
+    "C04": {"dmcId": "cubo-4", "name": "Qualidade e Publicação"}
+  },
+  "questions": [
+    {"id": "PB01", "requirement": "RF01", "indicators": ["I01", "I02"], "cubes": ["C01"], "dashboards": ["D01"], "pendingIndicators": []},
+    {"id": "PB02", "requirement": "RF02", "indicators": ["I03", "I04"], "cubes": ["C01"], "dashboards": ["D01"], "pendingIndicators": []},
+    {"id": "PB03", "requirement": "RF03", "indicators": ["I04", "I05", "I06"], "cubes": ["C01"], "dashboards": ["D01"], "pendingIndicators": []},
+    {"id": "PB04", "requirement": "RF04", "indicators": ["I07", "I08", "I09"], "cubes": ["C02"], "dashboards": ["D02"], "pendingIndicators": []},
+    {"id": "PB05", "requirement": "RF05", "indicators": ["I10", "I11"], "cubes": ["C02"], "dashboards": ["D02"], "pendingIndicators": []},
+    {"id": "PB06", "requirement": "RF06", "indicators": ["I16", "I17", "I18", "I19", "I20", "I21"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB07", "requirement": "RF07", "indicators": ["I18", "I22"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB08", "requirement": "RF08", "indicators": ["I25"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB09", "requirement": "RF09", "indicators": ["I23"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB10", "requirement": "RF10", "indicators": ["I12", "I13"], "cubes": [], "dashboards": ["D03"], "pendingIndicators": ["I12", "I13"], "pendingCube": {"name": "Resultados e Questionários", "dependency": "Task 43"}},
+    {"id": "PB11", "requirement": "RF11", "indicators": ["I12", "I13", "I18", "I22"], "cubes": ["C04"], "dashboards": ["D03", "D04"], "pendingIndicators": ["I12", "I13"], "pendingCube": {"name": "Resultados e Questionários", "dependency": "Task 43"}},
+    {"id": "PB12", "requirement": "RF12", "indicators": ["I17", "I19", "I21", "I24"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB13", "requirement": "RF13", "indicators": ["I14", "I15"], "cubes": [], "dashboards": ["D03"], "pendingIndicators": ["I14", "I15"], "pendingCube": {"name": "Resultados e Questionários", "dependency": "Task 43"}}
+  ]
+}

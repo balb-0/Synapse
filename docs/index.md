@@ -19,6 +19,7 @@ documento principal.
 | :--- | :--- |
 | [`assets/prototipos-dashboards/`](assets/prototipos-dashboards/) | interface autocontida, agregado sem identificação, testes e capturas dos dashboards D01–D04 |
 | [`../scripts/data_quality/`](../scripts/data_quality/) | manifesto, perfilador, testes e contrato das saídas agregadas |
+| [`../scripts/traceability/`](../scripts/traceability/) | contrato executável PB–RF–indicador–cubo/dashboard e validação da lacuna da Task 43 |
 
 ## Documentos de gestão
 
@@ -55,6 +56,8 @@ jq empty docs/dmc.json
 python3 scripts/dmc/validate_dmc.py docs/dmc.json
 python3 -m unittest discover -s scripts/dmc -p 'test_*.py'
 python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'
+python3 scripts/traceability/validate_traceability.py
+python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
 git diff --check
 ```
 

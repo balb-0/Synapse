@@ -1,25 +1,11 @@
-<Table>
-  <tr>
-    <td><a href= "link"><img src="img/logo.png" alt="Nome" border="0"></td>
-    <td>
-      <a href= "https://www.inteli.edu.br/"><img src="img/logo-Inteli.png" alt="Inteli - Instituto de Tecnologia e Liderança" border="0"></a>
-    </td>
-  </tr>
-</table>
-
 # Nome do Projeto: Central de Pesquisas do Sindusfarma
 
 ## Nome do Grupo: Grupo 05
 
 ## Integrantes:
 
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
+A composição e as atribuições do Grupo 05 são mantidas no cadastro do projeto
+no GitLab. Este documento não replica nomes ou perfis sem uma fonte versionada.
 
 # Sumário
 
@@ -57,9 +43,13 @@
 
 # 1. Introdução
 
-_conteúdo_
-
-**Nota:** Contextualizar o projeto em uma frase de propósito e apresentar, em alto nível, o que este documento cobre (arquitetura de dados, modelagem dimensional, requisitos, governança e avaliação).
+Este documento especifica a arquitetura de dados proposta para a Central de
+Pesquisas do Sindusfarma. Ele reúne escopo, fluxo de valor, diagnóstico das
+fontes, requisitos, indicadores, dashboards, modelagem dimensional e controles
+de governança. Resultados observados nos CSVs são separados de sínteses
+derivadas e de decisões ainda pendentes; as fontes e limitações de cada bloco
+estão consolidadas na §8.3 e em
+[`docs/fontes-e-dependencias.md`](fontes-e-dependencias.md).
 
 ## 1.4 Escopo do Projeto
 
@@ -201,15 +191,20 @@ os objetivos permanecem pendentes de conferência direta.
 
 # 4. Arquitetura de Dados (ISO/IEC 10746)
 
-_conteúdo_
-
-**Nota:** Descrever a arquitetura da solução de dados pelos pontos de vista (Viewpoints) da ISO/IEC 10746 (RM-ODP). A §4.0 registra o ponto de partida (AS-IS); as §4.1 a §4.4 descrevem a proposta (TO-BE) e servem de linha de base para a avaliação da §8.
+Esta seção separa o diagnóstico observado ou atribuído ao cenário atual da
+arquitetura alvo proposta. O AS-IS da §4.0 combina medições reproduzíveis das
+bases com uma síntese documental ainda pendente de conferência nas fontes
+primárias. As §§4.1–4.4 descrevem contratos de informação, tecnologia,
+engenharia e qualidade; não comprovam infraestrutura implantada.
 
 ## 4.0 Estado Atual (AS-IS)
 
-_conteúdo_
-
-**Nota:** Diagnóstico do cenário atual, com fonte (workshop/entrevista com o parceiro, TAPI, análise das bases). É o ponto de comparação para o TO-BE.
+O estado atual possui duas camadas de evidência. A estrutura, as contagens e os
+problemas de qualidade são observados diretamente nos seis CSVs identificados
+na §5.3.6. A descrição do processo e das ferramentas é uma síntese derivada de
+[1], [2], [13] e [14], cujos arquivos primários não estão neste checkout. Essa
+segunda camada permanece pendente de conferência e não é tratada como fato
+reconfirmado pelo parceiro.
 
 ### 4.0.1 Fontes de dados e ferramentas atuais
 
@@ -223,7 +218,7 @@ observada, e as “colunas úteis” desconsideram colunas vazias remanescentes 
 exportação.
 
 <div align="center">
-<sub>Tabela X - Inventário das bases disponibilizadas</sub><br>
+<sub>Tabela — Inventário das bases disponibilizadas</sub><br>
 
 | Base | Registros | Colunas úteis | Colunas brutas |
 | :--- | ---: | ---: | ---: |
@@ -248,7 +243,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### pesquisas.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de pesquisas.csv</sub><br>
+<sub>Tabela — Estrutura de pesquisas.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -282,7 +277,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### empresas.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de empresas.csv</sub><br>
+<sub>Tabela — Estrutura de empresas.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -303,7 +298,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### clientes.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de clientes.csv</sub><br>
+<sub>Tabela — Estrutura de clientes.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -320,7 +315,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### respondentes.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de respondentes.csv</sub><br>
+<sub>Tabela — Estrutura de respondentes.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -338,7 +333,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### questoes.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de questoes.csv</sub><br>
+<sub>Tabela — Estrutura de questoes.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -363,7 +358,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### respostas.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de respostas.csv</sub><br>
+<sub>Tabela — Estrutura de respostas.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -402,7 +397,7 @@ proposta; não comprova implantação.
 - **Publicação e acervo** — entrega dos resultados e disponibilização no repositório.
 
 <div align="center">
-<sub>Tabela X - Processos organizacionais impactados</sub><br>
+<sub>Tabela — Processos organizacionais impactados</sub><br>
 
 | Processo | Situação atual | Limitações existentes | Melhorias esperadas |
 | :--- | :--- | :--- | :--- |
@@ -418,53 +413,77 @@ proposta; não comprova implantação.
 
 ### 4.0.3 Gargalos quantificados
 
-_conteúdo_
-
-**Nota:** Listar dores com números sempre que possível (tempos, custos, retrabalho). Citar a fonte de cada número.
+O perfilamento encontrou 55 participações ligadas ao ID de pesquisa 304, que
+não existe em `pesquisas.csv`; 43 de 231 questões e 3.592 de 20.607 elementos
+de resposta também apontam para pesquisas ausentes no cadastro recebido. Além
+disso, 41 de 188 títulos comparáveis divergem entre `questoes.csv` e
+`pesquisas.csv`. Esses números medem inconsistências do snapshot, não tempo,
+custo ou retrabalho operacional. Não foi recebida uma linha de base confiável
+para quantificar esforço manual ou retorno financeiro nesta Sprint.
 
 ### 4.0.4 Contexto e implicações
 
-_conteúdo_
-
-**Nota:** Registrar restrições, tamanho de time, capacidade e demais fatores que impactam prioridade e ROI da solução.
+As bases brutas permanecem fora do Git por conterem identificadores estáveis,
+e-mail e texto livre. O snapshot não traz universo convidado, timestamp de
+carga, autorização de publicação, logs de acesso ou uma ponte comprovada entre
+participação e resposta. Essas ausências limitam taxas de adesão, frescor,
+linhagem e análises de pessoa. Tamanho de time, capacidade operacional, custo e
+ROI não foram fornecidos em fonte auditável e, portanto, não são estimados.
 
 ### 4.0.5 Síntese para a proposta TO-BE
 
-_conteúdo_
-
 | Pergunta de partida (AS-IS) | Responde em |
 | :--- | :--- |
-| _ | _ |
+| Como preservar a origem e reconciliar IDs divergentes? | §§4.1, 5.3 e 5.6 |
+| Como transformar etapas isoladas em um fluxo rastreável? | §§2.1, 4.3 e 5.2 |
+| Quais indicadores são calculáveis e quais dependem de integração? | §§5.6 e 6.4 |
+| Como limitar acesso, publicação e uso de dados pessoais? | §§4.4 e 6.6 |
+| Como provar cobertura entre perguntas, indicadores e consumo? | §§5.4, 5.7 e 8.3 |
 
 ## 4.1 Visão de Informação (Information Viewpoint)
 
-_conteúdo_
-
-**Nota:** Objetos de negócio, entidades principais, relacionamentos e o modelo conceitual/canônico do dado (base para o Data Model Canvas da §5).
+O vocabulário canônico distingue **Pesquisa**, **Empresa**, **Pessoa/Cliente**,
+**Participação em Pesquisa**, **Questão**, **Elemento de Resposta** e
+**Publicação/Resultado**. Participação não é sinônimo de pessoa, e uma linha de
+`respostas.csv` representa um elemento atômico, não um questionário completo.
+As chaves de origem são preservadas; qualquer identidade canônica ou ponte
+entre `respondent_id` e participação depende de reconciliação aprovada. Os
+grãos, fatos, métricas e dimensões resultantes estão na §5.2.
 
 ## 4.2 Visão de Tecnologia (Technology Viewpoint)
 
-_conteúdo_
-
-**Nota:** Ferramentas e padrões técnicos escolhidos (banco/DW, ferramenta de BI/dashboards, orquestração/ETL, ambiente de nuvem).
+O projeto versiona documentação, scripts de perfilamento, protótipos e o
+`dmc.json`. Banco ou data warehouse, serviço de nuvem, ferramenta de BI,
+orquestrador e mecanismo de autenticação não foram aprovados em fonte
+auditável. Essas escolhas permanecem decisões futuras; os contratos desta
+Sprint evitam depender de um fornecedor específico.
 
 ## 4.3 Visão de Engenharia (Engineering Viewpoint)
 
-_conteúdo_
-
-**Nota:** Mecanismos de execução — pipeline de ingestão/integração, transformações, deduplicação, padronização e isolamento de ambientes.
+A engenharia alvo propõe receber snapshots identificados por hash, validar
+schema e encoding, preservar valores de origem, criar uma camada tipada,
+classificar anomalias, reconciliar identidades e publicar somente agregados
+autorizados. Falhas de schema interrompem a carga; nulos condicionais,
+sentinelas e chaves órfãs seguem regras distintas. O perfilador reproduz a
+etapa de diagnóstico quando as fontes externas estão disponíveis, mas o
+pipeline automatizado ainda não foi implantado.
 
 ## 4.4 Aspectos Não Funcionais
 
-_conteúdo_
-
-**Nota:** Requisitos operacionais da solução (desempenho de consulta, atualização/latência dos dados, disponibilidade, segurança e conformidade). Marcar metas provisórias como aspiracionais até haver medição.
+Os aspectos não funcionais priorizam segurança, rastreabilidade,
+confiabilidade, desempenho de consulta, usabilidade e manutenção. As metas da
+§6.2 são provisórias e precisam de medição sobre uma arquitetura implantada.
+Não há SLA, latência de carga, disponibilidade ou volume futuro confirmados;
+por isso, o documento não promete tempo real nem apresenta meta aspiracional
+como resultado obtido.
 
 # 5. Modelagem Dimensional e Cubos OLAP
 
-_conteúdo_
-
-**Nota:** Consolidar a modelagem dimensional. Onde as tabelas trouxerem estado, usar a coluna **Estado** para separar o que já está **modelado/validado** do que é **proposto**.
+O modelo dimensional traduz perguntas e indicadores em quatro contratos de
+cubo. A §5.2 registra grão, fato, métricas, dimensões e disponibilidade; a §5.3
+documenta o diagnóstico reproduzível; e as §§5.4–5.7 registram cobertura e
+lacunas. “Calculável agora” descreve disponibilidade de campos no snapshot, não
+uma carga de data warehouse já implementada.
 
 ## 5.1 Visão Geral do Modelo Dimensional (Data Model Canvas)
 
@@ -604,7 +623,7 @@ Esta seção diagnostica dados ausentes e registros duplicados nas seis bases di
 O grão de `respostas` é **um elemento atômico de resposta de um respondente para uma pergunta de uma pesquisa**. Uma linha não representa necessariamente um questionário completo: caixas de seleção e matrizes podem produzir várias linhas para o mesmo respondente e pergunta. Portanto, `COUNT(*)` nessa fonte mede elementos de resposta, e não respondentes; qualquer KPI de adesão deve usar a chave e a unidade de análise explicitamente.
 
 <div align="center">
-<sub>Tabela X - Resumo de qualidade por base</sub><br>
+<sub>Tabela — Resumo de qualidade por base</sub><br>
 
 | Base | Registros | Duplicados | Variáveis com ausência |
 | :--- | ---: | ---: | ---: |
@@ -626,7 +645,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### pesquisas.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em pesquisas.csv</sub><br>
+<sub>Tabela — Ausências em pesquisas.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -654,7 +673,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### empresas.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em empresas.csv</sub><br>
+<sub>Tabela — Ausências em empresas.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -672,7 +691,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### clientes.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em clientes.csv</sub><br>
+<sub>Tabela — Ausências em clientes.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -688,7 +707,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### respondentes.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em respondentes.csv</sub><br>
+<sub>Tabela — Ausências em respondentes.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -704,7 +723,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### questoes.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em questoes.csv</sub><br>
+<sub>Tabela — Ausências em questoes.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -721,7 +740,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### respostas.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em respostas.csv</sub><br>
+<sub>Tabela — Ausências em respostas.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -838,7 +857,9 @@ O snapshot recebido não informa a data de carga. Para execuções futuras, prop
 
 A matriz fecha a cadeia PB → RF → indicador → cubo → dashboard. Os vínculos
 indicam cobertura de especificação, não implementação. Os IDs permanecem
-estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5.
+estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5. O contrato executável está em
+[`scripts/traceability/manifest.json`](../scripts/traceability/manifest.json) e
+é validado contra os IDs e nomes presentes em `docs/dmc.json`.
 
 | Pergunta de negócio | Requisito | Indicador(es) | Cubo(s) | Dashboard(s) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -856,15 +877,24 @@ estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5.
 | PB12 | RF12 | I17, I19, I21, I24 | C04 | D04 |
 | PB13 | RF13 | I14, I15 | Cubo de resultados pendente da Task 43 | D03 |
 
-Assim, RF01–RF13 e PB01–PB13 chegam a pelo menos um indicador e um dashboard.
-D01–D04 recebem ao menos um requisito. O cruzamento D03 → D04 em PB11 é uma
-navegação de linhagem agregada, não uma autorização para consultar indivíduos.
+RF01–RF13 e PB01–PB13 chegam a pelo menos um indicador e um dashboard, mas a
+cobertura dimensional não está completa: PB10, PB11 e PB13, com I12–I15,
+dependem de um cubo próprio de resultados/questionários. A branch da Task 43
+não contém uma definição exclusiva para integrar, portanto a lacuna permanece
+formalmente pendente em vez de ser preenchida por inferência. D01, D02 e D04
+têm cubos correspondentes; D03 continua apenas especificado. O cruzamento D03
+→ D04 em PB11 é navegação de linhagem agregada, não autorização para consultar
+indivíduos.
 
 ## 5.5 Infraestrutura de Dados
 
-_conteúdo_
-
-**Nota:** Onde os dados vivem e como são processados (DW na nuvem, orquestração, armazenamento de artefatos, retenção).
+Nesta Sprint, os CSVs permanecem em armazenamento externo e somente contratos,
+scripts e agregados seguros são versionados. O repositório não contém data
+warehouse, orquestração ou ambiente produtivo. A arquitetura alvo prevê zonas
+separadas para origem imutável, dados tipados, dados reconciliados e consumo
+autorizado, com catálogo e registros de execução. Tecnologia, retenção,
+localização e frequência de carga dependem de decisão do parceiro e dos
+controles da §6.6.
 
 ## 5.6 Mapa de Cobertura de Indicadores
 
@@ -918,7 +948,10 @@ snapshot, mantendo visível a disponibilidade de cada bloco.
 
 # 6. Requisitos e Governança de Dados
 
-_conteúdo_
+Esta seção conecta os comportamentos esperados da solução às perguntas de
+negócio, indicadores, dashboards e controles de dados. Requisitos e políticas
+são contratos propostos para validação; apenas as medições explicitamente
+ligadas ao snapshot ou aos testes são tratadas como observadas.
 
 ## 6.1 Requisitos Funcionais
 
@@ -1281,7 +1314,7 @@ indicado em cada roteiro.
 Os requisitos não funcionais abaixo seguem as características da ISO/IEC 25010 e priorizam desempenho, segurança, confiabilidade, usabilidade e manutenibilidade, derivados das necessidades do parceiro. As metas numéricas são **provisórias e aspiracionais**, a serem confirmadas por medição (ver §4.4 — Aspectos Não Funcionais).[<sup>\[1\]</sup>](#7-referências)
 
 <div align="center">
-<sub>Tabela X - Requisitos não funcionais (ISO/IEC 25010)</sub><br>
+<sub>Tabela — Requisitos não funcionais (ISO/IEC 25010)</sub><br>
 
 | ID | Categoria (ISO 25010) | User Story | Critério de aceitação | Teste |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1765,39 +1798,56 @@ Assim, a governança proposta atende ao ciclo completo — coleta, integração,
 
 # 8. Avaliação dos Resultados
 
-_conteúdo_
-
-**Nota:** Confrontar o cenário AS-IS (§4.0) com os resultados da solução proposta (TO-BE). Separar explicitamente o que foi **medido** do que é **meta projetada**.
+Esta avaliação separa resultados executados nesta Sprint de efeitos esperados
+para uma solução futura. As medições abaixo vêm dos scripts e testes
+versionados aplicados ao snapshot externo identificado pelos hashes da §5.3.6;
+o checkout isolado não contém os CSVs. Benefícios operacionais, metas de serviço
+e ganhos de negócio não foram medidos e permanecem condicionados à implantação
+e a uma linha de base aprovada.
 
 ## 8.1 Resultados Quantitativos
 
-_conteúdo_
+Os resultados medidos demonstram consistência dos artefatos e características
+do snapshot analisado. Eles não demonstram redução de prazo, aumento de adesão
+ou funcionamento de uma plataforma produtiva.
 
 ### 8.1.1 Resultado medido nesta sprint
 
-_conteúdo_
-
-**Nota:** Somente fatos medidos, com a origem de cada número (query, artefato, coleta). Nada de estimativa aqui.
-
 | Indicador | Resultado medido | Como foi medido |
 | :--- | :--- | :--- |
-| _ | _ | _ |
+| Volume do snapshot analisado | 46.148 registros em seis CSVs | soma das contagens reproduzidas pelo perfilador da §5.3 |
+| Duplicidade de linha e das chaves declaradas | 0 ocorrência nas seis bases | `scripts/data_quality/profile_csv.py` e manifesto versionado |
+| Relações pesquisa ausentes | 55 participações, 43 questões e 3.592 elementos de resposta órfãos | relatório `relacionamentos.csv` descrito na §5.3 |
+| Modelo dimensional exportado | 4 cubos; Dados e Governança vazios em todos | `scripts/dmc/validate_dmc.py docs/dmc.json` |
+| Testes estruturais do DMC | 17 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
+| Testes do perfilamento | 5 testes aprovados | `python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'` |
+| Testes de rastreabilidade | 10 testes aprovados | `python3 -m unittest discover -s scripts/traceability -p 'test_*.py'` |
+| Reabertura na ferramenta oficial | 4 cards renderizados, sem erro de aplicação ou resposta HTTP falha | importação e reexportação em sessão nova, com comparação semântica do JSON |
 
 ### 8.1.2 Meta / projetado para sprints futuras
 
-_conteúdo_
-
-**Nota:** Indicadores ainda não medidos, com a meta e a razão de não ter sido medido nesta sprint. Nenhum valor aqui deve ser lido como resultado obtido.
-
 | Indicador (projetado) | Meta | Por que não foi medido nesta sprint |
 | :--- | :--- | :--- |
-| _ | _ | _ |
+| Redução do tempo de ciclo | A definir após baseline operacional aprovado | a Sprint mediu datas do snapshot, não esforço nem processo antes/depois |
+| Aumento de adesão | A definir após receber o universo elegível por pesquisa | o denominador de convidados não está nas fontes |
+| Frescor e disponibilidade | A definir junto da arquitetura produtiva | não há carga automática, timestamp de extração ou SLA aprovado |
+| Cobertura de publicação autorizada | A definir após política e integração com o acervo | decisão, versão e data de publicação não existem no snapshot |
+| Conformidade de acesso | A definir após aprovação de perfis e instrumentação | política final e logs de autorização ainda não estão integrados |
 
 ## 8.2 Diagnóstico Qualitativo
 
-_conteúdo_
+O trabalho torna reproduzíveis o diagnóstico de qualidade, a validação
+estrutural do canvas e a distinção entre métrica disponível e dependência
+futura. O modelo cobre ciclo de vida, participação, desempenho operacional e
+qualidade/publicação, sem preencher as subseções de Dados e Governança que
+ficaram fora do recorte desta Sprint.
 
-**Nota:** Análise textual aderente às tabelas da §8.1 — descrever como "medido" só o que roda de fato e marcar como "projetado" o que ainda é meta.
+A principal lacuna analítica é o cubo de resultados/questionários. PB10, PB11,
+PB13 e I12–I15 permanecem especificados, mas não possuem um contrato dimensional
+próprio porque a Task 43 não entregou conteúdo exclusivo para integração. As
+fontes primárias [1], [2], [3], [12], [13] e [14] também precisam ser
+recuperadas para auditoria independente. Esses pontos são pendências declaradas,
+não resultados omitidos nem capacidade presumida.
 
 ## 8.3 Tabela de Fontes e Auditabilidade
 
@@ -1811,6 +1861,7 @@ evidência observada e decisão proposta.
 | Contexto, escopo, processo e papéis | TAPI [1], Arquitetura de Negócio [2], JTBD [13] e Problem Canvas [14] | Fontes primárias citadas; os arquivos não estão nesta cópia do repositório e a conferência direta permanece pendente |
 | Estrutura, grão e qualidade das bases | seis CSVs externos identificados pelos hashes da §5.3.6; manifesto, perfilador e testes em `scripts/data_quality/` | Evidência observada no snapshot local; o método é reproduzível quando as fontes e o dicionário estão disponíveis, mas os dados brutos não fazem parte do checkout |
 | Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; histórico das issues #21–#25 e #40–#49 | Síntese derivada; o vínculo específico deve citar issue, branch, commit ou MR e as limitações constam nas §§5.6 e 6.4 |
+| Cadeia analítica executável | `scripts/traceability/manifest.json`, validador e testes; IDs e nomes conferidos contra `docs/dmc.json` | 13 perguntas, 13 requisitos, 25 indicadores e 4 dashboards cobertos; I12–I15 mantidos como lacuna formal da Task 43 |
 | Negócio, Consumo Analítico e Governança Corporativa do canvas | DMC em PDF [3] e exportação `docs/dmc.json` | Baseline documental derivado; papéis e políticas continuam sujeitos a validação |
 | Cubos C01–C04 | contratos da §5.2, derivados das perguntas, indicadores e dados observados | Proposta de modelagem; não prova implantação de data warehouse |
 
