@@ -585,7 +585,14 @@ individual nos painéis.
 | C01 — Ciclo de Vida das Pesquisas | Uma linha por pesquisa, acumulando os marcos observados da solicitação à entrega; estrela | Snapshot acumulado; solicitação, aprovação, divulgação, prazo, prorrogação e entrega | I01–I06 | Pesquisa, papéis de Tempo para cada marco, tipo, área, complexidade, status e tipo de resposta | Calculável agora para I01–I05; I06 depende de regra e data de referência aprovadas |
 | C02 — Adesão e Participação | Uma linha por registro de participação de `respondentes.csv`, sem afirmar unicidade de pessoa; estrela | Fato transacional; participação, início e término registrados | I07–I11 | Pesquisa, Empresa, Tempo, Cargo e Departamento; Cliente/Pessoa somente após conciliação | Calculável agora para I07; I08–I11 dependem de denominador, normalização ou reconciliação |
 | C03 — Desempenho Operacional | Uma linha por intervalo mensurável entre dois marcos de uma etapa de uma pesquisa; estrela | Fato transacional de intervalo concluído; validação, coleta, tabulação e ciclo total | duração, quantidade de intervalos, média e mediana por etapa | Pesquisa, Etapa, papéis de Tempo, tipo, área, complexidade e status | Dias corridos são calculáveis quando os dois marcos existem; dias úteis exigem calendário aprovado |
-| C04 — Qualidade e Publicação | Uma linha por pesquisa, objeto avaliado e regra em cada data de fotografia; estrela | Snapshot periódico do estado de qualidade, inconsistência, prorrogação, autorização e publicação | objetos avaliados/afetados, completude ou validade, inconsistências, prorrogações e resultados autorizados/publicados | Pesquisa, Tempo, objeto, regra, fonte, campo e estados de qualidade, prorrogação e publicação | Qualidade atual sustenta parte das métricas; autorização e publicação dependem de integração futura |
+| C04 — Qualidade e Publicação | Uma linha por objeto avaliado e regra em cada execução versionada de fotografia; Pesquisa é informada quando aplicável; estrela | Snapshot periódico proposto do estado de qualidade, inconsistência, prorrogação, autorização e publicação | objetos avaliados/afetados, completude ou validade, inconsistências, estado de prorrogação na fotografia e resultados autorizados/publicados | Execução da fotografia, objeto, regra, fonte, campo e estados de qualidade, prorrogação e publicação; Pesquisa opcional | Qualidade atual sustenta parte das métricas; periodicidade, autorização e publicação dependem de execuções e integrações futuras |
+
+No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da
+ocorrência registrada. No C04, o mesmo atributo aparece apenas como estado
+avaliado em uma fotografia governada, conforme o recorte pedido pela issue
+#47; ele não cria uma segunda definição de I05. Publicação fica no C04 como
+estado de autorização e disponibilização, enquanto o C01 preserva os marcos
+operacionais até a entrega.
 
 Os quatro cubos não criam uma ponte entre participação e resposta. Os 542
 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes
