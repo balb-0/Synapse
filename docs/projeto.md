@@ -102,9 +102,28 @@ _conteúdo_
 
 ### 4.0.2 Fluxo de trabalho atual
 
-_conteúdo_
+O fluxo de trabalho atual da Central de Pesquisas percorre ferramentas consolidadas em cada etapa (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), mas sem integração estruturada entre elas: o único ponto de conexão apenas replica novas solicitações, sem consolidar o dado ao longo do ciclo de vida da pesquisa. A seguir estão os principais processos organizacionais impactados pela solução, com a situação atual, as limitações existentes e as melhorias esperadas após a implantação.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)
 
-**Nota:** Descrever o fluxo/ciclo de vida atual do dado (etapas, atores, pontos de integração e onde ele quebra hoje).
+- **Solicitação e triagem** — registro e aprovação da demanda de uma nova pesquisa.
+- **Planejamento e validação do questionário** — estruturação das perguntas e revisão técnica com as áreas responsáveis.
+- **Divulgação, coleta e participação** — disponibilização da pesquisa e acompanhamento da adesão de empresas e respondentes.
+- **Encerramento, tabulação e análise** — consolidação das respostas e produção de indicadores.
+- **Publicação e acervo** — entrega dos resultados e disponibilização no repositório.
+
+<div align="center">
+<sub>Tabela X - Processos organizacionais impactados</sub><br>
+
+| Processo | Situação atual | Limitações existentes | Melhorias esperadas |
+| :--- | :--- | :--- | :--- |
+| Solicitação e triagem | Demanda registrada manualmente e distribuída entre ferramentas isoladas | Sem rastreabilidade da solicitação até o resultado; status disperso | Registro único e rastreável da demanda, com status consolidado |
+| Planejamento e validação do questionário | Questionário estruturado e revisado fora de um repositório central | Versões e validações não ficam ligadas à pesquisa de forma auditável | Perguntas e validações vinculadas à pesquisa, com histórico auditável |
+| Divulgação, coleta e participação | Adesão de empresas e respondentes acompanhada manualmente | Visão fragmentada da participação; difícil medir adesão em tempo real | Participação consolidada e adesão acompanhada em tempo real |
+| Encerramento, tabulação e análise | Respostas consolidadas e cruzadas manualmente em planilhas | Processo lento, sujeito a erro e sem indicadores padronizados | Indicadores calculados automaticamente a partir do banco central |
+| Publicação e acervo | Repositório público atualizado manualmente, isolado do sistema interno | Risco de inconsistência entre o interno e o publicado | Acervo alimentado automaticamente e consistente com o banco central |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 ### 4.0.3 Gargalos quantificados
 
