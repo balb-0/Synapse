@@ -64,49 +64,55 @@ _conteúdo_
 ## 1.4 Escopo do Projeto
 
 O escopo abaixo consolida os resultados pretendidos descritos nas referências
-[1], [2], [13] e [14] e nos requisitos da §6.1. Como os arquivos primários não
-estão neste checkout, ele permanece uma síntese derivada, pendente de
-conferência direta com essas fontes. “Incluído” indica responsabilidade do
-projeto, não funcionalidade já implantada.
+[1], [2], [13] e [14] e nos requisitos da §6.1. O TAPI [1] e a Arquitetura de
+Negócio [2] foram conferidos diretamente nesta auditoria. “Incluído” indica
+responsabilidade do projeto, não funcionalidade já implantada ou concluída
+nesta Sprint.
 
 ### Escopo incluído no projeto
 
-- projetar a centralização da informação do ciclo das pesquisas em um modelo integrado, preservando a origem e as chaves recebidas;
-- especificar a ingestão e a padronização das fontes, com tratamento explícito de schema, nulos, duplicidade, percentuais e relações órfãs;
-- modelar rastreabilidade da solicitação à publicação, sem criar vínculos de identidade que os dados não comprovem;
-- propor controles de qualidade, governança, segurança, privacidade e acesso por perfil para posterior validação do parceiro;
-- especificar consumo analítico por indicadores, filtros, drill-down autorizado, relatórios e dashboards;
-- modelar a entrega e a publicação de resultados agregados, condicionadas à autorização e à integração futura com o acervo aplicável;
-- documentar arquitetura, requisitos, contratos analíticos, cubos e critérios de validação da solução; implantação e operação ficam delimitadas pelo MVP e pelas dependências abaixo.
+- implementar um banco relacional em nuvem que centralize o ciclo da pesquisa, preservando origem e rastreabilidade;
+- implementar ao menos um pipeline de ingestão das fontes atuais, com tratamento de inconsistências, deduplicação e padronização;
+- entregar um data app com dashboards operacionais e estratégicos alimentados pelo banco central;
+- estabelecer governança, qualidade, segurança, privacidade e controle de acesso por perfil;
+- integrar resultados autorizados ao acervo público, mantendo consistência com a informação interna;
+- documentar o modelo de dados, a arquitetura, o pipeline, os protocolos de governança e a orientação de uso.
 
-### Recorte do MVP
+### Entregas documentais da Sprint 1
 
-O MVP abaixo é a proposta de recorte verificável desta Sprint e permanece
-pendente de validação com as fontes primárias. Ele não equivale à operação
-produtiva completa.
+Esta Sprint entrega a base documental e analítica para o MVP, sem declarar que
+a infraestrutura produtiva já está implantada:
 
-| No MVP | Depois do MVP / depende de integração |
+- diagnóstico e método reproduzível de perfilamento do snapshot recebido;
+- contratos de perguntas, requisitos, indicadores, dashboards e cubos;
+- protótipos D01–D04 com agregados sem identificação;
+- Data Model Canvas exportado e validado;
+- propostas de governança, privacidade, qualidade e rastreabilidade.
+
+### MVP do projeto confirmado no TAPI
+
+| Componente mínimo | Critério confirmado na fonte |
 | :--- | :--- |
-| Método de perfilamento reproduzível quando o snapshot externo e o dicionário estão disponíveis, além do diagnóstico já documentado | ingestão automática e monitorada de todas as fontes operacionais |
-| Contratos de perguntas, indicadores, dashboards e cubos | data warehouse implantado, atualização agendada e observabilidade operacional |
-| Protótipos D01–D04 com agregados sem identificação | autenticação, perfis homologados e acesso produtivo a detalhe autorizado |
-| Exportação e validação do Data Model Canvas | publicação automática no acervo e gestão operacional de versões |
-| Regras propostas de governança, privacidade e rastreabilidade | políticas aprovadas, responsáveis formalmente designados e logs de auditoria |
+| Banco de dados | banco relacional em nuvem modelando solicitação, planejamento, execução e resultado |
+| Pipeline | ao menos uma ingestão funcional de uma fonte atual, com tratamento básico de inconsistências e deduplicação |
+| Dashboard | conjunto inicial de KPIs alimentado pelo banco central, sem atualização manual |
+| Acesso e proteção | controle por perfil e tratamento de dados sensíveis em conformidade com a LGPD |
 
 ### Escopo não incluído
 
 | Item | Justificativa |
 | :--- | :--- |
-| Substituição das ferramentas operacionais citadas no inventário disponível | fronteira proposta, pendente de validação nas fontes primárias: o projeto integra dados e continuidade do processo, sem especificar a reconstrução dessas ferramentas |
+| Substituição de SurveyMonkey, Trello, repositório público ou demais ferramentas operacionais | o TAPI afirma que o projeto integra e governa essas ferramentas, sem substituí-las |
 | Publicação aberta de CSVs, respostas individuais ou dados pessoais | os arquivos possuem e-mail, chaves estáveis e texto livre; o projeto trabalha com agregação, minimização e autorização |
 | Inferência de identidade entre cliente, participação e resposta | não existe ponte comprovada entre as fontes; sem contrato aprovado, a união produziria rastreabilidade falsa |
 | Taxa de adesão ou engajamento sem universo elegível | a fonte atual não contém os denominadores necessários; indisponibilidade não pode ser substituída por zero ou estimativa |
-| Atualização em tempo real entregue no MVP | o snapshot não comprova timestamp de carga, integração contínua nem SLA operacional; a capacidade futura depende de integração |
+| Alegar atualização em tempo real antes da implantação e medição | “tempo real” é benefício esperado no TAPI; o snapshot não comprova timestamp de carga, integração contínua nem SLA operacional |
 | Garantia de conformidade produtiva apenas com a documentação | políticas, papéis, bases legais e controles dependem de validação e implantação pelo parceiro |
 
-Essa delimitação não exclui objetivos futuros. Ela separa a arquitetura e os
-contratos entregues nesta sprint das capacidades que só podem ser consideradas
-prontas após integração, homologação e operação controlada.
+Essa delimitação preserva o MVP oficial do projeto e separa dele as entregas
+documentais desta Sprint. Banco, pipeline, dashboard conectado e controle de
+acesso continuam incluídos no MVP, mas só podem ser considerados prontos após
+implementação, homologação e operação controlada.
 
 # 2. Descrição do Problema
 
@@ -127,23 +133,30 @@ Ela também indica o artefato de destino e o estado da evidência.
 
 ## 2.1 Fluxo de Valor
 
-O valor pretendido é transformar uma necessidade de informação do setor em
-resultado estruturado, rastreável e autorizado. Essa formulação é uma síntese
-derivada das referências [1], [2], [13] e [14] e permanece pendente de
-auditoria nas fontes primárias. O fluxo abaixo descreve criação de valor; as
-ferramentas aparecem apenas como contexto operacional.
+O valor central confirmado na Arquitetura de Negócio [2] é **“transformar uma
+necessidade de informação do setor farmacêutico em conhecimento estruturado e
+confiável”**. Rastreabilidade e autorização são condições propostas para que
+esse conhecimento percorra o fluxo sem perder origem nem expor conteúdo
+indevido. As ferramentas aparecem apenas como contexto operacional.
 
 ### Fluxo atual (AS-IS)
 
-| Atividade | Entrada | Saída de valor | Atores | Referência disponível | Estado e limitação |
+| Etapa e atividade | Entrada | Saída de valor | Atores | Fontes/sistemas relacionados | Limitação atual e contribuição da solução |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Solicitar e triar | necessidade de informação e contexto da área | demanda avaliada e decisão de seguir | solicitante, Central de Pesquisas e área técnica | referências [1], [2] e síntese da §4.0.2 | **Pendente de validação:** fluxo derivado; continuidade até a publicação não comprovada |
-| Planejar e elaborar o questionário | demanda aceita, objetivo e público | proposta de questionário e cronograma | Central e área técnica | referências [1], [2], [13], [14] | **Pendente de validação:** versão, aprovação e autoria não estão no snapshot |
-| Validar e divulgar | proposta de questionário | instrumento revisado e convite distribuído | área técnica, Central e participantes | referências [1], [2] e §4.0.2 | **Pendente de validação:** regras e marcos de validação incompletos nas fontes analisadas |
-| Coletar e acompanhar | instrumento divulgado | registros de participação e elementos de resposta | empresas participantes, pessoas/contatos quando identificados e Central | `respondentes.csv`, `respostas.csv` e §4.0.2 | **Síntese derivada:** registros observados; universo elegível e ponte de identidade indisponíveis |
-| Encerrar e tabular | coleta encerrada e elementos de resposta | base preparada para análise | Central e área técnica | referências [1], [2] e CSVs | **Pendente de validação:** cruzamentos exigem reconciliação; elemento de resposta não equivale a pessoa |
-| Analisar e entregar | base preparada e perguntas de negócio | indicadores e resultado contextualizado | Central, área técnica, gestores e solicitante | PB01–PB13, I01–I25 e §4.0.2 | **Síntese derivada:** denominadores, mercado, atualização e autorização podem estar indisponíveis |
-| Publicar e preservar | resultado e contexto de origem | resultado autorizado no acervo e histórico consultável | Central e público autorizado; papel de governança a validar | RF09, referências [1], [2] e §6.6 | **Pendente de validação:** decisão, data, versão e logs não comprovados |
+| 1. Solicitação — registrar a necessidade | necessidade, objetivo e contexto da área | demanda registrada | solicitante e Central | `pesquisas.csv`; ferramentas operacionais citadas no TAPI | integrar a origem da demanda à pesquisa |
+| 2. Triagem e aprovação — decidir continuidade | demanda registrada | decisão e pesquisa priorizada | Central, gestor e área técnica | `pesquisas.csv` | preservar decisão, status e responsáveis; prioridade ainda não existe no snapshot |
+| 3. Planejamento — definir cronograma e questionário | demanda aprovada | plano, prazos e instrumento proposto | Central | `pesquisas.csv` e `questoes.csv` | vincular cronograma e perguntas à mesma pesquisa |
+| 4. Validação técnica — revisar o conteúdo | questionário proposto | instrumento validado | áreas técnicas e Central | `questoes.csv`; metadados operacionais futuros | versionar revisão, decisão e autoria; esses metadados não estão no snapshot |
+| 5. Divulgação — disponibilizar a pesquisa | instrumento validado | convite e prazo comunicados | Central e participantes | `pesquisas.csv` e ferramentas de coleta | ligar divulgação e prazo ao ciclo rastreável |
+| 6. Coleta e monitoramento — acompanhar participação | pesquisa divulgada | participações observadas | Central, empresas e pessoas participantes | `respondentes.csv`, `clientes.csv` e `empresas.csv` | consolidar participação sem inventar o universo elegível |
+| 7. Registro das respostas — capturar elementos | questão apresentada ao participante | elementos atômicos de resposta | participantes e Central | `respostas.csv` e `questoes.csv` | manter questão, pesquisa e origem; não tratar linha como questionário ou pessoa |
+| 8. Encerramento e validação — verificar os dados | coleta encerrada | conjunto classificado por validade e completude | Central e Data Stewards | CSVs e dicionário | aplicar regras por tipo, reconciliar chaves e preservar anomalias |
+| 9. Tabulação e análise — produzir indicadores | conjunto validado e perguntas de negócio | resultados agregados e contextualizados | Central, áreas técnicas e gestores | conjunto integrado, PB01–PB13 e I01–I25 | usar fórmulas e denominadores consistentes; mostrar indisponibilidade quando necessário |
+| 10. Entrega e publicação — disponibilizar resultado | resultado agregado e contexto de origem | entrega autorizada e acervo consistente | Central, solicitante e público autorizado | `pesquisas.csv` e repositório público | registrar autorização, versão e linhagem antes da publicação |
+
+As dez etapas são confirmadas na Arquitetura de Negócio [2]. Os CSVs
+comprovam objetos e campos associados a parte delas; não comprovam, sozinhos,
+que cada controle operacional ou integração esteja implantado.
 
 ### Fluxo alvo (TO-BE)
 
@@ -155,14 +168,16 @@ estimativa.
 
 ```text
 Necessidade de informação
-  → demanda triada
-  → pesquisa planejada
+  → solicitação registrada
+  → triagem e aprovação rastreáveis
+  → pesquisa e questionário planejados
   → questionário validado e versionado
-  → divulgação e participação acompanhadas
-  → coleta encerrada, com reconciliação registrada
-  → resultado agregado e rastreável
-  → entrega autorizada
-  → publicação vinculada ao acervo
+  → divulgação vinculada ao prazo
+  → participação monitorada
+  → respostas atômicas registradas
+  → coleta encerrada e dados validados
+  → tabulação e análise agregadas
+  → entrega e publicação autorizadas
 ```
 
 | Mudança de valor | Contribuição proposta da solução | Critério de validação proposto |
@@ -570,7 +585,14 @@ individual nos painéis.
 | C01 — Ciclo de Vida das Pesquisas | Uma linha por pesquisa, acumulando os marcos observados da solicitação à entrega; estrela | Snapshot acumulado; solicitação, aprovação, divulgação, prazo, prorrogação e entrega | I01–I06 | Pesquisa, papéis de Tempo para cada marco, tipo, área, complexidade, status e tipo de resposta | Calculável agora para I01–I05; I06 depende de regra e data de referência aprovadas |
 | C02 — Adesão e Participação | Uma linha por registro de participação de `respondentes.csv`, sem afirmar unicidade de pessoa; estrela | Fato transacional; participação, início e término registrados | I07–I11 | Pesquisa, Empresa, Tempo, Cargo e Departamento; Cliente/Pessoa somente após conciliação | Calculável agora para I07; I08–I11 dependem de denominador, normalização ou reconciliação |
 | C03 — Desempenho Operacional | Uma linha por intervalo mensurável entre dois marcos de uma etapa de uma pesquisa; estrela | Fato transacional de intervalo concluído; validação, coleta, tabulação e ciclo total | duração, quantidade de intervalos, média e mediana por etapa | Pesquisa, Etapa, papéis de Tempo, tipo, área, complexidade e status | Dias corridos são calculáveis quando os dois marcos existem; dias úteis exigem calendário aprovado |
-| C04 — Qualidade e Publicação | Uma linha por pesquisa, objeto avaliado e regra em cada data de fotografia; estrela | Snapshot periódico do estado de qualidade, inconsistência, prorrogação, autorização e publicação | objetos avaliados/afetados, completude ou validade, inconsistências, prorrogações e resultados autorizados/publicados | Pesquisa, Tempo, objeto, regra, fonte, campo e estados de qualidade, prorrogação e publicação | Qualidade atual sustenta parte das métricas; autorização e publicação dependem de integração futura |
+| C04 — Qualidade e Publicação | Uma linha por objeto avaliado e regra em cada execução versionada de fotografia; Pesquisa é informada quando aplicável; estrela | Snapshot periódico proposto do estado de qualidade, inconsistência, prorrogação, autorização e publicação | objetos avaliados/afetados, completude ou validade, inconsistências, estado de prorrogação na fotografia e resultados autorizados/publicados | Execução da fotografia, objeto, regra, fonte, campo e estados de qualidade, prorrogação e publicação; Pesquisa opcional | Qualidade atual sustenta parte das métricas; periodicidade, autorização e publicação dependem de execuções e integrações futuras |
+
+No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da
+ocorrência registrada. No C04, o mesmo atributo aparece apenas como estado
+avaliado em uma fotografia governada, conforme o recorte pedido pela issue
+#47; ele não cria uma segunda definição de I05. Publicação fica no C04 como
+estado de autorização e disponibilização, enquanto o C01 preserva os marcos
+operacionais até a entrega.
 
 Os quatro cubos não criam uma ponte entre participação e resposta. Os 542
 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes
