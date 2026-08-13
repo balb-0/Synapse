@@ -55,7 +55,7 @@ CSVs + dicionário + perfilamento reproduzível
 | Identidade canônica entre sistemas | unir participação, cliente e resposta individual | preservar chaves de origem e não inferir vínculos por semelhança |
 | Fonte autoritativa de participação de mercado | homologar representatividade | manter valores em reconciliação e bloquear o indicador conflitante |
 | Logs, versões e decisões de publicação | calcular auditoria, atualização e publicação | tratar I21 e I23–I25 como dependências futuras |
-| Definição dimensional das Tasks 43–47 | preencher os cubos do canvas | revisar branches oficiais e reconciliar com C01–C04 antes da exportação |
+| Definição dimensional das Tasks 43–47 | fechar todos os recortes analíticos | as issues #44–#47 sustentaram os quatro cards da Task 49; a Task 43 permanece sem entrega disponível para um cubo próprio de resultados/questionários |
 
 ## Fronteiras de responsabilidade
 

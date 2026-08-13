@@ -7,9 +7,9 @@
   </tr>
 </table>
 
-# Nome do Projeto: <nome do projeto>
+# Nome do Projeto: Central de Pesquisas do Sindusfarma
 
-## Nome do Grupo: <nome do grupo>
+## Nome do Grupo: Grupo 05
 
 ## Integrantes:
 
@@ -179,18 +179,25 @@ essas fronteiras estão delimitadas na §1.4.
 
 # 3. Objetivos
 
-**Objetivo geral:** Construir a espinha dorsal de dados da Central de Pesquisas do Sindusfarma — integrando as fontes hoje dispersas (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), centralizando-as em um banco de dados na nuvem e sustentando governança, qualidade e visualização do dado ao longo de todo o ciclo de vida das pesquisas.[<sup>\[1\]</sup>](#7-referências)
+**Objetivo geral proposto:** projetar a espinha dorsal de dados da Central de
+Pesquisas do Sindusfarma, integrando as fontes atribuídas ao processo em uma
+visão governada, rastreável e adequada ao consumo analítico. Banco de dados em
+nuvem, integrações e operação automatizada são decisões de implementação ainda
+pendentes, não capacidades entregues nesta Sprint.[<sup>\[1\]</sup>](#7-referências)
 
-**Objetivos específicos:** cada objetivo traz o valor gerado ao parceiro e o indicador que permite acompanhá-lo (ver seção 6.4 — Indicadores e Métricas de Negócio). A definição parte dos documentos do projeto disponibilizados pela faculdade e pelo parceiro.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)[<sup>\[3\]</sup>](#7-referências)
+**Objetivos específicos:** cada objetivo traz o valor pretendido e o indicador
+que permitiria acompanhá-lo (ver §6.4). A síntese atribui a origem aos
+documentos [1]–[3], cujos arquivos primários não estão neste checkout; por isso,
+os objetivos permanecem pendentes de conferência direta.
 
 | Objetivo (verbo de ação) | Valor para o parceiro | Como é medido |
 | :--- | :--- | :--- |
-| Integrar as fontes de dados hoje dispersas em um repositório central único | Elimina os cruzamentos manuais entre ferramentas e estabelece uma fonte única da verdade | Percentual de fontes integradas e completude dos registros consolidados |
-| Garantir rastreabilidade ponta a ponta do ciclo de vida da pesquisa, da solicitação à publicação | Auditabilidade e confiabilidade em cada etapa, sem conferência manual | Percentual de pesquisas com todas as etapas do ciclo registradas |
-| Reduzir o esforço manual e o tempo de entrega das pesquisas | Libera a capacidade da equipe da Central para análise em vez de tabulação | Tempo médio, em dias úteis, de validação, coleta, tabulação e do ciclo total |
-| Ampliar a adesão e o engajamento das indústrias participantes | Pesquisas mais representativas e maior relevância setorial | Taxa de adesão por pesquisa e por empresa; número de respondentes únicos no período |
-| Sustentar decisões estratégicas com dashboards operacionais e estratégicos atualizados automaticamente | Visão consolidada e data-driven em tempo real, sem atualização manual do painel | Volume de pesquisas por período e indicadores de status a partir do banco central |
-| Assegurar governança, segurança da informação e conformidade com a LGPD no tratamento de dados de empresas e de respostas individuais | Proteção dos dados dos participantes e conformidade regulatória | Percentual de completude e validade dos campos; cobertura do controle de acesso por perfil |
+| Integrar as fontes de dados hoje dispersas em um repositório central único | Pretende reduzir cruzamentos manuais e manter uma referência compartilhada | I24 somente após existir catálogo versionado e registro de execuções |
+| Garantir rastreabilidade ponta a ponta do ciclo de vida da pesquisa, da solicitação à publicação | Pretende tornar origem, marcos e limitações auditáveis | I18 e I22; a linhagem atual é parcial e possui relações em reconciliação |
+| Reduzir o esforço manual e o tempo de entrega das pesquisas | Pretende liberar capacidade para análise | I04 mede intervalos observáveis; ganho de esforço exige baseline operacional ainda ausente |
+| Ampliar a adesão e o engajamento das indústrias participantes | Pretende apoiar ações sobre participação | I07 é observável; I08 e I11 exigem universo elegível, e identidade não conciliada não representa pessoa única |
+| Sustentar decisões com dashboards operacionais e estratégicos | Pretende oferecer visão consolidada, sem afirmar atualização automática ou em tempo real | I01–I25 conforme disponibilidade da §5.6; frescor depende de I21 e metadado de carga |
+| Assegurar governança, segurança da informação e conformidade no tratamento de dados | Pretende proteger participantes e registrar responsabilidades | I16–I20 são observáveis; I23 e I25 dependem de política, decisão e logs aprovados |
 
 # 4. Arquitetura de Dados (ISO/IEC 10746)
 
@@ -206,7 +213,14 @@ _conteúdo_
 
 ### 4.0.1 Fontes de dados e ferramentas atuais
 
-As bases disponibilizadas pelo parceiro são seis arquivos CSV estruturados (separador `;`), somando cerca de 46 mil registros que cobrem o ciclo de vida das pesquisas — da pesquisa e das empresas participantes até o questionário e as respostas coletadas. O quadro abaixo resume as dimensões de cada base; as "colunas úteis" desconsideram colunas vazias remanescentes da exportação.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)
+O workspace contém seis arquivos CSV estruturados (separador `;`), atribuídos
+aos insumos do projeto e identificados pelos hashes da §5.3.6. Eles somam cerca
+de 46 mil registros e representam pesquisa, empresa, pessoa/cliente,
+participação, questão e elemento de resposta. A proveniência e a natureza real
+ou sintética das linhas não podem ser confirmadas sem as fontes primárias; por
+isso, os arquivos permanecem fora do Git. O quadro abaixo resume a estrutura
+observada, e as “colunas úteis” desconsideram colunas vazias remanescentes da
+exportação.
 
 <div align="center">
 <sub>Tabela X - Inventário das bases disponibilizadas</sub><br>
@@ -375,7 +389,11 @@ Esta subseção detalha limitações organizacionais do AS-IS. A narrativa
 canônica do fluxo de valor, com estados de evidência e comparação com o TO-BE,
 está na §2.1; em caso de divergência, prevalece a qualificação daquela seção.
 
-O fluxo de trabalho atual da Central de Pesquisas percorre ferramentas consolidadas em cada etapa (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), mas sem integração estruturada entre elas: o único ponto de conexão apenas replica novas solicitações, sem consolidar o dado ao longo do ciclo de vida da pesquisa. A seguir estão os principais processos organizacionais impactados pela solução, com a situação atual, as limitações existentes e as melhorias esperadas após a implantação.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)
+O documento consolidado atribui ao fluxo atual o uso de planilhas, formulários
+de coleta, gestão de tarefas e repositório publicado, com integração limitada
+entre etapas. Como [1] e [2] não estão disponíveis para conferência direta,
+essa descrição permanece **síntese derivada**. A situação alvo da tabela é uma
+proposta; não comprova implantação.
 
 - **Solicitação e triagem** — registro e aprovação da demanda de uma nova pesquisa.
 - **Planejamento e validação do questionário** — estruturação das perguntas e revisão técnica com as áreas responsáveis.
@@ -390,9 +408,9 @@ O fluxo de trabalho atual da Central de Pesquisas percorre ferramentas consolida
 | :--- | :--- | :--- | :--- |
 | Solicitação e triagem | Demanda registrada manualmente e distribuída entre ferramentas isoladas | Sem rastreabilidade da solicitação até o resultado; status disperso | Registro único e rastreável da demanda, com status consolidado |
 | Planejamento e validação do questionário | Questionário estruturado e revisado fora de um repositório central | Versões e validações não ficam ligadas à pesquisa de forma auditável | Perguntas e validações vinculadas à pesquisa, com histórico auditável |
-| Divulgação, coleta e participação | Adesão de empresas e respondentes acompanhada manualmente | Visão fragmentada da participação; difícil medir adesão em tempo real | Participação consolidada e adesão acompanhada em tempo real |
-| Encerramento, tabulação e análise | Respostas consolidadas e cruzadas manualmente em planilhas | Processo lento, sujeito a erro e sem indicadores padronizados | Indicadores calculados automaticamente a partir do banco central |
-| Publicação e acervo | Repositório público atualizado manualmente, isolado do sistema interno | Risco de inconsistência entre o interno e o publicado | Acervo alimentado automaticamente e consistente com o banco central |
+| Divulgação, coleta e participação | Acompanhamento manual atribuído à síntese do AS-IS | Visão fragmentada; o snapshot não contém universo elegível | Participação consolidada, com taxa somente quando houver denominador e atualização registrada |
+| Encerramento, tabulação e análise | Cruzamento manual em planilhas atribuído à síntese do AS-IS | Tempo e erro operacional não foram medidos nesta Sprint | Indicadores reproduzíveis quando fontes, regras e denominadores estiverem disponíveis |
+| Publicação e acervo | Atualização manual e isolamento atribuídos à síntese do AS-IS | Estado, autorização e data de publicação não existem no snapshot | Integração condicionada a autorização, versão, origem e decisão registrada |
 
 <sup>Material produzido pelos autores (2026)</sup>
 
@@ -1363,8 +1381,10 @@ denominadores e estados do gráfico, e não depende de cor ou tooltip.
 
 O protótipo navegável e autocontido está em
 `docs/assets/prototipos-dashboards/index.html`. O snapshot agregado exibido é
-gerado por script a partir dos seis CSVs fictícios, com data de processamento,
-hashes das fontes e regras de privacidade documentadas no mesmo diretório.
+gerado por script a partir dos seis CSVs externos. A natureza real ou sintética
+das linhas não foi confirmada; por isso, somente agregados sem identificação
+entram no protótipo, com data de processamento, hashes e regras de privacidade
+documentadas no mesmo diretório.
 
 ### D01 — Operação: portfólio e prazos
 
@@ -1419,7 +1439,7 @@ campo próprio, e ausência de data impede classificar atraso ou duração.
 <div align="center">
   <p><strong>Figura 1 — Dashboard de operação e portfólio de pesquisas</strong></p>
   <img src="./assets/prototipos-dashboards/imagens/dashboard-operacao.png" alt="Dashboard de operação com rastreabilidade do snapshot, filtros, indicadores de portfólio e gráficos de solicitações, complexidade e tipo de resposta" width="100%">
-  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+  <p><sub>Protótipo visual do grupo. Fonte: agregados dos CSVs externos clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. A natureza real ou sintética das linhas não foi confirmada; nenhum registro individual é exibido. Dados processados em 13/08/2026.</sub></p>
 </div>
 
 ### D02 — Adesão e representatividade
@@ -1460,7 +1480,7 @@ incompatíveis; por isso I08, I09, I10 e I11 respeitam sua disponibilidade e os
 <div align="center">
   <p><strong>Figura 2 — Dashboard de participação observada e representatividade</strong></p>
   <img src="./assets/prototipos-dashboards/imagens/dashboard-participacao.png" alt="Dashboard de participação com contagens agregadas, métricas indisponíveis claramente sinalizadas e distribuição de empresas por pesquisa" width="100%">
-  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+  <p><sub>Protótipo visual do grupo. Fonte: agregados dos CSVs externos clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. A natureza real ou sintética das linhas não foi confirmada; nenhum registro individual é exibido. Dados processados em 13/08/2026.</sub></p>
 </div>
 
 ### D03 — Resultados e questionários
@@ -1501,7 +1521,7 @@ estão representadas no snapshot.
 <div align="center">
   <p><strong>Figura 3 — Dashboard de resultados e questionários</strong></p>
   <img src="./assets/prototipos-dashboards/imagens/dashboard-resultados.png" alt="Dashboard de resultados agregados com exemplos fechados de escolha única e caixas de seleção, denominadores explícitos e ausência de identificadores individuais" width="100%">
-  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+  <p><sub>Protótipo visual do grupo. Fonte: agregados dos CSVs externos clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. A natureza real ou sintética das linhas não foi confirmada; nenhum registro individual é exibido. Dados processados em 13/08/2026.</sub></p>
 </div>
 
 ### D04 — Qualidade e governança
@@ -1559,7 +1579,7 @@ A aprovação final de todas as células cabe ao Data Owner.
 <div align="center">
   <p><strong>Figura 4 — Dashboard de qualidade e governança dos dados</strong></p>
   <img src="./assets/prototipos-dashboards/imagens/dashboard-qualidade.png" alt="Dashboard de qualidade com indicadores de completude, duplicidade e divergência, matriz de regras I16 a I20 e estados de governança" width="100%">
-  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+  <p><sub>Protótipo visual do grupo. Fonte: agregados dos CSVs externos clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. A natureza real ou sintética das linhas não foi confirmada; nenhum registro individual é exibido. Dados processados em 13/08/2026.</sub></p>
 </div>
 
 ## 6.6 Governança, Segurança da Informação e LGPD
@@ -1585,13 +1605,19 @@ Não foi identificado, apenas pelos nomes dos campos, um campo explicitamente de
 
 ### 6.6.2 Papéis, agentes e responsabilidades a validar
 
-Os papéis de governança não equivalem automaticamente aos agentes jurídicos da LGPD. A indicação de Data Owner, Data Steward ou Data Custodian é organizacional; controlador, operador, suboperador e encarregado devem ser definidos pela realidade de cada operação, pelas instruções e pelos contratos. A tabela registra os nomes apontados no material do projeto como referência de validação, não como designação já formalizada; os nomes e atribuições foram confrontados com o TAPI, a Arquitetura de Negócio e o Data Model Canvas.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)[<sup>\[3\]</sup>](#7-referências)
+Os papéis de governança não equivalem automaticamente aos agentes jurídicos da
+LGPD. A indicação de Data Owner, Data Steward ou Data Custodian é
+organizacional; controlador, operador, suboperador e encarregado devem ser
+definidos pela realidade de cada operação, pelas instruções e pelos contratos.
+A tabela reproduz nomes presentes no baseline documental do DMC como referência
+para validação, não como designação formalizada. Os arquivos primários [1]–[3]
+não estão neste checkout e ainda precisam ser confrontados diretamente.
 
 | Papel de governança | Referência do projeto | Responsabilidade proposta, sujeita a validação |
 | :--- | :--- | :--- |
-| Data Owner | Fabio Moreira, gestor da Central de Pesquisas | Aprovar finalidades, classificações, acesso por perfil, indicadores e publicação; decidir sobre exceções e risco residual. |
-| Data Steward | Felipe Fernandes Rojas, Reinaldo Nobrega e Lucas Andrade | Manter o catálogo e o dicionário, definir significado e regras de qualidade, acompanhar origem, linhagem, minimização e atendimento operacional das solicitações. |
-| Data Custodian | Rodrigo Giorgetto/TI e, na custódia externa, RentalHost | Administrar infraestrutura, credenciais, cópias, logs e segregação técnica segundo instruções aprovadas; não decidir finalidade por conta própria. |
+| Data Owner | Fabio Moreira, conforme baseline do DMC | Aprovar finalidades, classificações, acesso por perfil, indicadores e publicação; decidir sobre exceções e risco residual. |
+| Data Steward | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade, conforme grafia do baseline do DMC | Manter o catálogo e o dicionário, definir significado e regras de qualidade, acompanhar origem, linhagem, minimização e atendimento operacional das solicitações. |
+| Data Custodian | Rodrigo Giorgetto/TI e RentalHost, conforme baseline do DMC | Administrar infraestrutura, credenciais, cópias, logs e segregação técnica segundo instruções aprovadas; não decidir finalidade por conta própria. |
 | Controlador | A definir pelo Sindusfarma para cada fluxo | Decidir finalidades e meios, validar bases legais, instruir operadores, aprovar compartilhamentos e coordenar respostas e comunicações quando aplicável. |
 | Encarregado | A indicar pelo controlador | Atuar como canal entre titulares, controlador e ANPD, receber reclamações e comunicações, orientar as equipes e apoiar o atendimento dos direitos e incidentes. |
 
@@ -1787,6 +1813,22 @@ evidência observada e decisão proposta.
 | Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; histórico das issues #21–#25 e #40–#49 | Síntese derivada; o vínculo específico deve citar issue, branch, commit ou MR e as limitações constam nas §§5.6 e 6.4 |
 | Negócio, Consumo Analítico e Governança Corporativa do canvas | DMC em PDF [3] e exportação `docs/dmc.json` | Baseline documental derivado; papéis e políticas continuam sujeitos a validação |
 | Cubos C01–C04 | contratos da §5.2, derivados das perguntas, indicadores e dados observados | Proposta de modelagem; não prova implantação de data warehouse |
+
+A auditoria transversal aplicou o teste “qual é a fonte?” aos grupos de
+afirmações exigidos nesta Sprint:
+
+| Afirmação auditada | Origem seguida até a fonte | Tipo | Resultado |
+| :--- | :--- | :--- | :--- |
+| Identidade do parceiro e propósito do projeto | referências TAPI [1] e Arquitetura [2] | fonte primária ausente | **Pendente:** manter como atribuição documental, sem dizer que foi reconfirmada |
+| Fragmentação, cruzamentos manuais e processo AS-IS | referências [1], [2], [13] e [14] | síntese derivada | **Correção aplicada:** narrativa e tabela passaram a declarar a auditoria primária pendente |
+| Seis fontes, estrutura, contagens, chaves, nulos e relações órfãs | CSVs externos identificados pelos hashes da §5.3.6 e `scripts/data_quality/` | observado nos dados e no código | **OK:** reproduzível sem publicar os registros |
+| Natureza real ou sintética dos CSVs | nenhuma declaração primária disponível | pendente | **Correção aplicada:** removida a afirmação de que as linhas são fictícias; o uso continua restrito a agregados |
+| Data Owner, Data Steward e Data Custodian | baseline do DMC [3] e `docs/dmc.json` | referência documental derivada | **Correção aplicada:** nomes são referências para validação, não designações formais |
+| Riscos de qualidade, exposição e reidentificação | campos, chaves, e-mail e texto livre observados; §6.6 | observado + avaliação de risco | **OK:** nenhuma autorização de publicação é inferida |
+| RF01–RF13 e PB01–PB13 | referências primárias citadas, estrutura observada e síntese do grupo | contrato proposto | **OK com limitação:** necessidade atribuída a fonte ausente permanece pendente; campo observado é citado diretamente |
+| I01–I25 | CSVs, perfilamento e dependências declaradas nas §§5.6 e 6.4 | observado, mapeamento ou integração futura | **OK:** cada indicador explicita disponibilidade e denominador; indisponível nunca vira zero |
+| Atualização automática, acesso e publicação | ausência de timestamp, política, logs e decisão no snapshot | proposta futura | **Correção aplicada:** removidas afirmações de capacidade atual ou tempo real |
+| Quatro cards dimensionais do DMC | issues #44–#47, §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional preenchido; Dados/Governança vazios por escopo; cubo próprio de resultados permanece dependência da Task 43 |
 
 Nenhuma referência a uma fonte ausente deve ser usada, isoladamente, para
 classificar uma afirmação como confirmada pelo parceiro. Até a recuperação do
