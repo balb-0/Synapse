@@ -5,7 +5,7 @@ determinísticos. O diretório que contém os CSVs é somente leitura para o
 script; o resultado deve ficar em diretório temporário ou em um diretório de
 artefatos que não seja publicado com dados brutos. O dicionário é obrigatório
 na interface de linha de comando e seu cabeçalho, nove variáveis, conteúdo
-mínimo e alegações de nulos são validados; um dicionário arbitrário falha antes
+mínimo e alegações verificáveis de cardinalidade/nulos dos nove campos são validados; um dicionário arbitrário falha antes
 da gravação das saídas.
 
 O manifesto usa `teste.csv` como alias conceitual local de `respostas.csv`.
@@ -36,8 +36,12 @@ Sentinelas são configuradas por campo no manifesto: `s/i`, `NA`, `N/A` e
 `n/a` podem ser nulos semânticos; `-` só é sentinela em campos configurados
 (por exemplo, `empresas.Associado`) e permanece texto em `respostas.valor`.
 As contagens física, de sentinelas e semântica ficam separadas. Assim, o
-dicionário informa 8.309 nulos em `valor`, enquanto o CSV tem 8.307 vazios e
-2 `NA`; a soma semântica é 8.309. CSVs de resposta, nomes de empresas,
+O perfilador só exige alegações que o dicionário realmente fornece: quando uma
+linha não declara cardinalidade, faixa ou nulos, o campo é reportado como não
+informado, sem inventar um limiar. Para alegações presentes, as nove variáveis
+são confrontadas com a medição física e semântica; incompatibilidade falha
+antes de criar qualquer saída. O dicionário informa 8.309 nulos em `valor`,
+enquanto o CSV tem 8.307 vazios e 2 `NA`; a soma semântica é 8.309. CSVs de resposta, nomes de empresas,
 e-mails e textos livres não são gravados nas saídas; domínios de resposta não
 são materializados.
 

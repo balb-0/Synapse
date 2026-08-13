@@ -86,6 +86,45 @@ class ProfileCsvTest(unittest.TestCase):
                 profile_csv.run(input_dir, root / "out", root / "manifest.json", dictionary)
             self.assertFalse((root / "out").exists())
 
+    def test_dictionary_cardinality_claim_fails_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            input_dir = root / "input"
+            input_dir.mkdir()
+            columns = [
+                "id_resposta", "pesquisa_id", "id_pergunta", "respondent_id", "id_empresa",
+                "alternativa", "linha_matriz", "coluna_matriz", "valor",
+            ]
+            (root / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "dictionary": {
+                            "required_columns": ["Variável", "Unidade de Análise", "Tipo de Variável", "Valores ou Domínio Esperado", "Análises Adequadas"],
+                            "required_variables": columns,
+                            "required_nonempty_columns": ["Unidade de Análise", "Tipo de Variável", "Valores ou Domínio Esperado", "Análises Adequadas"],
+                        },
+                        "sources": [{"id": "respostas", "file": "respostas.csv", "columns": columns, "key": ["id_resposta"], "sentinels": {}}],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            with (input_dir / "respostas.csv").open("w", encoding="utf-8-sig", newline="") as stream:
+                writer = csv.writer(stream, delimiter=";")
+                writer.writerow(columns)
+                writer.writerow(["1", "1", "1", "101", "5", "A", "", "", "ok"])
+                writer.writerow(["2", "1", "1", "102", "6", "A", "", "", "ok"])
+            dictionary = root / "dicionario.csv"
+            dictionary_columns = ["Variável", "Unidade de Análise", "Tipo de Variável", "Valores ou Domínio Esperado", "Análises Adequadas"]
+            with dictionary.open("w", encoding="utf-8-sig", newline="") as stream:
+                writer = csv.writer(stream)
+                writer.writerow(dictionary_columns)
+                for variable in columns:
+                    claim = "1 valores únicos" if variable == "id_resposta" else "2 valores únicos"
+                    writer.writerow([variable, "unidade", "nominal", claim, "frequência"])
+            with self.assertRaisesRegex(profile_csv.ProfileError, r"\[dicionário\].*id_resposta"):
+                profile_csv.run(input_dir, root / "out", root / "manifest.json", dictionary)
+            self.assertFalse((root / "out").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

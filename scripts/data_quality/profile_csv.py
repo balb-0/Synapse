@@ -70,10 +70,11 @@ DENORMALIZED_FIELDS = [
     "divergencias", "percentual_divergencias", "ids_divergentes", "status", "observacao",
 ]
 DICTIONARY_FIELDS = [
-    "arquivo", "status", "colunas_esperadas", "colunas_encontradas",
-    "variaveis_esperadas", "variaveis_encontradas", "valor_nulos_dicionario",
-    "valor_nulos_fisicos", "valor_sentinelas", "valor_nulos_semanticos",
-    "divergencia_dicionario_vs_fisico", "divergencia_dicionario_vs_semantico", "observacao",
+    "arquivo", "variavel", "status", "cardinalidade_dicionario", "cardinalidade_medida",
+    "divergencia_cardinalidade", "nulos_dicionario", "nulos_fisicos", "sentinelas",
+    "nulos_semanticos", "divergencia_dicionario_vs_fisico",
+    "divergencia_dicionario_vs_semantico", "minimo_dicionario", "maximo_dicionario",
+    "minimo_medido", "maximo_medido", "observacao",
 ]
 
 
@@ -670,9 +671,16 @@ def denormalized_rows(data_by_id: dict[str, dict[str, Any]]) -> list[dict[str, A
     ]
 
 
+def parse_claim_integer(text: str, pattern: str) -> int | None:
+    match = re.search(pattern, text, flags=re.IGNORECASE)
+    if match is None:
+        return None
+    return int(match.group(1).replace(".", ""))
+
+
 def validate_dictionary(
     dictionary_path: Path, manifest: dict[str, Any], data_by_id: dict[str, dict[str, Any]]
-) -> dict[str, Any]:
+) -> list[dict[str, Any]]:
     config = manifest.get("dictionary", {})
     expected_columns = list(config.get("required_columns", []))
     expected_variables = list(config.get("required_variables", []))
@@ -704,34 +712,78 @@ def validate_dictionary(
     response = data_by_id.get("respostas")
     if response is None:
         raise fail("[dicionário] fonte respostas ausente para validar conteúdo")
-    value_row = rows[expected_variables.index("valor")]
-    claim_text = value_row.get("Valores ou Domínio Esperado", "")
-    claim_match = re.search(r"([0-9.]+)\s+nulos", claim_text)
-    if claim_match is None:
-        raise fail("[dicionário] não foi possível extrair a alegação de nulos de valor")
-    claimed = int(claim_match.group(1).replace(".", ""))
-    expected_claim = int(config.get("claimed_null_counts", {}).get("valor", claimed))
-    if claimed != expected_claim:
-        raise fail(f"[dicionário] alegação de nulos de valor divergente: {claimed} != {expected_claim}")
-    values = [row.get("valor", "") for row in response["rows"]]
-    physical = sum(is_null(value) for value in values)
-    sentinels = sum(is_sentinel(value, response["config"], "valor") for value in values)
-    semantic = physical + sentinels
-    return {
-        "arquivo": dictionary_path.name,
-        "status": "OK",
-        "colunas_esperadas": len(expected_columns),
-        "colunas_encontradas": len(actual_columns),
-        "variaveis_esperadas": len(expected_variables),
-        "variaveis_encontradas": len(variables),
-        "valor_nulos_dicionario": claimed,
-        "valor_nulos_fisicos": physical,
-        "valor_sentinelas": sentinels,
-        "valor_nulos_semanticos": semantic,
-        "divergencia_dicionario_vs_fisico": claimed - physical,
-        "divergencia_dicionario_vs_semantico": claimed - semantic,
-        "observacao": "A diferença dicionário-vazio físico corresponde às sentinelas NA; não há divergência semântica.",
-    }
+    measured_rows: list[dict[str, Any]] = []
+    for variable, dictionary_row in zip(expected_variables, rows):
+        claim_text = dictionary_row.get("Valores ou Domínio Esperado", "")
+        cardinality_claim = parse_claim_integer(
+            claim_text, r"([0-9.]+)\s+(?:valores únicos|categorias)"
+        )
+        if "sem nulos" in claim_text.casefold():
+            null_claim = 0
+        else:
+            null_claim = parse_claim_integer(claim_text, r"([0-9.]+)\s+nulos")
+
+        values = [row.get(variable, "") for row in response["rows"]]
+        physical = sum(is_null(value) for value in values)
+        sentinels = sum(is_sentinel(value, response["config"], variable) for value in values)
+        semantic = physical + sentinels
+        comparable = [
+            normalized(value) for value in values if not is_null(value)
+        ]
+        measured_cardinality = len(set(value for value in comparable if value is not None))
+
+        range_start = parse_claim_integer(claim_text, r"(?:sequencial,|de)\s*([0-9.]+)\s+a")
+        range_end = parse_claim_integer(claim_text, r"(?:sequencial,|de)\s*[0-9.]+\s+a\s*([0-9.]+)")
+        measured_numbers = [parse_number(value) for value in comparable]
+        measured_numbers = [number for number in measured_numbers if number is not None]
+        measured_min = min(measured_numbers) if measured_numbers else None
+        measured_max = max(measured_numbers) if measured_numbers else None
+
+        cardinality_delta = (
+            measured_cardinality - cardinality_claim if cardinality_claim is not None else ""
+        )
+        physical_delta = null_claim - physical if null_claim is not None else ""
+        semantic_delta = null_claim - semantic if null_claim is not None else ""
+        mismatch = (
+            (cardinality_claim is not None and cardinality_delta != 0)
+            or (null_claim is not None and semantic_delta != 0)
+            or (range_start is not None and (measured_min is None or measured_min != range_start))
+            or (range_end is not None and (measured_max is None or measured_max != range_end))
+        )
+        if mismatch:
+            raise fail(
+                f"[dicionário] alegação incompatível em {variable}: "
+                f"cardinalidade={cardinality_claim}/{measured_cardinality}; "
+                f"nulos={null_claim}/{semantic}"
+            )
+        if null_claim is None:
+            observation = "Sem alegação de nulos; nenhuma exigência foi inventada."
+        elif physical_delta:
+            observation = "A diferença entre a alegação e vazios físicos é explicada por sentinelas configuradas."
+        else:
+            observation = "Alegações verificáveis de cardinalidade e nulos conferem."
+        measured_rows.append(
+            {
+                "arquivo": dictionary_path.name,
+                "variavel": variable,
+                "status": "OK" if not mismatch else "INCOMPATIVEL",
+                "cardinalidade_dicionario": cardinality_claim if cardinality_claim is not None else "",
+                "cardinalidade_medida": measured_cardinality,
+                "divergencia_cardinalidade": cardinality_delta,
+                "nulos_dicionario": null_claim if null_claim is not None else "",
+                "nulos_fisicos": physical,
+                "sentinelas": sentinels,
+                "nulos_semanticos": semantic,
+                "divergencia_dicionario_vs_fisico": physical_delta,
+                "divergencia_dicionario_vs_semantico": semantic_delta,
+                "minimo_dicionario": range_start if range_start is not None else "",
+                "maximo_dicionario": range_end if range_end is not None else "",
+                "minimo_medido": measured_min if measured_min is not None else "",
+                "maximo_medido": measured_max if measured_max is not None else "",
+                "observacao": observation,
+            }
+        )
+    return measured_rows
 
 
 def temporal_rows(data_by_id: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
@@ -792,21 +844,25 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
     dictionary_result = (
         validate_dictionary(dictionary_path, manifest, data_by_id)
         if dictionary_path is not None
-        else {
+        else [{
             "arquivo": "",
+            "variavel": "__manifesto__",
             "status": "NAO_INFORMADO",
-            "colunas_esperadas": len(manifest.get("dictionary", {}).get("required_columns", [])),
-            "colunas_encontradas": 0,
-            "variaveis_esperadas": len(manifest.get("dictionary", {}).get("required_variables", [])),
-            "variaveis_encontradas": 0,
-            "valor_nulos_dicionario": "",
-            "valor_nulos_fisicos": "",
-            "valor_sentinelas": "",
-            "valor_nulos_semanticos": "",
+            "cardinalidade_dicionario": "",
+            "cardinalidade_medida": "",
+            "divergencia_cardinalidade": "",
+            "nulos_dicionario": "",
+            "nulos_fisicos": "",
+            "sentinelas": "",
+            "nulos_semanticos": "",
             "divergencia_dicionario_vs_fisico": "",
             "divergencia_dicionario_vs_semantico": "",
+            "minimo_dicionario": "",
+            "maximo_dicionario": "",
+            "minimo_medido": "",
+            "maximo_medido": "",
             "observacao": "Forneça --dictionary para validar o contrato semântico.",
-        }
+        }]
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -831,7 +887,7 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
     write_csv(output_dir / "nulos_condicionais.csv", conditional, CONDITIONAL_FIELDS)
     write_csv(output_dir / "percentuais.csv", percentages, PERCENT_FIELDS)
     write_csv(output_dir / "denormalizados.csv", denormalized, DENORMALIZED_FIELDS)
-    write_csv(output_dir / "dicionario_validacao.csv", [dictionary_result], DICTIONARY_FIELDS)
+    write_csv(output_dir / "dicionario_validacao.csv", dictionary_result, DICTIONARY_FIELDS)
 
     applied = {
         "manifest_version": manifest.get("version", "desconhecida"),
@@ -850,7 +906,7 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
         ],
         "dictionary_provided": dictionary_path is not None,
         "dictionary_file": dictionary_path.name if dictionary_path else "",
-        "dictionary_status": dictionary_result["status"],
+        "dictionary_status": dictionary_result[0]["status"],
         "temporal": manifest.get("temporal", {}),
         "outputs": list(OUTPUT_NAMES[:-1]),
         "raw_data_written": False,

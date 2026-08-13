@@ -12,8 +12,7 @@
   "dictionary": {
     "required_columns": ["Variável", "Unidade de Análise", "Tipo de Variável", "Valores ou Domínio Esperado", "Análises Adequadas"],
     "required_variables": ["id_resposta", "pesquisa_id", "id_pergunta", "respondent_id", "id_empresa", "alternativa", "linha_matriz", "coluna_matriz", "valor"],
-    "required_nonempty_columns": ["Unidade de Análise", "Tipo de Variável", "Valores ou Domínio Esperado", "Análises Adequadas"],
-    "claimed_null_counts": {"valor": 8309}
+    "required_nonempty_columns": ["Unidade de Análise", "Tipo de Variável", "Valores ou Domínio Esperado", "Análises Adequadas"]
   },
   "temporal": {
     "timezone": "não informado na exportação; tratar como horário local de origem até confirmação",
