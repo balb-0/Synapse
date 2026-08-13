@@ -24,6 +24,7 @@
 # Sumário
 
 - [1. Introdução](#1-introdução)
+  - [1.4 Escopo do Projeto](#14-escopo-do-projeto)
 - [2. Descrição do Problema](#2-descrição-do-problema)
 - [3. Objetivos](#3-objetivos)
 - [4. Arquitetura de Dados (ISO/IEC 10746)](#4-arquitetura-de-dados-isoiec-10746)
@@ -58,6 +59,59 @@
 _conteúdo_
 
 **Nota:** Contextualizar o projeto em uma frase de propósito e apresentar, em alto nível, o que este documento cobre (arquitetura de dados, modelagem dimensional, requisitos, governança e avaliação).
+
+## 1.4 Escopo do Projeto
+
+O escopo abaixo consolida os resultados pretendidos descritos nas referências
+[1], [2], [13] e [14] e nos requisitos da §6.1. O TAPI [1] e a Arquitetura de
+Negócio [2] foram conferidos diretamente nesta auditoria. “Incluído” indica
+responsabilidade do projeto, não funcionalidade já implantada ou concluída
+nesta Sprint.
+
+### Escopo incluído no projeto
+
+- implementar um banco relacional em nuvem que centralize o ciclo da pesquisa, preservando origem e rastreabilidade;
+- implementar ao menos um pipeline de ingestão das fontes atuais, com tratamento de inconsistências, deduplicação e padronização;
+- entregar um data app com dashboards operacionais e estratégicos alimentados pelo banco central;
+- estabelecer governança, qualidade, segurança, privacidade e controle de acesso por perfil;
+- integrar resultados autorizados ao acervo público, mantendo consistência com a informação interna;
+- documentar o modelo de dados, a arquitetura, o pipeline, os protocolos de governança e a orientação de uso.
+
+### Entregas documentais da Sprint 1
+
+Esta Sprint entrega a base documental e analítica para o MVP, sem declarar que
+a infraestrutura produtiva já está implantada:
+
+- diagnóstico e método reproduzível de perfilamento do snapshot recebido;
+- contratos de perguntas, requisitos, indicadores, dashboards e cubos;
+- protótipos D01–D04 com agregados sem identificação;
+- Data Model Canvas exportado e validado;
+- propostas de governança, privacidade, qualidade e rastreabilidade.
+
+### MVP do projeto confirmado no TAPI
+
+| Componente mínimo | Critério confirmado na fonte |
+| :--- | :--- |
+| Banco de dados | banco relacional em nuvem modelando solicitação, planejamento, execução e resultado |
+| Pipeline | ao menos uma ingestão funcional de uma fonte atual, com tratamento básico de inconsistências e deduplicação |
+| Dashboard | conjunto inicial de KPIs alimentado pelo banco central, sem atualização manual |
+| Acesso e proteção | controle por perfil e tratamento de dados sensíveis em conformidade com a LGPD |
+
+### Escopo não incluído
+
+| Item | Justificativa |
+| :--- | :--- |
+| Substituição de SurveyMonkey, Trello, repositório público ou demais ferramentas operacionais | o TAPI afirma que o projeto integra e governa essas ferramentas, sem substituí-las |
+| Publicação aberta de CSVs, respostas individuais ou dados pessoais | os arquivos possuem e-mail, chaves estáveis e texto livre; o projeto trabalha com agregação, minimização e autorização |
+| Inferência de identidade entre cliente, participação e resposta | não existe ponte comprovada entre as fontes; sem contrato aprovado, a união produziria rastreabilidade falsa |
+| Taxa de adesão ou engajamento sem universo elegível | a fonte atual não contém os denominadores necessários; indisponibilidade não pode ser substituída por zero ou estimativa |
+| Alegar atualização em tempo real antes da implantação e medição | “tempo real” é benefício esperado no TAPI; o snapshot não comprova timestamp de carga, integração contínua nem SLA operacional |
+| Garantia de conformidade produtiva apenas com a documentação | políticas, papéis, bases legais e controles dependem de validação e implantação pelo parceiro |
+
+Essa delimitação preserva o MVP oficial do projeto e separa dele as entregas
+documentais desta Sprint. Banco, pipeline, dashboard conectado e controle de
+acesso continuam incluídos no MVP, mas só podem ser considerados prontos após
+implementação, homologação e operação controlada.
 
 # 2. Descrição do Problema
 
