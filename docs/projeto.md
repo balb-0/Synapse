@@ -24,7 +24,9 @@
 # Sumário
 
 - [1. Introdução](#1-introdução)
+  - [1.4 Escopo do Projeto](#14-escopo-do-projeto)
 - [2. Descrição do Problema](#2-descrição-do-problema)
+  - [2.1 Fluxo de Valor](#21-fluxo-de-valor)
 - [3. Objetivos](#3-objetivos)
 - [4. Arquitetura de Dados (ISO/IEC 10746)](#4-arquitetura-de-dados-isoiec-10746)
   - [4.0 Estado Atual (AS-IS)](#40-estado-atual-as-is)
@@ -59,11 +61,121 @@ _conteúdo_
 
 **Nota:** Contextualizar o projeto em uma frase de propósito e apresentar, em alto nível, o que este documento cobre (arquitetura de dados, modelagem dimensional, requisitos, governança e avaliação).
 
+## 1.4 Escopo do Projeto
+
+O escopo abaixo consolida os resultados pretendidos descritos nas referências
+[1], [2], [13] e [14] e nos requisitos da §6.1. Como os arquivos primários não
+estão neste checkout, ele permanece uma síntese derivada, pendente de
+conferência direta com essas fontes. “Incluído” indica responsabilidade do
+projeto, não funcionalidade já implantada.
+
+### Escopo incluído no projeto
+
+- projetar a centralização da informação do ciclo das pesquisas em um modelo integrado, preservando a origem e as chaves recebidas;
+- especificar a ingestão e a padronização das fontes, com tratamento explícito de schema, nulos, duplicidade, percentuais e relações órfãs;
+- modelar rastreabilidade da solicitação à publicação, sem criar vínculos de identidade que os dados não comprovem;
+- propor controles de qualidade, governança, segurança, privacidade e acesso por perfil para posterior validação do parceiro;
+- especificar consumo analítico por indicadores, filtros, drill-down autorizado, relatórios e dashboards;
+- modelar a entrega e a publicação de resultados agregados, condicionadas à autorização e à integração futura com o acervo aplicável;
+- documentar arquitetura, requisitos, contratos analíticos, cubos e critérios de validação da solução; implantação e operação ficam delimitadas pelo MVP e pelas dependências abaixo.
+
+### Recorte do MVP
+
+O MVP abaixo é a proposta de recorte verificável desta Sprint e permanece
+pendente de validação com as fontes primárias. Ele não equivale à operação
+produtiva completa.
+
+| No MVP | Depois do MVP / depende de integração |
+| :--- | :--- |
+| Método de perfilamento reproduzível quando o snapshot externo e o dicionário estão disponíveis, além do diagnóstico já documentado | ingestão automática e monitorada de todas as fontes operacionais |
+| Contratos de perguntas, indicadores, dashboards e cubos | data warehouse implantado, atualização agendada e observabilidade operacional |
+| Protótipos D01–D04 com agregados sem identificação | autenticação, perfis homologados e acesso produtivo a detalhe autorizado |
+| Exportação e validação do Data Model Canvas | publicação automática no acervo e gestão operacional de versões |
+| Regras propostas de governança, privacidade e rastreabilidade | políticas aprovadas, responsáveis formalmente designados e logs de auditoria |
+
+### Escopo não incluído
+
+| Item | Justificativa |
+| :--- | :--- |
+| Substituição das ferramentas operacionais citadas no inventário disponível | fronteira proposta, pendente de validação nas fontes primárias: o projeto integra dados e continuidade do processo, sem especificar a reconstrução dessas ferramentas |
+| Publicação aberta de CSVs, respostas individuais ou dados pessoais | os arquivos possuem e-mail, chaves estáveis e texto livre; o projeto trabalha com agregação, minimização e autorização |
+| Inferência de identidade entre cliente, participação e resposta | não existe ponte comprovada entre as fontes; sem contrato aprovado, a união produziria rastreabilidade falsa |
+| Taxa de adesão ou engajamento sem universo elegível | a fonte atual não contém os denominadores necessários; indisponibilidade não pode ser substituída por zero ou estimativa |
+| Atualização em tempo real entregue no MVP | o snapshot não comprova timestamp de carga, integração contínua nem SLA operacional; a capacidade futura depende de integração |
+| Garantia de conformidade produtiva apenas com a documentação | políticas, papéis, bases legais e controles dependem de validação e implantação pelo parceiro |
+
+Essa delimitação não exclui objetivos futuros. Ela separa a arquitetura e os
+contratos entregues nesta sprint das capacidades que só podem ser consideradas
+prontas após integração, homologação e operação controlada.
+
 # 2. Descrição do Problema
 
-_conteúdo_
+A documentação consolidada atribui ao cenário atual a fragmentação entre
+fontes e etapas, o esforço de cruzamento manual e a baixa rastreabilidade.
+Nesta cópia do repositório, as fontes primárias dessa caracterização estão
+citadas nas referências [1], [2], [13] e [14], mas seus arquivos não estão
+disponíveis para conferência direta. Por isso, essas dores permanecem como
+síntese derivada e pendente de auditoria primária.
 
-**Nota:** Descrever a dor de negócio que o projeto ataca — fragmentação das fontes, esforço manual, baixa rastreabilidade/qualidade, ausência de fonte única da verdade.
+Os dados permitem confirmar problemas mais específicos: domínios de
+identificadores não coincidentes, relações órfãs, ausência de ponte comprovada
+entre participação e resposta, percentuais textuais e metadados insuficientes
+para alguns indicadores. A matriz completa separa cada dor, causa, impacto,
+necessidade, objetivo, KPI, público, papel e risco em
+[`docs/matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md).
+Ela também indica o artefato de destino e o estado da evidência.
+
+## 2.1 Fluxo de Valor
+
+O valor pretendido é transformar uma necessidade de informação do setor em
+resultado estruturado, rastreável e autorizado. Essa formulação é uma síntese
+derivada das referências [1], [2], [13] e [14] e permanece pendente de
+auditoria nas fontes primárias. O fluxo abaixo descreve criação de valor; as
+ferramentas aparecem apenas como contexto operacional.
+
+### Fluxo atual (AS-IS)
+
+| Atividade | Entrada | Saída de valor | Atores | Referência disponível | Estado e limitação |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Solicitar e triar | necessidade de informação e contexto da área | demanda avaliada e decisão de seguir | solicitante, Central de Pesquisas e área técnica | referências [1], [2] e síntese da §4.0.2 | **Pendente de validação:** fluxo derivado; continuidade até a publicação não comprovada |
+| Planejar e elaborar o questionário | demanda aceita, objetivo e público | proposta de questionário e cronograma | Central e área técnica | referências [1], [2], [13], [14] | **Pendente de validação:** versão, aprovação e autoria não estão no snapshot |
+| Validar e divulgar | proposta de questionário | instrumento revisado e convite distribuído | área técnica, Central e participantes | referências [1], [2] e §4.0.2 | **Pendente de validação:** regras e marcos de validação incompletos nas fontes analisadas |
+| Coletar e acompanhar | instrumento divulgado | registros de participação e elementos de resposta | empresas participantes, pessoas/contatos quando identificados e Central | `respondentes.csv`, `respostas.csv` e §4.0.2 | **Síntese derivada:** registros observados; universo elegível e ponte de identidade indisponíveis |
+| Encerrar e tabular | coleta encerrada e elementos de resposta | base preparada para análise | Central e área técnica | referências [1], [2] e CSVs | **Pendente de validação:** cruzamentos exigem reconciliação; elemento de resposta não equivale a pessoa |
+| Analisar e entregar | base preparada e perguntas de negócio | indicadores e resultado contextualizado | Central, área técnica, gestores e solicitante | PB01–PB13, I01–I25 e §4.0.2 | **Síntese derivada:** denominadores, mercado, atualização e autorização podem estar indisponíveis |
+| Publicar e preservar | resultado e contexto de origem | resultado autorizado no acervo e histórico consultável | Central e público autorizado; papel de governança a validar | RF09, referências [1], [2] e §6.6 | **Pendente de validação:** decisão, data, versão e logs não comprovados |
+
+### Fluxo alvo (TO-BE)
+
+No fluxo alvo, propõe-se usar a **Pesquisa** como eixo de continuidade,
+condicionado à reconciliação das chaves de origem e à aprovação do contrato de
+identidade. Cada etapa preserva a origem e produz uma saída consumida pela
+etapa seguinte, sem unir identidades por semelhança nem preencher ausência com
+estimativa.
+
+```text
+Necessidade de informação
+  → demanda triada
+  → pesquisa planejada
+  → questionário validado e versionado
+  → divulgação e participação acompanhadas
+  → coleta encerrada, com reconciliação registrada
+  → resultado agregado e rastreável
+  → entrega autorizada
+  → publicação vinculada ao acervo
+```
+
+| Mudança de valor | Contribuição proposta da solução | Critério de validação proposto |
+| :--- | :--- | :--- |
+| Continuidade entre etapas | Pesquisa como referência proposta de continuidade, com origens preservadas | marcos, versões e elos consultáveis sem perda ou criação silenciosa de identidade |
+| Menos reconciliação manual | dados padronizados e tratamento explícito de anomalias e conflitos | anomalias explicadas, decisões registradas e correções verificáveis |
+| Indicadores consistentes | perguntas, fórmulas, grãos e denominadores compartilhados pelos dashboards | o mesmo recorte produz o mesmo indicador e indisponibilidade aparece como indisponibilidade |
+| Decisão no momento certo | visões de negócio para gargalos, participação, resultados e qualidade | usuário identifica a ação apoiada, a fonte, o período e a limitação do indicador |
+| Publicação responsável | autorização, agregação, linhagem e vínculo com a pesquisa antes do acervo | resultado publicado possui decisão, versão, origem e perfil autorizado |
+
+O TO-BE é contrato de arquitetura e processo. Ele não prova que pipeline,
+autenticação, data warehouse ou publicação automática já estejam implantados;
+essas fronteiras estão delimitadas na §1.4.
 
 # 3. Objetivos
 
@@ -258,6 +370,10 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 Dois pontos observados na estrutura, a serem quantificados no diagnóstico de qualidade: as medidas de participação de mercado (`part_mercado`, `% de mercado`, `market_share`) são numéricas mas estão armazenadas como texto; e `id_cliente` aparece como texto em `clientes.csv` e como inteiro em `respondentes.csv`, o que exige conciliação de identidade entre as bases.
 
 ### 4.0.2 Fluxo de trabalho atual
+
+Esta subseção detalha limitações organizacionais do AS-IS. A narrativa
+canônica do fluxo de valor, com estados de evidência e comparação com o TO-BE,
+está na §2.1; em caso de divergência, prevalece a qualificação daquela seção.
 
 O fluxo de trabalho atual da Central de Pesquisas percorre ferramentas consolidadas em cada etapa (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), mas sem integração estruturada entre elas: o único ponto de conexão apenas replica novas solicitações, sem consolidar o dado ao longo do ciclo de vida da pesquisa. A seguir estão os principais processos organizacionais impactados pela solução, com a situação atual, as limitações existentes e as melhorias esperadas após a implantação.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)
 
@@ -1618,10 +1734,20 @@ _conteúdo_
 
 ## 8.3 Tabela de Fontes e Auditabilidade
 
-_conteúdo_
+O mapa completo de origem e dependências está em
+[`docs/fontes-e-dependencias.md`](fontes-e-dependencias.md). A tabela abaixo
+mantém no documento canônico a distinção necessária entre fonte primária,
+evidência observada e decisão proposta.
 
-**Nota:** Cada afirmação quantitativa da §8.1 deve ter fonte auditável (commit, MR, artefato, coleta ou documento do parceiro).
-
-| Documento/Evento | Referência (auditável) | Data |
+| Bloco | Origem auditável | Classificação e estado |
 | :--- | :--- | :--- |
-| _ | _ | _ |
+| Contexto, escopo, processo e papéis | TAPI [1], Arquitetura de Negócio [2], JTBD [13] e Problem Canvas [14] | Fontes primárias citadas; os arquivos não estão nesta cópia do repositório e a conferência direta permanece pendente |
+| Estrutura, grão e qualidade das bases | seis CSVs externos identificados pelos hashes da §5.3.6; manifesto, perfilador e testes em `scripts/data_quality/` | Evidência observada no snapshot local; o método é reproduzível quando as fontes e o dicionário estão disponíveis, mas os dados brutos não fazem parte do checkout |
+| Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; histórico das issues #21–#25 e #40–#49 | Síntese derivada; o vínculo específico deve citar issue, branch, commit ou MR e as limitações constam nas §§5.6 e 6.4 |
+| Negócio, Consumo Analítico e Governança Corporativa do canvas | DMC em PDF [3] e exportação `docs/dmc.json` | Baseline documental derivado; papéis e políticas continuam sujeitos a validação |
+| Cubos C01–C04 | contratos da §5.2, derivados das perguntas, indicadores e dados observados | Proposta de modelagem; não prova implantação de data warehouse |
+
+Nenhuma referência a uma fonte ausente deve ser usada, isoladamente, para
+classificar uma afirmação como confirmada pelo parceiro. Até a recuperação do
+arquivo original, a afirmação permanece como síntese derivada ou pendente de
+auditoria primária.
