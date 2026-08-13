@@ -1204,6 +1204,11 @@ denominadores e estados do gráfico, e não depende de cor ou tooltip.
 | I16–I20 e I22 | Matriz fonte × regra e fluxo de linhagem | Tabela fonte/campo/regra × afetados × avaliados e lista ordenada de elos com estado textual |
 | I21 e I23–I25 | Tabelas de execução, decisão e acesso | Tabelas com timestamp disponível, origem, perfil, recurso, ação, decisão e motivo de indisponibilidade |
 
+O protótipo navegável e autocontido está em
+`docs/assets/prototipos-dashboards/index.html`. O snapshot agregado exibido é
+gerado por script a partir dos seis CSVs fictícios, com data de processamento,
+hashes das fontes e regras de privacidade documentadas no mesmo diretório.
+
 ### D01 — Operação: portfólio e prazos
 
 **Objetivo, usuários e decisão.** Permitir que gestores e analistas da Central
@@ -1254,6 +1259,12 @@ operacional permitido; demais perfis recebem somente o recorte autorizado. Não
 há dado individual. `data_divulgacao` não prova publicação, prioridade não tem
 campo próprio, e ausência de data impede classificar atraso ou duração.
 
+<div align="center">
+  <p><strong>Figura 1 — Dashboard de operação e portfólio de pesquisas</strong></p>
+  <img src="./assets/prototipos-dashboards/imagens/dashboard-operacao.png" alt="Dashboard de operação com rastreabilidade do snapshot, filtros, indicadores de portfólio e gráficos de solicitações, complexidade e tipo de resposta" width="100%">
+  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+</div>
+
 ### D02 — Adesão e representatividade
 
 **Objetivo, usuários e decisão.** Ajudar gestores e analistas a identificar onde
@@ -1289,6 +1300,12 @@ convidado, as medidas de mercado estão em texto e `id_cliente` tem tipos
 incompatíveis; por isso I08, I09, I10 e I11 respeitam sua disponibilidade e os
 542 IDs da fonte de respostas não são unidos por semelhança.
 
+<div align="center">
+  <p><strong>Figura 2 — Dashboard de participação observada e representatividade</strong></p>
+  <img src="./assets/prototipos-dashboards/imagens/dashboard-participacao.png" alt="Dashboard de participação com contagens agregadas, métricas indisponíveis claramente sinalizadas e distribuição de empresas por pesquisa" width="100%">
+  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+</div>
+
 ### D03 — Resultados e questionários
 
 **Objetivo, usuários e decisão.** Permitir que analistas, áreas técnicas e
@@ -1323,6 +1340,12 @@ aprovadas. Auditor autorizado chega à evidência agregada, não à pessoa. Há 
 questões e 3.592 elementos ligados a pesquisas ausentes, e não há ponte entre
 `respondent_id` e `id_cliente`; versão e validação do questionário também não
 estão representadas no snapshot.
+
+<div align="center">
+  <p><strong>Figura 3 — Dashboard de resultados e questionários</strong></p>
+  <img src="./assets/prototipos-dashboards/imagens/dashboard-resultados.png" alt="Dashboard de resultados agregados com exemplos fechados de escolha única e caixas de seleção, denominadores explícitos e ausência de identificadores individuais" width="100%">
+  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+</div>
 
 ### D04 — Qualidade e governança
 
@@ -1375,6 +1398,12 @@ A aprovação final de todas as células cabe ao Data Owner.
 | Data Owner | Agregados, governança e decisões | Proposto: condicionado à função | Proposto: evidência agregada da decisão | Proposto: registro auditável | Proposto: aprovar ou negar; disponibilização técnica cabe ao Custodian/TI |
 | Auditor de dados | Qualidade e linhagem agregada | Proposto: condicionado ao mandato | Proposto: evidência e elo agregados | Proposto: evidência auditável autorizada | Não proposto |
 | Qualquer perfil nos dashboards | Resposta individual, e-mail ou identidade pessoal | Não proposto no dashboard | Não proposto no dashboard | Não proposto no dashboard | Não proposto no dashboard |
+
+<div align="center">
+  <p><strong>Figura 4 — Dashboard de qualidade e governança dos dados</strong></p>
+  <img src="./assets/prototipos-dashboards/imagens/dashboard-qualidade.png" alt="Dashboard de qualidade com indicadores de completude, duplicidade e divergência, matriz de regras I16 a I20 e estados de governança" width="100%">
+  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+</div>
 
 ## 6.6 Governança, Segurança da Informação e LGPD
 
