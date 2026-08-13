@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central de Pesquisas — Protótipos de Dashboards (D01-D04)</title>
+  <meta name="description" content="Protótipo institucional e editorial para instrumentação de dados e governança de pesquisas do Sindusfarma.">
+  <link rel="icon" href="data:,">
+
+  <style>
+    /* ==========================================================================
+       SISTEMA VISUAL E TOKENS — Caderno de laboratório contemporâneo
+       ========================================================================== */
+    :root {
+      --bg-main: #F4F6F9;
+      --surface-white: #FFFFFF;
+      --ink-primary: #0C354D;
+      --ink-muted: #4A6375;
+      --structure-blue: #002D78;
+      --action-data: #1374C8;
+      --action-hover: #0E5AA0;
+      --accent-orange: #C53D00;
+      --accent-amber: #FFA600;
+      --border-tech: #C0C9D0;
+      --border-subtle: #E1E6EB;
+      --state-error: #D32F2F;
+      --state-error-bg: #FFEBEE;
+      --state-warn-bg: #FFF8E1;
+
+      --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-title: Georgia, "Times New Roman", serif;
+      --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", monospace;
+
+      --focus-ring: 3px solid #1374C8;
+      --focus-offset: 2px;
+    }
+
+    /* Base de normalização e acessibilidade */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--ink-primary);
+      background-color: var(--bg-main);
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Link para pular navegação */
+    .skip-link {
+      position: absolute;
+      top: -100px;
+      left: 1rem;
+      background: var(--structure-blue);
+      color: var(--surface-white);
+      padding: 0.75rem 1.25rem;
+      z-index: 9999;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: top 0.2s ease;
+    }
+    .skip-link:focus {
+      top: 1rem;
+      outline: var(--focus-ring);
+    }
+
+    /* Foco visível */
+    :focus-visible {
+      outline: var(--focus-ring);
+      outline-offset: var(--focus-offset);
+    }
+
+    /* Banner de Protótipo e Isenção */
+    .disclaimer-bar {
+      background-color: var(--structure-blue);
+      color: var(--surface-white);
+      font-size: 0.8125rem;
+      padding: 0.5rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      border-bottom: 2px solid var(--accent-orange);
+    }
+    .disclaimer-bar strong {
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--accent-orange);
+      color: var(--surface-white);
+      padding: 0.1rem 0.5rem;
+      border-radius: 2px;
+      margin-right: 0.5rem;
+    }
+
+    /* Cabeçalho e ficha de rastreabilidade */
+    .app-header {
+      background: var(--surface-white);
+      border-bottom: 2px solid var(--border-tech);
+      padding: 1.5rem 2rem;
+    }
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+    @media (min-width: 900px) {
+      .header-content {
+        grid-template-columns: 1.2fr 1fr;
+        align-items: center;
+      }
+    }
+
+    .editorial-title {
+      font-family: var(--font-title);
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--structure-blue);
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+    .editorial-subtitle {
+      font-size: 1.05rem;
+      color: var(--ink-muted);
+      margin-top: 0.4rem;
+    }
+
+    /* Ficha Técnica / Assinatura */
+    .traceability-card {
+      background-color: var(--bg-main);
+      border: 1px solid var(--border-tech);
+      padding: 0.875rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: var(--ink-primary);
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      border-left: 4px solid var(--action-data);
+    }
+    .traceability-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .traceability-label {
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+    .traceability-val {
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    /* Barra de controles e alternador de estados */
+    .toolbar-container {
+      background: #EAF0F6;
+      border-bottom: 1px solid var(--border-tech);
+      padding: 0.75rem 2rem;
+    }
+    .toolbar-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .state-switcher {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .state-switcher label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--structure-blue);
+      text-transform: uppercase;
+    }
+    .btn-state {
+      background: var(--surface-white);
+      border: 1px solid var(--border-tech);
+      color: var(--ink-primary);
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8125rem;
+      font-family: var(--font-body);
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+    .btn-state:hover {
+      background: var(--action-data);
+      color: var(--surface-white);
+      border-color: var(--action-data);
+    }
+    .btn-state.active {
+      background: var(--structure-blue);
+      color: var(--surface-white);
+      border-color: var(--structure-blue);
+      font-weight: 600;
+    }
+
+    .mode-toggle-btn {
+      background: var(--action-data);
+      color: var(--surface-white);
+      border: 1px solid var(--action-data);
+      padding: 0.4rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.2s;
+    }
+    .mode-toggle-btn:hover {
+      background: var(--action-hover);
+    }
+
+    /* Layout principal e abas de navegação */
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    .nav-tabs {
+      display: flex;
+      border-bottom: 2px solid var(--structure-blue);
+      gap: 0.25rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .tab-btn {
+      background: #E8EEF5;
+      border: 1px solid var(--border-tech);
+      border-bottom: none;
+      padding: 0.875rem 1.5rem;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      cursor: pointer;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .tab-btn:hover {
+      background: var(--surface-white);
+      color: var(--action-data);
+    }
+    .tab-btn[aria-selected="true"] {
+      background: var(--surface-white);
+      color: var(--structure-blue);
+      border-color: var(--structure-blue) var(--structure-blue) var(--surface-white) var(--structure-blue);
+      border-top: 3px solid var(--action-data);
+      margin-bottom: -2px;
+      font-weight: 700;
+    }
+    .tab-badge {
+      background: var(--ink-muted);
+      color: var(--surface-white);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+    }
+    .tab-btn[aria-selected="true"] .tab-badge {
+      background: var(--structure-blue);
+    }
+
+    /* Painéis das abas */
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Editorial Panel Layout & Asymmetry */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 1024px) {
+      .dashboard-grid.has-sidebar {
+        grid-template-columns: 2.2fr 1fr;
+      }
+      .dashboard-grid.equal-two {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .panel-card {
+      background: var(--surface-white);
+      border: 1px solid var(--border-tech);
+      padding: 1.5rem;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      position: relative;
+    }
+    .panel-card.accent-border {
+      border-top: 4px solid var(--structure-blue);
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 0.75rem;
+      gap: 1rem;
+    }
+    .panel-title {
+      font-family: var(--font-title);
+      font-size: 1.35rem;
+      color: var(--structure-blue);
+    }
+    .panel-meta {
+      font-size: 0.8125rem;
+      color: var(--ink-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Métricas e indicadores */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .kpi-box {
+      background: var(--bg-main);
+      border: 1px solid var(--border-tech);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .kpi-box:first-child {
+      background: var(--structure-blue);
+      border-color: var(--structure-blue);
+      color: var(--surface-white);
+    }
+    .kpi-box:first-child .kpi-label,
+    .kpi-box:first-child .kpi-val,
+    .kpi-box:first-child .kpi-sub {
+      color: var(--surface-white);
+    }
+    .kpi-box:nth-child(3) {
+      border-left: 4px solid var(--accent-orange);
+    }
+    .kpi-label {
+      font-size: 0.8125rem;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .kpi-val {
+      font-family: var(--font-mono);
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--structure-blue);
+    }
+    .kpi-sub {
+      font-size: 0.8125rem;
+      color: var(--ink-primary);
+    }
+    .equivalent-details {
+      margin-top: 0.5rem;
+      color: var(--structure-blue);
+      font-size: 0.875rem;
+    }
+    .equivalent-details summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* Gráficos editoriais de barras em CSS e HTML */
+    .chart-editorial {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 180px 1fr 90px;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.875rem;
+    }
+    @media (max-width: 600px) {
+      .bar-row {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+      }
+    }
+    .bar-label {
+      font-weight: 500;
+      color: var(--ink-primary);
+    }
+    .bar-track {
+      background: var(--bg-main);
+      border: 1px solid var(--border-tech);
+      height: 24px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    .bar-fill {
+      background: var(--action-data);
+      height: 100%;
+      transition: width 0.4s ease-out;
+    }
+    .bar-fill.accent-orange { background: var(--accent-orange); }
+    .bar-fill.accent-amber { background: var(--accent-amber); }
+    .bar-fill.structure-blue { background: var(--structure-blue); }
+
+    .bar-value {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-align: right;
+      color: var(--structure-blue);
+    }
+
+    /* Tabelas acessíveis equivalentes */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-tech);
+      margin-top: 0.5rem;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      text-align: left;
+    }
+    .data-table th, .data-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .data-table th {
+      background: #EAF0F6;
+      color: var(--structure-blue);
+      font-weight: 700;
+      font-family: var(--font-body);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+    .data-table td.num {
+      font-family: var(--font-mono);
+      text-align: right;
+
+    }
+    .data-table tr:hover td {
+      background-color: var(--bg-main);
+    }
+
+    /* Barra de filtros do D01 */
+    .filter-box {
+      background: var(--bg-main);
+      border: 1px solid var(--border-tech);
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .filter-group label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--structure-blue);
+    }
+    .filter-select {
+      background: var(--surface-white);
+      border: 1px solid var(--border-tech);
+      padding: 0.4rem 0.75rem;
+      font-size: 0.875rem;
+      font-family: var(--font-body);
+      color: var(--ink-primary);
+      border-radius: 3px;
+    }
+
+    /* Rótulos de estado */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      border-radius: 2px;
+    }
+    .badge-unavailable {
+      background: #ECEFF1;
+      color: #546E7A;
+      border: 1px solid #CFD8DC;
+    }
+    .badge-conflito {
+      background: var(--state-warn-bg);
+      color: #795700;
+      border: 1px solid var(--accent-amber);
+    }
+    .badge-conforme {
+      background: #E8F5E9;
+      color: #2E7D32;
+      border: 1px solid #A5D6A7;
+    }
+    .badge-divergencia {
+      background: var(--state-error-bg);
+      color: #B71C1C;
+      border: 1px solid #EF9A9A;
+    }
+
+    /* Contêineres de estados da interface */
+    .state-banner {
+      padding: 1rem 1.5rem;
+      border: 1px solid var(--border-tech);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.95rem;
+    }
+    .state-banner.loading {
+      background: #E3F2FD;
+      border-color: var(--action-data);
+      color: var(--structure-blue);
+    }
+    .state-banner.empty {
+      background: var(--bg-main);
+      border-color: var(--border-tech);
+      color: var(--ink-muted);
+    }
+    .state-banner.unavailable {
+      background: #ECEFF1;
+      border-color: #B0BEC5;
+      color: #455A64;
+    }
+    .state-banner.error {
+      background: var(--state-error-bg);
+      border-color: var(--state-error);
+      color: var(--state-error);
+    }
+    .state-banner.denied {
+      background: #FFF3E0;
+      border-color: var(--accent-orange);
+      color: #E65100;
+    }
+
+    /* Footer */
+    .app-footer {
+      background: var(--structure-blue);
+      color: var(--surface-white);
+      padding: 2rem;
+      margin-top: 3rem;
+      font-size: 0.875rem;
+      border-top: 4px solid var(--accent-orange);
+    }
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .footer-note {
+      color: #D0DCE5;
+      max-width: 800px;
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Link para pular navegação -->
+  <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+
+  <!-- Banner de Protótipo Interno -->
+  <aside class="disclaimer-bar" aria-label="Aviso de protótipo">
+    <div>
+      <strong>PROTÓTIPO INTERNO</strong>
+      <span>Ambiente de validação institucional — dados fictícios agregados, sem dados pessoais</span>
+    </div>
+    <div>
+      <span>Convenção pt-BR | Reflow 320px &amp; Zoom 400% Acessíveis</span>
+    </div>
+  </aside>
+
+  <!-- Cabeçalho Principal e Assinatura Editorial -->
+  <header class="app-header">
+    <div class="header-content">
+      <div>
+        <h1 class="editorial-title">Central de Pesquisas — Sindusfarma</h1>
+        <p class="editorial-subtitle">Instrumentação Editorial de Dados, Portfólio Operacional e Governança</p>
+      </div>
+
+      <!-- Ficha de Rastreabilidade / Snapshot -->
+      <div class="traceability-card" id="traceability-header" aria-label="Ficha de rastreabilidade">
+        <div class="traceability-row">
+          <span class="traceability-label">SNAPSHOT ID (SHA-256):</span>
+          <span class="traceability-val" id="snap-hash">Carregando...</span>
+        </div>
+        <div class="traceability-row">
+          <span class="traceability-label">PROCESSADO EM:</span>
+          <span class="traceability-val" id="snap-time">Carregando...</span>
+        </div>
+        <div class="traceability-row">
+          <span class="traceability-label">VERSÃO SCHEMA:</span>
+          <span class="traceability-val" id="snap-version">v1.0.0</span>
+        </div>
+        <div style="font-size: 0.7rem; color: var(--ink-muted); margin-top: 0.2rem;" id="freshness-note">
+          Nota: O timestamp registra a execução do pipeline de lote e não representa frescor do dado de origem.
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Ferramentas / Alternador de Estados Demonstrativos -->
+  <div class="toolbar-container">
+    <div class="toolbar-content">
+      <div class="state-switcher" role="group" aria-label="Demonstrador de estados da interface">
+        <label>Estado UI:</label>
+        <button type="button" class="btn-state active" data-state="normal">Normal</button>
+        <button type="button" class="btn-state" data-state="loading">Carregando</button>
+        <button type="button" class="btn-state" data-state="empty">Vazio</button>
+        <button type="button" class="btn-state" data-state="unavailable">Indisponível</button>
+        <button type="button" class="btn-state" data-state="error">Erro</button>
+        <button type="button" class="btn-state" data-state="denied">Acesso Negado</button>
+        <button type="button" class="btn-state" data-state="no-time">Sem Timestamp</button>
+      </div>
+
+      <div>
+        <button type="button" class="mode-toggle-btn" id="btn-toggle-tables" aria-pressed="false">
+          Mostrar Tabelas Equivalentes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal -->
+  <main id="main-content" class="main-container">
+
+    <!-- Container Dinâmico de Alertas de Estado -->
+    <div id="state-banner-container"></div>
+
+    <!-- Navegação das visões com abas ARIA -->
+    <nav aria-label="Navegação das visões dos dashboards">
+      <div class="nav-tabs" role="tablist" id="tab-list">
+        <button role="tab" aria-selected="true" aria-controls="view-d01" id="tab-d01" class="tab-btn" tabindex="0">
+          D01 Operação <span class="tab-badge">Portfólio &amp; Prazos</span>
+        </button>
+        <button role="tab" aria-selected="false" aria-controls="view-d02" id="tab-d02" class="tab-btn" tabindex="-1">
+          D02 Participação <span class="tab-badge">Observada</span>
+        </button>
+        <button role="tab" aria-selected="false" aria-controls="view-d03" id="tab-d03" class="tab-btn" tabindex="-1">
+          D03 Resultados <span class="tab-badge">Questionários</span>
+        </button>
+        <button role="tab" aria-selected="false" aria-controls="view-d04" id="tab-d04" class="tab-btn" tabindex="-1">
+          D04 Qualidade <span class="tab-badge">Governança</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ==========================================================================
+       VIEW D01: OPERAÇÃO — PORTFÓLIO E PRAZOS
+       ========================================================================== -->
+    <section id="view-d01" class="tab-panel active" role="tabpanel" aria-labelledby="tab-d01">
+
+      <!-- Filtros Seguros Agregados -->
+      <div class="filter-box" style="margin-bottom: 1.5rem;">
+        <span style="font-weight: 700; color: var(--structure-blue); font-size: 0.875rem;">FILTROS SEGUROS:</span>
+        <div class="filter-group">
+          <label for="f-ano">Ano Solicitação:</label>
+          <select id="f-ano" class="filter-select">
+            <option value="todos">Todos os anos</option>
+            <option value="2022">2022</option>
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="f-complexidade">Complexidade:</label>
+          <select id="f-complexidade" class="filter-select">
+            <option value="todas">Todas</option>
+            <option value="alta">Alta</option>
+            <option value="média">Média</option>
+            <option value="baixa">Baixa</option>
+            <option value="nao_informado">Não Informado</option>
+          </select>
+        </div>
+        <button type="button" class="btn-state" id="btn-limpar-filtros">Limpar Filtros</button>
+      </div>
+
+      <!-- Resumo Narrativo e KPIs -->
+      <div class="panel-card accent-border" style="margin-bottom: 1.5rem;">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Narrativa Operacional do Portfólio</h2>
+            <p class="panel-meta">Fonte: pesquisas.csv | Unidade: Pesquisas agregadas | Período: 2022-2027</p>
+          </div>
+        </div>
+        <p id="d01-narrativa" style="font-size: 0.95rem; color: var(--ink-primary);">Carregando síntese do portfólio…</p>
+
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <span class="kpi-label">Total de Pesquisas</span>
+            <span class="kpi-val" id="d01-kpi-total">—</span>
+            <span class="kpi-sub">Cadastradas no sistema</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Status Finalizada</span>
+            <span class="kpi-val" id="d01-kpi-finalizadas">—</span>
+            <span class="kpi-sub" id="d01-sub-finalizadas">—</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">I05 — Taxa Prorrogação</span>
+            <span class="kpi-val" style="color: var(--accent-orange);" id="d01-kpi-i05">—</span>
+            <span class="kpi-sub" id="d01-sub-i05">—</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">I06 — Cumprimento Prazo</span>
+            <span class="badge badge-unavailable" style="font-size: 0.9rem; align-self: flex-start; margin-top: 0.4rem;">INDISPONÍVEL</span>
+            <span class="kpi-sub" style="font-size: 0.75rem; margin-top: 0.2rem;">Sem data de referência, elegibilidade e regra de prioridade aprovadas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficos Editoriais D01 -->
+      <div class="dashboard-grid has-sidebar">
+        <!-- Coluna Principal -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Solicitações por Ano e Marcos Temporais</h3>
+            <span class="panel-meta">Contagem observada por exercício</span>
+          </div>
+
+          <div id="d01-chart-anos-container">
+            <div class="chart-editorial" id="d01-chart-anos">
+              <!-- Renderizado via JS -->
+            </div>
+          </div>
+
+          <div id="d01-table-anos-container" style="display: none;">
+            <div class="table-container" tabindex="0" aria-label="Tabela de solicitações por ano">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Exercício / Ano</th>
+                    <th class="num">Solicitações</th>
+                    <th class="num">Proporção</th>
+                  </tr>
+                </thead>
+                <tbody id="d01-tbody-anos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna Lateral -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Complexidade e Tipo</h3>
+            <span class="panel-meta">Atribuição técnica</span>
+          </div>
+
+          <div id="d01-chart-comp-container">
+            <h4 style="font-size: 0.875rem; color: var(--structure-blue); margin-bottom: 0.5rem;">Por Complexidade:</h4>
+            <div class="chart-editorial" id="d01-chart-comp"></div>
+
+            <h4 style="font-size: 0.875rem; color: var(--structure-blue); margin-top: 1rem; margin-bottom: 0.5rem;">Por Tipo de Resposta:</h4>
+            <div class="chart-editorial" id="d01-chart-tipo"></div>
+          </div>
+
+          <div id="d01-table-comp-container" style="display: none;">
+            <div class="table-container" tabindex="0" aria-label="Tabela de complexidade e tipo">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Categoria</th>
+                    <th class="num">Quantidade</th>
+                  </tr>
+                </thead>
+                <tbody id="d01-tbody-comp"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+       VIEW D02: ADESÃO E REPRESENTATIVIDADE
+       ========================================================================== -->
+    <section id="view-d02" class="tab-panel" role="tabpanel" aria-labelledby="tab-d02">
+      <div class="panel-card accent-border" style="margin-bottom: 1.5rem;">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Participação Observada e Representatividade</h2>
+            <p class="panel-meta">Fonte: respondentes.csv | Unidade: Participações agregadas (Não chamar de adesão)</p>
+          </div>
+        </div>
+
+        <p id="d02-narrativa" style="font-size: 0.95rem; color: var(--ink-primary);">Carregando síntese de participação…</p>
+
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <span class="kpi-label">Total Participações</span>
+            <span class="kpi-val" id="d02-kpi-part">—</span>
+            <span class="kpi-sub">Registros em respondentes.csv</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Pesquisas Distintas</span>
+            <span class="kpi-val" id="d02-kpi-pesq">—</span>
+            <span class="kpi-sub">Com participações registradas</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Empresas Distintas</span>
+            <span class="kpi-val" id="d02-kpi-emp">—</span>
+            <span class="kpi-sub">Participantes no acervo</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Participações Órfãs</span>
+            <span class="kpi-val" style="color: var(--accent-orange);" id="d02-kpi-orfas">—</span>
+            <span class="kpi-sub" id="d02-sub-orfas">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid equal-two">
+        <!-- Diagnósticos e Estados D02 -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Estados das Métricas de Governança D02</h3>
+            <span class="panel-meta">I08, I09, I11</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <strong style="color: var(--structure-blue);">I08 — Taxa de Adesão por Pesquisa</strong>
+                <span class="badge badge-unavailable">INDISPONÍVEL</span>
+              </div>
+              <p style="font-size: 0.875rem; color: var(--ink-muted);">
+                Motivo: a fonte não contém o universo de empresas convidadas ou elegíveis por pesquisa. Sem denominador documentado, o percentual permanece indisponível.
+              </p>
+            </div>
+
+            <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <strong style="color: var(--structure-blue);">I11 — Taxa de Engajamento</strong>
+                <span class="badge badge-unavailable">INDISPONÍVEL</span>
+              </div>
+              <p style="font-size: 0.875rem; color: var(--ink-muted);">
+                Motivo: sem universo elegível por área, cargo ou departamento para compor o denominador.
+              </p>
+            </div>
+
+            <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <strong style="color: var(--structure-blue);">I09 — Conflito de Representatividade</strong>
+                <span class="badge badge-conflito">DIAGNÓSTICO CONFLITO</span>
+              </div>
+              <p style="font-size: 0.875rem; color: var(--ink-muted);">
+                `market_share` e `% de mercado` divergem entre fontes. O recorte fica sem soma homologada até a definição da fonte autoritativa, sem precedência presumida.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Distribuição Estatística -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Distribuição Estatística de Empresas por Pesquisa</h3>
+            <span class="panel-meta">Amplitude e Quartis Observados</span>
+          </div>
+
+          <div class="chart-editorial" id="d02-chart-distrib">
+            <!-- Renderizado via JS -->
+          </div>
+          <details class="equivalent-details">
+            <summary>Ver tabela equivalente</summary>
+            <div class="table-container">
+              <table class="data-table">
+                <caption>Distribuição estatística de empresas por pesquisa</caption>
+                <thead><tr><th>Medida</th><th>Quantidade</th></tr></thead>
+                <tbody id="d02-tbody-distrib"></tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+       VIEW D03: RESULTADOS E QUESTIONÁRIOS
+       ========================================================================== -->
+    <section id="view-d03" class="tab-panel" role="tabpanel" aria-labelledby="tab-d03">
+      <div class="panel-card accent-border" style="margin-bottom: 1.5rem;">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Resultados e Questionários — Exemplos Selecionados</h2>
+            <p class="panel-meta">Fonte: respostas.csv / questoes.csv | Seleção interna segura do protótipo</p>
+          </div>
+        </div>
+
+        <p id="d03-narrativa" style="font-size: 0.95rem; color: var(--ink-primary);">Carregando síntese de resultados…</p>
+
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <span class="kpi-label">Elementos de Resposta</span>
+            <span class="kpi-val" id="d03-kpi-elem">—</span>
+            <span class="kpi-sub">Linhas atômicas registradas</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Questões Cadastradas</span>
+            <span class="kpi-val" id="d03-kpi-qtotal">—</span>
+            <span class="kpi-sub">Em questoes.csv</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Valores Vazios / NA</span>
+            <span class="kpi-val" style="color: var(--accent-orange);" id="d03-kpi-vazio">—</span>
+            <span class="kpi-sub" id="d03-sub-vazio">—</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Questões Órfãs</span>
+            <span class="kpi-val" style="color: var(--accent-orange);" id="d03-kpi-qorfas">—</span>
+            <span class="kpi-sub" id="d03-sub-qorfas">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid equal-two">
+        <!-- Exemplo seguro 1: Q110 Múltipla Escolha -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title" id="d03-title-q110">Questão selecionada</h3>
+              <span class="panel-meta" id="d03-meta-q110">Carregando…</span>
+            </div>
+            <span class="badge badge-conforme">EXEMPLO FECHADO</span>
+          </div>
+
+          <p style="font-size: 0.875rem; color: var(--ink-muted);">
+            Distribuição de respostas fechadas para questão de múltipla escolha com alternativa única.
+          </p>
+
+          <div class="chart-editorial" id="d03-chart-q110"></div>
+          <details class="equivalent-details">
+            <summary>Ver tabela equivalente</summary>
+            <div class="table-container">
+              <table class="data-table">
+                <caption>Distribuição das alternativas da questão de escolha única</caption>
+                <thead><tr><th>Alternativa</th><th>Quantidade</th><th>Percentual</th></tr></thead>
+                <tbody id="d03-tbody-q110"></tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+
+        <!-- Exemplo fechado B: caixas de seleção -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title" id="d03-title-q104">Questão selecionada</h3>
+              <span class="panel-meta" id="d03-meta-q104">Carregando…</span>
+            </div>
+            <span class="badge badge-conforme">EXEMPLO FECHADO</span>
+          </div>
+
+          <div style="background: var(--state-warn-bg); border: 1px solid var(--accent-amber); padding: 0.75rem; font-size: 0.8125rem; color: #795548;">
+            <strong>Regra de denominador:</strong> <span id="d03-nota-q104">Carregando regra…</span>
+          </div>
+
+          <div class="chart-editorial" id="d03-chart-q104"></div>
+          <details class="equivalent-details">
+            <summary>Ver tabela equivalente</summary>
+            <div class="table-container">
+              <table class="data-table">
+                <caption>Distribuição das alternativas da questão de caixas de seleção</caption>
+                <thead><tr><th>Alternativa</th><th>Quantidade</th><th>Percentual</th></tr></thead>
+                <tbody id="d03-tbody-q104"></tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+       VIEW D04: QUALIDADE E GOVERNANÇA
+       ========================================================================== -->
+    <section id="view-d04" class="tab-panel" role="tabpanel" aria-labelledby="tab-d04">
+      <div class="panel-card accent-border" style="margin-bottom: 1.5rem;">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Qualidade, Governança e Matriz de Regras I16-I20</h2>
+            <p class="panel-meta" id="d04-meta">Carregando síntese da auditoria…</p>
+          </div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <span class="kpi-label">Linhas Auditadas</span>
+            <span class="kpi-val" id="d04-kpi-linhas">—</span>
+            <span class="kpi-sub" id="d04-sub-linhas">—</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Duplicatas Encontradas</span>
+            <span class="kpi-val" style="color: #2E7D32;" id="d04-kpi-dup">—</span>
+            <span class="kpi-sub">Nenhuma duplicata adicional observada</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Divergência de Títulos</span>
+            <span class="kpi-val" style="color: var(--accent-orange);" id="d04-kpi-divtit">—</span>
+            <span class="kpi-sub" id="d04-sub-divtit">—</span>
+          </div>
+          <div class="kpi-box">
+            <span class="kpi-label">Completude da Matriz</span>
+            <span class="kpi-val" style="color: var(--accent-orange);" id="d04-kpi-matriz">—</span>
+            <span class="kpi-sub" id="d04-sub-matriz">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid has-sidebar">
+        <!-- Matriz de Regras I16-I20 -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Matriz de Validação de Regras I16 a I20</h3>
+            <span class="panel-meta">Status de conformidade e integridade referencial</span>
+          </div>
+
+          <div class="table-container" tabindex="0" aria-label="Tabela de matriz de regras I16 a I20">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Regra</th>
+                  <th>Nome da Regra</th>
+                  <th class="num">Numerador</th>
+                  <th class="num">Denominador</th>
+                  <th class="num">Taxa (%)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="d04-tbody-regras"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Estados I21-I25 e Fluxo Textual -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3 class="panel-title">Estados I21-I25 e Fluxo de Linhagem</h3>
+            <span class="panel-meta">Instrumentação Editorial</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.875rem;">
+            <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 0.75rem; font-size: 0.8125rem;">
+              <strong style="color: var(--structure-blue);">I21 (Frescor):</strong> <span class="badge badge-unavailable">INDISPONÍVEL</span>
+            </div>
+            <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 0.75rem; font-size: 0.8125rem;">
+              <strong style="color: var(--structure-blue);">I22 (Linhagem):</strong> <span class="badge badge-conforme">SEM PERCENTUAL</span>
+              <p style="color: var(--ink-muted); margin-top: 0.2rem;">Métrica qualitativa de rastreabilidade técnica ativa.</p>
+            </div>
+            <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 0.75rem; font-size: 0.8125rem;">
+              <strong style="color: var(--structure-blue);">I23 (Publicação autorizada):</strong> <span class="badge badge-unavailable">INDISPONÍVEL</span>
+            </div>
+            <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 0.75rem; font-size: 0.8125rem;">
+              <strong style="color: var(--structure-blue);">I24 (Cobertura do processamento):</strong> <span class="badge badge-unavailable">INDISPONÍVEL</span>
+            </div>
+            <div style="background: var(--bg-main); border: 1px solid var(--border-tech); padding: 0.75rem; font-size: 0.8125rem;">
+              <strong style="color: var(--structure-blue);">I25 (Conformidade de acesso):</strong> <span class="badge badge-unavailable">INDISPONÍVEL</span>
+            </div>
+
+            <div style="border-top: 1px solid var(--border-subtle); padding-top: 0.75rem; font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.5rem;">
+              <strong style="color: var(--structure-blue);">FLUXO DE LINHAGEM TÉCNICA:</strong>
+              <p id="d04-fluxo-obs" style="color: var(--ink-primary);"></p>
+              <p id="d04-fluxo-rec" style="color: var(--action-data);"></p>
+              <p id="d04-fluxo-pro" style="color: var(--structure-blue); font-weight: 600;"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Rodapé Institucional -->
+  <footer class="app-footer">
+    <div class="footer-content">
+      <div>
+        <h3 style="font-family: var(--font-title); font-size: 1.2rem; margin-bottom: 0.5rem;">Sindusfarma — Central de Pesquisas</h3>
+        <p class="footer-note">
+          Protótipos de Dashboards D01 a D04 desenvolvidos em conformidade com as diretrizes institucionais de governança, acessibilidade (WCAG AA), reflow de 320px e zoom de 400%.
+        </p>
+      </div>
+      <div>
+        <span style="font-family: var(--font-mono); font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border: 1px solid rgba(255,255,255,0.2);">
+          Sem CDN | Sem Backend | Autocontido
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- LÓGICA E RENDERIZAÇÃO FRONTEND (VANILLA JS) -->
+  <script>
+    (function () {
+      'use strict';
+
+      // Estado global do dashboard
+      let appData = null;
+      let currentMode = 'visual'; // 'visual' ou 'table'
+      let currentUIState = 'normal';
+      let d01Filters = { ano: 'todos', complexidade: 'todas' };
+      const inteiro = new Intl.NumberFormat('pt-BR');
+
+      function formatarInteiro(valor) {
+        return inteiro.format(valor);
+      }
+
+      function formatarPercentual(numerador, denominador) {
+        if (!denominador) return 'indisponível';
+        return `${((numerador / denominador) * 100).toFixed(1).replace('.', ',')}%`;
+      }
+
+      // Elementos do DOM
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      const tabPanels = document.querySelectorAll('.tab-panel');
+      const btnToggleTables = document.getElementById('btn-toggle-tables');
+      const stateButtons = document.querySelectorAll('.btn-state[data-state]');
+      const stateBannerContainer = document.getElementById('state-banner-container');
+
+      // Elementos de Filtro D01
+      const fAno = document.getElementById('f-ano');
+      const fComplexidade = document.getElementById('f-complexidade');
+      const btnLimparFiltros = document.getElementById('btn-limpar-filtros');
+
+      // 1. Inicialização e Carga dos Dados
+      async function init() {
+        setupTabNavigation();
+        setupStateSwitcher();
+        setupModeToggle();
+        setupFilters();
+
+        try {
+          const response = await fetch('dados-dashboard.json');
+          if (!response.ok) {
+            throw new Error(`Erro HTTP ${response.status}: falha ao carregar dados-dashboard.json`);
+          }
+          appData = await response.json();
+          renderTraceabilityHeader(appData);
+          renderAllViews();
+          checkHashUrl();
+          window.addEventListener('hashchange', checkHashUrl);
+        } catch (err) {
+          console.error("Erro na inicialização:", err);
+          renderStateBanner('error', `Falha ao carregar dados locais: ${err.message}`);
+        }
+      }
+
+      // 2. Ficha de rastreabilidade do snapshot
+      function renderTraceabilityHeader(data) {
+        document.getElementById('snap-hash').textContent = data.snapshot_sha256 ? data.snapshot_sha256.substring(0, 16) + '...' : 'N/A';
+        document.getElementById('snap-hash').title = data.snapshot_sha256 || '';
+        document.getElementById('snap-time').textContent = data.processado_em || 'N/A';
+        document.getElementById('snap-version').textContent = data.versao_schema ? `v${data.versao_schema}` : 'v1.0.0';
+      }
+
+      // 3. Renderização geral das visões
+      function renderAllViews() {
+        if (!appData) return;
+        renderD01();
+        renderD02();
+        renderD03();
+        renderD04();
+      }
+
+      // --- RENDER D01 ---
+      function renderD01() {
+        const d01 = appData.d01_operacao;
+        if (!d01) return;
+
+        const finalizadas = d01.status_distribuicao.finalizadas;
+        const demais = d01.status_distribuicao.demais;
+        const i05 = d01.i05_prorrogacao;
+        document.getElementById('d01-narrativa').innerHTML =
+          `O portfólio da Central de Pesquisas totaliza <strong>${formatarInteiro(d01.total_pesquisas)} pesquisas cadastradas</strong>, ` +
+          `com volume concentrado entre 2023 e 2025. Destas, <strong>${formatarInteiro(finalizadas)} estão finalizadas ` +
+          `(${formatarPercentual(finalizadas, d01.total_pesquisas)})</strong> e ${formatarInteiro(demais)} aparecem nos demais estados registrados.`;
+        document.getElementById('d01-kpi-total').textContent = formatarInteiro(d01.total_pesquisas);
+        document.getElementById('d01-kpi-finalizadas').textContent = formatarInteiro(finalizadas);
+        document.getElementById('d01-sub-finalizadas').textContent = `${formatarPercentual(finalizadas, d01.total_pesquisas)} do portfólio total`;
+        document.getElementById('d01-kpi-i05').textContent = i05.formatado;
+        document.getElementById('d01-sub-i05').textContent = `${formatarInteiro(i05.numerador)} prorrogadas / ${formatarInteiro(i05.denominador)} com data_limite registrada`;
+
+        // Filtragem D01
+        let solicAnos = { ...d01.solicitacoes_por_ano };
+        let compDist = { ...d01.complexidade_distribuicao };
+
+        if (d01Filters.ano !== 'todos') {
+          const val = solicAnos[d01Filters.ano] || 0;
+          solicAnos = { [d01Filters.ano]: val };
+        }
+
+        if (d01Filters.complexidade !== 'todas') {
+          const keyMap = { 'alta': 'alta', 'média': 'media', 'baixa': 'baixa', 'nao_informado': 'nao_informado' };
+          const k = keyMap[d01Filters.complexidade] || d01Filters.complexidade;
+          const val = compDist[k] || 0;
+          compDist = { [k]: val };
+        }
+
+        // Visual: Solicitações por Ano
+        const containerAnos = document.getElementById('d01-chart-anos');
+        const maxAno = Math.max(...Object.values(d01.solicitacoes_por_ano));
+        containerAnos.innerHTML = Object.entries(solicAnos).map(([ano, qtd]) => {
+          const pctWidth = maxAno > 0 ? (qtd / maxAno) * 100 : 0;
+          return `
+            <div class="bar-row">
+              <span class="bar-label">${ano === 'sem data' ? 'Sem data registrada' : 'Exercício ' + ano}</span>
+              <div class="bar-track">
+                <div class="bar-fill structure-blue" style="width: ${pctWidth}%;"></div>
+              </div>
+              <span class="bar-value">${qtd}</span>
+            </div>
+          `;
+        }).join('');
+
+        // Tabela: Solicitações por Ano
+        const tbodyAnos = document.getElementById('d01-tbody-anos');
+        const totalPesq = d01.total_pesquisas;
+        tbodyAnos.innerHTML = Object.entries(solicAnos).map(([ano, qtd]) => {
+          const prop = ((qtd / totalPesq) * 100).toFixed(1).replace('.', ',');
+          return `
+            <tr>
+              <td>${ano === 'sem data' ? 'Sem data registrada' : 'Exercício ' + ano}</td>
+              <td class="num">${qtd}</td>
+              <td class="num">${prop}%</td>
+            </tr>
+          `;
+        }).join('');
+
+        // Visual: Complexidade & Tipo
+        const containerComp = document.getElementById('d01-chart-comp');
+        const maxComp = Math.max(...Object.values(d01.complexidade_distribuicao));
+        containerComp.innerHTML = Object.entries(compDist).map(([comp, qtd]) => {
+          const pctWidth = maxComp > 0 ? (qtd / maxComp) * 100 : 0;
+          const labelMap = { 'alta': 'Alta', 'media': 'Média', 'baixa': 'Baixa', 'nao_informado': 'Não Informado' };
+          return `
+            <div class="bar-row">
+              <span class="bar-label">${labelMap[comp] || comp}</span>
+              <div class="bar-track">
+                <div class="bar-fill accent-orange" style="width: ${pctWidth}%;"></div>
+              </div>
+              <span class="bar-value">${qtd}</span>
+            </div>
+          `;
+        }).join('');
+
+        const containerTipo = document.getElementById('d01-chart-tipo');
+        const tipoData = d01.tipo_resposta_distribuicao;
+        const maxTipo = Math.max(...Object.values(tipoData));
+        containerTipo.innerHTML = Object.entries(tipoData).map(([t, qtd]) => {
+          const pctWidth = maxTipo > 0 ? (qtd / maxTipo) * 100 : 0;
+          return `
+            <div class="bar-row">
+              <span class="bar-label">${t === 'empresa' ? 'Resposta Empresa' : 'Resposta Indivíduo'}</span>
+              <div class="bar-track">
+                <div class="bar-fill accent-amber" style="width: ${pctWidth}%;"></div>
+              </div>
+              <span class="bar-value">${qtd}</span>
+            </div>
+          `;
+        }).join('');
+
+        // Tabela: Complexidade
+        const tbodyComp = document.getElementById('d01-tbody-comp');
+        tbodyComp.innerHTML = `
+          <tr><td>Complexidade Alta</td><td class="num">${d01.complexidade_distribuicao.alta}</td></tr>
+          <tr><td>Complexidade Média</td><td class="num">${d01.complexidade_distribuicao.media}</td></tr>
+          <tr><td>Complexidade Baixa</td><td class="num">${d01.complexidade_distribuicao.baixa}</td></tr>
+          <tr><td>Complexidade Não Informada</td><td class="num">${d01.complexidade_distribuicao.nao_informado}</td></tr>
+          <tr><td>Resposta Tipo Empresa</td><td class="num">${tipoData.empresa}</td></tr>
+          <tr><td>Resposta Tipo Indivíduo</td><td class="num">${tipoData.individuo}</td></tr>
+        `;
+      }
+
+      // --- RENDER D02 ---
+      function renderD02() {
+        const d02 = appData.d02_adesao;
+        if (!d02) return;
+
+        const orfas = d02.participacoes_orfas;
+        document.getElementById('d02-narrativa').innerHTML =
+          `Foram registradas <strong>${formatarInteiro(d02.total_participacoes)} participações observadas</strong> em ` +
+          `${formatarInteiro(d02.pesquisas_distintas)} pesquisas distintas, envolvendo ${formatarInteiro(d02.empresas_distintas)} empresas. ` +
+          `O campo <code>id_cliente</code> está sem valor em <strong>${formatarInteiro(d02.id_cliente_sem_valor)} participações</strong> ` +
+          `(${formatarInteiro(d02.id_cliente_vazios)} vazias e ${formatarInteiro(d02.id_cliente_si)} com “s/i”). ` +
+          `Há <strong>${formatarInteiro(orfas.total)} participações órfãs</strong> associadas a pesquisa inexistente no cadastro.`;
+        document.getElementById('d02-kpi-part').textContent = formatarInteiro(d02.total_participacoes);
+        document.getElementById('d02-kpi-pesq').textContent = formatarInteiro(d02.pesquisas_distintas);
+        document.getElementById('d02-kpi-emp').textContent = formatarInteiro(d02.empresas_distintas);
+        document.getElementById('d02-kpi-orfas').textContent = formatarInteiro(orfas.total);
+        document.getElementById('d02-sub-orfas').textContent =
+          `${formatarInteiro(orfas.pesquisas_orfas_distintas)} pesquisa de origem sem correspondência`;
+
+        const containerDistrib = document.getElementById('d02-chart-distrib');
+        const stats = d02.estatisticas_empresas_por_pesquisa;
+
+        containerDistrib.innerHTML = `
+          <div class="bar-row">
+            <span class="bar-label">Mínimo Observado</span>
+            <div class="bar-track"><div class="bar-fill structure-blue" style="width: ${(stats.min/stats.max)*100}%;"></div></div>
+            <span class="bar-value">${stats.min}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">1º Quartil (Q25)</span>
+            <div class="bar-track"><div class="bar-fill structure-blue" style="width: ${(stats.q25/stats.max)*100}%;"></div></div>
+            <span class="bar-value">${stats.q25}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Mediana (Q50)</span>
+            <div class="bar-track"><div class="bar-fill accent-orange" style="width: ${(stats.mediana/stats.max)*100}%;"></div></div>
+            <span class="bar-value">${stats.mediana}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">3º Quartil (Q75)</span>
+            <div class="bar-track"><div class="bar-fill structure-blue" style="width: ${(stats.q75/stats.max)*100}%;"></div></div>
+            <span class="bar-value">${stats.q75}</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Máximo Observado</span>
+            <div class="bar-track"><div class="bar-fill accent-amber" style="width: 100%;"></div></div>
+            <span class="bar-value">${stats.max}</span>
+          </div>
+        `;
+        document.getElementById('d02-tbody-distrib').innerHTML = [
+          ['Mínimo observado', stats.min],
+          ['1º quartil (Q25)', stats.q25],
+          ['Mediana (Q50)', stats.mediana],
+          ['3º quartil (Q75)', stats.q75],
+          ['Máximo observado', stats.max]
+        ].map(([rotulo, valor]) => `<tr><td>${rotulo}</td><td>${formatarInteiro(valor)}</td></tr>`).join('');
+      }
+
+      // --- RENDER D03 ---
+      function renderD03() {
+        const d03 = appData.d03_resultados;
+        if (!d03) return;
+
+        const exs = d03.exemplos_selecionados || [];
+        const vazios = d03.valores_vazios_ou_na;
+        document.getElementById('d03-narrativa').innerHTML =
+          `O repositório contém <strong>${formatarInteiro(d03.total_elementos)} elementos atômicos de resposta</strong> e ` +
+          `<strong>${formatarInteiro(d03.total_questoes)} questões cadastradas</strong>. Para preservar a privacidade, ` +
+          `o protótipo mostra ${formatarInteiro(exs.length)} exemplos fechados selecionados com rótulos neutros. ` +
+          `A seleção não representa autorização de publicação pelo parceiro e não expõe respostas individuais.`;
+        document.getElementById('d03-kpi-elem').textContent = formatarInteiro(d03.total_elementos);
+        document.getElementById('d03-kpi-qtotal').textContent = formatarInteiro(d03.total_questoes);
+        document.getElementById('d03-kpi-vazio').textContent = formatarInteiro(vazios.total);
+        document.getElementById('d03-sub-vazio').textContent = `${formatarInteiro(vazios.vazios)} vazios + ${formatarInteiro(vazios.na)} NA`;
+        document.getElementById('d03-kpi-qorfas').textContent = formatarInteiro(d03.questoes_orfas_count);
+        document.getElementById('d03-sub-qorfas').textContent = `Em ${formatarInteiro(d03.pesquisas_orfas_count)} pesquisas sem cadastro`;
+
+        // Q110 Múltipla Escolha
+        const q110 = exs.find(e => e.codigo_exemplo === 'A');
+        const containerQ110 = document.getElementById('d03-chart-q110');
+        if (q110) {
+          document.getElementById('d03-title-q110').textContent = 'Exemplo fechado A — escolha única';
+          document.getElementById('d03-meta-q110').textContent = `Tipo: múltipla escolha | ${formatarInteiro(q110.validos)} respostas válidas`;
+          containerQ110.innerHTML = q110.distribuicao.map(d => `
+            <div class="bar-row">
+              <span class="bar-label">Opção "${d.opcao}"</span>
+              <div class="bar-track">
+                <div class="bar-fill structure-blue" style="width: ${d.percentual}%;"></div>
+              </div>
+              <span class="bar-value">${d.quantidade} (${d.formatado})</span>
+            </div>
+          `).join('');
+          document.getElementById('d03-tbody-q110').innerHTML = q110.distribuicao.map(d =>
+            `<tr><td>${d.opcao}</td><td>${formatarInteiro(d.quantidade)}</td><td>${d.formatado}</td></tr>`
+          ).join('');
+        }
+
+        // Exemplo B: caixas de seleção
+        const q104 = exs.find(e => e.codigo_exemplo === 'B');
+        const containerQ104 = document.getElementById('d03-chart-q104');
+        if (q104) {
+          document.getElementById('d03-title-q104').textContent = 'Exemplo fechado B — caixas de seleção';
+          document.getElementById('d03-meta-q104').textContent = `Tipo: caixas de seleção | ${formatarInteiro(q104.total_selecoes)} seleções`;
+          document.getElementById('d03-nota-q104').textContent = q104.nota_denominador;
+          const maxQ104 = Math.max(...q104.distribuicao.map(d => d.quantidade));
+          containerQ104.innerHTML = q104.distribuicao.map(d => `
+            <div class="bar-row">
+              <span class="bar-label">${d.opcao}</span>
+              <div class="bar-track">
+                <div class="bar-fill accent-orange" style="width: ${(d.quantidade/maxQ104)*100}%;"></div>
+              </div>
+              <span class="bar-value">${d.quantidade} (${d.formatado})</span>
+            </div>
+          `).join('');
+          document.getElementById('d03-tbody-q104').innerHTML = q104.distribuicao.map(d =>
+            `<tr><td>${d.opcao}</td><td>${formatarInteiro(d.quantidade)}</td><td>${d.formatado}</td></tr>`
+          ).join('');
+        }
+      }
+
+      // --- RENDER D04 ---
+      function renderD04() {
+        const d04 = appData.d04_qualidade;
+        if (!d04) return;
+
+        const tbodyRegras = document.getElementById('d04-tbody-regras');
+        const regras = d04.matriz_regras_i16_i20 || [];
+        const i16 = regras.find(r => r.id_regra === 'I16');
+        const fontes = appData.manifesto_fontes.length;
+        const divergencias = d04.divergencia_titulos;
+        document.getElementById('d04-meta').textContent =
+          `Auditoria de ${formatarInteiro(d04.total_linhas_fontes)} linhas em ${formatarInteiro(fontes)} arquivos-fonte | ` +
+          `${formatarInteiro(d04.total_duplicatas)} duplicatas observadas`;
+        document.getElementById('d04-kpi-linhas').textContent = formatarInteiro(d04.total_linhas_fontes);
+        document.getElementById('d04-sub-linhas').textContent = `Total nas ${formatarInteiro(fontes)} fontes CSV`;
+        document.getElementById('d04-kpi-dup').textContent = formatarInteiro(d04.total_duplicatas);
+        document.getElementById('d04-kpi-divtit').textContent = divergencias.formatado;
+        document.getElementById('d04-sub-divtit').textContent = `${formatarInteiro(divergencias.numerador)} em ${formatarInteiro(divergencias.denominador)} linhas de questão comparáveis`;
+        if (i16) {
+          document.getElementById('d04-kpi-matriz').textContent = i16.formatado;
+          document.getElementById('d04-sub-matriz').textContent =
+            `${formatarInteiro(i16.denominador - i16.numerador)} ausências em ${formatarInteiro(i16.denominador)} elementos aplicáveis`;
+        }
+
+        tbodyRegras.innerHTML = regras.map(r => {
+          const badgeClass = r.status === 'conforme' ? 'badge-conforme' : 'badge-divergencia';
+          const statusText = r.status === 'conforme' ? 'SEM OCORRÊNCIA' : 'ACHADO OBSERVADO';
+          return `
+            <tr>
+              <td><strong>${r.id_regra}</strong></td>
+              <td>${r.nome}</td>
+              <td class="num">${r.numerador.toLocaleString('pt-BR')}</td>
+              <td class="num">${r.denominador.toLocaleString('pt-BR')}</td>
+              <td class="num">${r.formatado}</td>
+              <td><span class="badge ${badgeClass}">${statusText}</span></td>
+            </tr>
+          `;
+        }).join('');
+
+        // Fluxo textual
+        if (d04.fluxo_textual) {
+          document.getElementById('d04-fluxo-obs').textContent = d04.fluxo_textual.observado || '';
+          document.getElementById('d04-fluxo-rec').textContent = d04.fluxo_textual.em_reconciliacao || '';
+          document.getElementById('d04-fluxo-pro').textContent = d04.fluxo_textual.proposto || '';
+        }
+      }
+
+      // 4. Navegação por Tabs ARIA
+      function setupTabNavigation() {
+        tabButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            activateTab(btn);
+          });
+          btn.addEventListener('keydown', (e) => {
+            let targetTab = null;
+            const btnArray = Array.from(tabButtons);
+            const index = btnArray.indexOf(btn);
+
+            if (e.key === 'ArrowRight') {
+              targetTab = btnArray[(index + 1) % btnArray.length];
+            } else if (e.key === 'ArrowLeft') {
+              targetTab = btnArray[(index - 1 + btnArray.length) % btnArray.length];
+            }
+
+            if (targetTab) {
+              e.preventDefault();
+              targetTab.focus();
+              activateTab(targetTab);
+            }
+          });
+        });
+      }
+
+      function activateTab(selectedBtn) {
+        tabButtons.forEach(btn => {
+          btn.setAttribute('aria-selected', 'false');
+          btn.setAttribute('tabindex', '-1');
+        });
+        tabPanels.forEach(panel => {
+          panel.classList.remove('active');
+        });
+
+        selectedBtn.setAttribute('aria-selected', 'true');
+        selectedBtn.setAttribute('tabindex', '0');
+
+        const targetPanelId = selectedBtn.getAttribute('aria-controls');
+        const targetPanel = document.getElementById(targetPanelId);
+        if (targetPanel) {
+          targetPanel.classList.add('active');
+        }
+
+        // Persistir hash na URL sem scroll jump
+        const viewHash = targetPanelId.replace('view-', '#');
+        history.replaceState(null, '', viewHash);
+      }
+
+      function checkHashUrl() {
+        const hash = window.location.hash.toLowerCase();
+        if (hash) {
+          const targetId = hash.replace('#', 'tab-');
+          const targetTab = document.getElementById(targetId);
+          if (targetTab) {
+            activateTab(targetTab);
+          }
+        }
+      }
+
+      // 5. Alternador de Modo (Gráfico Editorial vs Tabela)
+      function setupModeToggle() {
+        btnToggleTables.addEventListener('click', () => {
+          currentMode = currentMode === 'visual' ? 'table' : 'visual';
+          const isTable = currentMode === 'table';
+
+          btnToggleTables.setAttribute('aria-pressed', isTable ? 'true' : 'false');
+          btnToggleTables.textContent = isTable ? 'Mostrar Gráficos Editoriais' : 'Mostrar Tabelas Equivalentes';
+
+          document.getElementById('d01-chart-anos-container').style.display = isTable ? 'none' : 'block';
+          document.getElementById('d01-table-anos-container').style.display = isTable ? 'block' : 'none';
+
+          document.getElementById('d01-chart-comp-container').style.display = isTable ? 'none' : 'block';
+          document.getElementById('d01-table-comp-container').style.display = isTable ? 'block' : 'none';
+        });
+      }
+
+      // 6. Filtros Seguros D01
+      function setupFilters() {
+        fAno.addEventListener('change', (e) => {
+          d01Filters.ano = e.target.value;
+          renderD01();
+        });
+        fComplexidade.addEventListener('change', (e) => {
+          d01Filters.complexidade = e.target.value;
+          renderD01();
+        });
+        btnLimparFiltros.addEventListener('click', () => {
+          d01Filters = { ano: 'todos', complexidade: 'todas' };
+          fAno.value = 'todos';
+          fComplexidade.value = 'todas';
+          renderD01();
+        });
+      }
+
+      // 7. Demonstrador de Estados da UI (Testável)
+      function setupStateSwitcher() {
+        stateButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            stateButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const state = btn.getAttribute('data-state');
+            currentUIState = state;
+            applyUIState(state);
+          });
+        });
+      }
+
+      function applyUIState(state) {
+        stateBannerContainer.innerHTML = '';
+        const mainContent = document.getElementById('main-content');
+        mainContent.style.opacity = '1';
+
+        const freshnessNote = document.getElementById('freshness-note');
+        const snapTime = document.getElementById('snap-time');
+
+        // Restaurar estado do timestamp
+        if (appData) {
+          snapTime.textContent = appData.processado_em || 'Não informado';
+        }
+        freshnessNote.style.display = 'block';
+
+        switch (state) {
+          case 'loading':
+            renderStateBanner('loading', 'Carregando dados agregados do servidor local...');
+            mainContent.style.opacity = '0.4';
+            break;
+
+          case 'empty':
+            renderStateBanner('empty', 'Nenhum registro encontrado para o filtro selecionado.');
+            break;
+
+          case 'unavailable':
+            renderStateBanner('unavailable', 'Indisponibilidade temporária de atualização de fontes.');
+            break;
+
+          case 'error':
+            renderStateBanner('error', 'Erro 500: Falha interna de comunicação com a fonte de dados.');
+            break;
+
+          case 'denied':
+            renderStateBanner('denied', 'Acesso Negado (HTTP 403): Permissões insuficientes para visualizar detalhes restritos.');
+            break;
+
+          case 'no-time':
+            snapTime.textContent = 'Indisponível (Sem Timestamp)';
+            freshnessNote.style.display = 'none';
+            renderStateBanner('unavailable', 'Atualização indisponível: Timestamp de processamento ausente.');
+            break;
+
+          case 'normal':
+          default:
+            // Nenhuma barra adicional
+            break;
+        }
+      }
+
+      function renderStateBanner(type, message) {
+        stateBannerContainer.innerHTML = `
+          <div class="state-banner ${type}" role="alert">
+            <strong>ESTADO [${type.toUpperCase()}]:</strong>
+            <span>${message}</span>
+          </div>
+        `;
+      }
+
+      // Executar ao carregar a página
+      document.addEventListener('DOMContentLoaded', init);
+
+    })();
+  </script>
+</body>
+</html>
