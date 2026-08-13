@@ -63,49 +63,55 @@ _conteúdo_
 ## 1.4 Escopo do Projeto
 
 O escopo abaixo consolida os resultados pretendidos descritos nas referências
-[1], [2], [13] e [14] e nos requisitos da §6.1. Como os arquivos primários não
-estão neste checkout, ele permanece uma síntese derivada, pendente de
-conferência direta com essas fontes. “Incluído” indica responsabilidade do
-projeto, não funcionalidade já implantada.
+[1], [2], [13] e [14] e nos requisitos da §6.1. O TAPI [1] e a Arquitetura de
+Negócio [2] foram conferidos diretamente nesta auditoria. “Incluído” indica
+responsabilidade do projeto, não funcionalidade já implantada ou concluída
+nesta Sprint.
 
 ### Escopo incluído no projeto
 
-- projetar a centralização da informação do ciclo das pesquisas em um modelo integrado, preservando a origem e as chaves recebidas;
-- especificar a ingestão e a padronização das fontes, com tratamento explícito de schema, nulos, duplicidade, percentuais e relações órfãs;
-- modelar rastreabilidade da solicitação à publicação, sem criar vínculos de identidade que os dados não comprovem;
-- propor controles de qualidade, governança, segurança, privacidade e acesso por perfil para posterior validação do parceiro;
-- especificar consumo analítico por indicadores, filtros, drill-down autorizado, relatórios e dashboards;
-- modelar a entrega e a publicação de resultados agregados, condicionadas à autorização e à integração futura com o acervo aplicável;
-- documentar arquitetura, requisitos, contratos analíticos, cubos e critérios de validação da solução; implantação e operação ficam delimitadas pelo MVP e pelas dependências abaixo.
+- implementar um banco relacional em nuvem que centralize o ciclo da pesquisa, preservando origem e rastreabilidade;
+- implementar ao menos um pipeline de ingestão das fontes atuais, com tratamento de inconsistências, deduplicação e padronização;
+- entregar um data app com dashboards operacionais e estratégicos alimentados pelo banco central;
+- estabelecer governança, qualidade, segurança, privacidade e controle de acesso por perfil;
+- integrar resultados autorizados ao acervo público, mantendo consistência com a informação interna;
+- documentar o modelo de dados, a arquitetura, o pipeline, os protocolos de governança e a orientação de uso.
 
-### Recorte do MVP
+### Entregas documentais da Sprint 1
 
-O MVP abaixo é a proposta de recorte verificável desta Sprint e permanece
-pendente de validação com as fontes primárias. Ele não equivale à operação
-produtiva completa.
+Esta Sprint entrega a base documental e analítica para o MVP, sem declarar que
+a infraestrutura produtiva já está implantada:
 
-| No MVP | Depois do MVP / depende de integração |
+- diagnóstico e método reproduzível de perfilamento do snapshot recebido;
+- contratos de perguntas, requisitos, indicadores, dashboards e cubos;
+- protótipos D01–D04 com agregados sem identificação;
+- Data Model Canvas exportado e validado;
+- propostas de governança, privacidade, qualidade e rastreabilidade.
+
+### MVP do projeto confirmado no TAPI
+
+| Componente mínimo | Critério confirmado na fonte |
 | :--- | :--- |
-| Método de perfilamento reproduzível quando o snapshot externo e o dicionário estão disponíveis, além do diagnóstico já documentado | ingestão automática e monitorada de todas as fontes operacionais |
-| Contratos de perguntas, indicadores, dashboards e cubos | data warehouse implantado, atualização agendada e observabilidade operacional |
-| Protótipos D01–D04 com agregados sem identificação | autenticação, perfis homologados e acesso produtivo a detalhe autorizado |
-| Exportação e validação do Data Model Canvas | publicação automática no acervo e gestão operacional de versões |
-| Regras propostas de governança, privacidade e rastreabilidade | políticas aprovadas, responsáveis formalmente designados e logs de auditoria |
+| Banco de dados | banco relacional em nuvem modelando solicitação, planejamento, execução e resultado |
+| Pipeline | ao menos uma ingestão funcional de uma fonte atual, com tratamento básico de inconsistências e deduplicação |
+| Dashboard | conjunto inicial de KPIs alimentado pelo banco central, sem atualização manual |
+| Acesso e proteção | controle por perfil e tratamento de dados sensíveis em conformidade com a LGPD |
 
 ### Escopo não incluído
 
 | Item | Justificativa |
 | :--- | :--- |
-| Substituição das ferramentas operacionais citadas no inventário disponível | fronteira proposta, pendente de validação nas fontes primárias: o projeto integra dados e continuidade do processo, sem especificar a reconstrução dessas ferramentas |
+| Substituição de SurveyMonkey, Trello, repositório público ou demais ferramentas operacionais | o TAPI afirma que o projeto integra e governa essas ferramentas, sem substituí-las |
 | Publicação aberta de CSVs, respostas individuais ou dados pessoais | os arquivos possuem e-mail, chaves estáveis e texto livre; o projeto trabalha com agregação, minimização e autorização |
 | Inferência de identidade entre cliente, participação e resposta | não existe ponte comprovada entre as fontes; sem contrato aprovado, a união produziria rastreabilidade falsa |
 | Taxa de adesão ou engajamento sem universo elegível | a fonte atual não contém os denominadores necessários; indisponibilidade não pode ser substituída por zero ou estimativa |
-| Atualização em tempo real entregue no MVP | o snapshot não comprova timestamp de carga, integração contínua nem SLA operacional; a capacidade futura depende de integração |
+| Alegar atualização em tempo real antes da implantação e medição | “tempo real” é benefício esperado no TAPI; o snapshot não comprova timestamp de carga, integração contínua nem SLA operacional |
 | Garantia de conformidade produtiva apenas com a documentação | políticas, papéis, bases legais e controles dependem de validação e implantação pelo parceiro |
 
-Essa delimitação não exclui objetivos futuros. Ela separa a arquitetura e os
-contratos entregues nesta sprint das capacidades que só podem ser consideradas
-prontas após integração, homologação e operação controlada.
+Essa delimitação preserva o MVP oficial do projeto e separa dele as entregas
+documentais desta Sprint. Banco, pipeline, dashboard conectado e controle de
+acesso continuam incluídos no MVP, mas só podem ser considerados prontos após
+implementação, homologação e operação controlada.
 
 # 2. Descrição do Problema
 
