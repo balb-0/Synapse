@@ -594,7 +594,7 @@ concluída. Essas situações devem permanecer distintas.
 #### RF01 — Portfólio de pesquisas
 
 - **Consulta principal:** Dado um gestor ou analista autorizado e pesquisas disponíveis, quando consultar o portfólio, então cada item apresenta ao menos o identificador e o título preservados da fonte.
-- **Filtros e segmentações:** Dado o portfólio carregado, quando aplicar combinações dos filtros de período, tipo, área, complexidade e status, então a lista e a distribuição exibem somente pesquisas compatíveis e permitem retirar os filtros.
+- **Filtros e segmentações:** Dado o portfólio carregado, quando aplicar combinações dos filtros de período, tipo, área, complexidade e status, então a lista e a distribuição exibem somente pesquisas compatíveis e permitem retirar os filtros. O período usa `data_solicitacao` por padrão; outro marco temporal só é usado quando selecionado explicitamente e seu campo fica rotulado no resultado.
 - **Estado vazio:** Dado um conjunto de filtros sem correspondência, quando executar a consulta, então o resultado informa que não há pesquisas para o recorte, sem apresentar falha de carregamento ou contagens de outro recorte.
 - **Erro:** Dado que a fonte não pôde ser consultada, quando abrir ou filtrar o portfólio, então a indisponibilidade é informada e nenhum resultado parcial é apresentado como completo.
 - **Acesso:** Dado um perfil sem permissão para o portfólio interno, quando tentar consultá-lo, então os dados são bloqueados sem revelar títulos, identificadores ou atributos restritos.
@@ -609,7 +609,7 @@ concluída. Essas situações devem permanecer distintas.
 
 #### RF03 — Prazos e prioridades
 
-- **Comparação temporal:** Dadas pesquisas com datas de referência disponíveis, quando consultar prazos e tempos, então cada classificação de atraso, duração ou prorrogação permite identificar as datas usadas na comparação.
+- **Comparação temporal:** Dadas pesquisas com datas de referência disponíveis, quando consultar prazos e tempos, então cada medida ou classificação de atraso, duração ou prorrogação identifica o par de campos e os valores usados na comparação, sem usar “período” como referência temporal ambígua.
 - **Prorrogação:** Dada uma pesquisa com `prorrogada_ate` registrada, quando compará-la ao prazo original, então o novo marco é apresentado sem substituir ou ocultar a data limite original.
 - **Filtros:** Dado o conjunto de pesquisas, quando filtrar por período, estado de prazo, prorrogação ou prioridade declarada, então somente os registros compatíveis compõem a lista e as comparações.
 - **Informação indisponível:** Dada uma pesquisa sem uma data necessária ou sem prioridade declarada, quando analisá-la, então a classificação dependente aparece como indisponível e não como atraso, ausência de prioridade ou duração igual a zero.
@@ -617,7 +617,7 @@ concluída. Essas situações devem permanecer distintas.
 
 #### RF04 — Adesão e representatividade
 
-- **Cálculo sustentado:** Dada uma pesquisa com universo documentado, quando consultar adesão, então o resultado exibe o numerador, o denominador e o recorte usados no cálculo.
+- **Contrato de denominador:** Dada uma pesquisa com universo documentado, quando consultar adesão, então o resultado identifica fonte, unidade, pesquisa e período de referência, transformação aprovada, numerador e denominador usados no cálculo. Se qualquer elemento obrigatório do contrato estiver ausente, a taxa fica indisponível, sem substituição por outro denominador.
 - **Segmentação:** Dados vínculos conciliados, quando segmentar por pesquisa ou empresa, então as contagens e medidas de mercado refletem somente o recorte selecionado e preservam a origem dos valores.
 - **Denominador ausente:** Dada uma pesquisa sem universo convidado, esperado ou equivalente documentado, quando consultar adesão, então são exibidas as contagens disponíveis e a indicação “denominador indisponível”, sem taxa inferida.
 - **Identidade em reconciliação:** Dada uma participação ou empresa sem correspondência conciliada, quando compor a análise, então o registro é sinalizado como em reconciliação e não é associado por semelhança de nome ou identificador incompatível.
@@ -641,7 +641,8 @@ concluída. Essas situações devem permanecer distintas.
 
 #### RF07 — Linhagem agregada ponta a ponta
 
-- **Caminho observado:** Dado um resultado agregado com chaves correspondentes, quando consultar sua linhagem, então cada elo fonte → pesquisa → participação → questão → resposta exibe o arquivo ou sistema conhecido, a chave disponível e o estado **observado**.
+- **Elos observáveis:** Dados registros com chaves correspondentes, quando consultar a linhagem, então os elos arquivo → registro, pesquisa → participação, pesquisa → questão e questão → elemento de resposta são exibidos separadamente como **observados**, cada qual com sua própria chave e fonte de sustentação.
+- **Participação e resposta:** Dado que não há ponte explícita entre `respostas.respondent_id` e `respondentes.id_cliente`, quando a linhagem alcançar a relação participação ↔ resposta, então esse elo aparece **em reconciliação**; um vínculo ou metadado futuro ainda não registrado aparece **proposto**, nunca observado.
 - **Origem não identificada:** Dado um elo cujo sistema de origem não está registrado, quando exibir a linhagem, então o arquivo recebido é mostrado como origem disponível e o sistema é marcado como indisponível.
 - **Pesquisas órfãs:** Dados os `pesquisa_id` 424, 1116, 1139 e 1147 presentes em questões ou respostas sem pesquisa correspondente, quando consultar a linhagem, então esses elos aparecem **em reconciliação** e não são associados a outra pesquisa.
 - **Participações órfãs:** Dadas as 55 participações com `id_pesq=304` sem correspondência em `pesquisas.csv`, quando consultar a linhagem, então o vínculo com a pesquisa aparece **em reconciliação**, mantendo os registros e seus identificadores de origem.
@@ -652,8 +653,8 @@ concluída. Essas situações devem permanecer distintas.
 - **Visibilidade por perfil:** Dada a mesma consulta realizada por equipe interna, área técnica e solicitante externo, quando cada perfil acessar o resultado, então recebe apenas dados operacionais, identificáveis ou agregados permitidos pela regra aprovada para esse perfil.
 - **Detalhamento:** Dado um perfil que pode consultar o agregado, mas não registros identificáveis, quando tentar detalhá-lo, então o detalhamento restrito é bloqueado sem revelar o conteúdo protegido.
 - **Exportação:** Dado um perfil autorizado apenas a resultados agregados, quando exportar uma consulta, então o arquivo contém o mesmo recorte permitido na tela e nenhum campo identificável adicional.
-- **Regra sem aprovação:** Dado um acesso para o qual não exista regra aprovada, quando o usuário tentar consultar, detalhar ou publicar, então a operação não é liberada como se houvesse autorização.
-- **Registro da decisão:** Dada uma tentativa permitida ou bloqueada para a qual o processo exija registro, quando ela ocorrer, então perfil, operação e resultado da decisão podem ser verificados por pessoa autorizada.
+- **Regra sem aprovação:** Dada uma combinação de perfil e operação sem regra aprovada, quando o usuário tentar consultar, detalhar, exportar ou publicar, então a operação é bloqueada, nenhum dado da operação é retornado e a tentativa fica registrada com perfil, operação e resultado para verificação por pessoa autorizada.
+- **Registro da decisão:** Dada uma tentativa permitida ou bloqueada, quando ela ocorrer, então perfil, operação, regra aplicada e resultado da decisão podem ser verificados por pessoa autorizada.
 
 #### RF09 — Publicação autorizada
 
@@ -661,7 +662,8 @@ concluída. Essas situações devem permanecer distintas.
 - **Ausência de autorização:** Dado um resultado sem autorização explícita, quando houver tentativa de publicação, então ele não é disponibilizado e o estado informa que a autorização está ausente.
 - **Data insuficiente:** Dada uma pesquisa com `data_divulgacao`, mas sem metadado de autorização ou publicação, quando consultar seu estado, então a data não é usada como prova de que o resultado foi autorizado ou publicado.
 - **Consistência:** Dado um conteúdo publicado, quando compará-lo à referência interna permitida, então o identificador da pesquisa e os metadados de publicação correspondem; divergências são sinalizadas sem substituição silenciosa.
-- **Vazio, erro ou acesso:** Dada uma consulta sem publicações, uma falha do acervo ou um perfil sem permissão de publicar, quando executar a operação, então o estado correspondente é informado e conteúdo não autorizado permanece indisponível.
+- **Acervo vazio:** Dado um recorte sem publicações em um acervo disponível, quando executar a consulta, então o resultado informa que a consulta foi concluída sem itens e não a apresenta como falha.
+- **Indisponibilidade ou acesso:** Dada uma falha do acervo ou um perfil sem permissão de publicar, quando executar a operação, então a falha ou o bloqueio correspondente é informado separadamente e conteúdo não autorizado permanece indisponível.
 
 #### RF10 — Resultados agregados
 
@@ -681,8 +683,8 @@ concluída. Essas situações devem permanecer distintas.
 
 #### RF12 — Integração e atualização das fontes
 
-- **Recebimento e origem:** Dada uma fonte recebida, quando consultar sua integração, então são identificáveis a fonte, o estado ou data de atualização disponível e a origem preservada dos registros.
-- **Padronização:** Dados nomes, tipos ou domínios divergentes, quando a fonte for consolidada, então as transformações aplicadas são verificáveis e os valores originais permanecem rastreáveis.
+- **Recebimento e origem:** Dada uma fonte recebida, quando consultar sua integração, então são identificáveis o snapshot de entrada, seu identificador, os identificadores dos registros, a fonte, o estado ou data de atualização disponível e a origem preservada.
+- **Padronização:** Dados nomes, tipos ou domínios divergentes, quando a fonte for consolidada, então cada transformação verificada permite comparar valor original → valor transformado e retornar ao snapshot e ao identificador de entrada correspondentes.
 - **Duplicidades:** Dados registros que atendam à regra documentada de duplicidade, quando processados, então são sinalizados ou consolidados conforme essa regra sem eliminar silenciosamente registros distintos.
 - **Reprocessamento idempotente:** Dado o mesmo conteúdo de origem já processado, quando ele for reprocessado sem alteração, então não surgem registros adicionais e o estado da execução pode ser verificado.
 - **Metadado ausente, erro ou acesso:** Dada uma fonte sem data de atualização, uma execução com falha ou um perfil não autorizado, quando consultar a integração, então os estados “indisponível”, “erro” e “acesso negado” permanecem distintos e não se presume integração automática.
@@ -690,10 +692,11 @@ concluída. Essas situações devem permanecer distintas.
 #### RF13 — Questionário validado e versionado
 
 - **Versão observada:** Dado um questionário com metadados de versão e validação registrados, quando abrir seu histórico, então pesquisa, versão, área revisora, estado da validação e alterações disponíveis podem ser conferidos.
+- **Criação de versão futura:** Dado um questionário e os metadados propostos de versionamento disponíveis em ambiente de teste, quando um responsável autorizado criar uma nova versão, então a nova versão recebe identificação própria e referência à anterior, enquanto o conteúdo e os metadados da versão anterior permanecem imutáveis.
 - **Relação temporal:** Dados marcos de validação e divulgação registrados, quando consultar o questionário, então é possível verificar sua ordem sem afirmar que a validação ocorreu antes da divulgação quando faltar uma das datas.
 - **Metadados ausentes:** Dadas questões associadas a uma pesquisa, mas sem versão, área revisora ou aprovação registradas, quando consultar o questionário, então esses metadados aparecem como propostos ou indisponíveis e o questionário não é rotulado como validado.
 - **Filtros e histórico:** Dados questionários de diferentes pesquisas ou estados, quando filtrar por pesquisa, área ou estado disponível, então somente versões compatíveis são exibidas e versões anteriores não são sobrescritas no histórico.
-- **Vazio, erro ou acesso:** Dada uma pesquisa sem questões, uma falha de consulta ou um perfil sem permissão de revisão, quando abrir ou alterar a validação, então a situação correspondente é informada e nenhuma aprovação é registrada.
+- **Vazio, erro ou acesso:** Dada uma pesquisa sem questões, uma falha de consulta ou um perfil sem permissão de revisão, quando abrir, editar ou criar versão, então a situação correspondente é informada, nenhuma alteração ou aprovação é registrada e as versões existentes permanecem inalteradas.
 
 ### 6.1.2 Testes de usuário dos requisitos funcionais
 
@@ -707,15 +710,17 @@ indicado em cada roteiro.
 
 #### RF01 — Teste do portfólio de pesquisas
 
-- **Persona e objetivo:** gestor ou analista da Central; localizar pesquisas e conferir a distribuição do portfólio em um recorte relevante.
-- **Pré-condições e dados:** perfil autorizado; fonte `pesquisas.csv` identificada; ao menos uma combinação de filtros com resultado e outra sem resultado; mecanismo controlado para simular falha da consulta; perfil sem acesso interno.
+- **Persona e objetivo:** gestor ou analista da Central; localizar pesquisas e conferir a distribuição do portfólio para uma combinação de filtros previamente definida.
+- **Pré-condições e dados:** perfil autorizado; fonte `pesquisas.csv` identificada; combinação explícita de período por `data_solicitacao`, tipo, área, complexidade e status, acompanhada da lista esperada de identificadores; outra combinação explícita sem resultado; recorte equivalente usando outro marco temporal existente; mecanismo controlado para simular falha da consulta; perfil sem acesso interno.
 - **Passos:**
   0. Abrir o portfólio e conferir identificador e título de pesquisas da fonte.
-  0. Aplicar e retirar filtros de período, tipo, área, complexidade e status, isoladamente e em combinação.
+  0. Aplicar a combinação preparada usando o período padrão por `data_solicitacao` e comparar os identificadores retornados ao conjunto esperado.
+  0. Selecionar explicitamente o outro marco temporal, conferir seu rótulo e comparar o resultado ao recorte preparado.
+  0. Retirar filtros e confirmar a restauração do conjunto permitido.
   0. Aplicar o recorte previamente identificado sem correspondências.
   0. Repetir a consulta durante a falha controlada e com o perfil sem acesso.
-- **Resultado esperado:** lista e distribuição acompanham os filtros; retirar filtros restaura o conjunto permitido; recorte vazio, erro e bloqueio de acesso têm mensagens distintas; nenhum dado restrito aparece ao perfil sem acesso.
-- **Evidência:** capturas do estado inicial, dos filtros, do vazio, do erro e do bloqueio, acompanhadas do recorte da fonte usado na conferência.
+- **Resultado esperado:** lista e distribuição correspondem exatamente aos identificadores esperados; `data_solicitacao` é o padrão e qualquer outro marco temporal aparece selecionado e rotulado; retirar filtros restaura o conjunto permitido; recorte vazio, erro e bloqueio de acesso têm mensagens distintas; nenhum dado restrito aparece ao perfil sem acesso.
+- **Evidência:** tabela combinação de filtros × identificadores esperados × identificadores obtidos, capturas do campo temporal padrão e alternativo, do vazio, do erro e do bloqueio, acompanhadas do recorte da fonte usado na conferência.
 - **Aprovação:** gestor ou analista da Central registra aprovação se todos os resultados corresponderem à fonte e nenhum estado for confundido com outro.
 
 #### RF02 — Teste do ciclo e detalhe da pesquisa
@@ -734,28 +739,28 @@ indicado em cada roteiro.
 #### RF03 — Teste de prazos e prioridades
 
 - **Persona e objetivo:** gestor ou analista da Central; comparar prazos e ordenar o acompanhamento sem conclusões temporais indevidas.
-- **Pré-condições e dados:** pesquisas com datas de referência completas, com `prorrogada_ate` e com datas necessárias ausentes; se houver teste de prioridade, metadado de prioridade declarado como massa proposta; perfil restrito e falha controlada.
+- **Pré-condições e dados:** pesquisas com datas de referência completas, com `prorrogada_ate` e com datas necessárias ausentes; tabela esperada que nomeie, para cada medida testada, o par de campos e os valores usados; se houver teste de prioridade, metadado de prioridade declarado como massa proposta; perfil restrito e falha controlada.
 - **Passos:**
-  0. Consultar as pesquisas com datas completas e conferir as comparações com as datas de origem.
+  0. Consultar as pesquisas com datas completas e conferir, para cada medida, rótulo, par de campos, valores e resultado contra a tabela esperada.
   0. Abrir a pesquisa prorrogada e verificar prazo original e novo prazo.
-  0. Aplicar filtros de período, prazo, prorrogação e, quando disponível, prioridade declarada.
+  0. Aplicar filtros temporais e conferir qual campo de data está selecionado, além dos filtros de prazo, prorrogação e, quando disponível, prioridade declarada.
   0. Consultar a pesquisa com data ausente e repetir a consulta sob falha e acesso restrito.
-- **Resultado esperado:** classificações temporais mostram as referências usadas; a prorrogação não apaga o prazo original; dados ausentes ficam indisponíveis, sem zero ou conclusão; erro e acesso negado não exibem resultados operacionais.
-- **Evidência:** planilha de conferência das datas e classificações, capturas dos filtros e registros dos estados indisponível, erro e bloqueado.
+- **Resultado esperado:** toda medida temporal mostra os campos e valores de referência, sem período implícito; a prorrogação não apaga o prazo original; dados ausentes ficam indisponíveis, sem zero ou conclusão; erro e acesso negado não exibem resultados operacionais.
+- **Evidência:** planilha medida × par de campos × valores × resultado esperado/obtido, capturas dos filtros temporais rotulados e registros dos estados indisponível, erro e bloqueado.
 - **Aprovação:** gestor ou analista da Central aprova se reproduzir as comparações a partir das datas disponíveis e não encontrar prioridade inferida.
 
 #### RF04 — Teste de adesão e representatividade
 
 - **Persona e objetivo:** analista da Central; validar uma leitura de adesão e representatividade sem inventar universo ou identidade.
-- **Pré-condições e dados:** pesquisa com denominador documentado em massa controlada; pesquisa sem denominador; participações e empresas conciliadas; caso em reconciliação; recorte vazio; perfil não autorizado e falha controlada.
+- **Pré-condições e dados:** pesquisa com contrato de denominador documentado em massa controlada, contendo fonte, unidade, pesquisa e período de referência, transformação aprovada, numerador e denominador; pesquisa sem ao menos um desses elementos obrigatórios; participações e empresas conciliadas; caso em reconciliação; recorte vazio; perfil não autorizado e falha controlada.
 - **Passos:**
-  0. Consultar a pesquisa com universo documentado e recalcular a medida usando numerador e denominador exibidos.
+  0. Consultar a pesquisa com contrato completo, conferir cada elemento e recalcular a medida usando numerador e denominador exibidos.
   0. Segmentar por pesquisa e empresa e conferir contagens e medidas de mercado com as fontes.
-  0. Consultar a pesquisa sem universo e o caso de identidade em reconciliação.
+  0. Consultar a pesquisa com contrato incompleto e o caso de identidade em reconciliação.
   0. Executar o recorte vazio e repetir a consulta sob falha e acesso restrito.
-- **Resultado esperado:** somente o caso sustentado apresenta taxa; o caso sem universo apresenta contagem e denominador indisponível; identidade não conciliada não é unida automaticamente; vazio, erro e bloqueio permanecem distintos.
-- **Evidência:** memória de cálculo, extratos anonimizados das fontes, capturas das segmentações e registros dos estados excepcionais.
-- **Aprovação:** analista da Central e Data Steward aprovam se o cálculo for reproduzível e todos os vínculos usados estiverem conciliados ou explicitamente sinalizados.
+- **Resultado esperado:** somente o contrato completo apresenta taxa; o contrato incompleto apresenta contagem disponível e taxa indisponível, sem escolher outro denominador; identidade não conciliada não é unida automaticamente; vazio, erro e bloqueio permanecem distintos.
+- **Evidência:** ficha do contrato de denominador, memória de cálculo, identificação da transformação aprovada, extratos anonimizados das fontes, capturas das segmentações e registros dos estados excepcionais.
+- **Aprovação:** analista da Central e Data Steward aprovam se o cálculo for reproduzível a partir de todos os elementos do contrato e os vínculos usados estiverem conciliados ou explicitamente sinalizados.
 
 #### RF05 — Teste de engajamento dos públicos
 
@@ -786,40 +791,43 @@ indicado em cada roteiro.
 #### RF07 — Teste de linhagem agregada ponta a ponta
 
 - **Persona e objetivo:** Data Steward ou auditor de dados; rastrear um agregado e confirmar que anomalias não recebem vínculos inventados.
-- **Pré-condições e dados:** agregado com chaves correspondentes; arquivos de origem identificados; casos `pesquisa_id` 424, 1116, 1139 e 1147; 55 participações com `id_pesq=304`; caso sem sistema de origem registrado; perfil sem auditoria e falha controlada.
+- **Pré-condições e dados:** pesquisa e participação com chave correspondente; pesquisa, questão e elementos de resposta com chaves correspondentes; arquivos de origem identificados; ausência da ponte explícita `respostas.respondent_id` → `respondentes.id_cliente`; casos `pesquisa_id` 424, 1116, 1139 e 1147; 55 participações com `id_pesq=304`; caso sem sistema de origem registrado; perfil sem auditoria e falha controlada.
 - **Passos:**
-  0. Abrir a linhagem do agregado conciliado e seguir cada elo até os arquivos e chaves disponíveis.
+  0. Abrir a linhagem e conferir separadamente os elos observados arquivo → registro, pesquisa → participação, pesquisa → questão e questão → elemento de resposta.
+  0. Inspecionar a relação participação ↔ resposta e conferir que a ponte ausente está em reconciliação ou, para metadado futuro não registrado, proposta.
   0. Consultar um elo cujo sistema de origem não esteja identificado.
   0. Consultar separadamente os quatro `pesquisa_id` órfãos e as participações vinculadas a `id_pesq=304`.
   0. Repetir a consulta sob falha e com o perfil sem auditoria.
-- **Resultado esperado:** caminho conciliado aparece como observado; sistema ausente é declarado; os casos órfãos permanecem em reconciliação com seus IDs originais; falha e bloqueio não fabricam linhagem nem expõem resposta individual.
-- **Evidência:** exportação ou captura de cada caminho, conferência das chaves nas fontes e registro da quantidade de participações órfãs.
-- **Aprovação:** Data Steward ou auditor aprova se conseguir percorrer os elos observados e confirmar a preservação de todas as anomalias.
+- **Resultado esperado:** somente cada elo sustentado aparece como observado; participação ↔ resposta nunca compõe um caminho observado nesta versão; sistema ausente é declarado; casos órfãos permanecem em reconciliação com seus IDs originais; falha e bloqueio não fabricam linhagem nem expõem resposta individual.
+- **Evidência:** exportação ou captura individual de cada elo e seu estado, conferência das chaves nas fontes, captura da ponte em reconciliação e registro da quantidade de participações órfãs.
+- **Aprovação:** Data Steward ou auditor aprova se conseguir conferir os elos observados isoladamente e confirmar que a ligação participação ↔ resposta e todas as anomalias não foram promovidas a observadas.
 
 #### RF08 — Teste de acesso por perfil
 
 - **Persona e objetivo:** Data Owner ou gestor da Central; confirmar que consulta, detalhe e exportação obedecem à regra aprovada.
-- **Pré-condições e dados:** regra de acesso aprovada para perfis de equipe interna, área técnica e solicitante externo; contas de teste para cada perfil; consulta comum com dados operacionais, identificáveis e agregados; exportação habilitada onde permitida.
+- **Pré-condições e dados:** matriz mínima perfil × operação × classe de dado, preparada especificamente para o teste com regras propostas e aprovadas para o cenário, sem representar a política atual do parceiro; dados exclusivamente fictícios ou anonimizados; contas de teste para equipe interna, área técnica e solicitante externo; operações de consulta, detalhe, exportação e publicação; classes operacional, identificável e agregada; combinação obrigatória de perfil e operação sem regra aprovada; acesso autorizado ao registro das decisões.
 - **Passos:**
   0. Executar a mesma consulta com cada perfil e registrar os campos e níveis de detalhe visíveis.
   0. Tentar abrir dado identificável com um perfil limitado ao agregado.
   0. Exportar a consulta com cada perfil autorizado e comparar arquivo e tela.
-  0. Tentar uma operação cuja regra ainda não tenha aprovação e consultar o registro da decisão, quando aplicável.
-- **Resultado esperado:** cada perfil vê apenas o permitido; detalhe restrito é bloqueado; exportação não amplia o acesso; regra ausente não concede permissão; a decisão é verificável por perfil autorizado.
-- **Evidência:** matriz perfil × operação × resultado, capturas anonimizadas e arquivos exportados inspecionados campo a campo.
-- **Aprovação:** Data Owner aprova a matriz e confirma que nenhum caminho de tela ou exportação ultrapassa a regra vigente.
+  0. Executar a combinação obrigatória sem regra aprovada, confirmar que nenhum dado foi retornado e consultar o registro da tentativa.
+- **Resultado esperado:** cada perfil vê apenas o permitido; detalhe restrito é bloqueado; exportação não amplia o acesso; a operação sem regra é bloqueada sem retornar dados; perfil, operação, regra aplicada e resultado ficam registrados e verificáveis.
+- **Evidência:** matriz de teste marcada como proposta e específica do cenário, perfil × operação × classe de dado × regra × resultado, capturas com dados fictícios ou anonimizados, arquivos exportados inspecionados campo a campo, captura do bloqueio sem dados e registro correspondente da tentativa.
+- **Aprovação:** Data Owner aprova os resultados contra a matriz proposta para o cenário e confirma que nenhum caminho de tela ou exportação ultrapassa essas regras; a aprovação não formaliza a política definitiva do parceiro.
 
 #### RF09 — Teste de publicação autorizada
 
 - **Persona e objetivo:** Data Owner ou gestor da Central; comprovar que somente resultado explicitamente autorizado chega ao acervo.
-- **Pré-condições e dados:** resultados de teste autorizado e não autorizado; decisão identificada do Data Owner; pesquisa com `data_divulgacao` e sem metadado de publicação; referência interna permitida; perfil sem permissão de publicar e falha controlada do acervo.
+- **Pré-condições e dados:** resultados de teste autorizado e não autorizado; decisão identificada do Data Owner; pesquisa com `data_divulgacao` e sem metadado de publicação; referência interna permitida; perfil sem permissão de publicar; acervo disponível com recorte comprovadamente vazio; acervo indisponível por falha controlada.
 - **Passos:**
   0. Publicar o resultado autorizado e conferir estado, decisão e vínculo com a pesquisa.
   0. Tentar publicar o resultado sem autorização explícita.
   0. Consultar a pesquisa que possui apenas `data_divulgacao` e comparar o conteúdo publicado à referência interna.
-  0. Consultar o acervo vazio ou indisponível e tentar publicar com o perfil restrito.
-- **Resultado esperado:** somente o autorizado é disponibilizado; `data_divulgacao` não prova publicação; divergências ficam sinalizadas; vazio, falha e falta de permissão são distintos e não liberam conteúdo.
-- **Evidência:** registro da autorização, capturas antes e depois da tentativa, referência do item no acervo e comparação dos metadados.
+  0. Consultar o recorte vazio enquanto o acervo estiver disponível e registrar a mensagem apresentada.
+  0. Repetir a consulta durante a indisponibilidade controlada e registrar a mensagem apresentada.
+  0. Tentar publicar com o perfil sem permissão.
+- **Resultado esperado:** somente o autorizado é disponibilizado; `data_divulgacao` não prova publicação; divergências ficam sinalizadas; o recorte vazio informa consulta concluída sem itens; a indisponibilidade informa falha de acesso ao acervo; falta de permissão não libera conteúdo.
+- **Evidência:** registro da autorização, capturas antes e depois das tentativas, referência do item no acervo, comparação dos metadados e capturas separadas das mensagens de vazio, indisponibilidade e bloqueio por perfil.
 - **Aprovação:** Data Owner aprova a disponibilização e a equipe da Central confirma o vínculo; qualquer publicação sem decisão explícita reprova o teste.
 
 #### RF10 — Teste de resultados agregados
@@ -831,9 +839,9 @@ indicado em cada roteiro.
   0. Comparar quantidade de linhas, respondentes distintos e questões no caso de checkbox, sem tratá-las como a mesma medida.
   0. Conferir linha, coluna e valor da questão matricial e aplicar filtros permitidos.
   0. Abrir a questão sem respostas e repetir sob falha e com o perfil limitado ao agregado.
-- **Resultado esperado:** distribuições correspondem aos elementos válidos; checkbox e matriz preservam a granularidade atômica; denominador populacional ausente não gera taxa; vazio e erro são distintos; nenhum registro individual é exposto.
-- **Evidência:** memória de contagem por tipo de questão, extratos anonimizados das fontes e capturas das distribuições, filtros e estados excepcionais.
-- **Aprovação:** analista da Central aprova se reproduzir as distribuições; leitor autorizado confirma que a apresentação é compreensível e não identificável.
+- **Resultado esperado:** distribuições correspondem aos elementos válidos e exibem rótulo, unidade, granularidade e total do recorte; checkbox e matriz preservam a granularidade atômica; denominador populacional ausente não gera taxa; vazio e erro são distintos; nenhum identificador individual é exibido.
+- **Evidência:** memória de contagem por tipo de questão, extratos anonimizados das fontes e checklist observável de rótulo, unidade, granularidade, total e ausência de identificadores individuais, além das capturas dos filtros e estados excepcionais.
+- **Aprovação:** analista da Central aprova se reproduzir as distribuições; leitor autorizado confirma no checklist a presença de rótulo, unidade, granularidade e total e a ausência de identificadores individuais.
 
 #### RF11 — Teste de contexto de resposta autorizado
 
@@ -851,28 +859,34 @@ indicado em cada roteiro.
 #### RF12 — Teste de integração e atualização das fontes
 
 - **Persona e objetivo:** Data Custodian/TI ou analista da Central; verificar origem, padronização, deduplicação e reprocessamento sem duplicação.
-- **Pré-condições e dados:** cópia controlada de uma fonte com origem identificada; valores de domínio ou tipo que exijam padronização; duplicatas segundo regra documentada e registros semelhantes que não atendam à regra; fonte sem data de atualização; perfil restrito; execução com falha controlada.
+- **Pré-condições e dados:** snapshot imutável da entrada com identificador próprio; cópia controlada de uma fonte com origem identificada; identificadores de entrada preservados; valores de domínio ou tipo que exijam padronização; duplicatas segundo regra documentada e registros semelhantes que não atendam à regra; fonte sem data de atualização; perfil restrito; execução com falha controlada.
 - **Passos:**
-  0. Processar a fonte e conferir origem, transformações, estado ou data disponível e tratamento das duplicatas.
+  0. Registrar o identificador do snapshot e os identificadores de entrada antes do processamento.
+  0. Processar a fonte e conferir origem, estado ou data disponível e tratamento das duplicatas.
+  0. Selecionar valores padronizados e percorrer o mapeamento original → transformado até o snapshot e o identificador de entrada correspondentes.
   0. Confirmar que registros apenas semelhantes não foram eliminados.
   0. Reprocessar sem alteração exatamente o mesmo conteúdo e comparar as quantidades e identificadores antes e depois.
   0. Consultar a fonte sem metadado, a execução com falha e o perfil restrito.
-- **Resultado esperado:** transformações são rastreáveis; a regra de duplicidade é respeitada; o reprocessamento não cria registros adicionais; metadado indisponível, falha e acesso negado são estados distintos.
-- **Evidência:** identificação do conteúdo de entrada, relatório de transformações, contagens e identificadores antes/depois e registros das execuções.
+- **Resultado esperado:** cada transformação selecionada retorna ao valor original, ao identificador de entrada e ao snapshot; a regra de duplicidade é respeitada; o reprocessamento não cria registros adicionais; metadado indisponível, falha e acesso negado são estados distintos.
+- **Evidência:** identificação e integridade do snapshot, relatório original → transformado com IDs de entrada, rastreio de volta ao valor original, contagens e identificadores antes/depois e registros das execuções.
 - **Aprovação:** Data Custodian/TI aprova a execução e Data Steward confirma que padronização e deduplicação seguem regras documentadas.
 
 #### RF13 — Teste de questionário validado e versionado
 
 - **Persona e objetivo:** responsável de área técnica; conferir versão, revisão e validação de um questionário sem afirmar metadados inexistentes.
-- **Pré-condições e dados:** questionário de teste com versão e validação registradas; outro com questões, mas sem metadados de versão, área revisora ou aprovação; marcos temporais disponíveis e ausentes; pesquisa sem questões; perfil sem permissão de revisão e falha controlada.
+- **Natureza do teste:** futuro, executável somente quando os metadados propostos de versão, vínculo entre versões, área revisora, validação e histórico de alterações estiverem disponíveis no ambiente de teste; até lá, permanece não verificável na prática.
+- **Pré-condições e dados:** questionário de teste com versão e validação registradas; conteúdo preparado para uma nova versão; cópia ou assinatura da versão anterior para conferência de imutabilidade; outro questionário com questões, mas sem metadados de versão, área revisora ou aprovação; marcos temporais disponíveis e ausentes; pesquisa sem questões; perfil autorizado e perfil sem permissão de revisão; falha controlada.
 - **Passos:**
-  0. Abrir o histórico do questionário versionado e conferir pesquisa, versão, área, estado, alterações e datas com os registros.
-  0. Filtrar por pesquisa, área e estado e retornar a uma versão anterior.
+  0. Abrir o histórico do questionário versionado e registrar pesquisa, versão, área, estado, alterações e ordem temporal.
+  0. Com o perfil autorizado, criar uma nova versão a partir do conteúdo preparado e conferir seu identificador e referência à anterior.
+  0. Comparar conteúdo e metadados da versão anterior antes e depois da criação para confirmar que permaneceram imutáveis.
+  0. Filtrar por pesquisa, área e estado e retornar às duas versões na ordem registrada.
   0. Abrir o questionário sem metadados e verificar a relação possível com o marco de divulgação.
-  0. Consultar a pesquisa sem questões e tentar validar sob falha e com o perfil restrito.
-- **Resultado esperado:** histórico não é sobrescrito; ordem temporal só é afirmada com marcos disponíveis; metadados ausentes aparecem como propostos ou indisponíveis; vazio, erro e bloqueio não registram validação.
-- **Evidência:** capturas do histórico e filtros, comparação com os metadados de teste e registros das tentativas sem dados, com erro e sem permissão.
-- **Aprovação:** responsável da área técnica aprova o histórico observado e Data Steward confirma que nenhuma validação ou versão foi inferida.
+  0. Com o perfil sem permissão, tentar editar a versão anterior, criar outra versão e registrar validação.
+  0. Consultar a pesquisa sem questões e tentar criar versão durante a falha controlada.
+- **Resultado esperado:** a nova versão possui identificação, vínculo, metadados e posição temporal próprios; a anterior permanece imutável; ordem temporal só é afirmada com marcos disponíveis; metadados ausentes aparecem como propostos ou indisponíveis; operações não autorizadas, vazio e erro não alteram nem validam versões.
+- **Evidência:** capturas e exportação do histórico antes/depois, comparação ou assinatura da versão anterior, metadados da nova versão, registro da ordem dos marcos e registros separados das tentativas sem permissão, sem questões e com erro.
+- **Aprovação:** responsável da área técnica aprova criação e histórico; Data Steward confirma imutabilidade, metadados e ausência de inferências; qualquer alteração da versão anterior ou edição não autorizada reprova o teste.
 
 ## 6.2 Requisitos Não Funcionais (ISO/IEC 25010)
 
