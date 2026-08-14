@@ -1854,7 +1854,28 @@ As ferramentas relacionadas à governança são as fontes e sistemas já citados
 
 Antes da produção, o parceiro deve registrar no inventário, por fluxo: controlador, operador, eventual suboperador, encarregado, finalidade, categorias de titulares e dados, origem, destinos, localização, prazo e mecanismo de descarte. SurveyMonkey, Trello, Excel, Outlook, n8n, hospedagem do site, banco em nuvem e ferramentas de dashboard entram nesse inventário somente se realmente tratarem dados pessoais; os respectivos contratos e instruções devem esclarecer acesso, subcontratação, devolução/eliminação e auditoria.[<sup>\[5\]</sup>](#7-referências)
 
-### 6.6.3 Finalidades e hipóteses legais a confirmar
+### 6.6.3 Decisões pendentes e riscos de governança de dados
+
+Os artefatos da sprint registram decisões ainda abertas sobre a arquitetura de dados, a automação do fluxo e os controles de governança. Esses pontos não impedem a especificação inicial da solução, mas precisam ser tratados antes da entrada em produção, pois afetam custódia, rastreabilidade, qualidade, segurança, LGPD e consistência entre o ambiente interno e o repositório público.[<sup>\[1\]</sup>](#7-referências)[<sup>\[3\]</sup>](#7-referências)[<sup>\[14\]</sup>](#7-referências)
+
+| Decisão pendente | Situação registrada nos artefatos | Risco de governança | Encaminhamento necessário |
+| :--- | :--- | :--- | :--- |
+| Plataforma de banco em nuvem | O TAPI prevê banco relacional em nuvem, citando Amazon RDS, Google Cloud SQL ou equivalente, sem fixar a plataforma final. | Escolha da plataforma altera região de armazenamento, contratos, operadores, backups, logs, custos, controle administrativo e eventual transferência internacional. | Selecionar a plataforma com TI e Data Owner, registrar região, perfis administrativos, política de backup, criptografia, retenção, trilha de auditoria e responsabilidades contratuais. |
+| Uso futuro do n8n | O TAPI informa que hoje há um workflow em n8n para replicar novas solicitações, mas o Data Model Canvas trata seu papel futuro como decisão a confirmar. | Manter ou substituir o n8n muda a governança de credenciais, logs, reprocessamento, idempotência, tratamento de falhas e linhagem das integrações. | Definir se o n8n será orquestrador oficial, componente temporário ou substituído; documentar dono técnico, segredos usados, eventos gerados, política de retry e evidência de execução. |
+| Política de acesso por perfil | O projeto prevê controle por perfil, mas os perfis finais, regras de autorização e logs de acesso ainda dependem de aprovação. | Acesso amplo demais pode expor contatos, respostas individuais, indicadores comerciais ou dados com risco de reidentificação; acesso restritivo demais pode impedir a operação da Central. | Aprovar matriz de perfis pelo Data Owner, separar ambiente interno, dashboards e acervo público, registrar exceções e auditar consultas, exportações e publicações. |
+| Alimentação do repositório público | O TAPI prevê integração com o repositório público do site, e o Data Model Canvas indica que a automação da publicação ainda precisa ser definida. | Publicação sem regra clara pode gerar divergência entre resultado interno e acervo, divulgar dado não autorizado ou manter versão desatualizada no site. | Definir fluxo de publicação com aprovação, versão, origem, data, responsável, regra de anonimização/agregação, mecanismo de retirada/correção e validação pela custódia externa. |
+
+Além dessas decisões, há riscos de governança ligados à qualidade e à integração das fontes já identificados no diagnóstico do projeto:
+
+| Risco | Evidência no projeto | Impacto potencial | Controle recomendado |
+| :--- | :--- | :--- | :--- |
+| Qualidade inconsistente dos dados | O Problem Canvas aponta campos incompletos, inválidos ou divergentes; o perfilamento do §5.3 encontrou ausências, colunas vazias, diferenças de tipo e domínios não padronizados. | Indicadores podem ficar indisponíveis, divergentes ou exigir interpretação manual, reduzindo confiança nos dashboards e nas decisões. | Manter regras de completude, validade, domínio e reconciliação por fonte, com status explícito para dado calculável, dado a normalizar e dado dependente de integração futura. |
+| Campos incompletos ou metadados ausentes | Alguns indicadores dependem de informações ainda não presentes no snapshot, como universo de convites, versão de questionário, timestamp de carga, autorização de publicação e logs de acesso. | A solução pode sugerir métricas sem denominador, frescor, autorização ou rastreabilidade suficientes para auditoria. | Exibir indisponibilidade quando faltar metadado obrigatório, evitando inferência; registrar campos mínimos esperados no catálogo e exigir preenchimento antes da automação do KPI. |
+| Validação das integrações com sistemas existentes | O fluxo atual usa ferramentas separadas, como SurveyMonkey, Trello, Excel, Outlook, n8n e repositório público, sem integração estruturada de ponta a ponta. | Falhas de mapeamento, duplicidade, perda de origem ou diferença de status entre sistemas podem comprometer a fonte única da verdade. | Validar cada conector com testes de carga, reconciliação de chaves, logs de erro, reprocessamento idempotente, versionamento da fonte e aprovação do Data Steward antes de liberar o dado para consumo. |
+
+Enquanto esses pontos estiverem abertos, qualquer dashboard, publicação externa ou automação deve deixar claro o estado do dado, a origem utilizada, a limitação conhecida e a decisão de governança pendente. A passagem para produção deve ocorrer apenas quando as decisões acima estiverem registradas e aprovadas pelos responsáveis definidos na estrutura de governança.
+
+### 6.6.4 Finalidades e hipóteses legais a confirmar
 
 Consentimento não é uma autorização universal para o projeto. Cada finalidade deve ser específica, informada, necessária e associada a uma hipótese legal adequada; a hipótese escolhida, a forma de informação ao titular e a eventual necessidade de consentimento devem ser confirmadas pelo controlador e pelo encarregado. Quando essa hipótese for escolhida, consentimento significa manifestação livre, informada e inequívoca para finalidade determinada; o controlador deve conservar prova da obtenção, evitar autorizações genéricas e facilitar a revogação por procedimento gratuito. Consentimentos escritos devem estar destacados das demais cláusulas; para dados pessoais sensíveis, a manifestação deve ser específica e destacada para finalidades específicas. A revogação impede a continuidade de novos tratamentos baseados nesse consentimento, resguardados os tratamentos anteriores válidos e as hipóteses de conservação aplicáveis, e exige reavaliar a eliminação quando cabível.[<sup>\[4\]</sup>](#7-referências)
 
@@ -1871,7 +1892,7 @@ As hipóteses acima são um roteiro de análise, não um parecer jurídico. A do
 
 O uso acadêmico exige separar três situações: (i) protótipo da sprint, que deve usar dados sintéticos, anonimizados ou agregados; (ii) pesquisa acadêmica ou TCC, cuja finalidade deve ser registrada, com avaliação do orientador e verificação de aplicabilidade da Resolução CNS nº 510/2016 e do fluxo CEP/Conep antes de usar dados identificáveis; e (iii) operação administrativa ou comercial do parceiro, à qual a LGPD se aplica integralmente. O art. 4º, II, “b”, afasta parcialmente a LGPD para tratamento exclusivamente acadêmico, pois preserva a aplicação dos arts. 7º e 11; não afasta esses requisitos nem cobre o uso operacional, administrativo, comercial ou de publicação do parceiro. A decisão sobre o enquadramento, o consentimento e as salvaguardas deve ser registrada com o orientador e o parceiro.[<sup>\[4\]</sup>](#7-referências)[<sup>\[10\]</sup>](#7-referências)
 
-### 6.6.4 Minimização, pseudonimização e divulgação
+### 6.6.5 Minimização, pseudonimização e divulgação
 
 O princípio operacional é coletar e disponibilizar somente o que for adequado, necessário e proporcional à finalidade registrada. A camada de identificação deve ficar separada da camada analítica, com acesso restrito e vínculo controlado. Recomenda-se que o data warehouse de indicadores não carregue e-mail, cargo, departamento ou qualquer contato quando a métrica puder ser calculada sem esses campos; a chave de ligação deve ser substituída por um identificador pseudonimizado e rotacionável por finalidade.
 
@@ -1885,7 +1906,7 @@ Para os dashboards e o acervo público, propõem-se as seguintes salvaguardas, a
 - manter `market_share` e outros indicadores comerciais na menor granularidade compatível com a finalidade, validando se uma publicação por empresa é autorizada;
 - bloquear a publicação quando a pergunta, o texto livre ou a combinação de dimensões puder revelar dado pessoal ou sensível, mesmo que os identificadores diretos tenham sido removidos.
 
-### 6.6.5 Acesso, segurança e auditoria
+### 6.6.6 Acesso, segurança e auditoria
 
 O controle de acesso deve seguir menor privilégio, necessidade de conhecer, segregação entre ambientes e revisão periódica. A matriz abaixo é um desenho de referência; nenhum perfil deve ser considerado existente sem comprovação no ambiente correspondente.
 
@@ -1900,7 +1921,7 @@ O controle de acesso deve seguir menor privilégio, necessidade de conhecer, seg
 
 Como requisitos de projeto a validar, cada acesso deve ser autenticado individualmente, autorizado por recurso e perfil, protegido por credencial adequada e registrado com usuário, data/hora, operação, recurso e resultado. Logs devem ser protegidos contra alteração, ter retenção própria e permitir investigar leitura, exportação, alteração, exclusão e falha de autorização. Revisões de perfis, revogação de desligados, gestão de segredos, criptografia em trânsito e em repouso, testes de restauração de backup e varredura de repositório devem ser evidenciados antes da entrada em produção. O contexto recebido não comprova que esses controles já estejam implementados.
 
-### 6.6.6 Direitos dos titulares e fluxo de atendimento
+### 6.6.7 Direitos dos titulares e fluxo de atendimento
 
 O titular deve ter canal de fácil acesso e gratuito para solicitar, conforme aplicável, confirmação de tratamento, acesso, correção, anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desconformidade, portabilidade, informação sobre compartilhamentos, informação sobre a possibilidade e as consequências de não fornecer consentimento, revogação do consentimento, oposição ao tratamento nas hipóteses e condições do art. 18, § 2º, e petição contra o controlador perante a ANPD. Também pode solicitar revisão de decisão automatizada, quando aplicável. A confirmação e o acesso devem ser fornecidos em formato simplificado imediatamente ou por declaração completa e clara em até 15 dias; os demais pedidos seguem os prazos e procedimentos específicos da LGPD e da regulamentação aplicável, sem que esta seção fixe prazo não confirmado para o caso concreto.[<sup>\[4\]</sup>](#7-referências)[<sup>\[9\]</sup>](#7-referências)
 
@@ -1915,13 +1936,13 @@ Fluxo mínimo proposto:
 
 O registro de direitos deve ser uma trilha do atendimento, não um novo repositório de respostas. A equipe não deve apagar evidências necessárias à segurança, à auditoria ou ao exercício regular de direitos sem registrar a justificativa e o prazo de retenção correspondente.
 
-### 6.6.7 Incidentes e RIPD sem duplicação
+### 6.6.8 Incidentes e RIPD sem duplicação
 
 O procedimento de incidente deve ter um registro operacional único para o fluxo: detecção, contenção, preservação de evidências, avaliação de dados e titulares afetados, decisão do controlador, comunicações, medidas corretivas e encerramento. Um incidente pode envolver CSV local, GitLab, banco, dashboard, site, credencial ou operador; a origem não muda a necessidade de triagem. A comunicação é devida quando os critérios do art. 5º da Resolução CD/ANPD nº 15/2024 estiverem presentes cumulativamente: o incidente puder afetar significativamente interesses e direitos fundamentais e envolver pelo menos uma categoria de dados sensíveis, de crianças/adolescentes/idosos, financeiros, de autenticação, protegidos por sigilo legal/judicial/profissional ou em larga escala. Atendidos esses critérios, o controlador deve comunicar a ANPD e os titulares em três dias úteis contados do conhecimento de que o incidente afetou dados pessoais, salvo prazo específico diferente; se os critérios não se confirmarem, o incidente continua registrado e avaliado. O operador deve informar o controlador sem demora injustificada e fornecer as informações necessárias; contratos devem estabelecer esse fluxo.[<sup>\[6\]</sup>](#7-referências)
 
 O RIPD deve ser tratado como política interna preventiva proposta para avaliar o processo de tratamento: mapa de dados, operações, finalidades, hipóteses legais, necessidade, riscos, salvaguardas, risco residual, responsáveis e decisões. A abertura ou atualização deve ser um gatilho de governança quando houver resposta sensível, novo operador, mudança de finalidade, publicação, exportação, transferência internacional, combinação de bases ou incidente que altere o risco, mas sempre condicionada à avaliação de alto risco e às exigências aplicáveis; não constitui obrigação legal automática para qualquer operação. O registro de incidente referencia a versão do RIPD e as medidas adotadas; não duplica toda a análise de risco nem substitui a comunicação exigida. A ANPD orienta o RIPD quando o tratamento puder gerar alto risco e indica seu conteúdo mínimo, cabendo ao controlador avaliar a necessidade, eventual exigência específica e publicidade no caso concreto.[<sup>\[7\]</sup>](#7-referências)
 
-### 6.6.8 Retenção, descarte e cópias de segurança
+### 6.6.9 Retenção, descarte e cópias de segurança
 
 Não se propõe um prazo único para todas as tabelas. O critério é manter o mínimo necessário enquanto durar a finalidade, obrigação legal, exercício regular de direitos ou necessidade de prestação de contas; terminada a justificativa, eliminar, anonimizar ou bloquear o dado, observando os requisitos que impeçam a eliminação imediata. Devem ser verificadas as hipóteses de conservação do art. 16 da LGPD, como cumprimento de obrigação legal ou regulatória, estudo por órgão de pesquisa com anonimização sempre que possível, transferência a terceiro respeitados os requisitos legais ou uso exclusivo do controlador com acesso de terceiro vedado.[<sup>\[4\]</sup>](#7-referências)
 
@@ -1937,7 +1958,7 @@ Não se propõe um prazo único para todas as tabelas. O critério é manter o m
 
 Backups devem ter inventário, criptografia, controle de acesso, periodicidade e teste de restauração definidos; a eliminação lógica na base primária não basta se a cópia continuar acessível. O procedimento deve prever expiração automática, destruição segura ou sobrescrita conforme a tecnologia e bloqueio de restauração indevida. Esses são critérios propostos, não evidência de que os backups atuais os atendam.
 
-### 6.6.9 Compartilhamento, operadores e transferência internacional
+### 6.6.10 Compartilhamento, operadores e transferência internacional
 
 O compartilhamento deve ser limitado ao mínimo necessário, com finalidade, campos, destinatários, período, instruções e responsabilidade registrados. Para cada fornecedor ou integração, a Central deve decidir se há operador, suboperador ou controlador independente, exigir confidencialidade e segurança, controlar subcontratação, prever apoio a direitos e incidentes, devolução/eliminação ao término e possibilidade de auditoria. O fluxo não deve enviar a um fornecedor o conjunto inteiro de CSVs quando a operação exige apenas um subconjunto.
 
@@ -1951,7 +1972,7 @@ O compartilhamento deve ser limitado ao mínimo necessário, com finalidade, cam
 
 Se um fornecedor, suporte ou infraestrutura permitir acesso a dados pessoais a partir de país estrangeiro ou hospedagem fora do Brasil, há transferência internacional a ser analisada; não se presume sua existência nem sua inexistência. O inventário deve identificar país ou organismo de destino, exportador, importador, finalidade, categorias, duração, operação de acesso/armazenamento, eventuais transferências posteriores e subcontratados. O controlador deve confirmar a hipótese legal e o mecanismo de transferência, registrar as instruções ao importador e exigir salvaguardas, inclusive cláusulas-padrão contratuais da ANPD quando essa for a base escolhida, condições para transferências posteriores, apoio aos direitos, incidentes, término e eliminação. A validação deve observar a LGPD e a Resolução CD/ANPD nº 19/2024.[<sup>\[8\]</sup>](#7-referências)
 
-### 6.6.10 Impacto por ambiente e critérios de liberação
+### 6.6.11 Impacto por ambiente e critérios de liberação
 
 | Ambiente/artefato | Risco principal | Regra de liberação proposta |
 | :--- | :--- | :--- |
