@@ -688,96 +688,14 @@ Este cubo não armazena dados individuais de respondentes, respeitando a políti
 
 ### 5.2.2 C02 — Participação e Representatividade
 
-**Objetivo:** Responder perguntas sobre adesão de empresas, alcance e representatividade de mercado.
-
-**Grão e estrutura:** Uma linha por registro de `respondentes.csv`, preservando cada participação observada sem afirmar unicidade de pessoa. Após conciliação, formará estrela com empresa e cliente como dimensões ligadas.
-
-**Tipo de fato e eventos:** Fato sem medida numérica de volume (cada linha *é* uma participação). Eventos disponíveis: `hora_inicio` e `hora_termino` quando registrados.
-
-**Métricas sustentadas:** I07–I11
-- I07: Empresas participantes distintas (contagem por pesquisa)
-- I08: Taxa de adesão de empresas (exige integração futura de convites)
-- I09: Participação de mercado observada (exige normalização)
-- I10: Engajamento por público (contagem por cargo, departamento, área)
-- I11: Taxa de engajamento do público (exige integração futura de universo elegível)
-
-**Dimensões:**
-- **Pesquisa**: por `id_pesq` (888 valores distintos em 18.735 registros)
-- **Empresa**: por `id_empresa` (780 valores em respondentes, associada a 779 empresas em `empresas.csv`)
-- **Cliente**: por `id_cliente` (657 valores em respondentes, 5.430 em clientes.csv), somente após ponte validada
-- **Público**: cargo e departamento, somente após conciliação com clientes
-- **Mercado** (textual a normalizar): `market_share` em respondentes, `% de mercado` em empresas
-
-**Limitações críticas:**
-- 857 registros com `id_cliente` incompleto (856 vazios, 1 `s/i`)
-- 55 registros com `id_pesq=304` sem correspondência em pesquisas.csv
-
-**Disponibilidade:**
-- Calculável agora para I07
-- Exige normalização ou mapeamento para I09–I10
-- Depende de integração futura para I08 e I11
-
 ---
 
 ### 5.2.3 C03 — Resultados e Questionário
 
-**Objetivo:** Responder perguntas sobre distribuição de respostas, composição de questionários e validação.
-
-**Grão e estrutura:** Uma linha por elemento atômico de `respostas.id_resposta`, ligado à questão por `id_pergunta`. Cada linha representa um elemento indivisível de resposta (uma alternativa selecionada, uma célula de matriz, um item de checkbox), não um questionário completo.
-
-**Tipo de fato e eventos:** Fato transacional que registra cada resposta atômica. Definição da questão é preservada na dimensão como contexto.
-
-**Métricas sustentadas:** I12–I15
-- I12: Distribuição agregada de respostas (% por alternativa, matriz ou valor)
-- I13: Respondentes distintos na fonte de respostas (contagem em `respostas.csv`)
-- I14: Questões por tipo (contagem distinta)
-- I15: Estado de validação e versão do questionário (exige integração futura)
-
-**Dimensões:**
-- **Pesquisa**: por `pesquisa_id` (166 valores em 20.607 respostas)
-- **Questão**: por `id_pergunta` (178 valores), incluindo tipo, quantidade de alternativas
-- **Resposta**: alternativa, linha de matriz, coluna de matriz (estrutura preservada)
-- **Respondente** (restrito): `respondent_id` fica apenas para contagem distinta dentro da própria fonte, sem ponte individual autorizada
-
-**Limitações críticas:**
-- 542 `respondent_id` distintos em respostas.csv não podem ser ligados a clientes sem ponte aprovada
-- 4 `pesquisa_id` (424, 1116, 1139, 1147) sem correspondência em pesquisas.csv (3.592 respostas órfãs)
-- 3.592 elementos de resposta não podem ser convertidos em respondentes
-
-**Disponibilidade:**
-- Calculável agora para I12–I14
-- Depende de integração futura para I15 (versionamento e validação de questionários)
 
 ---
 
 ### 5.2.4 C04 — Qualidade e Governança
-
-**Objetivo:** Responder perguntas sobre completude de dados, conformidade, linhagem e autorização de publicação.
-
-**Grão e estrutura:** Uma linha por combinação de fonte, campo, regra e execução de perfilamento. Propõe-se identificar cada execução por `execution_id`, hashes dos seis arquivos de entrada, `processado_em` e versão do perfilador.
-
-**Tipo de fato e eventos:** Snapshot periódico de validação que registra estados de recepção, perfilamento, reconciliação, autorização e publicação quando disponíveis.
-
-**Métricas sustentadas:** I16–I25
-- I16–I20: Qualidade de dados (completude, duplicidade, integridade referencial, parseabilidade, divergência)
-- I21: Frescor da fonte (exige integração futura de timestamp)
-- I22: Cobertura da linhagem agregada
-- I23–I25: Publicação, integração e conformidade de acesso (exigem integração futura)
-
-**Dimensões:**
-- **Fonte**: qual CSV e versão da ingestão
-- **Campo**: qual variável foi avaliada
-- **Regra**: qual critério de qualidade foi aplicado
-- **Execução** (auditável): identificador, timestamp, versão do perfilador, integridade de entrada (hashes)
-- **Estado de linhagem**: observado, em reconciliação, proposto
-- **Perfil de acesso**: qual papel pode consultar (Data Steward, auditor, público)
-- **Decisão**: registrada pelo Data Owner (autorizar, bloquear, investigar)
-- **Dimensões futuras**: sistema de origem, versão de carga, autorização de publicação
-
-**Disponibilidade:**
-- Calculável agora para I16–I20 (perfilamento dos seis CSV)
-- Exige normalização ou mapeamento para I22
-- Depende de integração futura para I21, I23–I25 (timestamps, metadados, decisões, auditoria)
 
 ---
 
