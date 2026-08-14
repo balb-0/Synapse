@@ -474,6 +474,101 @@ ROI não foram fornecidos em fonte auditável e, portanto, não são estimados.
 | Como limitar acesso, publicação e uso de dados pessoais? | §§4.4 e 6.6 |
 | Como provar cobertura entre perguntas, indicadores e consumo? | §§5.4, 5.7 e 8.3 |
 
+<!-- QUANTI:UT-03:START -->
+### 4.0.6 Distribuição temporal e sazonalidade observadas
+
+Adota-se `data_divulgacao` como eixo temporal porque ela marca a entrada em campo e é o único marco validado contra outra variável da mesma base: a coluna `dia da semana de lançamento` coincide com o dia derivado em 100% dos 358 registros datados. São 358 de 366 pesquisas datadas (97,8%). `data_solicitacao` tem cobertura ligeiramente maior, com 362 registros (98,9%); sua série alternativa é apresentada ao final desta subseção.
+
+#### Cobertura dos marcos temporais
+
+| Marco | Registros | Cobertura | Janela observada |
+| :--- | ---: | ---: | :--- |
+| `data_solicitacao` | 362 | 98,9% | 22/11/2022–07/06/2027 |
+| `data_divulgacao` | 358 | 97,8% | 24/11/2022–07/06/2027 |
+| `data_limite` | 358 | 97,8% | 02/12/2022–18/09/2027 |
+| `data_entrega` | 334 | 91,3% | 14/10/2022–18/03/2026 |
+| `prorrogada_ate` | 68 | 18,6% | 15/03/2023–23/02/2026 |
+| `data_aprov` | 20 | 5,5% | 05/04/2023–16/03/2026 |
+
+`data_aprov`, com 5,5% de cobertura, não sustenta indicador temporal. Isso é uma restrição do dado observado, não uma decisão de escopo.
+
+#### Volume por ano de divulgação
+
+| Ano | Pesquisas divulgadas |
+| ---: | ---: |
+| 2022 | 3 |
+| 2023 | 97 |
+| 2024 | 99 |
+| 2025 | 117 |
+| 2026 | 39 |
+| 2027 | 3 |
+| Sem data | 8 |
+
+A média dos três anos completos (2023–2025) é 104,3. Os anos de 2026 e 2027 misturam dados parciais e pesquisas apenas agendadas; 12 pesquisas têm divulgação posterior a 14/08/2026, com `data_limite` chegando a 18/09/2027. Qualquer série deve filtrar por uma data de referência.
+
+#### Sazonalidade mensal
+
+| Mês | Pesquisas |
+| :--- | ---: |
+| Jan | 25 |
+| Fev | 30 |
+| Mar | 36 |
+| Abr | 34 |
+| Mai | 30 |
+| Jun | 32 |
+| Jul | 24 |
+| Ago | 30 |
+| Set | 37 |
+| Out | 43 |
+| Nov | 28 |
+| Dez | 9 |
+
+Dezembro tem 9 divulgações contra 43 em outubro. A comparação mês contra mês imediato é enganosa; a comparação válida é com o mesmo mês do ano anterior ou por trimestre.
+
+#### Dia da semana da divulgação
+
+| Código | Dia | Pesquisas |
+| ---: | :--- | ---: |
+| 2 | Segunda-feira | 132 |
+| 3 | Terça-feira | 87 |
+| 4 | Quarta-feira | 77 |
+| 5 | Quinta-feira | 46 |
+| 6 | Sexta-feira | 16 |
+
+O código `7` aparece em 5 pesquisas, todas sem `data_divulgacao`, funcionando como sentinela implícita de “não lançada” dentro de um domínio numérico. Essa convenção deve ser formalizada no catálogo antes de qualquer soma ou média; há ainda 3 registros sem código.
+
+#### Evolução do desempenho
+
+| Ano | n | Mediana do ciclo | Desvio-padrão | Taxa de prorrogação |
+| ---: | ---: | ---: | ---: | ---: |
+| 2022 | 3 | 16 | 2,65 | — |
+| 2023 | 97 | 19 | 14,42 | 26,8% |
+| 2024 | 99 | 19 | 12,60 | 25,3% |
+| 2025 | 117 | 18 | 9,63 | 11,1% |
+| 2026 | 15 | 19 | 11,39 | 10,3% |
+
+No conjunto global de 331 pesquisas, a mediana é aproximadamente 19 dias úteis. A característica observada é de estabilidade da mediana e redução da dispersão (14,4 para 9,6), acompanhada de redução da prorrogação (26,8% para 11,1%); isso não demonstra efeito da solução proposta.
+
+#### Participação ao longo do tempo e variáveis temporais auxiliares
+
+Empresas distintas estabilizam em aproximadamente 330–339 desde 2024 enquanto pessoas continuam crescendo, indicando que o crescimento recente vem de mais pessoas nas mesmas empresas. Há 194 registros de participação sem ano atribuível. `hora_inicio` e `hora_termino` estão preenchidos em 807 de 18.735 registros (4,3%), concentrados em 15 pesquisas entre 12/01/2026 e 17/03/2026; a duração derivada tem mediana de 3 minutos e máximo de 19.918 minutos e mede intervalo entre acessos, não tempo ativo. Ela não deve ser comparada com `tempo_preenchimento`, cuja mediana declarada é de 5 minutos.
+
+#### Série alternativa por `data_solicitacao`
+
+| Ano | Por `data_solicitacao` | Por `data_divulgacao` |
+| ---: | ---: | ---: |
+| 2022 | 5 | 3 |
+| 2023 | 95 | 97 |
+| 2024 | 99 | 99 |
+| 2025 | 119 | 117 |
+| 2026 | 41 | 39 |
+| 2027 | 3 | 3 |
+| Sem data | 4 | 8 |
+| **Total datado** | **362** | **358** |
+
+A média dos três anos completos coincide nos dois eixos: 104,3. A escolha do eixo altera a atribuição anual de pesquisas individuais, não a ordem de grandeza.
+<!-- QUANTI:UT-03:END -->
+
 ## 4.1 Visão de Informação (Information Viewpoint)
 
 O vocabulário canônico distingue **Pesquisa**, **Empresa**, **Pessoa/Cliente**,
