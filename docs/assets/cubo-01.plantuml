@@ -1,0 +1,112 @@
+@startuml
+
+!define table(x) class x << (T,#FFAAAA) >>
+!define fact(x) class x << (F,#AAFFAA) >>
+
+hide circle
+skinparam classAttributeIconSize 0
+skinparam nodesep 50
+skinparam ranksep 50
+
+table(DIM_PESQUISA) {
+  + sk_pesquisa : PK
+  + id_origem_planilha
+  + titulo
+  + objetivos
+  + ano_edicao
+}
+
+table(DIM_TEMPO) {
+  + sk_tempo : PK
+  + data
+  + ano
+  + mes
+  + trimestre
+  + flag_dia_util
+}
+
+table(DIM_AREA) {
+  + sk_area : PK
+  + nome_area
+  + agrupamento_macro
+}
+
+table(DIM_STATUS_PESQUISA) {
+  + sk_status : PK
+  + nome_status
+  + etapa_ciclo
+  + flag_em_aberto
+  + flag_terminal
+}
+
+table(DIM_TIPO_PESQUISA) {
+  + sk_tipo : PK
+  + nome_tipo
+  + natureza_origem
+}
+
+table(DIM_PERFIL_PESQUISA) {
+  + sk_perfil : PK
+  + complexidade
+  + tipo_resposta
+}
+
+table(DIM_FAMILIA_PESQUISA) {
+  + sk_familia : PK
+  + titulo_familia
+  + qtd_edicoes
+  + flag_recorrente
+}
+
+table(DIM_FONTE_DADO) {
+  + sk_fonte : PK
+  + nome_sistema_origem
+}
+
+table(DIM_EXECUCAO_CARGA) {
+  + sk_carga : PK
+  + data_execucao
+  + versao_etl
+}
+
+fact(FATO_CICLO_PESQUISA) {
+  + sk_pesquisa : FK
+  + sk_data_solicitacao : FK
+  + sk_data_aprovacao : FK
+  + sk_data_divulgacao : FK
+  + sk_data_limite_coleta : FK
+  + sk_data_prorrogacao : FK
+  + sk_data_entrega : FK
+  + sk_area : FK
+  + sk_status : FK
+  + sk_tipo : FK
+  + sk_perfil : FK
+  + sk_familia : FK
+  + sk_fonte : FK
+  + sk_carga : FK
+  --
+  + dias_uteis_validacao
+  + dias_uteis_coleta
+  + dias_uteis_tabulacao
+  + dias_uteis_ciclo_total
+  + qtd_empresas_na_pesquisa
+  + qtd_respondentes_na_pesquisa
+  + flag_prorrogada
+}
+
+DIM_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_pesquisa
+DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_solicitacao
+DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_aprovacao
+DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_divulgacao
+DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_limite_coleta
+DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_prorrogacao
+DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_entrega
+DIM_AREA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_area
+DIM_STATUS_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_status
+DIM_TIPO_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_tipo
+DIM_PERFIL_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_perfil
+DIM_FAMILIA_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_familia
+DIM_FONTE_DADO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_fonte
+DIM_EXECUCAO_CARGA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_carga
+
+@enduml

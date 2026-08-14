@@ -24,8 +24,22 @@ os controles de anonimização, minimização e autorização necessários.
 
 ```bash
 jq empty docs/dmc.json
+python3 scripts/dmc/validate_dmc.py docs/dmc.json
+python3 -m unittest discover -s scripts/dmc -p 'test_*.py'
 python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'
+python3 scripts/traceability/validate_traceability.py
+python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
 git diff --check
+```
+
+A conferência completa da rastreabilidade também compara os hashes e os
+trechos auditáveis do TAPI e da Arquitetura de Negócio, mantidos fora do Git:
+
+```bash
+python3 scripts/traceability/validate_traceability.py \
+  --sources-dir /caminho/seguro/das-fontes
+SINDUSFARMA_SOURCE_DIR=/caminho/seguro/das/fontes \
+  python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
 ```
 
 Os testes de integração dos protótipos exigem os seis CSVs externos. Consulte
