@@ -622,19 +622,11 @@ As seguintes decisões permanecem abertas e limitam o consumo:
 | Governança Corporativa | O JSON preserva os nomes e textos do PDF como baseline documental [3]. | Atribuição de Data Owner e Data Steward continua “a designar pelo parceiro”; a atribuição nominal de Data Custodian/TI também deve ser validada, conforme §6.6. Portanto, os nomes do PDF não confirmam ocupantes atuais desses papéis. Política de acesso, retenção, auditoria e publicação ainda requer aprovação. |
 | Cubos | O baseline do JSON tinha dois cards vazios. As issues #44–#47 definem quatro recortes: ciclo de vida, adesão e participação, desempenho operacional e qualidade e publicação. | Os quatro modelos foram preenchidos como contratos propostos. As branches das dependências não tinham commits próprios; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro. |
 
-Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON;
-nenhuma continuação foi reconstruída a partir do TAPI, da Arquitetura de
-Negócio ou do Problem Canvas. Essa preservação separa o que o artefato recebido
-efetivamente evidencia do que os demais documentos apenas permitiriam inferir.
+Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON; nenhuma continuação foi reconstruída a partir do TAPI, da Arquitetura de Negócio ou do Problem Canvas. Essa preservação separa o que o artefato recebido efetivamente evidencia do que os demais documentos apenas permitiriam inferir.
 
 ## 5.2 Cubos Analíticos
 
-Os cubos abaixo são contratos analíticos propostos a partir do snapshot dos seis
-CSV. Eles não afirmam a existência de um data warehouse implantado. A estrutura
-em estrela preserva as chaves recebidas como chaves de origem e só admite uma
-chave canônica depois da reconciliação. Dimensões degeneradas mantêm IDs e
-títulos para auditoria; dimensões de perfil não expõem e-mail nem resposta
-individual nos painéis.
+Os cubos abaixo são contratos analíticos propostos a partir do snapshot dos seis CSV. Eles não afirmam a existência de um data warehouse implantado. A estrutura em estrela preserva as chaves recebidas como chaves de origem e só admite uma chave canônica depois da reconciliação. Dimensões degeneradas mantêm IDs e títulos para auditoria; dimensões de perfil não expõem e-mail nem resposta individual nos painéis.
 
 | ID / cubo | Grão e estrutura | Tipo de fato e eventos | Métricas | Dimensões e dimensões especiais | Disponibilidade |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -643,19 +635,9 @@ individual nos painéis.
 | C03 — Desempenho Operacional | Uma linha por intervalo mensurável entre dois marcos de uma etapa de uma pesquisa; estrela | Fato transacional de intervalo concluído; validação, coleta, tabulação e ciclo total | duração, quantidade de intervalos, média e mediana por etapa | Pesquisa, Etapa, papéis de Tempo, tipo, área, complexidade e status | Dias corridos são calculáveis quando os dois marcos existem; dias úteis exigem calendário aprovado |
 | C04 — Qualidade e Publicação | Uma linha por objeto avaliado e regra em cada execução versionada de fotografia; Pesquisa é informada quando aplicável; estrela | Snapshot periódico proposto do estado de qualidade, inconsistência, prorrogação, autorização e publicação | seis métricas: objetos avaliados distintos; objetos afetados distintos; percentual de objetos conformes sobre objetos avaliados; violações abertas por objeto–regra; pesquisas distintas em prorrogação; resultados distintos autorizados/publicados | Execução da fotografia, objeto, regra, fonte, campo e estados de qualidade, prorrogação e publicação; Pesquisa opcional | Qualidade atual sustenta parte das métricas; periodicidade, autorização e publicação dependem de execuções e integrações futuras |
 
-No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da
-ocorrência registrada. No C04, o mesmo atributo aparece apenas como estado
-avaliado em uma fotografia governada, conforme o recorte pedido pela issue
-#47; ele não cria uma segunda definição de I05. Publicação fica no C04 como
-estado de autorização e disponibilização, enquanto o C01 preserva os marcos
-operacionais até a entrega.
+No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da ocorrência registrada. No C04, o mesmo atributo aparece apenas como estado avaliado em uma fotografia governada, conforme o recorte pedido pela issue #47; ele não cria uma segunda definição de I05. Publicação fica no C04 como estado de autorização e disponibilização, enquanto o C01 preserva os marcos operacionais até a entrega.
 
-Os quatro cubos não criam uma ponte entre participação e resposta. Os 542
-`respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes
-de `respondentes.csv` sem contrato aprovado. As análises de resultados e
-questionários continuam especificadas no dashboard D03 e nos indicadores
-I12–I15, mas a definição de um cubo próprio permanece uma lacuna da Task 43,
-cuja branch não estava disponível na integração da Task 49.
+Os quatro cubos não criam uma ponte entre participação e resposta. Os 542 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem contrato aprovado. As análises de resultados e questionários continuam especificadas no dashboard D03 e nos indicadores I12–I15, mas a definição de um cubo próprio permanece uma lacuna da Task 43, cuja branch não estava disponível na integração da Task 49.
 
 ## 5.3 Qualidade e Validação de Dados
 
@@ -1677,7 +1659,7 @@ Para evitar ambiguidade de nomenclatura, `respostas.csv` é o nome canônico usa
 
 Não foi identificado, apenas pelos nomes dos campos, um campo explicitamente de origem racial ou étnica, convicção religiosa, opinião política, filiação a sindicato ou a organização de caráter religioso, filosófico ou político, saúde, vida sexual, dado genético ou biométrico. Isso não autoriza concluir que dados pessoais sensíveis não existam: o conteúdo de `valor`, `enunciado`, `objetivos` e observações precisa ser amostrado e classificado antes da carga. Se uma resposta revelar qualquer dessas categorias, aplicam-se as hipóteses e salvaguardas próprias do art. 11 da LGPD; não se deve tratá-la como dado comum por estar em uma coluna textual.[<sup>\[4\]</sup>](#7-referências)
 
-### 6.6.2 Papéis, agentes e responsabilidades a validar
+### 6.6.2 Estrutura de Governança de Dados da Central de Pesquisas
 
 Os papéis de governança não equivalem automaticamente aos agentes jurídicos da
 LGPD. A indicação de Data Owner, Data Steward ou Data Custodian é
@@ -1689,13 +1671,40 @@ Arquitetura [2] registra os papéis de Owner, Stewards e Custodian. O DMC em PDF
 [3] continua indisponível para conferência direta, e controlador, operador e
 encarregado ainda dependem da realidade de cada tratamento.
 
-| Papel de governança | Referência do projeto | Responsabilidade proposta, sujeita a validação |
+| Papel de governança de dados | Referência do projeto | Responsabilidade proposta, sujeita a validação |
 | :--- | :--- | :--- |
 | Data Owner | Fabio Moreira, conforme baseline do DMC | Aprovar finalidades, classificações, acesso por perfil, indicadores e publicação; decidir sobre exceções e risco residual. |
 | Data Steward | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade, conforme grafia do baseline do DMC | Manter o catálogo e o dicionário, definir significado e regras de qualidade, acompanhar origem, linhagem, minimização e atendimento operacional das solicitações. |
 | Data Custodian | Rodrigo Giorgetto/TI e RentalHost, conforme baseline do DMC | Administrar infraestrutura, credenciais, cópias, logs e segregação técnica segundo instruções aprovadas; não decidir finalidade por conta própria. |
 | Controlador | A definir pelo Sindusfarma para cada fluxo | Decidir finalidades e meios, validar bases legais, instruir operadores, aprovar compartilhamentos e coordenar respostas e comunicações quando aplicável. |
 | Encarregado | A indicar pelo controlador | Atuar como canal entre titulares, controlador e ANPD, receber reclamações e comunicações, orientar as equipes e apoiar o atendimento dos direitos e incidentes. |
+
+As áreas envolvidas na governança combinam operação, negócio, tecnologia e consumo dos resultados. A Central de Pesquisas é a área principal, pois opera o ciclo completo das pesquisas e valida o valor dos indicadores. As áreas técnicas do Sindusfarma participam da revisão de questionários, da interpretação de resultados e do acompanhamento da adesão nas pesquisas relacionadas aos seus temas. A TI sustenta armazenamento, segurança, disponibilidade e integrações. A RentalHost entra como custódia externa quando houver dados ou componentes mantidos no sistema interno ou no repositório público. Gestores, empresas participantes, solicitantes e respondentes consomem ou fornecem informações, mas devem acessar apenas os recortes autorizados para sua finalidade.
+
+| Área ou ator | Participação na governança | Decisões ou validações esperadas |
+| :--- | :--- | :--- |
+| Central de Pesquisas | Opera solicitações, planejamento, coleta, tabulação, análise e publicação | Priorizar demandas, validar indicadores, solicitar correções e propor publicação de resultados. |
+| Data Owner | Responsável de negócio pelas decisões finais de uso dos dados | Aprovar finalidade, acesso por perfil, publicação, exceções e risco residual. |
+| Data Stewards e responsáveis técnicos | Mantêm significado, qualidade, linhagem e regras de uso | Aprovar dicionário, regras de qualidade, critérios de completude, reconciliação de chaves e tratamento de inconsistências. |
+| TI / Data Custodian | Sustenta infraestrutura, banco, integrações, logs e segurança técnica | Validar viabilidade técnica, disponibilidade, backup, controle de acesso e execução das decisões aprovadas. |
+| RentalHost | Custódia externa do sistema interno ou repositório público, quando aplicável | Operar componentes hospedados segundo contrato e instruções aprovadas, sem decidir finalidade ou publicação. |
+| Áreas técnicas | Validam conteúdo de questionários e acompanham pesquisas por tema | Revisar questionários, interpretar resultados agregados e indicar necessidades de negócio. |
+| Solicitantes, participantes e público autorizado | Consomem resultados permitidos e podem fornecer informações | Acessar apenas acervo e resultados autorizados, agregados e compatíveis com a finalidade informada. |
+
+Os processos de aprovação devem seguir a lógica de que decisões de negócio ficam com o Data Owner, definições semânticas e qualidade ficam com os Data Stewards, e execução técnica fica com o Data Custodian. Quando não existir uma estrutura formal implementada, a decisão deve ser registrada como proposta ou decisão pendente, com responsável, justificativa, fonte usada, data, impacto esperado e condição para revisão. Nenhuma regra provisória deve ser tratada como política definitiva de produção.
+
+| Decisão de dados | Responsável principal | Fluxo de aprovação proposto |
+| :--- | :--- | :--- |
+| Nova fonte ou nova carga de dados | Data Stewards e Data Custodian | Data Steward define significado, campos críticos e regras de qualidade; Data Custodian valida armazenamento e ingestão; Data Owner aprova finalidade e uso. |
+| Regra de qualidade, completude ou reconciliação | Data Stewards | Data Steward propõe e testa a regra; Central valida impacto no indicador; Data Owner aprova exceções relevantes ou bloqueios de publicação. |
+| Indicador, métrica ou dashboard | Central de Pesquisas e Data Stewards | Central define pergunta de negócio; Data Steward valida fórmula, grão e denominador; Data Owner aprova uso gerencial e exposição. |
+| Acesso por perfil | Data Owner, com apoio de TI e Data Stewards | Data Steward classifica dados; TI implementa controle; Data Owner aprova perfis, permissões e exceções. |
+| Publicação no acervo público | Data Owner e Central de Pesquisas | Central prepara resultado agregado; Data Steward revisa risco de reidentificação e linhagem; Data Owner autoriza; Data Custodian/RentalHost executa a disponibilização. |
+| Correção de inconsistência ou alteração em dado histórico | Data Stewards | Data Steward registra problema, origem, correção e impacto; Data Custodian aplica quando necessário; Data Owner decide se houver impacto estratégico ou publicação. |
+
+As políticas de governança de dados identificadas nos artefatos do projeto e as diretrizes propostas para a solução devem cobrir, no mínimo, controle de acesso por perfil, uso restrito dos dados às finalidades das pesquisas, anonimização ou agregação antes de publicação externa, não publicação de dados reais no repositório acadêmico, retenção e descarte conforme finalidade, auditoria de acessos e versionamento de regras de qualidade. Até a formalização pelo parceiro, essas políticas devem ser tratadas como diretrizes de projeto e critérios de validação, não como comprovação de conformidade produtiva.
+
+As ferramentas relacionadas à governança são as fontes e sistemas já citados no contexto do projeto: Excel e bases CSV como origem histórica ou operacional, SurveyMonkey para coleta, Trello para gestão de tarefas, Outlook para comunicação e pastas, n8n como automação/orquestração inicial de solicitações, sistema interno e repositório público do site, banco relacional em nuvem previsto para o MVP, dashboards do data app e artefatos de documentação como Data Model Canvas, catálogo/dicionário de dados, scripts de perfilamento e matriz de rastreabilidade. O projeto não substitui essas ferramentas nesta etapa; ele define como elas devem ser conectadas, catalogadas e governadas.
 
 Antes da produção, o parceiro deve registrar no inventário, por fluxo: controlador, operador, eventual suboperador, encarregado, finalidade, categorias de titulares e dados, origem, destinos, localização, prazo e mecanismo de descarte. SurveyMonkey, Trello, Excel, Outlook, n8n, hospedagem do site, banco em nuvem e ferramentas de dashboard entram nesse inventário somente se realmente tratarem dados pessoais; os respectivos contratos e instruções devem esclarecer acesso, subcontratação, devolução/eliminação e auditoria.[<sup>\[5\]</sup>](#7-referências)
 
