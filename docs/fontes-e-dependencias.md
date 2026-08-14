@@ -26,7 +26,7 @@ síntese do grupo seja citada como confirmação do parceiro.
 | dicionário de respostas [[12]](projeto.md#7-referências) | semântica e regras dos nove campos de `respostas.csv` | modelagem quantitativa; §5.3 | Pendente de auditoria primária | arquivo citado não está no checkout; o perfilador exige sua presença |
 | `scripts/data_quality/` | método de perfilamento, regras, manifesto e testes | modelagem quantitativa; §§5.3–5.6 | Observada no código | não autoriza publicação nem substitui a decisão do parceiro |
 | `docs/projeto.md` | síntese consolidada, PB01–PB13, RF01–RF13, I01–I25 e C01–C04 | todos os artefatos | Evidência documental derivada | deve apontar até a origem; não é fonte primária de si próprio |
-| `docs/dmc.json` | schema 1, conteúdo corporativo e quatro modelos dimensionais | Data Model Canvas | Observada no arquivo | Dados e Governança dos cubos permanecem vazios nesta Sprint |
+| `docs/dmc.json` | schema 1, conteúdo corporativo e quatro modelos dimensionais com Dados e Governança preenchidos | Data Model Canvas | Observada no arquivo | contratos de cubo são proposta técnica; dados brutos permanecem fora do Git |
 | GitLab | escopo das issues, decisões de implementação, commits e revisões | gestão e auditabilidade; issues #1–#3, #8, #9, #21–#25 e #40–#52 | Confirmada no processo do projeto | não confirma fatos do parceiro; a evidência concreta deve citar issue, branch, commit ou MR |
 
 ## Dependências entre artefatos
@@ -56,7 +56,7 @@ CSVs + dicionário + perfilamento reproduzível
 | Identidade canônica entre sistemas | unir participação, cliente e resposta individual | preservar chaves de origem e não inferir vínculos por semelhança |
 | Fonte autoritativa de participação de mercado | homologar representatividade | manter valores em reconciliação e bloquear o indicador conflitante |
 | Logs, versões e decisões de publicação | calcular auditoria, atualização e publicação | tratar I21 e I23–I25 como dependências futuras |
-| Definição dimensional das Tasks 43–47 | fechar todos os recortes analíticos | as issues #44–#47 sustentaram os quatro cards da Task 49; a Task 43 permanece sem entrega disponível para um cubo próprio de resultados/questionários |
+| Definição dimensional das Tasks 43–47 | fechar todos os recortes analíticos | as issues #44–#47 sustentaram os quatro cards da Task 49; resultados/questionários está documentado como C04 e continua limitado pela ausência de ponte observada para resposta individual conciliada |
 
 ## Fronteiras de responsabilidade
 

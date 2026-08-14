@@ -1,8 +1,8 @@
 # Validação do Data Model Canvas
 
 O validador confere o recorte da Sprint 1: sintaxe e seções obrigatórias,
-quatro cubos com nomes e IDs únicos, um esquema e um tipo de fato por cubo,
-Modelo Dimensional preenchido e subseções Dados/Governança dos cubos vazias.
+quatro cubos com nomes e IDs únicos, esquema dimensional, tipo de fato e
+preenchimento das seções de Modelo Dimensional, Dados e Governança dos cubos.
 
 Na raiz do repositório:
 

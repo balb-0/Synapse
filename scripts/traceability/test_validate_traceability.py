@@ -27,7 +27,7 @@ class ValidateTraceabilityTest(unittest.TestCase):
         summary = validate_traceability.validate(self.manifest, self.dmc)
         self.assertEqual(summary["questions"], 13)
         self.assertEqual(summary["indicators"], 25)
-        self.assertEqual(summary["pendingIndicators"], 4)
+        self.assertEqual(summary["pendingIndicators"], 3)
 
     def test_missing_question_fails(self) -> None:
         changed = copy.deepcopy(self.manifest)
@@ -59,17 +59,17 @@ class ValidateTraceabilityTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_traceability.TraceabilityError, "vínculo dimensional"):
             validate_traceability.validate(changed, self.dmc)
 
-    def test_pending_cube_requires_task_43(self) -> None:
+    def test_pending_cube_requires_future_integration(self) -> None:
         changed = copy.deepcopy(self.manifest)
         changed["questions"][9]["pendingCube"]["dependency"] = "Task 99"
-        with self.assertRaisesRegex(validate_traceability.TraceabilityError, "Task 43"):
+        with self.assertRaisesRegex(validate_traceability.TraceabilityError, "integração futura"):
             validate_traceability.validate(changed, self.dmc)
 
-    def test_pending_indicators_are_restricted_to_i12_i15(self) -> None:
+    def test_pending_indicators_are_restricted_to_response_and_versioning(self) -> None:
         changed = copy.deepcopy(self.manifest)
         changed["questions"][9]["pendingIndicators"].append("I01")
         changed["questions"][9]["indicators"].append("I01")
-        with self.assertRaisesRegex(validate_traceability.TraceabilityError, "I12–I15"):
+        with self.assertRaisesRegex(validate_traceability.TraceabilityError, "I12, I13 e I15"):
             validate_traceability.validate(changed, self.dmc)
 
     def test_dmc_cube_name_must_match(self) -> None:

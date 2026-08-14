@@ -626,7 +626,8 @@ Governança Corporativa e quatro cards de cubo. Negócio, Consumo Analítico e
 Governança Corporativa preservam o baseline preenchido pelo orientador no JSON.
 A Task 49 substituiu os dois cards vazios do baseline pelos quatro cubos
 definidos nas issues #44–#47. As subseções Dados e Governança dos cubos
-permanecem vazias, conforme o recorte desta Sprint.
+foram preenchidas no JSON como contrato técnico proposto, mantendo a distinção
+entre evidência observada no snapshot e desenho ainda sujeito a homologação.
 
 ### Síntese do negócio
 
@@ -719,7 +720,7 @@ As seguintes decisões permanecem abertas e limitam o consumo:
 | Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [1], [2], [13], [14]. O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
 | Consumo Analítico | O JSON preserva os indicadores, usuários/canais, decisões e riscos preenchidos pelo orientador como baseline documental [3]. | A interpretação de dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanece condicionada às limitações das §§5.6–6.5. |
 | Governança Corporativa | O JSON preserva os nomes e textos preenchidos pelo orientador como baseline documental [3]. | A formalização jurídica e operacional dos papéis ainda deve ser validada pelo parceiro; política de acesso, retenção, auditoria e publicação também requer aprovação antes da produção. |
-| Cubos | O baseline do JSON tinha dois cards vazios. As issues #44–#47 definem quatro recortes: ciclo de vida, adesão e participação, desempenho operacional e qualidade e publicação. | Os quatro modelos foram preenchidos como contratos propostos. As branches das dependências não tinham commits próprios; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro. |
+| Cubos | O baseline do JSON tinha dois cards vazios. As issues #44–#47 definem quatro recortes: portfólio e ciclo, participação e representatividade, pipeline mensal e resultados/questionários. | Os quatro modelos foram preenchidos como contratos propostos. As branches das dependências não tinham commits próprios; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro. |
 
 Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON; nenhuma continuação foi reconstruída a partir do TAPI, da Arquitetura de Negócio ou do Problem Canvas. Essa preservação separa o que o artefato recebido efetivamente evidencia do que os demais documentos apenas permitiriam inferir.
 
@@ -1350,19 +1351,18 @@ estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5. O contrato executável está em
 | PB07 | RF07 | I18, I22 | C04 | D04 |
 | PB08 | RF08 | I25 | C04 | D04 |
 | PB09 | RF09 | I23 | C04 | D04 |
-| PB10 | RF10 | I12, I13 | Cubo de resultados pendente da Task 43 | D03 |
-| PB11 | RF11 | I12, I13, I18, I22 | C04; cubo de resultados pendente da Task 43 | D03, D04 |
+| PB10 | RF10 | I12, I13 | C04; fato de resposta conciliado pendente de integração futura | D03 |
+| PB11 | RF11 | I12, I13, I18, I22 | C04; fato de resposta conciliado pendente de integração futura | D03, D04 |
 | PB12 | RF12 | I17, I19, I21, I24 | C04 | D04 |
-| PB13 | RF13 | I14, I15 | Cubo de resultados pendente da Task 43 | D03 |
+| PB13 | RF13 | I14, I15 | C04; metadados de versão e validação pendente de integração futura | D03 |
 
-RF01–RF13 e PB01–PB13 chegam a pelo menos um indicador e um dashboard, mas a
-cobertura dimensional não está completa: PB10, PB11 e PB13, com I12–I15,
-dependem de um cubo próprio de resultados/questionários. A branch da Task 43
-não contém uma definição exclusiva para integrar, portanto a lacuna permanece
-formalmente pendente em vez de ser preenchida por inferência. D01, D02 e D04
-têm cubos correspondentes; D03 continua apenas especificado. O cruzamento D03
-→ D04 em PB11 é navegação de linhagem agregada, não autorização para consultar
-indivíduos.
+RF01–RF13 e PB01–PB13 chegam a pelo menos um indicador, um dashboard e um cubo.
+A cobertura dimensional ainda não está completa para respostas conciliadas:
+PB10 e PB11, com I12–I13, dependem de uma futura `FATO_RESPOSTA`; PB13 depende
+de metadados de versão e validação para I15. O C04 cobre o instrumento de
+questionário observado, sem inferir vínculo individual entre participação e
+resposta. O cruzamento D03 → D04 em PB11 é navegação de linhagem agregada, não
+autorização para consultar indivíduos.
 
 ## 5.5 Infraestrutura de Dados
 
@@ -1395,10 +1395,10 @@ do painel continuam propostas.
 | I09 — Participação de mercado observada | Exige normalização ou mapeamento | C02 / `respondentes.csv` + `empresas.csv` | `market_share` e `% de mercado` estão em texto; divergência entre fontes bloqueia homologação até definir fonte autoritativa, sem precedência presumida |
 | I10 — Engajamento por público | Exige normalização ou mapeamento | C02 / `respondentes.csv` + `clientes.csv` + `pesquisas.csv` | `id_cliente` tem tipos incompatíveis; 856 vazios e 1 `s/i` em respondentes e 1 `s/i` em clientes viram não informado antes da ponte |
 | I11 — Taxa de engajamento do público | Depende de integração futura | C02 / cadastro de convidados elegíveis | Não existe denominador convidado por área, cargo ou departamento |
-| I12 — Distribuição agregada de respostas | Calculável agora | Cubo de resultados pendente da Task 43 / `respostas.csv` + `questoes.csv` | Elementos atômicos válidos por alternativa/valor/matriz; 8.307 vazios físicos e dois `NA` em `valor` ficam fora da base válida |
-| I13 — Respondentes distintos na fonte de respostas | Calculável agora | Cubo de resultados pendente da Task 43 / `respostas.csv` | 542 `respondent_id` distintos na fonte; sem ponte para `respondentes.id_cliente` |
-| I14 — Questões por tipo | Calculável agora | Cubo de resultados pendente da Task 43 / `questoes.csv` | `id_pergunta`, `pesquisa_id` e `tipo`; 43 questões têm pesquisa ausente em `pesquisas.csv` |
-| I15 — Estado de validação e versão do questionário | Depende de integração futura | Cubo de resultados pendente da Task 43 / repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
+| I12 — Distribuição agregada de respostas | Calculável agora | C04 + futura `FATO_RESPOSTA` / `respostas.csv` + `questoes.csv` | Elementos atômicos válidos por alternativa/valor/matriz; 8.307 vazios físicos e dois `NA` em `valor` ficam fora da base válida |
+| I13 — Respondentes distintos na fonte de respostas | Calculável agora | C04 + futura `FATO_RESPOSTA` / `respostas.csv` | 542 `respondent_id` distintos na fonte; sem ponte para `respondentes.id_cliente` |
+| I14 — Questões por tipo | Calculável agora | C04 / `questoes.csv` | `id_pergunta`, `pesquisa_id` e `tipo`; 43 questões têm pesquisa ausente em `pesquisas.csv` |
+| I15 — Estado de validação e versão do questionário | Depende de integração futura | C04 + metadados do repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
 | I16 — Completude aplicável | Calculável agora | C04 / seis CSV | Ausências por campo e natureza documentadas na §5.3; quatro ausências inesperadas nas 4.008 células de matriz aplicáveis |
 | I17 — Taxa de duplicidade | Calculável agora | C04 / seis CSV | Não foram observadas linhas ou IDs primários duplicados; FKs repetidas não são duplicatas |
 | I18 — Integridade referencial | Calculável agora | C04 / chaves dos seis CSV | Por relação: `respondentes → pesquisas`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes → pesquisas`, 188/231, 43 órfãs (18,6%); `respostas → pesquisas`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas usam os IDs 424, 1116, 1139 e 1147; `s/i` é não informado antes do teste |
@@ -2365,7 +2365,7 @@ ou funcionamento de uma plataforma produtiva.
 | Volume do snapshot analisado | 46.148 registros em seis CSVs | soma das contagens reproduzidas pelo perfilador da §5.3 |
 | Duplicidade de linha e das chaves declaradas | 0 ocorrência nas seis bases | `scripts/data_quality/profile_csv.py` e manifesto versionado |
 | Relações pesquisa ausentes | 55 participações, 43 questões e 3.592 elementos de resposta órfãos | relatório `relacionamentos.csv` descrito na §5.3 |
-| Modelo dimensional exportado | 4 cubos; Dados e Governança vazios em todos | `scripts/dmc/validate_dmc.py docs/dmc.json` |
+| Modelo dimensional exportado | 4 cubos com Modelo Dimensional, Dados e Governança preenchidos | `scripts/dmc/validate_dmc.py docs/dmc.json` |
 | Testes estruturais do DMC | 17 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
 | Testes do perfilamento | 5 testes aprovados | `python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'` |
 | Testes de rastreabilidade | 13 testes aprovados, incluindo 2 fontes primárias e 12 afirmações conferidas | `SINDUSFARMA_SOURCE_DIR=/caminho/seguro/das/fontes python3 -m unittest discover -s scripts/traceability -p 'test_*.py'` |
@@ -2385,17 +2385,18 @@ ou funcionamento de uma plataforma produtiva.
 
 O trabalho torna reproduzíveis o diagnóstico de qualidade, a validação
 estrutural do canvas e a distinção entre métrica disponível e dependência
-futura. O modelo cobre ciclo de vida, participação, desempenho operacional e
-qualidade/publicação, sem preencher as subseções de Dados e Governança que
-ficaram fora do recorte desta Sprint.
+futura. O modelo cobre portfólio e ciclo, participação, pipeline mensal e
+resultados/questionários, com Dados e Governança preenchidos como proposta
+técnica sujeita a homologação.
 
-A principal lacuna analítica é o cubo de resultados/questionários. PB10, PB11,
-PB13 e I12–I15 permanecem especificados, mas não possuem um contrato dimensional
-próprio porque a Task 43 não entregou conteúdo exclusivo para integração. As
-fontes [3], [12], [13] e [14] ainda precisam ser recuperadas para auditoria
-independente. O TAPI [1] e a Arquitetura [2] foram conferidos pelos hashes
-registrados no mapa de fontes. Esses pontos são pendências declaradas, não
-resultados omitidos nem capacidade presumida.
+As principais lacunas analíticas passam a ser a ausência de metadados de versão,
+validação e publicação, além da falta de ponte observada entre participação e
+resposta individual. O C04 cobre o instrumento de pesquisa por questões, mas
+não afirma uma `FATO_RESPOSTA` conciliada nem substitui regras futuras de
+autorização, catálogo, frescor e acesso. As fontes [3], [12], [13] e [14] ainda
+precisam ser recuperadas para auditoria independente. O TAPI [1] e a Arquitetura
+[2] foram conferidos pelos hashes registrados no mapa de fontes. Esses pontos
+são pendências declaradas, não resultados omitidos nem capacidade presumida.
 
 <!-- QUANTI:UT-04:START -->
 ### 8.2.1 Cuidados matemáticos antes de automatizar os indicadores
@@ -2433,7 +2434,7 @@ evidência observada e decisão proposta.
 | Contexto, escopo, processo e papéis | TAPI [1] e Arquitetura de Negócio [2], identificados por SHA-256 em `docs/fontes-e-dependencias.md`; JTBD [13] e Problem Canvas [14] | TAPI e Arquitetura conferidos diretamente; conteúdo exclusivo de JTBD e Problem Canvas permanece pendente |
 | Estrutura, grão e qualidade das bases | seis CSVs externos identificados pelos hashes da §5.3.6; manifesto, perfilador e testes em `scripts/data_quality/` | Evidência observada no snapshot local; o método é reproduzível quando as fontes e o dicionário estão disponíveis, mas os dados brutos não fazem parte do checkout |
 | Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; histórico das issues #21–#25 e #40–#49 | Síntese derivada; o vínculo específico deve citar issue, branch, commit ou MR e as limitações constam nas §§5.6 e 6.4 |
-| Cadeia analítica executável | `scripts/traceability/manifest.json`, validador e testes; IDs e nomes conferidos contra `docs/dmc.json` | 13 perguntas, 13 requisitos, 25 indicadores e 4 dashboards cobertos; I12–I15 mantidos como lacuna formal da Task 43 |
+| Cadeia analítica executável | `scripts/traceability/manifest.json`, validador e testes; IDs e nomes conferidos contra `docs/dmc.json` | 13 perguntas, 13 requisitos, 25 indicadores e 4 dashboards cobertos; I12, I13 e I15 mantidos como extensões futuras de resposta conciliada e metadados |
 | Negócio, Consumo Analítico e Governança Corporativa do canvas | DMC em PDF [3] e exportação `docs/dmc.json` | Baseline documental derivado; papéis e políticas continuam sujeitos a validação |
 | Cubos C01–C04 | contratos da §5.2, derivados das perguntas, indicadores e dados observados | Proposta de modelagem; não prova implantação de data warehouse |
 | Distribuição temporal, linha de base dos indicadores e cuidados matemáticos | `scripts/analysis/analise_quantitativa.py` aplicado aos seis CSVs externos; hashes registrados em `docs/resultados_analise.txt` | Evidência observada no snapshot local, reproduzível quando as fontes externas estão disponíveis; dados brutos não fazem parte do checkout |
@@ -2452,7 +2453,7 @@ afirmações exigidos nesta Sprint:
 | RF01–RF13 e PB01–PB13 | TAPI [1], Arquitetura [2], estrutura observada e síntese do grupo | contrato proposto sustentado por fonte | **OK com limitação:** contratos são da equipe; campos e dependências observáveis são citados diretamente |
 | I01–I25 | CSVs, perfilamento e dependências declaradas nas §§5.6 e 6.4 | observado, mapeamento ou integração futura | **OK:** cada indicador explicita disponibilidade e denominador; indisponível nunca vira zero |
 | Atualização automática, acesso e publicação | ausência de timestamp, política, logs e decisão no snapshot | proposta futura | **Correção aplicada:** removidas afirmações de capacidade atual ou tempo real |
-| Quatro cards dimensionais do DMC | issues #44–#47, §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional preenchido; Dados/Governança vazios por escopo; cubo próprio de resultados permanece dependência da Task 43 |
+| Quatro cards dimensionais do DMC | issues #44–#47, §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional, Dados e Governança preenchidos; C03 é Pipeline Mensal e C04 é Resultados e Questionários |
 
 Nenhuma referência a uma fonte ausente deve ser usada, isoladamente, para
 classificar uma afirmação como confirmada pelo parceiro. TAPI e Arquitetura só

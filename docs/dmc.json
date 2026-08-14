@@ -278,7 +278,7 @@
     {
       "id": "cubo-3",
       "fields": {
-        "nome": "Resultados e Questionários",
+        "nome": "Pipeline Mensal",
         "starSchema": true,
         "snowflakeSchema": false,
         "outroSchema": "Não aplicável; a documentação descreve estrutura em estrela.",
@@ -359,7 +359,7 @@
     {
       "id": "cubo-4",
       "fields": {
-        "nome": "Qualidade e Governança",
+        "nome": "Resultados e Questionários",
         "starSchema": true,
         "snowflakeSchema": false,
         "outroSchema": "Fato de associação sem medidas numéricas tradicionais (factless fact).",

@@ -23,6 +23,7 @@ Os originais não são copiados nem publicados pelo script. Sem
 `--sources-dir`, o comando valida apenas a consistência interna e declara essa
 limitação na saída.
 
-PB10, PB11 e PB13 mantêm I12–I15 como lacuna dimensional formal da Task 43.
+PB10, PB11 e PB13 usam C04 para o instrumento de questionário, mas mantêm I12,
+I13 e I15 com extensão futura para resposta conciliada e metadados de validação.
 Essa classificação evita tratar a existência de fonte ou dashboard proposto
 como se um cubo de resultados/questionários já tivesse sido entregue.

@@ -66,8 +66,8 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "metricas"):
             validate_dmc.validate_document(changed)
 
-    def test_cube_data_and_governance_must_remain_empty(self) -> None:
-        for key, value in (("fontes", ["SurveyMonkey"]), ("controleAcesso", "RBAC")):
+    def test_cube_data_and_governance_must_be_filled(self) -> None:
+        for key, value in (("fontes", []), ("controleAcesso", "")):
             with self.subTest(key=key):
                 changed = copy.deepcopy(self.document)
                 target = changed["cubos"][0]["lists" if key == "fontes" else "fields"]
@@ -75,10 +75,11 @@ class ValidateDmcTest(unittest.TestCase):
                 with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Dados/Governança"):
                     validate_dmc.validate_document(changed)
 
-    def test_empty_list_and_blank_item_are_equivalent(self) -> None:
+    def test_empty_governance_list_fails(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["cubos"][0]["lists"]["fontes"] = []
-        validate_dmc.validate_document(changed)
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Dados/Governança"):
+            validate_dmc.validate_document(changed)
 
     def test_governance_list_rejects_number_zero(self) -> None:
         changed = copy.deepcopy(self.document)

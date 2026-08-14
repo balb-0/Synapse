@@ -26,7 +26,7 @@ auditoria da fonte primária registrada na evidência.
 | KPI de atraso e prioridade | I06 depende de regra e data de referência aprovadas | §§5.6 e 6.4 | Pendente de validação | C01 e D01 |
 | KPI de participação observada | I07 conta participações sem afirmar adesão | `respondentes.csv`; §§5.6 e 6.4 | Observado nos dados | C02 e D02 |
 | KPIs de adesão, mercado e engajamento | I08 e I11 não têm denominador; I09/I10 exigem reconciliação | CSVs; §§5.6 e 6.4 | Pendente de validação | C02 e D02 |
-| KPIs de resultados disponíveis | I12–I14 usam resposta atômica; o cubo próprio de resultados/questionários não foi definido pela Task 43 | CSVs; §§5.4, 5.6 e 6.4 | Observado nos dados; modelagem dimensional pendente | cubo de resultados pendente; D03 |
+| KPIs de resultados disponíveis | I12–I14 usam resposta atômica; C04 cobre o instrumento de questionário, enquanto a resposta conciliada permanece extensão futura | CSVs; §§5.4, 5.6 e 6.4 | Observado nos dados; modelagem dimensional parcial | C04; D03 |
 | KPI de questionário validado | I15 depende de metadados de versão e validação e do cubo próprio ainda não definido | Arquitetura [2]; §§5.4, 5.6 e 6.4 | Pendente de integração e modelagem | cubo de resultados pendente; D03 |
 | KPIs de qualidade disponíveis | I16–I20 são derivados do perfilamento | perfilador; §§5.3–5.6 e 6.4 | Observado nos dados | C04 e D04 |
 | KPIs de atualização, publicação e acesso | I21 e I23–I25 exigem logs e decisões futuras | §§5.6 e 6.4 | Pendente de validação | C04 e D04 |
