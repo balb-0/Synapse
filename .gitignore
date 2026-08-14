@@ -31,6 +31,9 @@ data/private/
 *.csv
 *.xlsx
 *.xls
+*.CSV
+*.XLSX
+*.XLS
 
 # --- Node / JS-TS (Jest, Cypress, ESLint) ------------------------------------
 node_modules/
