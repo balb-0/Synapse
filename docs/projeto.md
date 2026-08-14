@@ -2341,7 +2341,7 @@ Assim, a governança proposta atende ao ciclo completo — coleta, integração,
 
 [14] GRUPO 5. **Problem Canvas — Gestão integrada de pesquisas setoriais**. São Paulo, 2026. Artefato local de levantamento (arquivo `context/problem_canvas_sindusfarma_completo (1).html`).
 
-[15] GRUPO 5. **Relatório de modelagem quantitativa de dados do parceiro e análise reproduzível**. São Paulo, 2026. Relatório, script e log locais (`docs/modelagem_quantitativa_de_dados_do_parceiro.md`, `docs/analise_quantitativa.py`, `docs/resultados_analise.txt`).
+[15] GRUPO 5. **Relatório de modelagem quantitativa de dados do parceiro e análise reproduzível**. São Paulo, 2026. Relatório, script e log locais (`docs/modelagem_quantitativa_de_dados_do_parceiro.md`, `scripts/analysis/analise_quantitativa.py`, `docs/resultados_analise.txt`).
 
 # 8. Avaliação dos Resultados
 
@@ -2436,7 +2436,7 @@ evidência observada e decisão proposta.
 | Cadeia analítica executável | `scripts/traceability/manifest.json`, validador e testes; IDs e nomes conferidos contra `docs/dmc.json` | 13 perguntas, 13 requisitos, 25 indicadores e 4 dashboards cobertos; I12–I15 mantidos como lacuna formal da Task 43 |
 | Negócio, Consumo Analítico e Governança Corporativa do canvas | DMC em PDF [3] e exportação `docs/dmc.json` | Baseline documental derivado; papéis e políticas continuam sujeitos a validação |
 | Cubos C01–C04 | contratos da §5.2, derivados das perguntas, indicadores e dados observados | Proposta de modelagem; não prova implantação de data warehouse |
-| Distribuição temporal, linha de base dos indicadores e cuidados matemáticos | `docs/analise_quantitativa.py` aplicado aos seis CSVs externos; hashes registrados em `docs/resultados_analise.txt` | Evidência observada no snapshot local, reproduzível quando as fontes externas estão disponíveis; dados brutos não fazem parte do checkout |
+| Distribuição temporal, linha de base dos indicadores e cuidados matemáticos | `scripts/analysis/analise_quantitativa.py` aplicado aos seis CSVs externos; hashes registrados em `docs/resultados_analise.txt` | Evidência observada no snapshot local, reproduzível quando as fontes externas estão disponíveis; dados brutos não fazem parte do checkout |
 
 A auditoria transversal aplicou o teste “qual é a fonte?” aos grupos de
 afirmações exigidos nesta Sprint:

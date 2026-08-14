@@ -28,7 +28,7 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        default_input = Path(__file__).resolve().parents[5] / "context" / "csv"
+        default_input = Path(__file__).resolve().parents[2] / "context" / "csv"
         cls.input_dir = os.environ.get("SINDUSFARMA_CSV_DIR", str(default_input))
         if not Path(cls.input_dir).is_dir():
             raise unittest.SkipTest(

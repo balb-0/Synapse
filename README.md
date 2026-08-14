@@ -50,14 +50,15 @@ g05/
 │  ├─ fontes-e-dependencias.md                        # Origem e limitações dos entregáveis
 │  ├─ matriz-evidencias-problem-canvas.md             # Evidências (observação / inferência / proposta)
 │  ├─ dmc.json                                        # Data Model Canvas exportado
-│  ├─ analise_quantitativa.py                         # Análise quantitativa das bases
 │  ├─ gestao-projeto.md                               # Sprints, riscos e post-mortem
 │  ├─ gestao-configuração.md                          # Políticas de repo, branches e commits
 │  ├─ dev-rules.md                                    # Padrões de código e testes
 │  └─ assets/                                         # Protótipos, diagramas e figuras dos documentos
 │     └─ figuras/                                     # Figuras agregadas geradas pela análise quantitativa
 ├─ scripts/
+│  ├─ analysis/                                       # Análise quantitativa e notebooks exploratórios
 │  ├─ dmc/                                            # Validação do dmc.json
+│  ├─ prototipos-dashboards/                          # Geração, testes e renderização dos protótipos
 │  ├─ data_quality/                                   # Validação da qualidade dos dados
 │  └─ traceability/                                   # Validação de rastreabilidade às fontes
 ├─ .gitlab/
@@ -72,6 +73,7 @@ Para executar as validações localmente, utilize as versões abaixo (ou superio
 
 - **Git**: 2.40+
 - **Python**: 3.12+ (análise quantitativa e scripts de validação)
+- **matplotlib**: 3.9+ (geração dos gráficos da análise quantitativa)
 - **jq**: 1.6+ (validação estrutural do `dmc.json`)
 
 ## 💻 Configuração para desenvolvimento (Placement)

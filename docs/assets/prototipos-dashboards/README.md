@@ -1,6 +1,6 @@
 # Protótipos de Dashboards (D01-D04) — Sindusfarma / Central de Pesquisas
 
-Este diretório contém a suíte autocontida dos protótipos institucionais (D01 Operação, D02 Participação Observada, D03 Resultados e Questionários, D04 Qualidade e Governança), o gerador determinístico de agregados, os testes e o script de renderização.
+Este diretório contém os artefatos autocontidos dos protótipos institucionais (D01 Operação, D02 Participação Observada, D03 Resultados e Questionários, D04 Qualidade e Governança). Os scripts de geração, testes e renderização ficam em `scripts/prototipos-dashboards/`.
 
 ---
 
@@ -8,13 +8,15 @@ Este diretório contém a suíte autocontida dos protótipos institucionais (D01
 
 ```
 docs/assets/prototipos-dashboards/
-├── gerar-dados-prototipos.py       # Gerador determinístico em Python stdlib
-├── test_gerar_dados_prototipos.py  # Suíte de testes unitários (unittest)
 ├── dados-dashboard.json            # JSON de dados agregados gerado pelo pipeline
 ├── index.html                      # Aplicação web autocontida (HTML/CSS/JS)
-├── renderizar-prototipos.mjs       # Script Playwright para captura de imagens
 ├── README.md                       # Documentação técnica e guia de execução
 └── imagens/                        # Capturas desktop e mobile para QA
+
+scripts/prototipos-dashboards/
+├── gerar-dados-prototipos.py       # Gerador determinístico em Python stdlib
+├── test_gerar_dados_prototipos.py  # Suíte de testes unitários (unittest)
+└── renderizar-prototipos.mjs       # Script Playwright para captura de imagens
 ```
 
 ---
@@ -42,18 +44,19 @@ docs/assets/prototipos-dashboards/
 
 ## Comandos de execução
 
+Os comandos abaixo assumem execução a partir da raiz do repositório.
+
 ### 1. Execução do gerador de dados determinístico
 
 Gera o arquivo `dados-dashboard.json` a partir do diretório informado. O diretório deve conter os seis CSVs recebidos; `teste.csv` também pode estar normalizado fisicamente como `respostas.csv`:
 
 ```bash
-cd docs/assets/prototipos-dashboards
-python3 gerar-dados-prototipos.py --input-dir <diretorio-das-fontes> --output dados-dashboard.json
+python3 scripts/prototipos-dashboards/gerar-dados-prototipos.py --input-dir <diretorio-das-fontes> --output docs/assets/prototipos-dashboards/dados-dashboard.json
 ```
 
 Para garantir reprodução byte a byte determinística via timestamp fixo:
 ```bash
-python3 gerar-dados-prototipos.py --input-dir <diretorio-das-fontes> --output dados-dashboard.json --processado-em "2026-08-13T00:00:00Z"
+python3 scripts/prototipos-dashboards/gerar-dados-prototipos.py --input-dir <diretorio-das-fontes> --output docs/assets/prototipos-dashboards/dados-dashboard.json --processado-em "2026-08-13T00:00:00Z"
 ```
 
 ### 2. Execução da suíte de testes
@@ -61,7 +64,7 @@ python3 gerar-dados-prototipos.py --input-dir <diretorio-das-fontes> --output da
 Valida esquemas, invariantes numéricas, valores de referência (D01–D04), regras de privacidade e determinismo. Por padrão, a suíte procura `context/csv` na estrutura do workspace; em outro ambiente, informe o diretório sem alterar o teste:
 
 ```bash
-SINDUSFARMA_CSV_DIR=<diretorio-das-fontes> python3 -m unittest test_gerar_dados_prototipos.py
+SINDUSFARMA_CSV_DIR=<diretorio-das-fontes> python3 -m unittest scripts/prototipos-dashboards/test_gerar_dados_prototipos.py
 ```
 
 A suíte também cria cópias temporárias controladas para provar que uma linha duplicada altera I17 e que um cabeçalho incompatível interrompe a execução. Os arquivos brutos nunca são modificados.
@@ -70,7 +73,7 @@ A suíte também cria cópias temporárias controladas para provar que uma linha
 Para visualizar o dashboard interativo `index.html` em qualquer navegador:
 
 ```bash
-python3 -m http.server 8000
+python3 -m http.server 8000 --directory docs/assets/prototipos-dashboards
 ```
 Acesse no navegador: `http://localhost:8000/index.html` (ou com hash `#d01`, `#d02`, `#d03`, `#d04`).
 
@@ -81,7 +84,7 @@ Gera as capturas desktop (`1600×1000`, escala 2) e mobile (`390×844`, escala 2
 ```bash
 diretorio_playwright=$(mktemp -d)
 npm install --prefix "$diretorio_playwright" playwright
-PLAYWRIGHT_MODULE="$diretorio_playwright/node_modules/playwright" node renderizar-prototipos.mjs
+PLAYWRIGHT_MODULE="$diretorio_playwright/node_modules/playwright" node scripts/prototipos-dashboards/renderizar-prototipos.mjs
 ```
 
 Se o navegador do Playwright não estiver instalado, informe um Chromium já disponível no ambiente com `CHROMIUM_EXECUTABLE=<caminho-do-chromium>`.
