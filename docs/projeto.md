@@ -1711,6 +1711,8 @@ Assim, a governança proposta atende ao ciclo completo — coleta, integração,
 
 [14] GRUPO 5. **Problem Canvas — Gestão integrada de pesquisas setoriais**. São Paulo, 2026. Artefato local de levantamento (arquivo `context/problem_canvas_sindusfarma_completo (1).html`).
 
+[15] GRUPO 5. **Relatório de modelagem quantitativa de dados do parceiro e análise reproduzível**. São Paulo, 2026. Relatório, script e log locais (`docs/modelagem_quantitativa_de_dados_do_parceiro.md`, `docs/analise_quantitativa.py`, `docs/resultados_analise.txt`).
+
 # 8. Avaliação dos Resultados
 
 _conteúdo_
@@ -1761,6 +1763,7 @@ evidência observada e decisão proposta.
 | Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; histórico das issues #21–#25 e #40–#49 | Síntese derivada; o vínculo específico deve citar issue, branch, commit ou MR e as limitações constam nas §§5.6 e 6.4 |
 | Negócio, Consumo Analítico e Governança Corporativa do canvas | DMC em PDF [3] e exportação `docs/dmc.json` | Baseline documental derivado; papéis e políticas continuam sujeitos a validação |
 | Cubos C01–C04 | contratos da §5.2, derivados das perguntas, indicadores e dados observados | Proposta de modelagem; não prova implantação de data warehouse |
+| Distribuição temporal, linha de base dos indicadores e cuidados matemáticos | `docs/analise_quantitativa.py` aplicado aos seis CSVs externos; hashes registrados em `docs/resultados_analise.txt` | Evidência observada no snapshot local, reproduzível quando as fontes externas estão disponíveis; dados brutos não fazem parte do checkout |
 
 Nenhuma referência a uma fonte ausente deve ser usada, isoladamente, para
 classificar uma afirmação como confirmada pelo parceiro. Até a recuperação do
