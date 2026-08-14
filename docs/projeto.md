@@ -1617,6 +1617,8 @@ A segurança da informação deve proteger o ciclo da pesquisa sem impedir o tra
 | Custódia técnica | Administração controlada | Administrar infraestrutura, credenciais, integrações, banco, cópias e logs necessários à operação | Acesso emergencial justificado, temporário e auditado; não usar os dados para finalidade própria. |
 | Acadêmico | Artefatos não produtivos | Utilizar documentação, código e dados sintéticos, anonimizados ou agregados aprovados | Sem credenciais de produção, cópia dos CSVs reais ou acesso ao mapeamento de identidade. |
 
+**Observação:** os perfis, níveis de permissão e restrições acima representam o entendimento proposto pelo grupo nesta etapa da Sprint 1. Eles ainda precisam ser validados com o parceiro e consolidados após essa validação, antes de serem tratados como política formal de segurança ou regra operacional do ambiente produtivo.
+
 Os controles mínimos de segurança devem ser tratados como critérios de validação antes da entrada em produção:
 
 | Controle | Diretriz para o projeto | Evidência esperada antes da produção |
