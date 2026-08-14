@@ -70,16 +70,16 @@
     "governancaCorporativa": {
         "owner": "Fabio Moreira.",
         "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
-        "custodian": "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados na rede interna ou na nuvem do Sindusfarma + empresa RentalHost (fornecedora do sistema interno) para",
+        "custodian": "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados na rede interna ou na nuvem do Sindusfarma + empresa RentalHost (fornecedora do sistema interno) para custódia dos dados hospedados no repositório público.",
         "tecnico": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
-        "lgpd": "Aplicação da LGPD — dados de empresas parceiras e respostas individuais tratados com",
-        "seg": "Controle de acesso por perfil, autenticação de usuários e políticas internas de",
-        "comp": "Dados reais restritos ao ambiente interno; repositório público e GitHub do Inteli",
-        "etico": "Uso restrito às finalidades das pesquisas setoriais, preservando a confidencialidade de",
-        "catalogo": "Dicionário das entidades e campos (empresas, clientes, pesquisas, respondentes),",
-        "kpis": "% de completude dos campos, % de registros válidos, nº de inconsistências",
-        "maturidade": "Evolução do estágio atual (dados fragmentados e manuais) para fonte única,",
-        "evolucao": "Partir do MVP (banco central + um pipeline + dashboard) e expandir para todas as"
+        "lgpd": "Aplicação da LGPD — dados de empresas parceiras e respostas individuais tratados com anonimização; base já anonimizada para uso acadêmico.",
+        "seg": "Controle de acesso por perfil, autenticação de usuários e políticas internas de segurança do Sindusfarma",
+        "comp": "Dados reais restritos ao ambiente interno; repositório público e GitHub do Inteli apenas com dados anonimizados/fictícios.",
+        "etico": "Uso restrito às finalidades das pesquisas setoriais, preservando a confidencialidade de empresas e respondentes.",
+        "catalogo": "Dicionário das entidades e campos (empresas, clientes, pesquisas, respondentes), com descrição, tipo e origem de cada atributo.",
+        "kpis": "% de completude dos campos, % de registros válidos, nº de inconsistências corrigidas etc.",
+        "maturidade": "Evolução do estágio atual (dados fragmentados e manuais) para fonte única, integrada e governada",
+        "evolucao": "Partir do MVP (banco central + um pipeline + dashboard) e expandir para todas as fontes, automação completa da ingestão e integração automática do repositório público."
     },
     "cubos": [
         {
