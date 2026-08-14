@@ -13,6 +13,7 @@ no GitLab. Este documento não replica nomes ou perfis sem uma fonte versionada.
   - [1.4 Escopo do Projeto](#14-escopo-do-projeto)
 - [2. Descrição do Problema](#2-descrição-do-problema)
   - [2.1 Fluxo de Valor](#21-fluxo-de-valor)
+  - [2.4 Objetivos Estratégicos Atendidos](#24-objetivos-estratégicos-atendidos)
 - [3. Objetivos](#3-objetivos)
 - [4. Arquitetura de Dados (ISO/IEC 10746)](#4-arquitetura-de-dados-isoiec-10746)
   - [4.0 Estado Atual (AS-IS)](#40-estado-atual-as-is)
@@ -181,6 +182,23 @@ Necessidade de informação
 O TO-BE é contrato de arquitetura e processo. Ele não prova que pipeline,
 autenticação, data warehouse ou publicação automática já estejam implantados;
 essas fronteiras estão delimitadas na §1.4.
+
+## 2.4 Objetivos Estratégicos Atendidos
+
+O projeto contribui para os objetivos estratégicos da Central de Pesquisas ao transformar um fluxo hoje fragmentado e dependente de consolidações manuais em uma base organizacional mais confiável para acompanhar, analisar e publicar pesquisas setoriais. O valor esperado não está apenas na adoção de uma nova arquitetura técnica, mas na capacidade de melhorar a gestão do ciclo de vida das pesquisas, fortalecer a confiança nos indicadores e apoiar decisões do Sindusfarma com informações rastreáveis.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)[<sup>\[14\]</sup>](#7-referências)
+
+| Objetivo estratégico atendido | Como a solução contribui | Valor organizacional gerado |
+| :--- | :--- | :--- |
+| Aumentar adesão e engajamento das indústrias participantes | Permite acompanhar participação por pesquisa, empresa, área, cargo e departamento, distinguindo contagens observadas de taxas que dependem de denominador validado. | Ajuda a identificar públicos pouco engajados, orientar ações de convite e ampliar a representatividade das pesquisas setoriais. |
+| Reduzir esforço manual e tempo de entrega | Centraliza informações hoje distribuídas entre planilhas, formulários, ferramentas de gestão, automações pontuais e repositório publicado. | Libera a equipe da Central para análise e tomada de decisão, reduzindo retrabalho, conferências manuais e dependência de conhecimento individual. |
+| Apoiar decisões estratégicas com dados confiáveis | Organiza indicadores sobre volume, status, prazos, adesão, representatividade, respostas agregadas e qualidade dos dados. | Dá aos gestores uma visão mais consistente para priorizar demandas, acompanhar desempenho e planejar novas pesquisas com base em evidências. |
+| Estabelecer governança e rastreabilidade ponta a ponta | Mantém a pesquisa como eixo de rastreabilidade, conectando solicitação, planejamento, questionário, coleta, tabulação, análise e publicação. | Aumenta auditabilidade, clareza de responsabilidades e confiança sobre qual fonte sustenta cada indicador ou resultado publicado. |
+| Garantir conformidade com a LGPD e proteção das informações | Prevê separação entre dados internos, dados identificáveis e resultados agregados, além de controle de acesso por perfil e uso de dados anonimizados ou fictícios no contexto acadêmico. | Reduz risco regulatório e protege a confidencialidade de empresas, respondentes e respostas individuais. |
+| Tornar a Central referência em dados do setor farmacêutico | Consolida histórico, metadados, indicadores e resultados autorizados em uma fonte única e governada. | Fortalece o papel do Sindusfarma como entidade capaz de produzir inteligência setorial confiável para a indústria farmacêutica. |
+| Melhorar qualidade e relevância das pesquisas | Usa indicadores de completude, validade, inconsistências e rastreabilidade para orientar melhorias no processo e nos questionários. | Reduz distorções nos dashboards, melhora a interpretação dos resultados e aumenta a utilidade das pesquisas para as áreas técnicas e empresas participantes. |
+| Evoluir para uma cultura orientada por dados | Disponibiliza informações analíticas de forma estruturada para equipe da Central, áreas técnicas e gestores. | Incentiva decisões baseadas em evidências, aprendizado histórico e acompanhamento contínuo dos resultados da operação. |
+
+Assim, a solução atende aos objetivos estratégicos ao conectar melhoria operacional, governança e inteligência de negócio. A Central ganha meios para reduzir manualidade, aumentar confiabilidade, monitorar adesão e publicar resultados com maior consistência, mantendo as ferramentas operacionais existentes como fontes do processo e não como silos isolados.
 
 # 3. Objetivos
 
