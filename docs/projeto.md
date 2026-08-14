@@ -24,10 +24,6 @@ no GitLab. Este documento não replica nomes ou perfis sem uma fonte versionada.
 - [5. Modelagem Dimensional e Cubos OLAP](#5-modelagem-dimensional-e-cubos-olap)
   - [5.1 Visão Geral do Modelo Dimensional (Data Model Canvas)](#51-visão-geral-do-modelo-dimensional-data-model-canvas)
   - [5.2 Cubos Analíticos](#52-cubos-analíticos)
-    - [5.2.1 C01 — Portfólio e Ciclo](#521-c01--portfólio-e-ciclo)
-    - [5.2.2 C02 — Participação e Representatividade](#522-c02--participação-e-representatividade)
-    - [5.2.3 C03 — Resultados e Questionário](#523-c03--resultados-e-questionário)
-    - [5.2.4 C04 — Qualidade e Governança](#524-c04--qualidade-e-governança)
   - [5.3 Qualidade e Validação de Dados](#53-qualidade-e-validação-de-dados)
   - [5.4 Rastreabilidade Analítica](#54-rastreabilidade-analítica)
   - [5.5 Infraestrutura de Dados](#55-infraestrutura-de-dados)
@@ -527,12 +523,11 @@ uma carga de data warehouse já implementada.
 
 O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
 ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
-Governança Corporativa e quatro cards de cubo. Negócio e Consumo Analítico
-consolidam os contratos das §§5.6–6.5; Governança Corporativa e os metadados
-preservam o baseline do PDF recebido [3]. A Task 49 substituiu os dois cards
-vazios do baseline pelos quatro cubos definidos nas issues #44–#47. As
-subseções Dados e Governança dos cubos permanecem vazias, conforme o recorte
-desta Sprint.
+Governança Corporativa e quatro cards de cubo. Negócio, Consumo Analítico e
+Governança Corporativa preservam o baseline preenchido pelo orientador no JSON.
+A Task 49 substituiu os dois cards vazios do baseline pelos quatro cubos
+definidos nas issues #44–#47. As subseções Dados e Governança dos cubos
+permanecem vazias, conforme o recorte desta Sprint.
 
 ### Síntese do negócio
 
@@ -584,9 +579,10 @@ os dashboards, perfis ou integrações já estejam implantados. A disponibilidad
 de cada indicador segue a §5.6: **calculável agora** descreve o que o snapshot
 permite calcular, não uma entrega produtiva; **exige normalização ou
 mapeamento** identifica uma regra ou reconciliação pendente; e **depende de
-integração futura** indica que falta uma fonte ou metadado.
-No JSON, os quatro eixos abaixo compactam a matriz detalhada da §5.6 sem mudar
-essas classificações de disponibilidade.
+integração futura** indica que falta uma fonte ou metadado. O JSON preserva o
+baseline de consumo preenchido pelo orientador; os quatro eixos abaixo são a
+leitura analítica usada neste documento, sem mudar essas classificações de
+disponibilidade.
 
 | Eixo de consumo | Indicadores | Usuário e forma de consumo propostos | Decisões apoiadas |
 | :--- | :--- | :--- | :--- |
@@ -622,8 +618,8 @@ As seguintes decisões permanecem abertas e limitam o consumo:
 | Elemento do canvas | Evidência disponível | Proposta ainda a validar ou implementar |
 | :--- | :--- | :--- |
 | Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [1], [2], [13], [14]. O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
-| Consumo Analítico | A síntese relaciona PB01–PB13, I01–I25 e D01–D04 às decisões e à disponibilidade comprovada nas §§5.6–6.5. Os campos observáveis vêm dos seis CSV; os textos do PDF [3] permanecem como origem documental, não como prova de implantação. | Dashboards produtivos, perfis, downloads, atualização automática, taxas sem denominador e integrações continuam propostas ou pendências. |
-| Governança Corporativa | O JSON preserva os nomes e textos do PDF como baseline documental [3]. | Atribuição de Data Owner e Data Steward continua “a designar pelo parceiro”; a atribuição nominal de Data Custodian/TI também deve ser validada, conforme §6.6. Portanto, os nomes do PDF não confirmam ocupantes atuais desses papéis. Política de acesso, retenção, auditoria e publicação ainda requer aprovação. |
+| Consumo Analítico | O JSON preserva os indicadores, usuários/canais, decisões e riscos preenchidos pelo orientador como baseline documental [3]. | A interpretação de dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanece condicionada às limitações das §§5.6–6.5. |
+| Governança Corporativa | O JSON preserva os nomes e textos preenchidos pelo orientador como baseline documental [3]. | A formalização jurídica e operacional dos papéis ainda deve ser validada pelo parceiro; política de acesso, retenção, auditoria e publicação também requer aprovação antes da produção. |
 | Cubos | O baseline do JSON tinha dois cards vazios. As issues #44–#47 definem quatro recortes: ciclo de vida, adesão e participação, desempenho operacional e qualidade e publicação. | Os quatro modelos foram preenchidos como contratos propostos. As branches das dependências não tinham commits próprios; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro. |
 
 Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON; nenhuma continuação foi reconstruída a partir do TAPI, da Arquitetura de Negócio ou do Problem Canvas. Essa preservação separa o que o artefato recebido efetivamente evidencia do que os demais documentos apenas permitiriam inferir.
