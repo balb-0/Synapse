@@ -467,11 +467,12 @@ _conteúdo_
 
 O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
 ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
-Governança Corporativa e dois cards de cubo. Como não havia exportação JSON
-anterior, Consumo Analítico, Governança Corporativa e os metadados foram
-transcritos conservadoramente do PDF recebido [3]. Os dois cubos continuam
-vazios: C01–C04 da §5.2 são contratos analíticos propostos em outro nível de
-documentação e não substituem os cards do baseline.
+Governança Corporativa e quatro cards de cubo. Negócio e Consumo Analítico
+consolidam os contratos das §§5.6–6.5; Governança Corporativa e os metadados
+preservam o baseline do PDF recebido [3]. A Task 49 substituiu os dois cards
+vazios do baseline pelos quatro cubos definidos nas issues #44–#47. As
+subseções Dados e Governança dos cubos permanecem vazias, conforme o recorte
+desta Sprint.
 
 ### Síntese do negócio
 
@@ -516,14 +517,54 @@ confundir as ferramentas atuais com a arquitetura-alvo:
 0. Encerramento, tabulação e análise — validar e consolidar respostas para produzir indicadores agregados.
 0. Publicação e acervo — entregar resultados autorizados e disponibilizá-los no repositório.
 
+### Síntese do consumo analítico
+
+O consumo analítico conecta perguntas, indicadores e decisões sem presumir que
+os dashboards, perfis ou integrações já estejam implantados. A disponibilidade
+de cada indicador segue a §5.6: **calculável agora** descreve o que o snapshot
+permite calcular, não uma entrega produtiva; **exige normalização ou
+mapeamento** identifica uma regra ou reconciliação pendente; e **depende de
+integração futura** indica que falta uma fonte ou metadado.
+No JSON, os quatro eixos abaixo compactam a matriz detalhada da §5.6 sem mudar
+essas classificações de disponibilidade.
+
+| Eixo de consumo | Indicadores | Usuário e forma de consumo propostos | Decisões apoiadas |
+| :--- | :--- | :--- | :--- |
+| Portfólio e ciclo | I01–I05 calculáveis; I06 aguarda regra de atraso, prioridade e data de referência | Central de Pesquisas e gestores; D01, filtros, detalhe condicionado à autorização e relatório | Priorizar pesquisas, localizar marcos ausentes, comparar durações e avaliar prorrogação sem misturar dias corridos e úteis |
+| Adesão e participação | I07 calculável; I09–I10 exigem reconciliação; I08 e I11 aguardam o universo elegível | Central, áreas técnicas e gestores; D02 e tabelas com numerador, denominador e indisponibilidade | Identificar empresas participantes e públicos com menor participação; taxa de adesão ou engajamento só apoia decisão quando o denominador existir |
+| Resultados e questionários | I12–I14 calculáveis; I15 aguarda versão e decisão de validação | Áreas técnicas, Central e gestores; D03, filtros por questão e resultados agregados | Interpretar distribuições, avaliar a composição do instrumento e verificar validação sem tratar elemento de resposta como pessoa |
+| Qualidade, rastreabilidade e publicação | I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança ainda a designar; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções, investigar órfãos, avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
+
+Os públicos de consumo são distintos. A **Central de Pesquisas** acompanha o
+fluxo operacional; as **áreas técnicas** validam instrumentos e interpretam
+resultados agregados; os **gestores** usam recortes consolidados para priorizar
+portfólio e capacidade; e **solicitantes ou participantes externos** acessam
+apenas resultados autorizados no acervo. Data Owner, Data Steward, Data
+Custodian/TI e auditor são papéis de governança propostos, ainda sem designação
+formal confirmada. Dashboards D01–D04, relatórios, tabelas equivalentes, filtros,
+drill-down agregado e downloads autorizados são formas propostas de consumo;
+os protótipos não comprovam operação produtiva, atualização automática ou
+controle de acesso implantado.
+
+As seguintes decisões permanecem abertas e limitam o consumo:
+
+| Decisão ou risco | Efeito analítico | Estado |
+| :--- | :--- | :--- |
+| Universo de empresas e pessoas convidadas/elegíveis | Sem denominador, I08 e I11 ficam indisponíveis | Pendente de fonte e regra |
+| Fonte autoritativa de participação de mercado | Divergências impedem homologar I09 | Pendente de decisão do parceiro |
+| Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes | Pendente de reconciliação |
+| Timestamp de carga, catálogo, versões, autorização e logs | Limita I15 e I21–I25 | Depende de integração futura |
+| Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação, sem alterar o contrato analítico | Proposta da equipe a validar |
+| Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controles antes de detalhar ou exportar | Risco observado no snapshot e condicionado à governança |
+
 ### Evidência e proposta
 
 | Elemento do canvas | Evidência disponível | Proposta ainda a validar ou implementar |
 | :--- | :--- | :--- |
 | Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [1], [2], [13], [14]. O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
-| Consumo Analítico | O JSON preserva literalmente indicadores, usuários/canais e riscos visíveis no PDF [3], inclusive observações e trechos truncados. | Dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanecem propostas conforme §§5.6–6.5. |
+| Consumo Analítico | A síntese relaciona PB01–PB13, I01–I25 e D01–D04 às decisões e à disponibilidade comprovada nas §§5.6–6.5. Os campos observáveis vêm dos seis CSV; os textos do PDF [3] permanecem como origem documental, não como prova de implantação. | Dashboards produtivos, perfis, downloads, atualização automática, taxas sem denominador e integrações continuam propostas ou pendências. |
 | Governança Corporativa | O JSON preserva os nomes e textos do PDF como baseline documental [3]. | Atribuição de Data Owner e Data Steward continua “a designar pelo parceiro”; a atribuição nominal de Data Custodian/TI também deve ser validada, conforme §6.6. Portanto, os nomes do PDF não confirmam ocupantes atuais desses papéis. Política de acesso, retenção, auditoria e publicação ainda requer aprovação. |
-| Cubos | O PDF mostra dois cards sem modelagem preenchida, reproduzidos vazios no JSON. | C01–C04 da §5.2 descrevem contratos propostos e só devem entrar no canvas após validação específica; não foram copiados para os cubos vazios. |
+| Cubos | O baseline do JSON tinha dois cards vazios. As issues #44–#47 definem quatro recortes: ciclo de vida, adesão e participação, desempenho operacional e qualidade e publicação. | Os quatro modelos foram preenchidos como contratos propostos. As branches das dependências não tinham commits próprios; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro. |
 
 Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON;
 nenhuma continuação foi reconstruída a partir do TAPI, da Arquitetura de
@@ -541,17 +582,24 @@ individual nos painéis.
 
 | ID / cubo | Grão e estrutura | Tipo de fato e eventos | Métricas | Dimensões e dimensões especiais | Disponibilidade |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| C01 — Portfólio e ciclo | Uma linha por `pesquisas.id`; estrela com snapshot acumulado dos marcos disponíveis | Snapshot acumulado; solicitação, aprovação, divulgação, limite, prorrogação e entrega | I01–I06 | Pesquisa (ID e título como degeneradas), período de `data_solicitacao`, tipo, área, complexidade, status e tipo de resposta; marcos ausentes permanecem nulos | Calculável agora para I01–I05; Exige normalização ou mapeamento para I06 |
-| C02 — Participação e representatividade | Uma linha por registro de `respondentes.csv`, sem afirmar unicidade de pessoa; estrela após conciliação | Fato sem medida de participação observada; início e término quando registrados | I07–I11 | Pesquisa por `id_pesq`, empresa por `id_empresa`, cliente por `id_cliente`, cargo e departamento somente após ponte validada; mercado como medida textual a normalizar | Calculável agora para I07; Exige normalização ou mapeamento para I09–I10; Depende de integração futura para I08 e I11 |
-| C03 — Resultados e questionário | Uma linha por elemento atômico de `respostas.id_resposta`, ligada à questão por `id_pergunta`; estrela | Fato transacional de resposta atômica; definição de questão | I12–I15 | Pesquisa por `pesquisa_id`, questão, tipo, alternativa, linha e coluna de matriz; `respondent_id` fica restrito à contagem distinta na própria fonte, sem ponte individual | Calculável agora para I12–I14; Depende de integração futura para I15 |
-| C04 — Qualidade e governança | Uma linha por fonte, campo, regra e execução de perfilamento; propõe-se identificar cada execução por `execution_id`, hashes dos seis arquivos de entrada, `processado_em` e versão do perfilador | Snapshot periódico de validação; recepção, perfilamento, reconciliação, autorização e publicação quando registrados | I16–I25 | Fonte, campo, regra, execução auditável, estado de linhagem, perfil de acesso e decisão do Data Owner; sistema de origem, versão de carga e autorização são dimensões futuras | Calculável agora para I16–I20; Exige normalização ou mapeamento para I22; Depende de integração futura para I21 e I23–I25 |
+| C01 — Ciclo de Vida das Pesquisas | Uma linha por pesquisa, acumulando os marcos observados da solicitação à entrega; estrela | Snapshot acumulado; solicitação, aprovação, divulgação, prazo, prorrogação e entrega | I01–I06 | Pesquisa, papéis de Tempo para cada marco, tipo, área, complexidade, status e tipo de resposta | Calculável agora para I01–I05; I06 depende de regra e data de referência aprovadas |
+| C02 — Adesão e Participação | Uma linha por registro de participação de `respondentes.csv`, sem afirmar unicidade de pessoa; estrela | Fato transacional; participação, início e término registrados | I07–I11 | Pesquisa, Empresa, Tempo, Cargo e Departamento; Cliente/Pessoa somente após conciliação | Calculável agora para I07; I08–I11 dependem de denominador, normalização ou reconciliação |
+| C03 — Desempenho Operacional | Uma linha por intervalo mensurável entre dois marcos de uma etapa de uma pesquisa; estrela | Fato transacional de intervalo concluído; validação, coleta, tabulação e ciclo total | duração, quantidade de intervalos, média e mediana por etapa | Pesquisa, Etapa, papéis de Tempo, tipo, área, complexidade e status | Dias corridos são calculáveis quando os dois marcos existem; dias úteis exigem calendário aprovado |
+| C04 — Qualidade e Publicação | Uma linha por objeto avaliado e regra em cada execução versionada de fotografia; Pesquisa é informada quando aplicável; estrela | Snapshot periódico proposto do estado de qualidade, inconsistência, prorrogação, autorização e publicação | seis métricas: objetos avaliados distintos; objetos afetados distintos; percentual de objetos conformes sobre objetos avaliados; violações abertas por objeto–regra; pesquisas distintas em prorrogação; resultados distintos autorizados/publicados | Execução da fotografia, objeto, regra, fonte, campo e estados de qualidade, prorrogação e publicação; Pesquisa opcional | Qualidade atual sustenta parte das métricas; periodicidade, autorização e publicação dependem de execuções e integrações futuras |
 
-Os fatos C02 e C03 permanecem separados: 3.592 elementos de resposta não podem
-ser convertidos em 3.592 respondentes, e os 542 `respondent_id` distintos em
-`respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem uma
-ponte aprovada. Os quatro `pesquisa_id` 424, 1116, 1139 e 1147 e o `id_pesq=304`
-continuam como chaves de origem em reconciliação, nunca como pesquisas criadas
-artificialmente.
+No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da
+ocorrência registrada. No C04, o mesmo atributo aparece apenas como estado
+avaliado em uma fotografia governada, conforme o recorte pedido pela issue
+#47; ele não cria uma segunda definição de I05. Publicação fica no C04 como
+estado de autorização e disponibilização, enquanto o C01 preserva os marcos
+operacionais até a entrega.
+
+Os quatro cubos não criam uma ponte entre participação e resposta. Os 542
+`respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes
+de `respondentes.csv` sem contrato aprovado. As análises de resultados e
+questionários continuam especificadas no dashboard D03 e nos indicadores
+I12–I15, mas a definição de um cubo próprio permanece uma lacuna da Task 43,
+cuja branch não estava disponível na integração da Task 49.
 
 ## 5.3 Qualidade e Validação de Dados
 
@@ -807,10 +855,10 @@ estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5.
 | PB07 | RF07 | I18, I22 | C04 | D04 |
 | PB08 | RF08 | I25 | C04 | D04 |
 | PB09 | RF09 | I23 | C04 | D04 |
-| PB10 | RF10 | I12, I13 | C03 | D03 |
-| PB11 | RF11 | I12, I13, I18, I22 | C03, C04 | D03, D04 |
+| PB10 | RF10 | I12, I13 | Cubo de resultados pendente da Task 43 | D03 |
+| PB11 | RF11 | I12, I13, I18, I22 | C04; cubo de resultados pendente da Task 43 | D03, D04 |
 | PB12 | RF12 | I17, I19, I21, I24 | C04 | D04 |
-| PB13 | RF13 | I14, I15 | C03 | D03 |
+| PB13 | RF13 | I14, I15 | Cubo de resultados pendente da Task 43 | D03 |
 
 Assim, RF01–RF13 e PB01–PB13 chegam a pelo menos um indicador e um dashboard.
 D01–D04 recebem ao menos um requisito. O cruzamento D03 → D04 em PB11 é uma
@@ -835,18 +883,18 @@ do painel continuam propostas.
 | I01 — Pesquisas no portfólio | Calculável agora | C01 / `pesquisas.csv` | `id` e `data_solicitacao`; 366 registros recebidos |
 | I02 — Distribuição do portfólio | Calculável agora | C01 / `pesquisas.csv` | `tipo`, `area`, `complexidade`, `status` e `tipo de resposta`; nulos ficam explícitos |
 | I03 — Cobertura dos marcos do ciclo | Calculável agora | C01 / `pesquisas.csv` | Seis datas documentadas; ausência por marco já perfilada na §5.3 |
-| I04 — Tempo observado entre marcos | Calculável agora | C01 / `pesquisas.csv` | Diferenças calculadas são dias corridos; campos declarados em dias úteis preservam a convenção original e não são tratados como equivalentes sem calendário confirmado |
-| I05 — Taxa observada de prorrogação | Calculável agora | C01 / `pesquisas.csv` | `prorrogada_ate` presente em 68 de 366 linhas; denominador analítico restringe-se às linhas com `data_limite` |
+| I04 — Tempo observado entre marcos | Calculável agora | C01 e C03 / `pesquisas.csv` | Diferenças calculadas são dias corridos; campos declarados em dias úteis preservam a convenção original e não são tratados como equivalentes sem calendário confirmado |
+| I05 — Taxa observada de prorrogação | Calculável agora | C01 e C04 / `pesquisas.csv` | `prorrogada_ate` presente em 68 de 366 linhas; denominador analítico restringe-se às linhas com `data_limite` |
 | I06 — Pesquisas atrasadas ou prioritárias | Exige normalização ou mapeamento | C01 / regra de negócio + `pesquisas.csv` | Faltam data de referência, elegibilidade de atraso e campo/regra aprovada de prioridade |
 | I07 — Empresas participantes distintas | Calculável agora | C02 / `respondentes.csv` | Contagem distinta de `id_empresa` por `id_pesq`; nulos separados |
 | I08 — Taxa de adesão de empresas | Depende de integração futura | C02 / universo de convites | O snapshot não contém empresas convidadas/elegíveis por pesquisa |
 | I09 — Participação de mercado observada | Exige normalização ou mapeamento | C02 / `respondentes.csv` + `empresas.csv` | `market_share` e `% de mercado` estão em texto; divergência entre fontes bloqueia homologação até definir fonte autoritativa, sem precedência presumida |
 | I10 — Engajamento por público | Exige normalização ou mapeamento | C02 / `respondentes.csv` + `clientes.csv` + `pesquisas.csv` | `id_cliente` tem tipos incompatíveis; 856 vazios e 1 `s/i` em respondentes e 1 `s/i` em clientes viram não informado antes da ponte |
 | I11 — Taxa de engajamento do público | Depende de integração futura | C02 / cadastro de convidados elegíveis | Não existe denominador convidado por área, cargo ou departamento |
-| I12 — Distribuição agregada de respostas | Calculável agora | C03 / `respostas.csv` + `questoes.csv` | Elementos atômicos válidos por alternativa/valor/matriz; 8.307 vazios físicos e dois `NA` em `valor` ficam fora da base válida |
-| I13 — Respondentes distintos na fonte de respostas | Calculável agora | C03 / `respostas.csv` | 542 `respondent_id` distintos na fonte; sem ponte para `respondentes.id_cliente` |
-| I14 — Questões por tipo | Calculável agora | C03 / `questoes.csv` | `id_pergunta`, `pesquisa_id` e `tipo`; 43 questões têm pesquisa ausente em `pesquisas.csv` |
-| I15 — Estado de validação e versão do questionário | Depende de integração futura | C03 / repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
+| I12 — Distribuição agregada de respostas | Calculável agora | Cubo de resultados pendente da Task 43 / `respostas.csv` + `questoes.csv` | Elementos atômicos válidos por alternativa/valor/matriz; 8.307 vazios físicos e dois `NA` em `valor` ficam fora da base válida |
+| I13 — Respondentes distintos na fonte de respostas | Calculável agora | Cubo de resultados pendente da Task 43 / `respostas.csv` | 542 `respondent_id` distintos na fonte; sem ponte para `respondentes.id_cliente` |
+| I14 — Questões por tipo | Calculável agora | Cubo de resultados pendente da Task 43 / `questoes.csv` | `id_pergunta`, `pesquisa_id` e `tipo`; 43 questões têm pesquisa ausente em `pesquisas.csv` |
+| I15 — Estado de validação e versão do questionário | Depende de integração futura | Cubo de resultados pendente da Task 43 / repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
 | I16 — Completude aplicável | Calculável agora | C04 / seis CSV | Ausências por campo e natureza documentadas na §5.3; quatro ausências inesperadas nas 4.008 células de matriz aplicáveis |
 | I17 — Taxa de duplicidade | Calculável agora | C04 / seis CSV | Não foram observadas linhas ou IDs primários duplicados; FKs repetidas não são duplicatas |
 | I18 — Integridade referencial | Calculável agora | C04 / chaves dos seis CSV | Por relação: `respondentes → pesquisas`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes → pesquisas`, 188/231, 43 órfãs (18,6%); `respostas → pesquisas`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas usam os IDs 424, 1116, 1139 e 1147; `s/i` é não informado antes do teste |

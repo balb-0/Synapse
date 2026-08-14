@@ -26,7 +26,7 @@ síntese do grupo seja citada como confirmação do parceiro.
 | dicionário de respostas [[12]](projeto.md#7-referências) | semântica e regras dos nove campos de `respostas.csv` | modelagem quantitativa; §5.3 | Pendente de auditoria primária | arquivo citado não está no checkout; o perfilador exige sua presença |
 | `scripts/data_quality/` | método de perfilamento, regras, manifesto e testes | modelagem quantitativa; §§5.3–5.6 | Observada no código | não autoriza publicação nem substitui a decisão do parceiro |
 | `docs/projeto.md` | síntese consolidada, PB01–PB13, RF01–RF13, I01–I25 e C01–C04 | todos os artefatos | Evidência documental derivada | deve apontar até a origem; não é fonte primária de si próprio |
-| `docs/dmc.json` | schema 1, conteúdo corporativo e estado dos cards | Data Model Canvas | Observada no arquivo | baseline atual possui dois cards de cubo vazios |
+| `docs/dmc.json` | schema 1, conteúdo corporativo e quatro modelos dimensionais | Data Model Canvas | Observada no arquivo | Dados e Governança dos cubos permanecem vazios nesta Sprint |
 | GitLab | escopo das issues, decisões de implementação, commits e revisões | gestão e auditabilidade; issues #1–#3, #8, #9, #21–#25 e #40–#52 | Confirmada no processo do projeto | não confirma fatos do parceiro; a evidência concreta deve citar issue, branch, commit ou MR |
 
 ## Dependências entre artefatos
