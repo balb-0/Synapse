@@ -54,8 +54,8 @@ g05/
 │  ├─ gestao-projeto.md                               # Sprints, riscos e post-mortem
 │  ├─ gestao-configuração.md                          # Políticas de repo, branches e commits
 │  ├─ dev-rules.md                                    # Padrões de código e testes
-│  ├─ assets/                                         # Protótipos de dashboards e imagens
-│  └─ figuras/                                        # Figuras dos documentos
+│  └─ assets/                                         # Protótipos, diagramas e figuras dos documentos
+│     └─ figuras/                                     # Figuras agregadas geradas pela análise quantitativa
 ├─ scripts/
 │  ├─ dmc/                                            # Validação do dmc.json
 │  ├─ data_quality/                                   # Validação da qualidade dos dados
