@@ -1602,20 +1602,35 @@ Para os dashboards e o acervo público, propõem-se as seguintes salvaguardas, a
 - manter `market_share` e outros indicadores comerciais na menor granularidade compatível com a finalidade, validando se uma publicação por empresa é autorizada;
 - bloquear a publicação quando a pergunta, o texto livre ou a combinação de dimensões puder revelar dado pessoal ou sensível, mesmo que os identificadores diretos tenham sido removidos.
 
-### 6.6.5 Acesso, segurança e auditoria
+### 6.6.5 Segurança da informação, acesso e auditoria
 
-O controle de acesso deve seguir menor privilégio, necessidade de conhecer, segregação entre ambientes e revisão periódica. A matriz abaixo é um desenho de referência; nenhum perfil deve ser considerado existente sem comprovação no ambiente correspondente.
+A segurança da informação deve proteger o ciclo da pesquisa sem impedir o trabalho legítimo da Central. Como o projeto trata fontes fragmentadas, respostas individuais, dados de empresas, indicadores comerciais e publicação no acervo, os controles abaixo devem seguir menor privilégio, necessidade de conhecer, segregação entre ambientes, rastreabilidade e revisão periódica. A matriz é um desenho de referência para o projeto; nenhum perfil deve ser considerado existente ou homologado sem comprovação no ambiente correspondente.[<sup>\[1\]</sup>](#7-referências)[<sup>\[3\]</sup>](#7-referências)
 
-| Perfil proposto | Acesso permitido | Restrições e revisão |
+| Perfil proposto | Nível de permissão proposto | Acesso permitido | Restrições e revisão |
+| :--- | :--- | :--- | :--- |
+| Equipe da Central | Operacional interno | Operar pesquisas, acompanhar status e consultar indicadores internos conforme a finalidade aprovada | Sem acesso automático a contatos, respostas sensíveis ou exports completos; revisão periódica pelo Data Owner. |
+| Áreas técnicas | Validação temática | Consultar questionários, metadados e indicadores necessários à validação da área relacionada | Sem exportação de identidade e sem acesso a outra área sem justificativa registrada. |
+| Data Owner | Decisão e aprovação | Aprovar finalidades, perfis, exceções, indicadores, publicação e risco residual | Não substitui custódia técnica; toda decisão deve gerar evidência auditável. |
+| Data Steward ou auditor de dados | Qualidade e rastreabilidade | Consultar catálogo, regras de qualidade, linhagem agregada, anomalias e evidências de processamento | Não deve acessar resposta individual identificável quando a análise agregada for suficiente. |
+| Solicitantes/participantes | Consulta restrita | Acessar resultado aprovado para sua pesquisa, grupo ou finalidade específica | Apenas visão agregada; nenhuma navegação para registros de terceiros. |
+| Público do site | Consulta pública | Acessar acervo expressamente aprovado, anonimizado ou agregado | Sem dados de contato, chaves, respostas individuais ou filtros que desfaçam a agregação. |
+| Custódia técnica | Administração controlada | Administrar infraestrutura, credenciais, integrações, banco, cópias e logs necessários à operação | Acesso emergencial justificado, temporário e auditado; não usar os dados para finalidade própria. |
+| Acadêmico | Artefatos não produtivos | Utilizar documentação, código e dados sintéticos, anonimizados ou agregados aprovados | Sem credenciais de produção, cópia dos CSVs reais ou acesso ao mapeamento de identidade. |
+
+Os controles mínimos de segurança devem ser tratados como critérios de validação antes da entrada em produção:
+
+| Controle | Diretriz para o projeto | Evidência esperada antes da produção |
 | :--- | :--- | :--- |
-| Equipe da Central | Operar pesquisas e indicadores internos conforme a finalidade | Sem acesso automático a contatos ou respostas sensíveis; revisão pelo Data Owner. |
-| Áreas técnicas | Questionários, metadados e indicadores necessários à validação | Sem exportação de identidade e sem acesso a outra área sem justificativa registrada. |
-| Solicitantes/participantes | Resultado aprovado para sua pesquisa ou grupo | Apenas visão agregada; nenhuma navegação para registros de terceiros. |
-| Público do site | Acervo expressamente aprovado e anonimizado/agregado | Sem dados de contato, chaves, respostas individuais ou filtros que desfaçam a agregação. |
-| Custódia técnica | Administração necessária para operar a plataforma | Acesso emergencial justificado, temporário e auditado; não usar os dados para finalidade própria. |
-| Acadêmico | Artefatos sintéticos, anonimizados ou agregados aprovados | Sem credenciais de produção, cópia dos CSVs reais ou acesso ao mapeamento de identidade. |
+| Autenticação e autorização | Cada acesso deve ser individual, autenticado e autorizado por perfil, recurso, ação e finalidade. | Matriz de perfis aprovada, registro de exceções, revogação de desligados e teste de acesso permitido/negado. |
+| Auditoria de acessos | Leituras, exportações, alterações, publicações, falhas e acessos administrativos devem gerar log com usuário, data/hora, operação, recurso, origem e resultado. | Logs protegidos contra alteração, retenção definida, consulta por incidente e evidência de investigação. |
+| Rastreabilidade | Cada dado consumido deve preservar origem, versão, execução, transformação, regra aplicada e decisão de publicação quando existir. | `execution_id` ou identificador equivalente, hashes de entrada, catálogo de fontes, linhagem agregada e estado de reconciliação. |
+| Backups e recuperação | Cópias de segurança devem ter inventário, periodicidade, retenção, criptografia, controle de acesso e teste de restauração. | Política de backup, registro de teste de restauração, prazo de expiração e bloqueio de restauração indevida. |
+| Criptografia e segredos | Dados em trânsito e em repouso devem usar criptografia compatível com a criticidade; chaves, tokens e senhas não podem estar em repositórios ou planilhas. | Configuração de TLS, criptografia do banco/armazenamento, gestão de segredos e varredura do repositório antes de publicação. |
+| Prevenção de vazamentos | Dados reais, e-mails, chaves estáveis, respostas individuais e exports completos não devem ser publicados em GitLab, site acadêmico, dashboards públicos ou acervo sem aprovação. | Revisão humana antes de push/publicação, bloqueio de exports sensíveis, anonimização/agregação e busca por identificadores no diff. |
+| Segregação de ambientes | Ambientes acadêmico, desenvolvimento, homologação e produção devem permanecer separados, com dados reais apenas quando houver decisão documentada do controlador. | Contas, bases, credenciais e permissões separadas; ausência de CSV real no repositório acadêmico. |
+| Monitoramento e incidentes | Falhas de autorização, acessos incomuns, erro de integração e publicação indevida devem acionar registro de ocorrência e triagem. | Procedimento de incidente, responsável definido, trilha de comunicação e referência ao RIPD quando aplicável. |
 
-Como requisitos de projeto a validar, cada acesso deve ser autenticado individualmente, autorizado por recurso e perfil, protegido por credencial adequada e registrado com usuário, data/hora, operação, recurso e resultado. Logs devem ser protegidos contra alteração, ter retenção própria e permitir investigar leitura, exportação, alteração, exclusão e falha de autorização. Revisões de perfis, revogação de desligados, gestão de segredos, criptografia em trânsito e em repouso, testes de restauração de backup e varredura de repositório devem ser evidenciados antes da entrada em produção. O contexto recebido não comprova que esses controles já estejam implementados.
+Esses controles complementam os requisitos RF07, RF08, RF09 e RF12 e os indicadores I21 e I23 a I25, que dependem de política aprovada, logs, metadados de carga, decisões de publicação e validação das integrações. Portanto, dashboards, automações e acervo público devem exibir indisponibilidade ou pendência quando a política de acesso, o log, a origem ou a autorização ainda não estiverem registrados.
 
 ### 6.6.6 Direitos dos titulares e fluxo de atendimento
 
