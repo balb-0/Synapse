@@ -37,6 +37,10 @@
 - [5. Modelagem Dimensional e Cubos OLAP](#5-modelagem-dimensional-e-cubos-olap)
   - [5.1 Visão Geral do Modelo Dimensional (Data Model Canvas)](#51-visão-geral-do-modelo-dimensional-data-model-canvas)
   - [5.2 Cubos Analíticos](#52-cubos-analíticos)
+    - [5.2.1 C01 — Portfólio e Ciclo](#521-c01--portfólio-e-ciclo)
+    - [5.2.2 C02 — Participação e Representatividade](#522-c02--participação-e-representatividade)
+    - [5.2.3 C03 — Resultados e Questionário](#523-c03--resultados-e-questionário)
+    - [5.2.4 C04 — Qualidade e Governança](#524-c04--qualidade-e-governança)
   - [5.3 Qualidade e Validação de Dados](#53-qualidade-e-validação-de-dados)
   - [5.4 Rastreabilidade Analítica](#54-rastreabilidade-analítica)
   - [5.5 Infraestrutura de Dados](#55-infraestrutura-de-dados)
@@ -552,6 +556,348 @@ ser convertidos em 3.592 respondentes, e os 542 `respondent_id` distintos em
 ponte aprovada. Os quatro `pesquisa_id` 424, 1116, 1139 e 1147 e o `id_pesq=304`
 continuam como chaves de origem em reconciliação, nunca como pesquisas criadas
 artificialmente.
+
+### 5.2.1 C01 — Portfólio e Ciclo
+
+Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
+
+O grão do cubo é uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual. A fonte de dados é o arquivo `pesquisas.csv`. O tipo de fato é um acumulador (accumulating snapshot), pois a linha é atualizada conforme a pesquisa avança pelos marcos do ciclo, em vez de gerar uma nova linha a cada evento.  A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p> <b> Diagrama Cubo 1 </b> </p>
+<img src="../docs/assets/prototipos-dashboards/imagens/cubo-01.png" alt="cubo-01" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar no ano inteiro.
+
+**dias_uteis_validacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
+- Aditividade: aditiva
+- Observação: Cobertura de 97,8% das pesquisas
+
+**dias_uteis_coleta**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_limite` ou `prorrogada_ate` menos `data_divulgacao`
+- Aditividade: aditiva
+- Observação: Se existir prorrogação, usa a data prorrogada
+
+**dias_uteis_tabulacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_limite` ou `prorrogada_ate`
+- Aditividade: aditiva
+
+**dias_uteis_ciclo_total**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_solicitacao`
+- Aditividade: não aditiva
+- Observação: O ciclo total é a soma das fases. Somar as quatro métricas causaria dupla contagem. Para agregar o tempo total de ciclo, deve-se usar apenas esta métrica, sem somá-la às fases
+
+**qtd_empresas_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `participantes` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+
+**qtd_respondentes_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `tempo_preenchimento` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pelo mesmo motivo da métrica anterior
+
+**flag_prorrogada**
+- Tipo: booleano (0 ou 1)
+- Fonte ou regra de cálculo: 1 se `prorrogada_ate` não for nulo, 0 caso contrário
+- Aditividade: não é para somar
+- Observação: Usada como filtro, como mostrar apenas prorrogadas
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: Contém atributos da pesquisa como título, objetivos e ano da edição
+
+**sk_data_solicitacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de solicitação. Permite agrupar por mês ou ano de origem
+
+**sk_data_aprovacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de aprovação
+
+**sk_data_divulgacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de divulgação
+
+**sk_data_limite_coleta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite original
+
+**sk_data_prorrogacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite prorrogada, pode ser nula
+
+**sk_data_entrega**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de entrega
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa, coluna `area` do `pesquisas.csv`
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status atual da pesquisa, coluna `status` do `pesquisas.csv`
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa, coluna `tipo` do `pesquisas.csv`
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+**sk_familia**
+- Tabela dimensional: `DIM_FAMILIA_PESQUISA`
+- Descrição: Derivada do título da pesquisa. Permite agrupar edições recorrentes, como "Premiação da Força de Vendas"
+
+**sk_fonte**
+- Tabela dimensional: `DIM_FONTE_DADO`
+- Descrição: Dimensão de linhagem. Indica o sistema de origem
+
+**sk_carga**
+- Tabela dimensional: `DIM_EXECUCAO_CARGA`
+- Descrição: Dimensão de governança. Registra a execução de ETL que carregou a linha
+
+#### Observações
+
+Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
+
+A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+
+A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
+
+Este cubo não armazena dados individuais de respondentes, respeitando a política de k-anonimato e LGPD. O acesso aos dados é controlado por camadas: a camada externa só publica agregações com mais de cinco empresas, e a camada interna mantém o detalhe para a equipe da Central de Pesquisas.
+
+---
+
+### 5.2.2 C02 — Participação e Representatividade
+
+Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um evento de resposta, permitindo análises de adesão, engajamento e representatividade de mercado. O objetivo é responder perguntas como quais empresas participaram, qual a taxa de adesão por área, quem são os respondentes mais frequentes e como a cobertura de mercado evolui.
+
+O grão do cubo é uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual. A fonte de dados principal é o arquivo `respondentes.csv`, complementado por `pesquisas.csv` para a data de divulgação da pesquisa, `clientes.csv` para atributos da pessoa respondente e `empresas.csv` para atributos da empresa. O tipo de fato é uma transação (transaction fact), pois cada linha representa um evento único e não acumula estados. A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p><b>Diagrama Cubo 2</b></p>
+  <img src="../docs/assets/prototipos-dashboards/imagens/cubo-02.png" alt="cubo-02" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar participações no ano inteiro.
+
+**qtd_participacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: sempre 1, pois cada linha é uma participação
+- Aditividade: aditiva
+- Observação: Representa o volume de respostas
+
+**seq_ocorrencia**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: número sequencial para duplicatas de (pesquisa, pessoa). A primeira ocorrência recebe 1, as seguintes 2, 3, etc.
+- Aditividade: não aditiva
+- Observação: Usada como filtro para remover duplicatas, selecionando apenas `seq_ocorrencia = 1` quando necessário
+
+**minutos_preenchimento**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Calculado como a diferença entre `hora_termino` e `hora_inicio`, em minutos
+- Aditividade: aditiva onde existir
+- Observação: Cobertura de aproximadamente 4,3% das linhas, pois muitos registros não possuem ambos os horários preenchidos
+
+**pct_mercado_na_participacao**
+- Tipo: decimal
+- Fonte ou regra de cálculo: Coluna `market_share` do `respondentes.csv` no momento da participação
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da participação, pois representa o share da empresa naquela pesquisa específica. Para agregações, deve-se usar a média ponderada ou o share atual da empresa em `DIM_EMPRESA`
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: A pesquisa respondida. Permite agrupar por título, tipo, área, etc.
+
+**sk_empresa**
+- Tabela dimensional: `DIM_EMPRESA`
+- Descrição: A empresa à qual o respondente pertence. Contém atributos como nome, nacionalidade, cidade, tipo de associado e o share de mercado atual
+
+**sk_pessoa**
+- Tabela dimensional: `DIM_PESSOA`
+- Descrição: O respondente. Contém cargo, departamento, nível hierárquico e agrupamento de departamento (para anonimização). O e-mail é removido por ser um pseudônimo reversível
+
+**sk_data_pesquisa**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data da pesquisa, herdada da data de divulgação da pesquisa (`data_divulgacao`) em `pesquisas.csv`. Esta é a chave temporal primária, com cobertura de 97,8% das participações
+
+**sk_data_resposta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data da resposta, extraída da coluna `hora_inicio` do `respondentes.csv`. É uma chave opcional, com cobertura de aproximadamente 4,3% das linhas, utilizada para análises de sazonalidade ou tempo de preenchimento
+
+#### Observações
+
+O arquivo `respondentes.csv` contém 838 casos de duplicatas onde a mesma pessoa aparece respondendo a mesma pesquisa mais de uma vez. O campo `seq_ocorrencia` foi criado para numerar essas ocorrências. Para análises de respondentes únicos, deve-se filtrar por `seq_ocorrencia = 1`. Isso permite que o cubo suporte tanto a contagem bruta de participações quanto a contagem de pessoas distintas, sem perder dados.
+
+A data da resposta (`hora_inicio`) tem cobertura reduzida, de aproximadamente 4,3%. Por isso, a chave temporal primária é a data da pesquisa (`sk_data_pesquisa`), que é derivada de `data_divulgacao` em `pesquisas.csv` e cobre praticamente todas as participações. A data da resposta fica como um campo opcional para análises específicas de duração.
+
+O campo `minutos_preenchimento`, calculado a partir de `hora_inicio` e `hora_termino`, também tem cobertura baixa, de aproximadamente 4,3%, e deve ser usado com cautela. Para métricas de tempo médio de preenchimento, recomenda-se filtrar apenas as linhas com ambos os campos preenchidos.
+
+A coluna `market_share` em `respondentes.csv` representa o percentual de mercado da empresa no momento da participação. Esse valor pode diferir do campo `% de mercado` em `empresas.csv`, que é o valor atual. Para análises de representatividade histórica, deve-se usar o valor da participação; para análises do perfil atual da empresa, usa-se o valor da dimensão.
+
+A dimensão `DIM_PESSOA` contém cargo e departamento em seus valores brutos, mas esses campos são classificados como restritos. Na camada externa, eles devem ser substituídos por níveis hierárquicos (Diretoria, Gerência, Especialista, Analista, etc.) e agrupamentos de departamento (ex.: Recursos Humanos, Jurídico, etc.), garantindo que nenhuma célula com menos de 5 pessoas seja publicada, conforme a política de k-anonimato. O e-mail foi removido da dimensão por ser um pseudônimo reversível (`cliente<N>@empresa<M>.com`), e nenhum dos relatórios previstos o exige.
+
+Para contagens distintas de empresas ou pessoas, deve-se utilizar as chaves duráveis (`id_empresa_durable` e `id_pessoa_durable`) em vez das chaves substitutas, garantindo que a contagem permaneça correta mesmo que futuramente sejam adotadas versões históricas (SCD2).
+
+---
+
+### 5.2.3 C03 - Resultados e Questionários
+
+Este cubo modela a carga de trabalho da Central de Pesquisas ao longo do tempo. Ele é um instantâneo periódico (periodic snapshot) que registra, ao final de cada mês, quantas pesquisas estavam em cada combinação de status, área, tipo e perfil. O objetivo é responder perguntas como quantas pesquisas estavam em andamento em um determinado mês, qual a evolução do fluxo de entregas e onde ocorrem os gargalos operacionais.
+
+O grão do cubo é uma linha por combinação de mês, status, área, tipo e perfil. A fonte de dados é derivada do Cubo 1, mas com uma limitação importante: não há registro histórico de status anteriores, portanto este cubo só começa a ser alimentado a partir do momento em que o sistema entrar em produção (go-live). O tipo de fato é um instantâneo periódico (periodic snapshot), pois captura o estado do pipeline em um momento específico (o fim de cada mês). A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p><b>Diagrama Cubo 3</b></p>
+  <img src="../docs/assets/prototipos-dashboards/imagens/cubo-03.png" alt="cubo-03" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações. No caso deste cubo, algumas métricas podem ser somadas no tempo, mas não entre status diferentes.
+
+**qtd_pesquisas_no_status**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Contagem de pesquisas que estavam naquele status no último dia do mês
+- Aditividade: semi-aditiva
+- Observação: Pode ser somada ao longo do tempo (ex.: total de pesquisas finalizadas em um ano), mas não pode ser somada entre status diferentes (ex.: "Em andamento" + "Finalizada" não faz sentido)
+
+**qtd_entradas_no_mes**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Quantidade de pesquisas que chegaram àquele status durante o mês
+- Aditividade: aditiva
+- Observação: Representa o fluxo de entrada no status
+
+**qtd_saidas_no_mes**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Quantidade de pesquisas que saíram daquele status durante o mês
+- Aditividade: aditiva
+- Observação: Representa o fluxo de saída do status
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_data_fim_mes**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Último dia do mês. Permite agrupar as métricas por ano, trimestre ou mês
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status da pesquisa no snapshot. Ex.: "Em andamento", "Em tabulação", "Finalizada"
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa. Ex.: "Sindical Trabalhista e RH", "Assuntos Regulatórios"
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa. Ex.: "Solicitação de associado", "Pesquisa fixa anual"
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+#### Observações
+
+Este cubo não possui dados históricos. O backfill não é possível porque os status anteriores nunca foram registrados em nenhuma base disponível. O painel de fluxo mostrará dados apenas a partir do go-live. Isso deve ser comunicado claramente ao cliente.
+
+A métrica `qtd_a_finalizar` foi removida do modelo na revisão adversarial porque, quando calculada como uma agregação sobre múltiplos status, multiplicava o estoque de pesquisas em até sete vezes. No lugar dela, o cálculo de pesquisas a finalizar deve ser feito na camada semântica, utilizando a flag `flag_conta_como_a_finalizar` presente na `DIM_STATUS_PESQUISA`.
+
+A dimensão `DIM_TEMPO` deve ter um papel específico para o último dia do mês (`sk_data_fim_mes`). O grão da `DIM_TEMPO` permanece diário, e esse papel é usado exclusivamente para este cubo.
+
+A dimensão `DIM_STATUS_PESQUISA` deve conter flags que auxiliem na interpretação dos status: `flag_em_aberto`, `flag_conta_como_a_finalizar` e `flag_terminal`. Essas flags permitem que a camada semântica faça cálculos consistentes sem necessidade de hardcode de status no código.
+
+Para o fluxo mensal, recomenda-se que o snapshot seja gerado automaticamente no primeiro dia útil de cada mês, considerando o fechamento do mês anterior. Isso garante que o dado esteja sempre disponível para análises comparativas entre períodos.
+
+---
+
+### 5.2.4 C04 — Qualidade e Governança
+
+### 5.2.4 C04 — Instrumento de Coleta
+
+Este cubo descreve o conteúdo dos questionários, ou seja, quais perguntas foram feitas em cada pesquisa. Ele é um fato de associação (factless fact), pois não possui métricas numéricas tradicionais para somar, mas sim conexões entre dimensões. O objetivo é responder perguntas como quantas perguntas cada pesquisa possui, qual o tipo predominante de questões e quais pesquisas compartilham perguntas semelhantes.
+
+O grão do cubo é uma linha por pergunta em uma pesquisa, totalizando 231 linhas no snapshot atual, cobrindo apenas 10 das 366 pesquisas (aproximadamente 2,7% do acervo). A fonte de dados é o arquivo questoes.csv. O tipo de fato é um fato de associação, pois conecta a pesquisa à pergunta sem armazenar medidas numéricas de soma. A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p><b>Diagrama Cubo 4</b></p>
+  <img src="../docs/assets/prototipos-dashboards/imagens/cubo-04.png" alt="cubo-04" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna Aditividade define se o número pode ser somado em agregações, como somar o número total de perguntas de uma pesquisa.
+
+qtd_pergunta
+- Tipo: inteiro
+- Fonte ou regra de cálculo: sempre 1, pois cada linha representa uma pergunta
+- Aditividade: aditiva
+- Observação: representa o volume de perguntas por pesquisa
+
+qtd_alternativas
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna qtd_alternativas do questoes.csv
+- Aditividade: aditiva
+- Observação: soma total de alternativas de uma pesquisa ou grupo de pesquisas
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+sk_pesquisa
+- Tabela dimensional: DIM_PESQUISA
+- Descrição: a pesquisa que contém a pergunta
+
+sk_pergunta
+- Tabela dimensional: DIM_PERGUNTA
+- Descrição: a pergunta em si. Contém o enunciado, o tipo de questão, o número de alternativas, o formato de arquivo de origem e outras características
+
+sk_data_pesquisa
+- Tabela dimensional: DIM_TEMPO
+- Descrição: data da pesquisa, herdada da data de divulgação (data_divulgacao) em pesquisas.csv. Permite agrupar por ano ou trimestre
+
+#### Observações
+
+O arquivo questoes.csv contém 10 pesquisas distintas, mas quatro delas (IDs 424, 1116, 1139 e 1147) não existem em pesquisas.csv. Para essas quatro pesquisas, a ligação com DIM_PESQUISA é feita por fallback utilizando o título da pesquisa, que apresenta correspondência exata com os títulos da planilha principal. As seis pesquisas restantes (112, 238, 274, 377, 414 e 415) ligam diretamente pelos IDs, cobrindo 188 das 231 linhas (81,4% do arquivo).
+
+A base de questões cobre apenas 2,7% do acervo total de pesquisas (10 de 366). Os relatórios que dependem deste cubo, como o Relatório #07 (Resultados da Pesquisa) e o Relatório #10 (Benchmark Setorial), só funcionarão plenamente para essas 10 pesquisas. Para as demais, os painéis mostrarão "Dados não disponíveis" ou uma mensagem similar, a menos que a extração de questões seja estendida para todo o acervo.
+
+O cubo é um ponto de extensão para um futuro FATO_RESPOSTA. Hoje não há dados de respostas individuais (o que cada respondente escolheu), e os relatórios que dependem desses dados (Resultados da Pesquisa, Benchmark Setorial e Comparativo Anual) estão bloqueados por essa ausência. O modelo está preparado para receber o FATO_RESPOSTA quando os dados forem disponibilizados, sem necessidade de reestruturação.
+
+A dimensão DIM_PERGUNTA contém metadados adicionais que podem ser úteis para análises futuras: o formato do arquivo de origem, a coluna de origem no arquivo bruto e um campo de confiança que indica o nível de certeza sobre a extração da pergunta.
+
+A métrica qtd_alternativas é aditiva e pode ser usada para responder perguntas como "quantas alternativas no total uma pesquisa possui" ou "qual a média de alternativas por pesquisa em um determinado tipo".
+
+
+---
 
 ## 5.3 Qualidade e Validação de Dados
 
