@@ -1,31 +1,76 @@
-<Table>
-  <tr>
-    <td><a href= "link"><img src="img/logo.png" alt="Nome" border="0"></td>
-    <td>
-      <a href= "https://www.inteli.edu.br/"><img src="img/logo-Inteli.png" alt="Inteli - Instituto de Tecnologia e Liderança" border="0"></a>
-    </td>
-  </tr>
-</table>
+# Índice da documentação
 
-# Nome do Projeto: <nome do projeto>
+## Produto e entregáveis
 
-## Nome do Grupo: <nome do grupo>
+| Artefato | Papel |
+| :--- | :--- |
+| [`projeto.md`](projeto.md) | Documento canônico: contexto, arquitetura, modelagem dimensional, requisitos, governança e avaliação |
+| [`dmc.json`](dmc.json) | Exportação do Data Model Canvas para importação na ferramenta oficial |
+| [`fontes-e-dependencias.md`](fontes-e-dependencias.md) | Mapa de fontes, limitações e dependências entre os três entregáveis da Sprint 1 |
+| [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 
+O conteúdo essencial permanece em `projeto.md`. Os arquivos auxiliares existem
+para tornar matrizes extensas auditáveis e reutilizáveis, não para substituir o
+documento principal.
 
-Esta documentação está organizada em diferentes arquivos conforme apresentado abaixo.
+## Evidências e protótipos
 
-### Gestão do Projeto
+| Diretório | Conteúdo |
+| :--- | :--- |
+| [`assets/prototipos-dashboards/`](assets/prototipos-dashboards/) | interface autocontida, agregado sem identificação, testes e capturas dos dashboards D01–D04 |
+| [`../scripts/data_quality/`](../scripts/data_quality/) | manifesto, perfilador, testes e contrato das saídas agregadas |
+| [`../scripts/traceability/`](../scripts/traceability/) | contrato executável PB–RF–indicador–cubo/dashboard e validação da lacuna da Task 43 |
 
-- **gestao-projeto.md**: ESCREVER PARA QUE SERVE O DOC 
+## Documentos de gestão
 
-### Processo de Desenvolvimento de Software
+- [`gestao-configuração.md`](gestao-configuração.md): política de branches, commits, dados sensíveis e configuração.
+- [`gestao-projeto.md`](gestao-projeto.md): acompanhamento e avaliação das sprints.
+- [`dev-rules.md`](dev-rules.md): regras gerais de desenvolvimento.
 
-- **gestao-configuracao.md**: ESCREVER PARA QUE SERVE O DOC
-- **dev-rules.md**: ESCREVER PARA QUE SERVE O DOC
+Esses documentos ainda seguem o template acadêmico onde não houve task
+específica de preenchimento. Eles não são fonte primária de requisitos do
+parceiro.
 
-### Desenvolvimento do Produto
+## Bases e insumos locais
 
-- **projeto.md**: ESCREVER PARA QUE SERVE O DOC
+Os seis CSVs usados na análise ficam fora do Git. A raiz pode conter cópias
+locais ignoradas, mas elas não devem ser movidas para `docs/` nem forçadas para
+versionamento. O perfilador recebe o diretório por argumento, gera somente
+agregados e não modifica a origem.
 
+```bash
+python3 scripts/data_quality/profile_csv.py \
+  --input-dir /caminho/seguro/das-fontes \
+  --output-dir /tmp/perfil-g05 \
+  --dictionary "/caminho/seguro/dicionario.csv"
+```
 
-<p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://github.com/ENDEREÇOGRUPO>"><nome do projeto></a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://github.com/ENDEREÇOGRUPO">INTELI, <aluno1>, <aluno2>, <aluno3>, <aluno4>, <aluno5>, <aluno6></a> is licensed under <a href="http://creativecommons.org/licenses/by/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Attribution 4.0 International<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"></a></p>
+O dicionário e as fontes são obrigatórios para uma reprodução integral. Na
+ausência deles, uma referência documental não deve ser apresentada como teste
+executado.
+
+## Checks
+
+```bash
+jq empty docs/dmc.json
+python3 scripts/dmc/validate_dmc.py docs/dmc.json
+python3 -m unittest discover -s scripts/dmc -p 'test_*.py'
+python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'
+python3 scripts/traceability/validate_traceability.py
+python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
+git diff --check
+```
+
+Para conferir também a identidade e os trechos usados das duas fontes
+primárias externas, execute:
+
+```bash
+python3 scripts/traceability/validate_traceability.py \
+  --sources-dir /caminho/seguro/das-fontes
+```
+
+Os protótipos possuem instruções próprias em
+[`assets/prototipos-dashboards/README.md`](assets/prototipos-dashboards/README.md).
+A suíte de integração depende dos seis CSVs externos e deve receber o diretório
+por `SINDUSFARMA_CSV_DIR`; ausência das fontes produz `skip`, não aprovação do
+gate completo.

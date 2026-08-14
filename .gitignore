@@ -14,6 +14,7 @@
 secrets/
 credentials.json
 service-account*.json
+Ai
 
 # --- Dados sensíveis / LGPD --------------------------------------------------
 # Bases brutas e extrações NÃO vão pro repo. Publicar só dados anonimizados
@@ -31,6 +32,9 @@ data/private/
 *.csv
 *.xlsx
 *.xls
+*.CSV
+*.XLSX
+*.XLS
 
 # --- Node / JS-TS (Jest, Cypress, ESLint) ------------------------------------
 node_modules/

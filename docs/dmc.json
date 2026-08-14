@@ -1,0 +1,404 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "parceiro": "Sindusfarma",
+    "data": "2026-07-31",
+    "versao": "1.0",
+    "grupo": "Grupo 05"
+  },
+  "negocioEConsumo": {
+    "objetivosNegocio": [
+      "Tornar-se referência de dados do setor farmacêutico.",
+      "Aumentar o engajamento e a adesão das indústrias às pesquisas.",
+      "Aprimorar a qualidade e a relevância dos questionários.",
+      "Reduzir o esforço manual e o tempo de entrega das pesquisas.",
+      "Sustentar decisões estratégicas com dados (data-driven).",
+      "Garantir governança, rastreabilidade e conformidade com a LGPD."
+    ],
+    "perguntasNegocio": [
+      "Quantas pesquisas foram realizadas por ano, trimestre ou mês?",
+      "Quantas pesquisas estão em andamento, em tabulação ou em desenvolvimento?",
+      "Qual o volume de pesquisas por tipo e por área?",
+      "Quantas empresas participaram de uma pesquisa específica (ex.: Controle de Jornada)?",
+      "Qual a taxa de adesão por pesquisa e como ela evoluiu?",
+      "Qual foi a variação na adesão de 2025 para 2026 nas pesquisas de RH?",
+      "Quais empresas mais participam e quais menos participam das pesquisas?",
+      "Quais empresas associadas nunca participaram de nenhuma pesquisa?",
+      "Há diferença de adesão entre empresas nacionais e multinacionais?",
+      "De quais pesquisas uma empresa específica participou neste ano?",
+      "Quem é a pessoa mais engajada nas pesquisas de uma área (ex.: Assuntos Regulatórios)?",
+      "Quais cargos e departamentos mais respondem às pesquisas?",
+      "Quantos respondentes únicos a Central engajou no período?",
+      "Quais áreas mais demandam pesquisas e quais têm maior engajamento?",
+      "Quais temas se repetem ao longo dos anos e com que frequência?",
+      "Qual o tempo médio entre a solicitação e a divulgação de uma pesquisa?",
+      "Qual o tempo médio de tabulação e como ele varia por complexidade?",
+      "Quantas pesquisas precisaram de prorrogação de prazo?",
+      "Que percentual do mercado as empresas participantes representam?",
+      "Como evoluiu o volume de pesquisas por área ao longo dos anos?",
+      "A adesão geral às pesquisas está em tendência de alta ou de baixa?",
+      "Quantas pesquisas estão disponíveis no repositório?",
+      "Qual o percentual de registros com campos incompletos ou inválidos?"
+    ],
+    "processosNegocio": [
+      "Solicitação da pesquisa.",
+      "Triagem e aprovação.",
+      "Planejamento (cronograma e questionário).",
+      "Validação técnica.",
+      "Lançamento e divulgação.",
+      "Coleta e monitoramento de respostas.",
+      "Encerramento e validação das respostas.",
+      "Tabulação.",
+      "Divulgação dos resultados e publicação no repositório."
+    ],
+    "indicadoresConsumo": [
+      "Volume de pesquisas por período (total, ano, trimestre, mês, semana).",
+      "Fluxo móvel de pesquisas a finalizar (em tabulação + em andamento + em desenvolvimento + em análise).",
+      "Taxa de adesão por pesquisa, por empresa e por área.",
+      "Variação da adesão entre períodos.",
+      "Tempo médio/mediana de validação (solicitação → divulgação).",
+      "Tempo médio/mediana de coleta (divulgação → encerramento da coleta).",
+      "Tempo médio/mediana de tabulação (encerramento da coleta → entrega).",
+      "Tempo médio/mediana de ciclo total (solicitação → entrega).",
+      "Percentual de pesquisas prorrogadas.",
+      "Nº de respondentes únicos e engajamento por cargo/departamento.",
+      "Representatividade de mercado das participantes.",
+      "Empresas associadas sem nenhuma participação.",
+      "OBS 1) para tempo médio usamos dias úteis;",
+      "OBS 2) as pessoas e empresas que aparecem nos dados disponibilizados são fictícios."
+    ],
+    "usuariosCanais": [
+      "Equipe interna da Central de Pesquisas — data warehouse e dashboards operacionais (uso diário para gestão do fluxo e indicadores).",
+      "Áreas técnicas do Sindusfarma — dashboards e relatórios de adesão/status das pesquisas que validam.",
+      "Solicitantes e participantes externos — repositório público do site para consulta ao acervo e download de resultados."
+    ],
+    "decisoesRiscos": [
+      "Confirmar a plataforma de banco de dados na nuvem.",
+      "Definir o papel do n8n atual (mantido como orquestração ou substituído).",
+      "Definir a política de controle de acesso por perfil de usuário.",
+      "Definir como o repositório público será alimentado automaticamente.",
+      "Dados de origem com campos incompletos/inválidos pode exigir esforço extra de limpeza."
+    ]
+  },
+  "governancaCorporativa": {
+    "owner": "Fabio Moreira.",
+    "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
+    "custodian": "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados na rede interna ou na nuvem do Sindusfarma + empresa RentalHost (fornecedora do sistema interno) para custódia dos dados hospedados no repositório público.",
+    "tecnico": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
+    "lgpd": "Aplicação da LGPD — dados de empresas parceiras e respostas individuais tratados com anonimização; base já anonimizada para uso acadêmico.",
+    "seg": "Controle de acesso por perfil, autenticação de usuários e políticas internas de segurança do Sindusfarma",
+    "comp": "Dados reais restritos ao ambiente interno; repositório público e GitHub do Inteli apenas com dados anonimizados/fictícios.",
+    "etico": "Uso restrito às finalidades das pesquisas setoriais, preservando a confidencialidade de empresas e respondentes.",
+    "catalogo": "Dicionário das entidades e campos (empresas, clientes, pesquisas, respondentes), com descrição, tipo e origem de cada atributo.",
+    "kpis": "% de completude dos campos, % de registros válidos, nº de inconsistências corrigidas etc.",
+    "maturidade": "Evolução do estágio atual (dados fragmentados e manuais) para fonte única, integrada e governada",
+    "evolucao": "Partir do MVP (banco central + um pipeline + dashboard) e expandir para todas as fontes, automação completa da ingestão e integração automática do repositório público."
+  },
+  "cubos": [
+    {
+      "id": "cubo-1",
+      "fields": {
+        "nome": "Ciclo de Vida das Pesquisas",
+        "starSchema": true,
+        "snowflakeSchema": false,
+        "outroSchema": "",
+        "transactionFact": false,
+        "periodicSnapshot": false,
+        "accumulatingSnapshot": true,
+        "bridgeTables": "",
+        "junkDimensions": "",
+        "dimensoesConformadas": "Pesquisa; Tempo",
+        "particionamento": "",
+        "materializacoesAgregacoes": "",
+        "indicesClusteringOrdenacao": "",
+        "queriesCriticas": "",
+        "classificacaoPublico": false,
+        "classificacaoInterno": false,
+        "classificacaoConfidencial": false,
+        "classificacaoRestrito": false,
+        "dadoPessoal": false,
+        "dadoSensivel": false,
+        "dadoCritico": false,
+        "criticidade": "",
+        "perfisAutorizados": "",
+        "controleAcesso": "",
+        "trilhaAuditoria": "",
+        "retencao": "",
+        "arquivamento": "",
+        "descarte": "",
+        "metadadosObrigatorios": "",
+        "kpiQualidade": "",
+        "kpiGovernanca": ""
+      },
+      "lists": {
+        "grao": [
+          "Uma linha por pesquisa, acumulando os marcos observados do ciclo da solicitação à entrega."
+        ],
+        "fatos": [
+          "Solicitação registrada",
+          "Aprovação registrada",
+          "Divulgação registrada",
+          "Prazo definido",
+          "Prorrogação registrada",
+          "Entrega registrada"
+        ],
+        "metricas": [
+          "Quantidade de pesquisas (I01)",
+          "Quantidade e percentual de pesquisas por status (I02)",
+          "Quantidade e percentual de pesquisas com cada marco disponível (I03)",
+          "Duração observada entre marcos, em dias corridos (I04)",
+          "Quantidade e percentual de pesquisas prorrogadas (I05)",
+          "Quantidade de pesquisas atrasadas ou prioritárias, quando regra e data de referência forem aprovadas (I06)"
+        ],
+        "dimensoes": [
+          "Pesquisa",
+          "Tempo, com papéis para solicitação, aprovação, divulgação, prazo, prorrogação e entrega",
+          "Tipo de pesquisa",
+          "Área solicitante",
+          "Complexidade",
+          "Status",
+          "Tipo de resposta"
+        ],
+        "fontes": [
+          ""
+        ],
+        "transformacoes": [
+          ""
+        ],
+        "qualidade": [
+          ""
+        ],
+        "scd": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "cubo-2",
+      "fields": {
+        "nome": "Adesão e Participação",
+        "starSchema": true,
+        "snowflakeSchema": false,
+        "outroSchema": "",
+        "transactionFact": true,
+        "periodicSnapshot": false,
+        "accumulatingSnapshot": false,
+        "bridgeTables": "",
+        "junkDimensions": "",
+        "dimensoesConformadas": "Pesquisa; Empresa; Tempo",
+        "particionamento": "",
+        "materializacoesAgregacoes": "",
+        "indicesClusteringOrdenacao": "",
+        "queriesCriticas": "",
+        "classificacaoPublico": false,
+        "classificacaoInterno": false,
+        "classificacaoConfidencial": false,
+        "classificacaoRestrito": false,
+        "dadoPessoal": false,
+        "dadoSensivel": false,
+        "dadoCritico": false,
+        "criticidade": "",
+        "perfisAutorizados": "",
+        "controleAcesso": "",
+        "trilhaAuditoria": "",
+        "retencao": "",
+        "arquivamento": "",
+        "descarte": "",
+        "metadadosObrigatorios": "",
+        "kpiQualidade": "",
+        "kpiGovernanca": ""
+      },
+      "lists": {
+        "grao": [
+          "Uma linha por registro de participação em respondentes.csv, sem afirmar que o registro representa uma pessoa única."
+        ],
+        "fatos": [
+          "Participação registrada",
+          "Início de participação registrado",
+          "Término de participação registrado"
+        ],
+        "metricas": [
+          "Quantidade de participações observadas (I07)",
+          "Taxa de adesão somente quando o universo elegível estiver disponível (I08)",
+          "Participação de mercado somente após homologação da fonte (I09)",
+          "Quantidade distinta de empresas e clientes conciliados (I10)",
+          "Taxa de engajamento somente quando o universo elegível estiver disponível (I11)"
+        ],
+        "dimensoes": [
+          "Pesquisa",
+          "Empresa",
+          "Cliente ou pessoa, somente após conciliação",
+          "Tempo de início e término",
+          "Cargo",
+          "Departamento"
+        ],
+        "fontes": [
+          ""
+        ],
+        "transformacoes": [
+          ""
+        ],
+        "qualidade": [
+          ""
+        ],
+        "scd": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "cubo-3",
+      "fields": {
+        "nome": "Desempenho Operacional",
+        "starSchema": true,
+        "snowflakeSchema": false,
+        "outroSchema": "",
+        "transactionFact": true,
+        "periodicSnapshot": false,
+        "accumulatingSnapshot": false,
+        "bridgeTables": "",
+        "junkDimensions": "",
+        "dimensoesConformadas": "Pesquisa; Tempo",
+        "particionamento": "",
+        "materializacoesAgregacoes": "",
+        "indicesClusteringOrdenacao": "",
+        "queriesCriticas": "",
+        "classificacaoPublico": false,
+        "classificacaoInterno": false,
+        "classificacaoConfidencial": false,
+        "classificacaoRestrito": false,
+        "dadoPessoal": false,
+        "dadoSensivel": false,
+        "dadoCritico": false,
+        "criticidade": "",
+        "perfisAutorizados": "",
+        "controleAcesso": "",
+        "trilhaAuditoria": "",
+        "retencao": "",
+        "arquivamento": "",
+        "descarte": "",
+        "metadadosObrigatorios": "",
+        "kpiQualidade": "",
+        "kpiGovernanca": ""
+      },
+      "lists": {
+        "grao": [
+          "Uma linha por intervalo mensurável entre dois marcos de uma etapa de uma pesquisa."
+        ],
+        "fatos": [
+          "Intervalo de validação concluído",
+          "Intervalo de coleta concluído",
+          "Intervalo de tabulação concluído",
+          "Intervalo de ciclo total concluído"
+        ],
+        "metricas": [
+          "Duração do intervalo em dias corridos",
+          "Duração declarada em dias úteis, sem conversão quando não houver calendário aprovado",
+          "Quantidade de intervalos válidos",
+          "Média e mediana da duração por etapa e período"
+        ],
+        "dimensoes": [
+          "Pesquisa",
+          "Etapa do processo",
+          "Tempo de início",
+          "Tempo de término",
+          "Tipo de pesquisa",
+          "Área solicitante",
+          "Complexidade",
+          "Status"
+        ],
+        "fontes": [
+          ""
+        ],
+        "transformacoes": [
+          ""
+        ],
+        "qualidade": [
+          ""
+        ],
+        "scd": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "cubo-4",
+      "fields": {
+        "nome": "Qualidade e Publicação",
+        "starSchema": true,
+        "snowflakeSchema": false,
+        "outroSchema": "",
+        "transactionFact": false,
+        "periodicSnapshot": true,
+        "accumulatingSnapshot": false,
+        "bridgeTables": "",
+        "junkDimensions": "",
+        "dimensoesConformadas": "Tempo; Pesquisa (quando aplicável)",
+        "particionamento": "",
+        "materializacoesAgregacoes": "",
+        "indicesClusteringOrdenacao": "",
+        "queriesCriticas": "",
+        "classificacaoPublico": false,
+        "classificacaoInterno": false,
+        "classificacaoConfidencial": false,
+        "classificacaoRestrito": false,
+        "dadoPessoal": false,
+        "dadoSensivel": false,
+        "dadoCritico": false,
+        "criticidade": "",
+        "perfisAutorizados": "",
+        "controleAcesso": "",
+        "trilhaAuditoria": "",
+        "retencao": "",
+        "arquivamento": "",
+        "descarte": "",
+        "metadadosObrigatorios": "",
+        "kpiQualidade": "",
+        "kpiGovernanca": ""
+      },
+      "lists": {
+        "grao": [
+          "Uma linha por objeto avaliado e regra em cada execução versionada de fotografia; Pesquisa é informada quando aplicável."
+        ],
+        "fatos": [
+          "Estado de qualidade na fotografia",
+          "Estado de inconsistência na fotografia",
+          "Estado de prorrogação na fotografia",
+          "Estado de autorização na fotografia",
+          "Estado de publicação na fotografia"
+        ],
+        "metricas": [
+          "Quantidade distinta de objetos avaliados na fotografia",
+          "Quantidade distinta de objetos afetados por ao menos uma regra",
+          "Percentual de objetos conformes = objetos sem violação ÷ objetos avaliados na fotografia",
+          "Quantidade de violações abertas no grão objeto–regra–fotografia",
+          "Quantidade distinta de pesquisas com estado de prorrogação na fotografia, sem substituir I05 do C01",
+          "Quantidade distinta de resultados autorizados e publicados na fotografia"
+        ],
+        "dimensoes": [
+          "Pesquisa, quando aplicável",
+          "Execução da fotografia",
+          "Objeto avaliado",
+          "Regra",
+          "Fonte",
+          "Campo",
+          "Estado de qualidade",
+          "Estado de prorrogação",
+          "Estado de publicação"
+        ],
+        "fontes": [
+          ""
+        ],
+        "transformacoes": [
+          ""
+        ],
+        "qualidade": [
+          ""
+        ],
+        "scd": [
+          ""
+        ]
+      }
+    }
+  ]
+}
