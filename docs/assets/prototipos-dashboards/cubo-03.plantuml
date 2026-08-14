@@ -1,0 +1,67 @@
+@startuml
+
+!define table(x) class x << (T,#FFAAAA) >>
+!define fact(x) class x << (F,#AAFFAA) >>
+
+hide circle
+skinparam classAttributeIconSize 0
+skinparam nodesep 50
+skinparam ranksep 50
+
+table(DIM_TEMPO) {
+  + sk_tempo : PK
+  + data
+  + ano
+  + mes
+  + trimestre
+  + flag_dia_util
+  + flag_ultimo_dia_mes
+}
+
+table(DIM_STATUS_PESQUISA) {
+  + sk_status : PK
+  + nome_status
+  + etapa_ciclo
+  + ordem_fluxo
+  + flag_em_aberto
+  + flag_conta_como_a_finalizar
+  + flag_terminal
+}
+
+table(DIM_AREA) {
+  + sk_area : PK
+  + nome_area
+  + agrupamento_macro
+}
+
+table(DIM_TIPO_PESQUISA) {
+  + sk_tipo : PK
+  + nome_tipo
+  + natureza_origem
+}
+
+table(DIM_PERFIL_PESQUISA) {
+  + sk_perfil : PK
+  + complexidade
+  + tipo_resposta
+}
+
+fact(FATO_PIPELINE_MENSAL) {
+  + sk_data_fim_mes : FK
+  + sk_status : FK
+  + sk_area : FK
+  + sk_tipo : FK
+  + sk_perfil : FK
+  --
+  + qtd_pesquisas_no_status
+  + qtd_entradas_no_mes
+  + qtd_saidas_no_mes
+}
+
+DIM_TEMPO "1" -- "0..n" FATO_PIPELINE_MENSAL : sk_data_fim_mes
+DIM_STATUS_PESQUISA "1" -- "0..n" FATO_PIPELINE_MENSAL : sk_status
+DIM_AREA "1" -- "0..n" FATO_PIPELINE_MENSAL : sk_area
+DIM_TIPO_PESQUISA "1" -- "0..n" FATO_PIPELINE_MENSAL : sk_tipo
+DIM_PERFIL_PESQUISA "1" -- "0..n" FATO_PIPELINE_MENSAL : sk_perfil
+
+@enduml
