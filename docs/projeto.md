@@ -37,6 +37,10 @@
 - [5. Modelagem Dimensional e Cubos OLAP](#5-modelagem-dimensional-e-cubos-olap)
   - [5.1 Visão Geral do Modelo Dimensional (Data Model Canvas)](#51-visão-geral-do-modelo-dimensional-data-model-canvas)
   - [5.2 Cubos Analíticos](#52-cubos-analíticos)
+    - [5.2.1 C01 — Portfólio e Ciclo](#521-c01--portfólio-e-ciclo)
+    - [5.2.2 C02 — Participação e Representatividade](#522-c02--participação-e-representatividade)
+    - [5.2.3 C03 — Resultados e Questionário](#523-c03--resultados-e-questionário)
+    - [5.2.4 C04 — Qualidade e Governança](#524-c04--qualidade-e-governança)
   - [5.3 Qualidade e Validação de Dados](#53-qualidade-e-validação-de-dados)
   - [5.4 Rastreabilidade Analítica](#54-rastreabilidade-analítica)
   - [5.5 Infraestrutura de Dados](#55-infraestrutura-de-dados)
@@ -552,6 +556,230 @@ ser convertidos em 3.592 respondentes, e os 542 `respondent_id` distintos em
 ponte aprovada. Os quatro `pesquisa_id` 424, 1116, 1139 e 1147 e o `id_pesq=304`
 continuam como chaves de origem em reconciliação, nunca como pesquisas criadas
 artificialmente.
+
+### 5.2.1 C01 — Portfólio e Ciclo
+
+Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
+
+O grão do cubo é uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual. A fonte de dados é o arquivo `pesquisas.csv`. O tipo de fato é um acumulador (accumulating snapshot), pois a linha é atualizada conforme a pesquisa avança pelos marcos do ciclo, em vez de gerar uma nova linha a cada evento.  A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p> <b> Diagrama Cubo 1 </b> </p>
+<img src="../docs/assets/prototipos-dashboards/imagens/cubo-01.png" alt="cubo-01" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar no ano inteiro.
+
+**dias_uteis_validacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
+- Aditividade: aditiva
+- Observação: Cobertura de 97,8% das pesquisas
+
+**dias_uteis_coleta**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_limite` ou `prorrogada_ate` menos `data_divulgacao`
+- Aditividade: aditiva
+- Observação: Se existir prorrogação, usa a data prorrogada
+
+**dias_uteis_tabulacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_limite` ou `prorrogada_ate`
+- Aditividade: aditiva
+
+**dias_uteis_ciclo_total**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_solicitacao`
+- Aditividade: não aditiva
+- Observação: O ciclo total é a soma das fases. Somar as quatro métricas causaria dupla contagem. Para agregar o tempo total de ciclo, deve-se usar apenas esta métrica, sem somá-la às fases
+
+**qtd_empresas_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `participantes` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+
+**qtd_respondentes_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `tempo_preenchimento` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pelo mesmo motivo da métrica anterior
+
+**flag_prorrogada**
+- Tipo: booleano (0 ou 1)
+- Fonte ou regra de cálculo: 1 se `prorrogada_ate` não for nulo, 0 caso contrário
+- Aditividade: não é para somar
+- Observação: Usada como filtro, como mostrar apenas prorrogadas
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: Contém atributos da pesquisa como título, objetivos e ano da edição
+
+**sk_data_solicitacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de solicitação. Permite agrupar por mês ou ano de origem
+
+**sk_data_aprovacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de aprovação
+
+**sk_data_divulgacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de divulgação
+
+**sk_data_limite_coleta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite original
+
+**sk_data_prorrogacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite prorrogada, pode ser nula
+
+**sk_data_entrega**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de entrega
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa, coluna `area` do `pesquisas.csv`
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status atual da pesquisa, coluna `status` do `pesquisas.csv`
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa, coluna `tipo` do `pesquisas.csv`
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+**sk_familia**
+- Tabela dimensional: `DIM_FAMILIA_PESQUISA`
+- Descrição: Derivada do título da pesquisa. Permite agrupar edições recorrentes, como "Premiação da Força de Vendas"
+
+**sk_fonte**
+- Tabela dimensional: `DIM_FONTE_DADO`
+- Descrição: Dimensão de linhagem. Indica o sistema de origem
+
+**sk_carga**
+- Tabela dimensional: `DIM_EXECUCAO_CARGA`
+- Descrição: Dimensão de governança. Registra a execução de ETL que carregou a linha
+
+#### Observações
+
+Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
+
+A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+
+A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
+
+Este cubo não armazena dados individuais de respondentes, respeitando a política de k-anonimato e LGPD. O acesso aos dados é controlado por camadas: a camada externa só publica agregações com mais de cinco empresas, e a camada interna mantém o detalhe para a equipe da Central de Pesquisas.
+
+---
+
+### 5.2.2 C02 — Participação e Representatividade
+
+**Objetivo:** Responder perguntas sobre adesão de empresas, alcance e representatividade de mercado.
+
+**Grão e estrutura:** Uma linha por registro de `respondentes.csv`, preservando cada participação observada sem afirmar unicidade de pessoa. Após conciliação, formará estrela com empresa e cliente como dimensões ligadas.
+
+**Tipo de fato e eventos:** Fato sem medida numérica de volume (cada linha *é* uma participação). Eventos disponíveis: `hora_inicio` e `hora_termino` quando registrados.
+
+**Métricas sustentadas:** I07–I11
+- I07: Empresas participantes distintas (contagem por pesquisa)
+- I08: Taxa de adesão de empresas (exige integração futura de convites)
+- I09: Participação de mercado observada (exige normalização)
+- I10: Engajamento por público (contagem por cargo, departamento, área)
+- I11: Taxa de engajamento do público (exige integração futura de universo elegível)
+
+**Dimensões:**
+- **Pesquisa**: por `id_pesq` (888 valores distintos em 18.735 registros)
+- **Empresa**: por `id_empresa` (780 valores em respondentes, associada a 779 empresas em `empresas.csv`)
+- **Cliente**: por `id_cliente` (657 valores em respondentes, 5.430 em clientes.csv), somente após ponte validada
+- **Público**: cargo e departamento, somente após conciliação com clientes
+- **Mercado** (textual a normalizar): `market_share` em respondentes, `% de mercado` em empresas
+
+**Limitações críticas:**
+- 857 registros com `id_cliente` incompleto (856 vazios, 1 `s/i`)
+- 55 registros com `id_pesq=304` sem correspondência em pesquisas.csv
+
+**Disponibilidade:**
+- Calculável agora para I07
+- Exige normalização ou mapeamento para I09–I10
+- Depende de integração futura para I08 e I11
+
+---
+
+### 5.2.3 C03 — Resultados e Questionário
+
+**Objetivo:** Responder perguntas sobre distribuição de respostas, composição de questionários e validação.
+
+**Grão e estrutura:** Uma linha por elemento atômico de `respostas.id_resposta`, ligado à questão por `id_pergunta`. Cada linha representa um elemento indivisível de resposta (uma alternativa selecionada, uma célula de matriz, um item de checkbox), não um questionário completo.
+
+**Tipo de fato e eventos:** Fato transacional que registra cada resposta atômica. Definição da questão é preservada na dimensão como contexto.
+
+**Métricas sustentadas:** I12–I15
+- I12: Distribuição agregada de respostas (% por alternativa, matriz ou valor)
+- I13: Respondentes distintos na fonte de respostas (contagem em `respostas.csv`)
+- I14: Questões por tipo (contagem distinta)
+- I15: Estado de validação e versão do questionário (exige integração futura)
+
+**Dimensões:**
+- **Pesquisa**: por `pesquisa_id` (166 valores em 20.607 respostas)
+- **Questão**: por `id_pergunta` (178 valores), incluindo tipo, quantidade de alternativas
+- **Resposta**: alternativa, linha de matriz, coluna de matriz (estrutura preservada)
+- **Respondente** (restrito): `respondent_id` fica apenas para contagem distinta dentro da própria fonte, sem ponte individual autorizada
+
+**Limitações críticas:**
+- 542 `respondent_id` distintos em respostas.csv não podem ser ligados a clientes sem ponte aprovada
+- 4 `pesquisa_id` (424, 1116, 1139, 1147) sem correspondência em pesquisas.csv (3.592 respostas órfãs)
+- 3.592 elementos de resposta não podem ser convertidos em respondentes
+
+**Disponibilidade:**
+- Calculável agora para I12–I14
+- Depende de integração futura para I15 (versionamento e validação de questionários)
+
+---
+
+### 5.2.4 C04 — Qualidade e Governança
+
+**Objetivo:** Responder perguntas sobre completude de dados, conformidade, linhagem e autorização de publicação.
+
+**Grão e estrutura:** Uma linha por combinação de fonte, campo, regra e execução de perfilamento. Propõe-se identificar cada execução por `execution_id`, hashes dos seis arquivos de entrada, `processado_em` e versão do perfilador.
+
+**Tipo de fato e eventos:** Snapshot periódico de validação que registra estados de recepção, perfilamento, reconciliação, autorização e publicação quando disponíveis.
+
+**Métricas sustentadas:** I16–I25
+- I16–I20: Qualidade de dados (completude, duplicidade, integridade referencial, parseabilidade, divergência)
+- I21: Frescor da fonte (exige integração futura de timestamp)
+- I22: Cobertura da linhagem agregada
+- I23–I25: Publicação, integração e conformidade de acesso (exigem integração futura)
+
+**Dimensões:**
+- **Fonte**: qual CSV e versão da ingestão
+- **Campo**: qual variável foi avaliada
+- **Regra**: qual critério de qualidade foi aplicado
+- **Execução** (auditável): identificador, timestamp, versão do perfilador, integridade de entrada (hashes)
+- **Estado de linhagem**: observado, em reconciliação, proposto
+- **Perfil de acesso**: qual papel pode consultar (Data Steward, auditor, público)
+- **Decisão**: registrada pelo Data Owner (autorizar, bloquear, investigar)
+- **Dimensões futuras**: sistema de origem, versão de carga, autorização de publicação
+
+**Disponibilidade:**
+- Calculável agora para I16–I20 (perfilamento dos seis CSV)
+- Exige normalização ou mapeamento para I22
+- Depende de integração futura para I21, I23–I25 (timestamps, metadados, decisões, auditoria)
+
+---
 
 ## 5.3 Qualidade e Validação de Dados
 
