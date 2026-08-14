@@ -1,25 +1,11 @@
-<Table>
-  <tr>
-    <td><a href= "link"><img src="img/logo.png" alt="Nome" border="0"></td>
-    <td>
-      <a href= "https://www.inteli.edu.br/"><img src="img/logo-Inteli.png" alt="Inteli - Instituto de Tecnologia e Liderança" border="0"></a>
-    </td>
-  </tr>
-</table>
+# Nome do Projeto: Central de Pesquisas do Sindusfarma
 
-# Nome do Projeto: <nome do projeto>
-
-## Nome do Grupo: <nome do grupo>
+## Nome do Grupo: Grupo 05
 
 ## Integrantes:
 
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
-- <a href="https://www.linkedin.com/in/username/">Nome</a>
+A composição e as atribuições do Grupo 05 são mantidas no cadastro do projeto
+no GitLab. Este documento não replica nomes ou perfis sem uma fonte versionada.
 
 # Sumário
 
@@ -27,6 +13,7 @@
   - [1.4 Escopo do Projeto](#14-escopo-do-projeto)
 - [2. Descrição do Problema](#2-descrição-do-problema)
   - [2.1 Fluxo de Valor](#21-fluxo-de-valor)
+  - [2.4 Objetivos Estratégicos Atendidos](#24-objetivos-estratégicos-atendidos)
 - [3. Objetivos](#3-objetivos)
 - [4. Arquitetura de Dados (ISO/IEC 10746)](#4-arquitetura-de-dados-isoiec-10746)
   - [4.0 Estado Atual (AS-IS)](#40-estado-atual-as-is)
@@ -37,6 +24,10 @@
 - [5. Modelagem Dimensional e Cubos OLAP](#5-modelagem-dimensional-e-cubos-olap)
   - [5.1 Visão Geral do Modelo Dimensional (Data Model Canvas)](#51-visão-geral-do-modelo-dimensional-data-model-canvas)
   - [5.2 Cubos Analíticos](#52-cubos-analíticos)
+    - [5.2.1 C01 — Portfólio e Ciclo](#521-c01--portfólio-e-ciclo)
+    - [5.2.2 C02 — Participação e Representatividade](#522-c02--participação-e-representatividade)
+    - [5.2.3 C03 — Resultados e Questionário](#523-c03--resultados-e-questionário)
+    - [5.2.4 C04 — Qualidade e Governança](#524-c04--qualidade-e-governança)
   - [5.3 Qualidade e Validação de Dados](#53-qualidade-e-validação-de-dados)
   - [5.4 Rastreabilidade Analítica](#54-rastreabilidade-analítica)
   - [5.5 Infraestrutura de Dados](#55-infraestrutura-de-dados)
@@ -57,9 +48,13 @@
 
 # 1. Introdução
 
-_conteúdo_
-
-**Nota:** Contextualizar o projeto em uma frase de propósito e apresentar, em alto nível, o que este documento cobre (arquitetura de dados, modelagem dimensional, requisitos, governança e avaliação).
+Este documento especifica a arquitetura de dados proposta para a Central de
+Pesquisas do Sindusfarma. Ele reúne escopo, fluxo de valor, diagnóstico das
+fontes, requisitos, indicadores, dashboards, modelagem dimensional e controles
+de governança. Resultados observados nos CSVs são separados de sínteses
+derivadas e de decisões ainda pendentes; as fontes e limitações de cada bloco
+estão consolidadas na §8.3 e em
+[`docs/fontes-e-dependencias.md`](fontes-e-dependencias.md).
 
 ## 1.4 Escopo do Projeto
 
@@ -116,28 +111,28 @@ implementação, homologação e operação controlada.
 
 # 2. Descrição do Problema
 
-A documentação consolidada atribui ao cenário atual a fragmentação entre
-fontes e etapas, o esforço de cruzamento manual e a baixa rastreabilidade.
-Nesta cópia do repositório, as fontes primárias dessa caracterização estão
-citadas nas referências [1], [2], [13] e [14], mas seus arquivos não estão
-disponíveis para conferência direta. Por isso, essas dores permanecem como
-síntese derivada e pendente de auditoria primária.
+A Central de Pesquisas do Sindusfarma conduz pesquisas setoriais que passam por solicitação, elaboração, validação, divulgação, coleta, tabulação, análise e publicação. O problema central observado é que esse ciclo de vida ainda é sustentado por fontes e ferramentas distribuídas, como planilhas, formulários de coleta, gestão de tarefas, automações pontuais e repositório publicado, sem uma camada integrada de dados que mantenha a mesma pesquisa rastreável do início ao fim.[<sup>\[1\]</sup>](#7-referências)[<sup>\[14\]</sup>](#7-referências)
 
-Os dados permitem confirmar problemas mais específicos: domínios de
-identificadores não coincidentes, relações órfãs, ausência de ponte comprovada
-entre participação e resposta, percentuais textuais e metadados insuficientes
-para alguns indicadores. A matriz completa separa cada dor, causa, impacto,
-necessidade, objetivo, KPI, público, papel e risco em
-[`docs/matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md).
-Ela também indica o artefato de destino e o estado da evidência.
+Essa fragmentação faz com que informações sobre status, participantes, empresas, questionários, respostas, prazos e publicação fiquem espalhadas entre sistemas diferentes. O fluxo atual possui ferramentas consolidadas em cada etapa, mas o único ponto de conexão identificado replica novas solicitações e não consolida nem governa o dado ao longo de todo o processo. Assim, a organização não possui uma visão única, integrada e confiável de todo o ciclo de vida das pesquisas.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)[<sup>\[14\]</sup>](#7-referências)
 
+As principais dores identificadas são:
+
+| Dor do processo atual | Causas relacionadas | Impactos operacionais e estratégicos |
+| :--- | :--- | :--- |
+| Fragmentação das fontes | Dados distribuídos entre planilhas, SurveyMonkey, Trello, repositório do site, sistema interno e automações pontuais | Dificulta a consolidação das informações, aumenta o risco de divergência entre fontes e impede a formação de uma fonte única da verdade |
+| Dependência de planilhas e cruzamentos manuais | Ausência de Data Warehouse corporativo e de pipelines de ingestão cobrindo o ciclo completo da pesquisa | Aumenta o esforço da equipe, torna a atualização dos indicadores mais lenta e reduz o tempo disponível para análise de valor |
+| Baixa rastreabilidade ponta a ponta | Etapas, responsáveis, versões, status e resultados não ficam conectados por uma identidade única de pesquisa | Limita auditoria, dificulta acompanhamento de prioridades e reduz a confiança sobre qual dado sustenta cada decisão |
+| Qualidade inconsistente dos dados | Falta de padronização, campos incompletos, identificadores divergentes e regras de negócio distribuídas | Pode distorcer indicadores de adesão, prazo, representatividade e qualidade, exigindo validações manuais antes da tomada de decisão |
+| Baixa escalabilidade operacional | O crescimento do volume de pesquisas aumenta proporcionalmente a necessidade de conferência, tabulação e atualização manual | Reduz agilidade de entrega, concentra conhecimento operacional em poucas pessoas e limita a evolução para uma gestão orientada por dados |
+
+Essas causas produzem impacto direto na operação da Central de Pesquisas: maior custo de retrabalho, menor agilidade para acompanhar pesquisas em andamento, dificuldade para medir adesão por empresa, área ou perfil de respondente e risco de inconsistência entre o acervo publicado e as informações internas. Do ponto de vista estratégico, a falta de integração compromete a capacidade de identificar tendências históricas, comparar desempenho entre períodos e sustentar decisões com indicadores atualizados e auditáveis.[<sup>\[14\]</sup>](#7-referências)
+
+Portanto, o projeto se justifica pela necessidade de transformar um processo fragmentado e predominantemente manual em uma arquitetura de dados integrada, governada e confiável, capaz de reduzir esforço operacional, melhorar a qualidade dos indicadores e apoiar decisões estratégicas da Central de Pesquisas sem substituir as ferramentas operacionais já utilizadas pelo parceiro. O TAPI [1] confirma que as ferramentas são consolidadas em cada etapa, mas não possuem integração estruturada; o dashboard é atualizado manualmente, o acervo é isolado, não há rastreabilidade automatizada e decisões dependem de cruzamentos em planilhas. A Arquitetura de Negócio [2] confirma a fragmentação ao longo do fluxo. A magnitude de esforço, custo, demora e retrabalho não foi medida nesta Sprint e continua pendente de linha de base operacional.
+
+Os dados permitem confirmar problemas mais específicos: domínios de identificadores não coincidentes, relações órfãs, ausência de ponte comprovada entre participação e resposta, percentuais textuais e metadados insuficientes para alguns indicadores. A matriz completa separa cada dor, causa, impacto, necessidade, objetivo, KPI, público, papel e risco em [`docs/matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md).
 ## 2.1 Fluxo de Valor
 
-O valor central confirmado na Arquitetura de Negócio [2] é **“transformar uma
-necessidade de informação do setor farmacêutico em conhecimento estruturado e
-confiável”**. Rastreabilidade e autorização são condições propostas para que
-esse conhecimento percorra o fluxo sem perder origem nem expor conteúdo
-indevido. As ferramentas aparecem apenas como contexto operacional.
+O valor central confirmado na Arquitetura de Negócio [2] é **“transformar uma necessidade de informação do setor farmacêutico em conhecimento estruturado e confiável”**. Rastreabilidade e autorização são condições propostas para que esse conhecimento percorra o fluxo sem perder origem nem expor conteúdo indevido. As ferramentas aparecem apenas como contexto operacional.
 
 ### Fluxo atual (AS-IS)
 
@@ -192,39 +187,76 @@ O TO-BE é contrato de arquitetura e processo. Ele não prova que pipeline,
 autenticação, data warehouse ou publicação automática já estejam implantados;
 essas fronteiras estão delimitadas na §1.4.
 
+## 2.4 Objetivos Estratégicos Atendidos
+
+O projeto contribui para os objetivos estratégicos da Central de Pesquisas ao transformar um fluxo hoje fragmentado e dependente de consolidações manuais em uma base organizacional mais confiável para acompanhar, analisar e publicar pesquisas setoriais. O valor esperado não está apenas na adoção de uma nova arquitetura técnica, mas na capacidade de melhorar a gestão do ciclo de vida das pesquisas, fortalecer a confiança nos indicadores e apoiar decisões do Sindusfarma com informações rastreáveis.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)[<sup>\[14\]</sup>](#7-referências)
+
+| Objetivo estratégico atendido | Como a solução contribui | Valor organizacional gerado |
+| :--- | :--- | :--- |
+| Aumentar adesão e engajamento das indústrias participantes | Permite acompanhar participação por pesquisa, empresa, área, cargo e departamento, distinguindo contagens observadas de taxas que dependem de denominador validado. | Ajuda a identificar públicos pouco engajados, orientar ações de convite e ampliar a representatividade das pesquisas setoriais. |
+| Reduzir esforço manual e tempo de entrega | Centraliza informações hoje distribuídas entre planilhas, formulários, ferramentas de gestão, automações pontuais e repositório publicado. | Libera a equipe da Central para análise e tomada de decisão, reduzindo retrabalho, conferências manuais e dependência de conhecimento individual. |
+| Apoiar decisões estratégicas com dados confiáveis | Organiza indicadores sobre volume, status, prazos, adesão, representatividade, respostas agregadas e qualidade dos dados. | Dá aos gestores uma visão mais consistente para priorizar demandas, acompanhar desempenho e planejar novas pesquisas com base em evidências. |
+| Estabelecer governança e rastreabilidade ponta a ponta | Mantém a pesquisa como eixo de rastreabilidade, conectando solicitação, planejamento, questionário, coleta, tabulação, análise e publicação. | Aumenta auditabilidade, clareza de responsabilidades e confiança sobre qual fonte sustenta cada indicador ou resultado publicado. |
+| Garantir conformidade com a LGPD e proteção das informações | Prevê separação entre dados internos, dados identificáveis e resultados agregados, além de controle de acesso por perfil e uso de dados anonimizados ou fictícios no contexto acadêmico. | Reduz risco regulatório e protege a confidencialidade de empresas, respondentes e respostas individuais. |
+| Tornar a Central referência em dados do setor farmacêutico | Consolida histórico, metadados, indicadores e resultados autorizados em uma fonte única e governada. | Fortalece o papel do Sindusfarma como entidade capaz de produzir inteligência setorial confiável para a indústria farmacêutica. |
+| Melhorar qualidade e relevância das pesquisas | Usa indicadores de completude, validade, inconsistências e rastreabilidade para orientar melhorias no processo e nos questionários. | Reduz distorções nos dashboards, melhora a interpretação dos resultados e aumenta a utilidade das pesquisas para as áreas técnicas e empresas participantes. |
+| Evoluir para uma cultura orientada por dados | Disponibiliza informações analíticas de forma estruturada para equipe da Central, áreas técnicas e gestores. | Incentiva decisões baseadas em evidências, aprendizado histórico e acompanhamento contínuo dos resultados da operação. |
+
+Assim, a solução atende aos objetivos estratégicos ao conectar melhoria operacional, governança e inteligência de negócio. A Central ganha meios para reduzir manualidade, aumentar confiabilidade, monitorar adesão e publicar resultados com maior consistência, mantendo as ferramentas operacionais existentes como fontes do processo e não como silos isolados.
+
 # 3. Objetivos
 
-**Objetivo geral:** Construir a espinha dorsal de dados da Central de Pesquisas do Sindusfarma — integrando as fontes hoje dispersas (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), centralizando-as em um banco de dados na nuvem e sustentando governança, qualidade e visualização do dado ao longo de todo o ciclo de vida das pesquisas.[<sup>\[1\]</sup>](#7-referências)
+**Objetivo geral confirmado no TAPI:** construir a espinha dorsal de dados da
+Central de Pesquisas do Sindusfarma, integrando as fontes existentes em uma
+base central na nuvem, com governança, qualidade e consumo por data app. Esta
+Sprint especifica parte dessa arquitetura; banco, integrações e operação
+automatizada ainda não são capacidades entregues.[<sup>\[1\]</sup>](#7-referências)
 
-**Objetivos específicos:** cada objetivo traz o valor gerado ao parceiro e o indicador que permite acompanhá-lo (ver seção 6.4 — Indicadores e Métricas de Negócio). A definição parte dos documentos do projeto disponibilizados pela faculdade e pelo parceiro.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)[<sup>\[3\]</sup>](#7-referências)
+**Objetivos específicos:** cada objetivo traz o valor pretendido e o indicador
+que permitiria acompanhá-lo (ver §6.4). Integração, rastreabilidade, redução de
+esforço, adesão, apoio a decisões, governança e LGPD são confirmados no TAPI e
+na Arquitetura de Negócio [1], [2]. Sua implantação e seus resultados ainda
+dependem de medição.
 
 | Objetivo (verbo de ação) | Valor para o parceiro | Como é medido |
 | :--- | :--- | :--- |
-| Integrar as fontes de dados hoje dispersas em um repositório central único | Elimina os cruzamentos manuais entre ferramentas e estabelece uma fonte única da verdade | Percentual de fontes integradas e completude dos registros consolidados |
-| Garantir rastreabilidade ponta a ponta do ciclo de vida da pesquisa, da solicitação à publicação | Auditabilidade e confiabilidade em cada etapa, sem conferência manual | Percentual de pesquisas com todas as etapas do ciclo registradas |
-| Reduzir o esforço manual e o tempo de entrega das pesquisas | Libera a capacidade da equipe da Central para análise em vez de tabulação | Tempo médio, em dias úteis, de validação, coleta, tabulação e do ciclo total |
-| Ampliar a adesão e o engajamento das indústrias participantes | Pesquisas mais representativas e maior relevância setorial | Taxa de adesão por pesquisa e por empresa; número de respondentes únicos no período |
-| Sustentar decisões estratégicas com dashboards operacionais e estratégicos atualizados automaticamente | Visão consolidada e data-driven em tempo real, sem atualização manual do painel | Volume de pesquisas por período e indicadores de status a partir do banco central |
-| Assegurar governança, segurança da informação e conformidade com a LGPD no tratamento de dados de empresas e de respostas individuais | Proteção dos dados dos participantes e conformidade regulatória | Percentual de completude e validade dos campos; cobertura do controle de acesso por perfil |
+| Integrar as fontes de dados hoje dispersas em um repositório central único | Pretende reduzir cruzamentos manuais e manter uma referência compartilhada | I24 somente após existir catálogo versionado e registro de execuções |
+| Garantir rastreabilidade ponta a ponta do ciclo de vida da pesquisa, da solicitação à publicação | Pretende tornar origem, marcos e limitações auditáveis | I18 e I22; a linhagem atual é parcial e possui relações em reconciliação |
+| Reduzir o esforço manual e o tempo de entrega das pesquisas | Pretende liberar capacidade para análise | I04 mede intervalos observáveis; ganho de esforço exige baseline operacional ainda ausente |
+| Ampliar a adesão e o engajamento das indústrias participantes | Pretende apoiar ações sobre participação | I07 é observável; I08 e I11 exigem universo elegível, e identidade não conciliada não representa pessoa única |
+| Sustentar decisões com dashboards operacionais e estratégicos | Pretende oferecer visão consolidada, sem afirmar atualização automática ou em tempo real | I01–I25 conforme disponibilidade da §5.6; frescor depende de I21 e metadado de carga |
+| Assegurar governança, segurança da informação e conformidade no tratamento de dados | Pretende proteger participantes e registrar responsabilidades | I16–I20 são observáveis; I23 e I25 dependem de política, decisão e logs aprovados |
 
 # 4. Arquitetura de Dados (ISO/IEC 10746)
 
-_conteúdo_
-
-**Nota:** Descrever a arquitetura da solução de dados pelos pontos de vista (Viewpoints) da ISO/IEC 10746 (RM-ODP). A §4.0 registra o ponto de partida (AS-IS); as §4.1 a §4.4 descrevem a proposta (TO-BE) e servem de linha de base para a avaliação da §8.
+Esta seção separa o diagnóstico confirmado documentalmente para o cenário atual
+da arquitetura alvo proposta. O AS-IS da §4.0 combina o TAPI e a Arquitetura de
+Negócio auditados [1], [2] com medições reproduzíveis das bases. As §§4.1–4.4
+descrevem contratos de informação, tecnologia, engenharia e qualidade; não
+comprovam infraestrutura implantada.
 
 ## 4.0 Estado Atual (AS-IS)
 
-_conteúdo_
-
-**Nota:** Diagnóstico do cenário atual, com fonte (workshop/entrevista com o parceiro, TAPI, análise das bases). É o ponto de comparação para o TO-BE.
+O estado atual possui duas camadas de evidência. A estrutura, as contagens e os
+problemas de qualidade são observados diretamente nos seis CSVs identificados
+na §5.3.6. O processo, as ferramentas e a ausência de integração são
+confirmados no TAPI e na Arquitetura de Negócio [1], [2]. Detalhes atribuídos
+exclusivamente a JTBD ou Problem Canvas continuam pendentes porque esses
+originais não estão disponíveis.
 
 ### 4.0.1 Fontes de dados e ferramentas atuais
 
-As bases disponibilizadas pelo parceiro são seis arquivos CSV estruturados (separador `;`), somando cerca de 46 mil registros que cobrem o ciclo de vida das pesquisas — da pesquisa e das empresas participantes até o questionário e as respostas coletadas. O quadro abaixo resume as dimensões de cada base; as "colunas úteis" desconsideram colunas vazias remanescentes da exportação.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)
+O workspace contém seis arquivos CSV estruturados (separador `;`), atribuídos
+aos insumos do projeto e identificados pelos hashes da §5.3.6. Eles somam cerca
+de 46 mil registros e representam pesquisa, empresa, pessoa/cliente,
+participação, questão e elemento de resposta. A proveniência e a natureza real
+ou sintética das linhas não podem ser confirmadas sem as fontes primárias; por
+isso, os arquivos permanecem fora do Git. O quadro abaixo resume a estrutura
+observada, e as “colunas úteis” desconsideram colunas vazias remanescentes da
+exportação.
 
 <div align="center">
-<sub>Tabela X - Inventário das bases disponibilizadas</sub><br>
+<sub>Tabela — Inventário das bases disponibilizadas</sub><br>
 
 | Base | Registros | Colunas úteis | Colunas brutas |
 | :--- | ---: | ---: | ---: |
@@ -249,7 +281,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### pesquisas.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de pesquisas.csv</sub><br>
+<sub>Tabela — Estrutura de pesquisas.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -283,7 +315,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### empresas.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de empresas.csv</sub><br>
+<sub>Tabela — Estrutura de empresas.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -304,7 +336,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### clientes.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de clientes.csv</sub><br>
+<sub>Tabela — Estrutura de clientes.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -321,7 +353,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### respondentes.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de respondentes.csv</sub><br>
+<sub>Tabela — Estrutura de respondentes.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -339,7 +371,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### questoes.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de questoes.csv</sub><br>
+<sub>Tabela — Estrutura de questoes.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -364,7 +396,7 @@ Em `pesquisas.csv`, 11 das 33 colunas são resíduos vazios da exportação e fo
 #### respostas.csv
 
 <div align="center">
-<sub>Tabela X - Estrutura de respostas.csv</sub><br>
+<sub>Tabela — Estrutura de respostas.csv</sub><br>
 
 | Campo | Tipo técnico | Tipo semântico |
 | :--- | :--- | :--- |
@@ -390,7 +422,11 @@ Esta subseção detalha limitações organizacionais do AS-IS. A narrativa
 canônica do fluxo de valor, com estados de evidência e comparação com o TO-BE,
 está na §2.1; em caso de divergência, prevalece a qualificação daquela seção.
 
-O fluxo de trabalho atual da Central de Pesquisas percorre ferramentas consolidadas em cada etapa (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), mas sem integração estruturada entre elas: o único ponto de conexão apenas replica novas solicitações, sem consolidar o dado ao longo do ciclo de vida da pesquisa. A seguir estão os principais processos organizacionais impactados pela solução, com a situação atual, as limitações existentes e as melhorias esperadas após a implantação.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)
+O TAPI confirma Excel, SurveyMonkey, Trello, repositório do site e um workflow
+pontual em n8n, sem integração estruturada ao longo do ciclo. A Arquitetura de
+Negócio confirma as dez etapas detalhadas na §2.1 e a necessidade de manter os
+objetos ligados à mesma Pesquisa [1], [2]. A situação alvo da tabela permanece
+uma proposta e não comprova implantação.
 
 - **Solicitação e triagem** — registro e aprovação da demanda de uma nova pesquisa.
 - **Planejamento e validação do questionário** — estruturação das perguntas e revisão técnica com as áreas responsáveis.
@@ -399,15 +435,15 @@ O fluxo de trabalho atual da Central de Pesquisas percorre ferramentas consolida
 - **Publicação e acervo** — entrega dos resultados e disponibilização no repositório.
 
 <div align="center">
-<sub>Tabela X - Processos organizacionais impactados</sub><br>
+<sub>Tabela — Processos organizacionais impactados</sub><br>
 
 | Processo | Situação atual | Limitações existentes | Melhorias esperadas |
 | :--- | :--- | :--- | :--- |
 | Solicitação e triagem | Demanda registrada manualmente e distribuída entre ferramentas isoladas | Sem rastreabilidade da solicitação até o resultado; status disperso | Registro único e rastreável da demanda, com status consolidado |
 | Planejamento e validação do questionário | Questionário estruturado e revisado fora de um repositório central | Versões e validações não ficam ligadas à pesquisa de forma auditável | Perguntas e validações vinculadas à pesquisa, com histórico auditável |
-| Divulgação, coleta e participação | Adesão de empresas e respondentes acompanhada manualmente | Visão fragmentada da participação; difícil medir adesão em tempo real | Participação consolidada e adesão acompanhada em tempo real |
-| Encerramento, tabulação e análise | Respostas consolidadas e cruzadas manualmente em planilhas | Processo lento, sujeito a erro e sem indicadores padronizados | Indicadores calculados automaticamente a partir do banco central |
-| Publicação e acervo | Repositório público atualizado manualmente, isolado do sistema interno | Risco de inconsistência entre o interno e o publicado | Acervo alimentado automaticamente e consistente com o banco central |
+| Divulgação, coleta e participação | Acompanhamento manual atribuído à síntese do AS-IS | Visão fragmentada; o snapshot não contém universo elegível | Participação consolidada, com taxa somente quando houver denominador e atualização registrada |
+| Encerramento, tabulação e análise | Cruzamento manual em planilhas atribuído à síntese do AS-IS | Tempo e erro operacional não foram medidos nesta Sprint | Indicadores reproduzíveis quando fontes, regras e denominadores estiverem disponíveis |
+| Publicação e acervo | Atualização manual e isolamento atribuídos à síntese do AS-IS | Estado, autorização e data de publicação não existem no snapshot | Integração condicionada a autorização, versão, origem e decisão registrada |
 
 <sup>Material produzido pelos autores (2026)</sup>
 
@@ -415,63 +451,88 @@ O fluxo de trabalho atual da Central de Pesquisas percorre ferramentas consolida
 
 ### 4.0.3 Gargalos quantificados
 
-_conteúdo_
-
-**Nota:** Listar dores com números sempre que possível (tempos, custos, retrabalho). Citar a fonte de cada número.
+O perfilamento encontrou 55 participações ligadas ao ID de pesquisa 304, que
+não existe em `pesquisas.csv`; 43 de 231 questões e 3.592 de 20.607 elementos
+de resposta também apontam para pesquisas ausentes no cadastro recebido. Além
+disso, 41 de 188 títulos comparáveis divergem entre `questoes.csv` e
+`pesquisas.csv`. Esses números medem inconsistências do snapshot, não tempo,
+custo ou retrabalho operacional. Não foi recebida uma linha de base confiável
+para quantificar esforço manual ou retorno financeiro nesta Sprint.
 
 ### 4.0.4 Contexto e implicações
 
-_conteúdo_
-
-**Nota:** Registrar restrições, tamanho de time, capacidade e demais fatores que impactam prioridade e ROI da solução.
+As bases brutas permanecem fora do Git por conterem identificadores estáveis,
+e-mail e texto livre. O snapshot não traz universo convidado, timestamp de
+carga, autorização de publicação, logs de acesso ou uma ponte comprovada entre
+participação e resposta. Essas ausências limitam taxas de adesão, frescor,
+linhagem e análises de pessoa. Tamanho de time, capacidade operacional, custo e
+ROI não foram fornecidos em fonte auditável e, portanto, não são estimados.
 
 ### 4.0.5 Síntese para a proposta TO-BE
 
-_conteúdo_
-
 | Pergunta de partida (AS-IS) | Responde em |
 | :--- | :--- |
-| _ | _ |
+| Como preservar a origem e reconciliar IDs divergentes? | §§4.1, 5.3 e 5.6 |
+| Como transformar etapas isoladas em um fluxo rastreável? | §§2.1, 4.3 e 5.2 |
+| Quais indicadores são calculáveis e quais dependem de integração? | §§5.6 e 6.4 |
+| Como limitar acesso, publicação e uso de dados pessoais? | §§4.4 e 6.6 |
+| Como provar cobertura entre perguntas, indicadores e consumo? | §§5.4, 5.7 e 8.3 |
 
 ## 4.1 Visão de Informação (Information Viewpoint)
 
-_conteúdo_
-
-**Nota:** Objetos de negócio, entidades principais, relacionamentos e o modelo conceitual/canônico do dado (base para o Data Model Canvas da §5).
+O vocabulário canônico distingue **Pesquisa**, **Empresa**, **Pessoa/Cliente**,
+**Participação em Pesquisa**, **Questão**, **Elemento de Resposta** e
+**Publicação/Resultado**. Participação não é sinônimo de pessoa, e uma linha de
+`respostas.csv` representa um elemento atômico, não um questionário completo.
+As chaves de origem são preservadas; qualquer identidade canônica ou ponte
+entre `respondent_id` e participação depende de reconciliação aprovada. Os
+grãos, fatos, métricas e dimensões resultantes estão na §5.2.
 
 ## 4.2 Visão de Tecnologia (Technology Viewpoint)
 
-_conteúdo_
-
-**Nota:** Ferramentas e padrões técnicos escolhidos (banco/DW, ferramenta de BI/dashboards, orquestração/ETL, ambiente de nuvem).
+O projeto versiona documentação, scripts de perfilamento, protótipos e o
+`dmc.json`. Banco ou data warehouse, serviço de nuvem, ferramenta de BI,
+orquestrador e mecanismo de autenticação não foram aprovados em fonte
+auditável. Essas escolhas permanecem decisões futuras; os contratos desta
+Sprint evitam depender de um fornecedor específico.
 
 ## 4.3 Visão de Engenharia (Engineering Viewpoint)
 
-_conteúdo_
-
-**Nota:** Mecanismos de execução — pipeline de ingestão/integração, transformações, deduplicação, padronização e isolamento de ambientes.
+A engenharia alvo propõe receber snapshots identificados por hash, validar
+schema e encoding, preservar valores de origem, criar uma camada tipada,
+classificar anomalias, reconciliar identidades e publicar somente agregados
+autorizados. Falhas de schema interrompem a carga; nulos condicionais,
+sentinelas e chaves órfãs seguem regras distintas. O perfilador reproduz a
+etapa de diagnóstico quando as fontes externas estão disponíveis, mas o
+pipeline automatizado ainda não foi implantado.
 
 ## 4.4 Aspectos Não Funcionais
 
-_conteúdo_
-
-**Nota:** Requisitos operacionais da solução (desempenho de consulta, atualização/latência dos dados, disponibilidade, segurança e conformidade). Marcar metas provisórias como aspiracionais até haver medição.
+Os aspectos não funcionais priorizam segurança, rastreabilidade,
+confiabilidade, desempenho de consulta, usabilidade e manutenção. As metas da
+§6.2 são provisórias e precisam de medição sobre uma arquitetura implantada.
+Não há SLA, latência de carga, disponibilidade ou volume futuro confirmados;
+por isso, o documento não promete tempo real nem apresenta meta aspiracional
+como resultado obtido.
 
 # 5. Modelagem Dimensional e Cubos OLAP
 
-_conteúdo_
-
-**Nota:** Consolidar a modelagem dimensional. Onde as tabelas trouxerem estado, usar a coluna **Estado** para separar o que já está **modelado/validado** do que é **proposto**.
+O modelo dimensional traduz perguntas e indicadores em quatro contratos de
+cubo. A §5.2 registra grão, fato, métricas, dimensões e disponibilidade; a §5.3
+documenta o diagnóstico reproduzível; e as §§5.4–5.7 registram cobertura e
+lacunas. “Calculável agora” descreve disponibilidade de campos no snapshot, não
+uma carga de data warehouse já implementada.
 
 ## 5.1 Visão Geral do Modelo Dimensional (Data Model Canvas)
 
 O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
 ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
-Governança Corporativa e dois cards de cubo. Como não havia exportação JSON
-anterior, Consumo Analítico, Governança Corporativa e os metadados foram
-transcritos conservadoramente do PDF recebido [3]. Os dois cubos continuam
-vazios: C01–C04 da §5.2 são contratos analíticos propostos em outro nível de
-documentação e não substituem os cards do baseline.
+Governança Corporativa e quatro cards de cubo. Negócio e Consumo Analítico
+consolidam os contratos das §§5.6–6.5; Governança Corporativa e os metadados
+preservam o baseline do PDF recebido [3]. A Task 49 substituiu os dois cards
+vazios do baseline pelos quatro cubos definidos nas issues #44–#47. As
+subseções Dados e Governança dos cubos permanecem vazias, conforme o recorte
+desta Sprint.
 
 ### Síntese do negócio
 
@@ -516,42 +577,1056 @@ confundir as ferramentas atuais com a arquitetura-alvo:
 0. Encerramento, tabulação e análise — validar e consolidar respostas para produzir indicadores agregados.
 0. Publicação e acervo — entregar resultados autorizados e disponibilizá-los no repositório.
 
+### Síntese do consumo analítico
+
+O consumo analítico conecta perguntas, indicadores e decisões sem presumir que
+os dashboards, perfis ou integrações já estejam implantados. A disponibilidade
+de cada indicador segue a §5.6: **calculável agora** descreve o que o snapshot
+permite calcular, não uma entrega produtiva; **exige normalização ou
+mapeamento** identifica uma regra ou reconciliação pendente; e **depende de
+integração futura** indica que falta uma fonte ou metadado.
+No JSON, os quatro eixos abaixo compactam a matriz detalhada da §5.6 sem mudar
+essas classificações de disponibilidade.
+
+| Eixo de consumo | Indicadores | Usuário e forma de consumo propostos | Decisões apoiadas |
+| :--- | :--- | :--- | :--- |
+| Portfólio e ciclo | I01–I05 calculáveis; I06 aguarda regra de atraso, prioridade e data de referência | Central de Pesquisas e gestores; D01, filtros, detalhe condicionado à autorização e relatório | Priorizar pesquisas, localizar marcos ausentes, comparar durações e avaliar prorrogação sem misturar dias corridos e úteis |
+| Adesão e participação | I07 calculável; I09–I10 exigem reconciliação; I08 e I11 aguardam o universo elegível | Central, áreas técnicas e gestores; D02 e tabelas com numerador, denominador e indisponibilidade | Identificar empresas participantes e públicos com menor participação; taxa de adesão ou engajamento só apoia decisão quando o denominador existir |
+| Resultados e questionários | I12–I14 calculáveis; I15 aguarda versão e decisão de validação | Áreas técnicas, Central e gestores; D03, filtros por questão e resultados agregados | Interpretar distribuições, avaliar a composição do instrumento e verificar validação sem tratar elemento de resposta como pessoa |
+| Qualidade, rastreabilidade e publicação | I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança ainda a designar; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções, investigar órfãos, avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
+
+Os públicos de consumo são distintos. A **Central de Pesquisas** acompanha o
+fluxo operacional; as **áreas técnicas** validam instrumentos e interpretam
+resultados agregados; os **gestores** usam recortes consolidados para priorizar
+portfólio e capacidade; e **solicitantes ou participantes externos** acessam
+apenas resultados autorizados no acervo. Data Owner, Data Steward, Data
+Custodian/TI e auditor são papéis de governança propostos, ainda sem designação
+formal confirmada. Dashboards D01–D04, relatórios, tabelas equivalentes, filtros,
+drill-down agregado e downloads autorizados são formas propostas de consumo;
+os protótipos não comprovam operação produtiva, atualização automática ou
+controle de acesso implantado.
+
+As seguintes decisões permanecem abertas e limitam o consumo:
+
+| Decisão ou risco | Efeito analítico | Estado |
+| :--- | :--- | :--- |
+| Universo de empresas e pessoas convidadas/elegíveis | Sem denominador, I08 e I11 ficam indisponíveis | Pendente de fonte e regra |
+| Fonte autoritativa de participação de mercado | Divergências impedem homologar I09 | Pendente de decisão do parceiro |
+| Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes | Pendente de reconciliação |
+| Timestamp de carga, catálogo, versões, autorização e logs | Limita I15 e I21–I25 | Depende de integração futura |
+| Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação, sem alterar o contrato analítico | Proposta da equipe a validar |
+| Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controles antes de detalhar ou exportar | Risco observado no snapshot e condicionado à governança |
+
 ### Evidência e proposta
 
 | Elemento do canvas | Evidência disponível | Proposta ainda a validar ou implementar |
 | :--- | :--- | :--- |
 | Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [1], [2], [13], [14]. O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
-| Consumo Analítico | O JSON preserva literalmente indicadores, usuários/canais e riscos visíveis no PDF [3], inclusive observações e trechos truncados. | Dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanecem propostas conforme §§5.6–6.5. |
+| Consumo Analítico | A síntese relaciona PB01–PB13, I01–I25 e D01–D04 às decisões e à disponibilidade comprovada nas §§5.6–6.5. Os campos observáveis vêm dos seis CSV; os textos do PDF [3] permanecem como origem documental, não como prova de implantação. | Dashboards produtivos, perfis, downloads, atualização automática, taxas sem denominador e integrações continuam propostas ou pendências. |
 | Governança Corporativa | O JSON preserva os nomes e textos do PDF como baseline documental [3]. | Atribuição de Data Owner e Data Steward continua “a designar pelo parceiro”; a atribuição nominal de Data Custodian/TI também deve ser validada, conforme §6.6. Portanto, os nomes do PDF não confirmam ocupantes atuais desses papéis. Política de acesso, retenção, auditoria e publicação ainda requer aprovação. |
-| Cubos | O PDF mostra dois cards sem modelagem preenchida, reproduzidos vazios no JSON. | C01–C04 da §5.2 descrevem contratos propostos e só devem entrar no canvas após validação específica; não foram copiados para os cubos vazios. |
+| Cubos | O baseline do JSON tinha dois cards vazios. As issues #44–#47 definem quatro recortes: ciclo de vida, adesão e participação, desempenho operacional e qualidade e publicação. | Os quatro modelos foram preenchidos como contratos propostos. As branches das dependências não tinham commits próprios; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro. |
 
-Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON;
-nenhuma continuação foi reconstruída a partir do TAPI, da Arquitetura de
-Negócio ou do Problem Canvas. Essa preservação separa o que o artefato recebido
-efetivamente evidencia do que os demais documentos apenas permitiriam inferir.
+Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON; nenhuma continuação foi reconstruída a partir do TAPI, da Arquitetura de Negócio ou do Problem Canvas. Essa preservação separa o que o artefato recebido efetivamente evidencia do que os demais documentos apenas permitiriam inferir.
 
 ## 5.2 Cubos Analíticos
 
-Os cubos abaixo são contratos analíticos propostos a partir do snapshot dos seis
-CSV. Eles não afirmam a existência de um data warehouse implantado. A estrutura
-em estrela preserva as chaves recebidas como chaves de origem e só admite uma
-chave canônica depois da reconciliação. Dimensões degeneradas mantêm IDs e
-títulos para auditoria; dimensões de perfil não expõem e-mail nem resposta
-individual nos painéis.
+Os cubos abaixo são contratos analíticos propostos a partir do snapshot dos seis CSV. Eles não afirmam a existência de um data warehouse implantado. A estrutura em estrela preserva as chaves recebidas como chaves de origem e só admite uma chave canônica depois da reconciliação. Dimensões degeneradas mantêm IDs e títulos para auditoria; dimensões de perfil não expõem e-mail nem resposta individual nos painéis.
 
 | ID / cubo | Grão e estrutura | Tipo de fato e eventos | Métricas | Dimensões e dimensões especiais | Disponibilidade |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| C01 — Portfólio e ciclo | Uma linha por `pesquisas.id`; estrela com snapshot acumulado dos marcos disponíveis | Snapshot acumulado; solicitação, aprovação, divulgação, limite, prorrogação e entrega | I01–I06 | Pesquisa (ID e título como degeneradas), período de `data_solicitacao`, tipo, área, complexidade, status e tipo de resposta; marcos ausentes permanecem nulos | Calculável agora para I01–I05; Exige normalização ou mapeamento para I06 |
-| C02 — Participação e representatividade | Uma linha por registro de `respondentes.csv`, sem afirmar unicidade de pessoa; estrela após conciliação | Fato sem medida de participação observada; início e término quando registrados | I07–I11 | Pesquisa por `id_pesq`, empresa por `id_empresa`, cliente por `id_cliente`, cargo e departamento somente após ponte validada; mercado como medida textual a normalizar | Calculável agora para I07; Exige normalização ou mapeamento para I09–I10; Depende de integração futura para I08 e I11 |
-| C03 — Resultados e questionário | Uma linha por elemento atômico de `respostas.id_resposta`, ligada à questão por `id_pergunta`; estrela | Fato transacional de resposta atômica; definição de questão | I12–I15 | Pesquisa por `pesquisa_id`, questão, tipo, alternativa, linha e coluna de matriz; `respondent_id` fica restrito à contagem distinta na própria fonte, sem ponte individual | Calculável agora para I12–I14; Depende de integração futura para I15 |
-| C04 — Qualidade e governança | Uma linha por fonte, campo, regra e execução de perfilamento; propõe-se identificar cada execução por `execution_id`, hashes dos seis arquivos de entrada, `processado_em` e versão do perfilador | Snapshot periódico de validação; recepção, perfilamento, reconciliação, autorização e publicação quando registrados | I16–I25 | Fonte, campo, regra, execução auditável, estado de linhagem, perfil de acesso e decisão do Data Owner; sistema de origem, versão de carga e autorização são dimensões futuras | Calculável agora para I16–I20; Exige normalização ou mapeamento para I22; Depende de integração futura para I21 e I23–I25 |
+| C01 — Ciclo de Vida das Pesquisas | Uma linha por pesquisa, acumulando os marcos observados da solicitação à entrega; estrela | Snapshot acumulado; solicitação, aprovação, divulgação, prazo, prorrogação e entrega | I01–I06 | Pesquisa, papéis de Tempo para cada marco, tipo, área, complexidade, status e tipo de resposta | Calculável agora para I01–I05; I06 depende de regra e data de referência aprovadas |
+| C02 — Adesão e Participação | Uma linha por registro de participação de `respondentes.csv`, sem afirmar unicidade de pessoa; estrela | Fato transacional; participação, início e término registrados | I07–I11 | Pesquisa, Empresa, Tempo, Cargo e Departamento; Cliente/Pessoa somente após conciliação | Calculável agora para I07; I08–I11 dependem de denominador, normalização ou reconciliação |
+| C03 — Desempenho Operacional | Uma linha por intervalo mensurável entre dois marcos de uma etapa de uma pesquisa; estrela | Fato transacional de intervalo concluído; validação, coleta, tabulação e ciclo total | duração, quantidade de intervalos, média e mediana por etapa | Pesquisa, Etapa, papéis de Tempo, tipo, área, complexidade e status | Dias corridos são calculáveis quando os dois marcos existem; dias úteis exigem calendário aprovado |
+| C04 — Qualidade e Publicação | Uma linha por objeto avaliado e regra em cada execução versionada de fotografia; Pesquisa é informada quando aplicável; estrela | Snapshot periódico proposto do estado de qualidade, inconsistência, prorrogação, autorização e publicação | seis métricas: objetos avaliados distintos; objetos afetados distintos; percentual de objetos conformes sobre objetos avaliados; violações abertas por objeto–regra; pesquisas distintas em prorrogação; resultados distintos autorizados/publicados | Execução da fotografia, objeto, regra, fonte, campo e estados de qualidade, prorrogação e publicação; Pesquisa opcional | Qualidade atual sustenta parte das métricas; periodicidade, autorização e publicação dependem de execuções e integrações futuras |
 
-Os fatos C02 e C03 permanecem separados: 3.592 elementos de resposta não podem
-ser convertidos em 3.592 respondentes, e os 542 `respondent_id` distintos em
-`respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem uma
-ponte aprovada. Os quatro `pesquisa_id` 424, 1116, 1139 e 1147 e o `id_pesq=304`
-continuam como chaves de origem em reconciliação, nunca como pesquisas criadas
-artificialmente.
+No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da ocorrência registrada. No C04, o mesmo atributo aparece apenas como estado avaliado em uma fotografia governada, conforme o recorte pedido pela issue #47; ele não cria uma segunda definição de I05. Publicação fica no C04 como estado de autorização e disponibilização, enquanto o C01 preserva os marcos operacionais até a entrega.
+
+Os quatro cubos não criam uma ponte entre participação e resposta. Os 542 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem contrato aprovado. As análises de resultados e questionários continuam especificadas no dashboard D03 e nos indicadores I12–I15, mas a definição de um cubo próprio permanece uma lacuna da Task 43, cuja branch não estava disponível na integração da Task 49.
+
+### 5.2.1 C01 — Portfólio e Ciclo
+
+Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
+
+O grão do cubo é uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual. A fonte de dados é o arquivo `pesquisas.csv`. O tipo de fato é um acumulador (accumulating snapshot), pois a linha é atualizada conforme a pesquisa avança pelos marcos do ciclo, em vez de gerar uma nova linha a cada evento.  A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p> <b> Diagrama Cubo 1 </b> </p>
+<img src="../docs/assets/prototipos-dashboards/imagens/cubo-01.png" alt="cubo-01" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar no ano inteiro.
+
+**dias_uteis_validacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
+- Aditividade: aditiva
+- Observação: Cobertura de 97,8% das pesquisas
+
+**dias_uteis_coleta**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_limite` ou `prorrogada_ate` menos `data_divulgacao`
+- Aditividade: aditiva
+- Observação: Se existir prorrogação, usa a data prorrogada
+
+**dias_uteis_tabulacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_limite` ou `prorrogada_ate`
+- Aditividade: aditiva
+
+**dias_uteis_ciclo_total**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_solicitacao`
+- Aditividade: não aditiva
+- Observação: O ciclo total é a soma das fases. Somar as quatro métricas causaria dupla contagem. Para agregar o tempo total de ciclo, deve-se usar apenas esta métrica, sem somá-la às fases
+
+**qtd_empresas_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `participantes` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+
+**qtd_respondentes_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `tempo_preenchimento` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pelo mesmo motivo da métrica anterior
+
+**flag_prorrogada**
+- Tipo: booleano (0 ou 1)
+- Fonte ou regra de cálculo: 1 se `prorrogada_ate` não for nulo, 0 caso contrário
+- Aditividade: não é para somar
+- Observação: Usada como filtro, como mostrar apenas prorrogadas
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: Contém atributos da pesquisa como título, objetivos e ano da edição
+
+**sk_data_solicitacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de solicitação. Permite agrupar por mês ou ano de origem
+
+**sk_data_aprovacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de aprovação
+
+**sk_data_divulgacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de divulgação
+
+**sk_data_limite_coleta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite original
+
+**sk_data_prorrogacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite prorrogada, pode ser nula
+
+**sk_data_entrega**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de entrega
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa, coluna `area` do `pesquisas.csv`
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status atual da pesquisa, coluna `status` do `pesquisas.csv`
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa, coluna `tipo` do `pesquisas.csv`
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+**sk_familia**
+- Tabela dimensional: `DIM_FAMILIA_PESQUISA`
+- Descrição: Derivada do título da pesquisa. Permite agrupar edições recorrentes, como "Premiação da Força de Vendas"
+
+**sk_fonte**
+- Tabela dimensional: `DIM_FONTE_DADO`
+- Descrição: Dimensão de linhagem. Indica o sistema de origem
+
+**sk_carga**
+- Tabela dimensional: `DIM_EXECUCAO_CARGA`
+- Descrição: Dimensão de governança. Registra a execução de ETL que carregou a linha
+
+#### Observações
+
+Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
+
+A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+
+A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
+
+Este cubo não armazena dados individuais de respondentes, respeitando a política de k-anonimato e LGPD. O acesso aos dados é controlado por camadas: a camada externa só publica agregações com mais de cinco empresas, e a camada interna mantém o detalhe para a equipe da Central de Pesquisas.
+
+---
+
+### 5.2.2 C02 — Participação e Representatividade
+
+---
+
+### 5.2.3 C03 — Resultados e Questionário
+
+
+---
+
+### 5.2.4 C04 — Qualidade e Governança
+
+---
+
+### 5.2.1 C01 — Portfólio e Ciclo
+
+Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
+
+O grão do cubo é uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual. A fonte de dados é o arquivo `pesquisas.csv`. O tipo de fato é um acumulador (accumulating snapshot), pois a linha é atualizada conforme a pesquisa avança pelos marcos do ciclo, em vez de gerar uma nova linha a cada evento.  A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p> <b> Diagrama Cubo 1 </b> </p>
+<img src="../docs/assets/prototipos-dashboards/imagens/cubo-01.png" alt="cubo-01" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar no ano inteiro.
+
+**dias_uteis_validacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
+- Aditividade: aditiva
+- Observação: Cobertura de 97,8% das pesquisas
+
+**dias_uteis_coleta**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_limite` ou `prorrogada_ate` menos `data_divulgacao`
+- Aditividade: aditiva
+- Observação: Se existir prorrogação, usa a data prorrogada
+
+**dias_uteis_tabulacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_limite` ou `prorrogada_ate`
+- Aditividade: aditiva
+
+**dias_uteis_ciclo_total**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_solicitacao`
+- Aditividade: não aditiva
+- Observação: O ciclo total é a soma das fases. Somar as quatro métricas causaria dupla contagem. Para agregar o tempo total de ciclo, deve-se usar apenas esta métrica, sem somá-la às fases
+
+**qtd_empresas_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `participantes` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+
+**qtd_respondentes_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `tempo_preenchimento` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pelo mesmo motivo da métrica anterior
+
+**flag_prorrogada**
+- Tipo: booleano (0 ou 1)
+- Fonte ou regra de cálculo: 1 se `prorrogada_ate` não for nulo, 0 caso contrário
+- Aditividade: não é para somar
+- Observação: Usada como filtro, como mostrar apenas prorrogadas
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: Contém atributos da pesquisa como título, objetivos e ano da edição
+
+**sk_data_solicitacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de solicitação. Permite agrupar por mês ou ano de origem
+
+**sk_data_aprovacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de aprovação
+
+**sk_data_divulgacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de divulgação
+
+**sk_data_limite_coleta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite original
+
+**sk_data_prorrogacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite prorrogada, pode ser nula
+
+**sk_data_entrega**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de entrega
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa, coluna `area` do `pesquisas.csv`
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status atual da pesquisa, coluna `status` do `pesquisas.csv`
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa, coluna `tipo` do `pesquisas.csv`
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+**sk_familia**
+- Tabela dimensional: `DIM_FAMILIA_PESQUISA`
+- Descrição: Derivada do título da pesquisa. Permite agrupar edições recorrentes, como "Premiação da Força de Vendas"
+
+**sk_fonte**
+- Tabela dimensional: `DIM_FONTE_DADO`
+- Descrição: Dimensão de linhagem. Indica o sistema de origem
+
+**sk_carga**
+- Tabela dimensional: `DIM_EXECUCAO_CARGA`
+- Descrição: Dimensão de governança. Registra a execução de ETL que carregou a linha
+
+#### Observações
+
+Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
+
+A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+
+A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
+
+Este cubo não armazena dados individuais de respondentes, respeitando a política de k-anonimato e LGPD. O acesso aos dados é controlado por camadas: a camada externa só publica agregações com mais de cinco empresas, e a camada interna mantém o detalhe para a equipe da Central de Pesquisas.
+
+---
+
+### 5.2.2 C02 — Participação e Representatividade
+
+Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um evento de resposta, permitindo análises de adesão, engajamento e representatividade de mercado. O objetivo é responder perguntas como quais empresas participaram, qual a taxa de adesão por área, quem são os respondentes mais frequentes e como a cobertura de mercado evolui.
+
+O grão do cubo é uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual. A fonte de dados principal é o arquivo `respondentes.csv`, complementado por `pesquisas.csv` para a data de divulgação da pesquisa, `clientes.csv` para atributos da pessoa respondente e `empresas.csv` para atributos da empresa. O tipo de fato é uma transação (transaction fact), pois cada linha representa um evento único e não acumula estados. A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p><b>Diagrama Cubo 2</b></p>
+  <img src="../docs/assets/prototipos-dashboards/imagens/cubo-02.png" alt="cubo-02" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar participações no ano inteiro.
+
+**qtd_participacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: sempre 1, pois cada linha é uma participação
+- Aditividade: aditiva
+- Observação: Representa o volume de respostas
+
+**seq_ocorrencia**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: número sequencial para duplicatas de (pesquisa, pessoa). A primeira ocorrência recebe 1, as seguintes 2, 3, etc.
+- Aditividade: não aditiva
+- Observação: Usada como filtro para remover duplicatas, selecionando apenas `seq_ocorrencia = 1` quando necessário
+
+**minutos_preenchimento**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Calculado como a diferença entre `hora_termino` e `hora_inicio`, em minutos
+- Aditividade: aditiva onde existir
+- Observação: Cobertura de aproximadamente 4,3% das linhas, pois muitos registros não possuem ambos os horários preenchidos
+
+**pct_mercado_na_participacao**
+- Tipo: decimal
+- Fonte ou regra de cálculo: Coluna `market_share` do `respondentes.csv` no momento da participação
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da participação, pois representa o share da empresa naquela pesquisa específica. Para agregações, deve-se usar a média ponderada ou o share atual da empresa em `DIM_EMPRESA`
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: A pesquisa respondida. Permite agrupar por título, tipo, área, etc.
+
+**sk_empresa**
+- Tabela dimensional: `DIM_EMPRESA`
+- Descrição: A empresa à qual o respondente pertence. Contém atributos como nome, nacionalidade, cidade, tipo de associado e o share de mercado atual
+
+**sk_pessoa**
+- Tabela dimensional: `DIM_PESSOA`
+- Descrição: O respondente. Contém cargo, departamento, nível hierárquico e agrupamento de departamento (para anonimização). O e-mail é removido por ser um pseudônimo reversível
+
+**sk_data_pesquisa**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data da pesquisa, herdada da data de divulgação da pesquisa (`data_divulgacao`) em `pesquisas.csv`. Esta é a chave temporal primária, com cobertura de 97,8% das participações
+
+**sk_data_resposta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data da resposta, extraída da coluna `hora_inicio` do `respondentes.csv`. É uma chave opcional, com cobertura de aproximadamente 4,3% das linhas, utilizada para análises de sazonalidade ou tempo de preenchimento
+
+#### Observações
+
+O arquivo `respondentes.csv` contém 838 casos de duplicatas onde a mesma pessoa aparece respondendo a mesma pesquisa mais de uma vez. O campo `seq_ocorrencia` foi criado para numerar essas ocorrências. Para análises de respondentes únicos, deve-se filtrar por `seq_ocorrencia = 1`. Isso permite que o cubo suporte tanto a contagem bruta de participações quanto a contagem de pessoas distintas, sem perder dados.
+
+A data da resposta (`hora_inicio`) tem cobertura reduzida, de aproximadamente 4,3%. Por isso, a chave temporal primária é a data da pesquisa (`sk_data_pesquisa`), que é derivada de `data_divulgacao` em `pesquisas.csv` e cobre praticamente todas as participações. A data da resposta fica como um campo opcional para análises específicas de duração.
+
+O campo `minutos_preenchimento`, calculado a partir de `hora_inicio` e `hora_termino`, também tem cobertura baixa, de aproximadamente 4,3%, e deve ser usado com cautela. Para métricas de tempo médio de preenchimento, recomenda-se filtrar apenas as linhas com ambos os campos preenchidos.
+
+A coluna `market_share` em `respondentes.csv` representa o percentual de mercado da empresa no momento da participação. Esse valor pode diferir do campo `% de mercado` em `empresas.csv`, que é o valor atual. Para análises de representatividade histórica, deve-se usar o valor da participação; para análises do perfil atual da empresa, usa-se o valor da dimensão.
+
+A dimensão `DIM_PESSOA` contém cargo e departamento em seus valores brutos, mas esses campos são classificados como restritos. Na camada externa, eles devem ser substituídos por níveis hierárquicos (Diretoria, Gerência, Especialista, Analista, etc.) e agrupamentos de departamento (ex.: Recursos Humanos, Jurídico, etc.), garantindo que nenhuma célula com menos de 5 pessoas seja publicada, conforme a política de k-anonimato. O e-mail foi removido da dimensão por ser um pseudônimo reversível (`cliente<N>@empresa<M>.com`), e nenhum dos relatórios previstos o exige.
+
+Para contagens distintas de empresas ou pessoas, deve-se utilizar as chaves duráveis (`id_empresa_durable` e `id_pessoa_durable`) em vez das chaves substitutas, garantindo que a contagem permaneça correta mesmo que futuramente sejam adotadas versões históricas (SCD2).
+
+---
+
+### 5.2.3 C03 — Resultados e Questionário
+
+
+---
+
+### 5.2.4 C04 — Qualidade e Governança
+
+---
+
+### 5.2.1 C01 — Portfólio e Ciclo
+
+Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
+
+O grão do cubo é uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual. A fonte de dados é o arquivo `pesquisas.csv`. O tipo de fato é um acumulador (accumulating snapshot), pois a linha é atualizada conforme a pesquisa avança pelos marcos do ciclo, em vez de gerar uma nova linha a cada evento.  A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p> <b> Diagrama Cubo 1 </b> </p>
+<img src="../docs/assets/prototipos-dashboards/imagens/cubo-01.png" alt="cubo-01" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar no ano inteiro.
+
+**dias_uteis_validacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
+- Aditividade: aditiva
+- Observação: Cobertura de 97,8% das pesquisas
+
+**dias_uteis_coleta**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_limite` ou `prorrogada_ate` menos `data_divulgacao`
+- Aditividade: aditiva
+- Observação: Se existir prorrogação, usa a data prorrogada
+
+**dias_uteis_tabulacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_limite` ou `prorrogada_ate`
+- Aditividade: aditiva
+
+**dias_uteis_ciclo_total**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_solicitacao`
+- Aditividade: não aditiva
+- Observação: O ciclo total é a soma das fases. Somar as quatro métricas causaria dupla contagem. Para agregar o tempo total de ciclo, deve-se usar apenas esta métrica, sem somá-la às fases
+
+**qtd_empresas_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `participantes` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+
+**qtd_respondentes_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `tempo_preenchimento` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pelo mesmo motivo da métrica anterior
+
+**flag_prorrogada**
+- Tipo: booleano (0 ou 1)
+- Fonte ou regra de cálculo: 1 se `prorrogada_ate` não for nulo, 0 caso contrário
+- Aditividade: não é para somar
+- Observação: Usada como filtro, como mostrar apenas prorrogadas
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: Contém atributos da pesquisa como título, objetivos e ano da edição
+
+**sk_data_solicitacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de solicitação. Permite agrupar por mês ou ano de origem
+
+**sk_data_aprovacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de aprovação
+
+**sk_data_divulgacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de divulgação
+
+**sk_data_limite_coleta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite original
+
+**sk_data_prorrogacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite prorrogada, pode ser nula
+
+**sk_data_entrega**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de entrega
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa, coluna `area` do `pesquisas.csv`
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status atual da pesquisa, coluna `status` do `pesquisas.csv`
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa, coluna `tipo` do `pesquisas.csv`
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+**sk_familia**
+- Tabela dimensional: `DIM_FAMILIA_PESQUISA`
+- Descrição: Derivada do título da pesquisa. Permite agrupar edições recorrentes, como "Premiação da Força de Vendas"
+
+**sk_fonte**
+- Tabela dimensional: `DIM_FONTE_DADO`
+- Descrição: Dimensão de linhagem. Indica o sistema de origem
+
+**sk_carga**
+- Tabela dimensional: `DIM_EXECUCAO_CARGA`
+- Descrição: Dimensão de governança. Registra a execução de ETL que carregou a linha
+
+#### Observações
+
+Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
+
+A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+
+A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
+
+Este cubo não armazena dados individuais de respondentes, respeitando a política de k-anonimato e LGPD. O acesso aos dados é controlado por camadas: a camada externa só publica agregações com mais de cinco empresas, e a camada interna mantém o detalhe para a equipe da Central de Pesquisas.
+
+---
+
+### 5.2.2 C02 — Participação e Representatividade
+
+Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um evento de resposta, permitindo análises de adesão, engajamento e representatividade de mercado. O objetivo é responder perguntas como quais empresas participaram, qual a taxa de adesão por área, quem são os respondentes mais frequentes e como a cobertura de mercado evolui.
+
+O grão do cubo é uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual. A fonte de dados principal é o arquivo `respondentes.csv`, complementado por `pesquisas.csv` para a data de divulgação da pesquisa, `clientes.csv` para atributos da pessoa respondente e `empresas.csv` para atributos da empresa. O tipo de fato é uma transação (transaction fact), pois cada linha representa um evento único e não acumula estados. A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p><b>Diagrama Cubo 2</b></p>
+  <img src="../docs/assets/prototipos-dashboards/imagens/cubo-02.png" alt="cubo-02" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar participações no ano inteiro.
+
+**qtd_participacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: sempre 1, pois cada linha é uma participação
+- Aditividade: aditiva
+- Observação: Representa o volume de respostas
+
+**seq_ocorrencia**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: número sequencial para duplicatas de (pesquisa, pessoa). A primeira ocorrência recebe 1, as seguintes 2, 3, etc.
+- Aditividade: não aditiva
+- Observação: Usada como filtro para remover duplicatas, selecionando apenas `seq_ocorrencia = 1` quando necessário
+
+**minutos_preenchimento**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Calculado como a diferença entre `hora_termino` e `hora_inicio`, em minutos
+- Aditividade: aditiva onde existir
+- Observação: Cobertura de aproximadamente 4,3% das linhas, pois muitos registros não possuem ambos os horários preenchidos
+
+**pct_mercado_na_participacao**
+- Tipo: decimal
+- Fonte ou regra de cálculo: Coluna `market_share` do `respondentes.csv` no momento da participação
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da participação, pois representa o share da empresa naquela pesquisa específica. Para agregações, deve-se usar a média ponderada ou o share atual da empresa em `DIM_EMPRESA`
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: A pesquisa respondida. Permite agrupar por título, tipo, área, etc.
+
+**sk_empresa**
+- Tabela dimensional: `DIM_EMPRESA`
+- Descrição: A empresa à qual o respondente pertence. Contém atributos como nome, nacionalidade, cidade, tipo de associado e o share de mercado atual
+
+**sk_pessoa**
+- Tabela dimensional: `DIM_PESSOA`
+- Descrição: O respondente. Contém cargo, departamento, nível hierárquico e agrupamento de departamento (para anonimização). O e-mail é removido por ser um pseudônimo reversível
+
+**sk_data_pesquisa**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data da pesquisa, herdada da data de divulgação da pesquisa (`data_divulgacao`) em `pesquisas.csv`. Esta é a chave temporal primária, com cobertura de 97,8% das participações
+
+**sk_data_resposta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data da resposta, extraída da coluna `hora_inicio` do `respondentes.csv`. É uma chave opcional, com cobertura de aproximadamente 4,3% das linhas, utilizada para análises de sazonalidade ou tempo de preenchimento
+
+#### Observações
+
+O arquivo `respondentes.csv` contém 838 casos de duplicatas onde a mesma pessoa aparece respondendo a mesma pesquisa mais de uma vez. O campo `seq_ocorrencia` foi criado para numerar essas ocorrências. Para análises de respondentes únicos, deve-se filtrar por `seq_ocorrencia = 1`. Isso permite que o cubo suporte tanto a contagem bruta de participações quanto a contagem de pessoas distintas, sem perder dados.
+
+A data da resposta (`hora_inicio`) tem cobertura reduzida, de aproximadamente 4,3%. Por isso, a chave temporal primária é a data da pesquisa (`sk_data_pesquisa`), que é derivada de `data_divulgacao` em `pesquisas.csv` e cobre praticamente todas as participações. A data da resposta fica como um campo opcional para análises específicas de duração.
+
+O campo `minutos_preenchimento`, calculado a partir de `hora_inicio` e `hora_termino`, também tem cobertura baixa, de aproximadamente 4,3%, e deve ser usado com cautela. Para métricas de tempo médio de preenchimento, recomenda-se filtrar apenas as linhas com ambos os campos preenchidos.
+
+A coluna `market_share` em `respondentes.csv` representa o percentual de mercado da empresa no momento da participação. Esse valor pode diferir do campo `% de mercado` em `empresas.csv`, que é o valor atual. Para análises de representatividade histórica, deve-se usar o valor da participação; para análises do perfil atual da empresa, usa-se o valor da dimensão.
+
+A dimensão `DIM_PESSOA` contém cargo e departamento em seus valores brutos, mas esses campos são classificados como restritos. Na camada externa, eles devem ser substituídos por níveis hierárquicos (Diretoria, Gerência, Especialista, Analista, etc.) e agrupamentos de departamento (ex.: Recursos Humanos, Jurídico, etc.), garantindo que nenhuma célula com menos de 5 pessoas seja publicada, conforme a política de k-anonimato. O e-mail foi removido da dimensão por ser um pseudônimo reversível (`cliente<N>@empresa<M>.com`), e nenhum dos relatórios previstos o exige.
+
+Para contagens distintas de empresas ou pessoas, deve-se utilizar as chaves duráveis (`id_empresa_durable` e `id_pessoa_durable`) em vez das chaves substitutas, garantindo que a contagem permaneça correta mesmo que futuramente sejam adotadas versões históricas (SCD2).
+
+---
+
+### 5.2.3 C03 - Resultados e Questionários
+
+Este cubo modela a carga de trabalho da Central de Pesquisas ao longo do tempo. Ele é um instantâneo periódico (periodic snapshot) que registra, ao final de cada mês, quantas pesquisas estavam em cada combinação de status, área, tipo e perfil. O objetivo é responder perguntas como quantas pesquisas estavam em andamento em um determinado mês, qual a evolução do fluxo de entregas e onde ocorrem os gargalos operacionais.
+
+O grão do cubo é uma linha por combinação de mês, status, área, tipo e perfil. A fonte de dados é derivada do Cubo 1, mas com uma limitação importante: não há registro histórico de status anteriores, portanto este cubo só começa a ser alimentado a partir do momento em que o sistema entrar em produção (go-live). O tipo de fato é um instantâneo periódico (periodic snapshot), pois captura o estado do pipeline em um momento específico (o fim de cada mês). A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p><b>Diagrama Cubo 3</b></p>
+  <img src="../docs/assets/prototipos-dashboards/imagens/cubo-03.png" alt="cubo-03" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações. No caso deste cubo, algumas métricas podem ser somadas no tempo, mas não entre status diferentes.
+
+**qtd_pesquisas_no_status**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Contagem de pesquisas que estavam naquele status no último dia do mês
+- Aditividade: semi-aditiva
+- Observação: Pode ser somada ao longo do tempo (ex.: total de pesquisas finalizadas em um ano), mas não pode ser somada entre status diferentes (ex.: "Em andamento" + "Finalizada" não faz sentido)
+
+**qtd_entradas_no_mes**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Quantidade de pesquisas que chegaram àquele status durante o mês
+- Aditividade: aditiva
+- Observação: Representa o fluxo de entrada no status
+
+**qtd_saidas_no_mes**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Quantidade de pesquisas que saíram daquele status durante o mês
+- Aditividade: aditiva
+- Observação: Representa o fluxo de saída do status
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_data_fim_mes**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Último dia do mês. Permite agrupar as métricas por ano, trimestre ou mês
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status da pesquisa no snapshot. Ex.: "Em andamento", "Em tabulação", "Finalizada"
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa. Ex.: "Sindical Trabalhista e RH", "Assuntos Regulatórios"
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa. Ex.: "Solicitação de associado", "Pesquisa fixa anual"
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+#### Observações
+
+Este cubo não possui dados históricos. O backfill não é possível porque os status anteriores nunca foram registrados em nenhuma base disponível. O painel de fluxo mostrará dados apenas a partir do go-live. Isso deve ser comunicado claramente ao cliente.
+
+A métrica `qtd_a_finalizar` foi removida do modelo na revisão adversarial porque, quando calculada como uma agregação sobre múltiplos status, multiplicava o estoque de pesquisas em até sete vezes. No lugar dela, o cálculo de pesquisas a finalizar deve ser feito na camada semântica, utilizando a flag `flag_conta_como_a_finalizar` presente na `DIM_STATUS_PESQUISA`.
+
+A dimensão `DIM_TEMPO` deve ter um papel específico para o último dia do mês (`sk_data_fim_mes`). O grão da `DIM_TEMPO` permanece diário, e esse papel é usado exclusivamente para este cubo.
+
+A dimensão `DIM_STATUS_PESQUISA` deve conter flags que auxiliem na interpretação dos status: `flag_em_aberto`, `flag_conta_como_a_finalizar` e `flag_terminal`. Essas flags permitem que a camada semântica faça cálculos consistentes sem necessidade de hardcode de status no código.
+
+Para o fluxo mensal, recomenda-se que o snapshot seja gerado automaticamente no primeiro dia útil de cada mês, considerando o fechamento do mês anterior. Isso garante que o dado esteja sempre disponível para análises comparativas entre períodos.
+
+---
+
+### 5.2.4 C04 — Qualidade e Governança
+
+---
+
+### 5.2.1 C01 — Portfólio e Ciclo
+
+Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
+
+O grão do cubo é uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual. A fonte de dados é o arquivo `pesquisas.csv`. O tipo de fato é um acumulador (accumulating snapshot), pois a linha é atualizada conforme a pesquisa avança pelos marcos do ciclo, em vez de gerar uma nova linha a cada evento.  A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p> <b> Diagrama Cubo 1 </b> </p>
+<img src="../docs/assets/prototipos-dashboards/imagens/cubo-01.png" alt="cubo-01" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar no ano inteiro.
+
+**dias_uteis_validacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
+- Aditividade: aditiva
+- Observação: Cobertura de 97,8% das pesquisas
+
+**dias_uteis_coleta**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_limite` ou `prorrogada_ate` menos `data_divulgacao`
+- Aditividade: aditiva
+- Observação: Se existir prorrogação, usa a data prorrogada
+
+**dias_uteis_tabulacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_limite` ou `prorrogada_ate`
+- Aditividade: aditiva
+
+**dias_uteis_ciclo_total**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_solicitacao`
+- Aditividade: não aditiva
+- Observação: O ciclo total é a soma das fases. Somar as quatro métricas causaria dupla contagem. Para agregar o tempo total de ciclo, deve-se usar apenas esta métrica, sem somá-la às fases
+
+**qtd_empresas_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `participantes` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+
+**qtd_respondentes_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `tempo_preenchimento` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pelo mesmo motivo da métrica anterior
+
+**flag_prorrogada**
+- Tipo: booleano (0 ou 1)
+- Fonte ou regra de cálculo: 1 se `prorrogada_ate` não for nulo, 0 caso contrário
+- Aditividade: não é para somar
+- Observação: Usada como filtro, como mostrar apenas prorrogadas
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: Contém atributos da pesquisa como título, objetivos e ano da edição
+
+**sk_data_solicitacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de solicitação. Permite agrupar por mês ou ano de origem
+
+**sk_data_aprovacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de aprovação
+
+**sk_data_divulgacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de divulgação
+
+**sk_data_limite_coleta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite original
+
+**sk_data_prorrogacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite prorrogada, pode ser nula
+
+**sk_data_entrega**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de entrega
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa, coluna `area` do `pesquisas.csv`
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status atual da pesquisa, coluna `status` do `pesquisas.csv`
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa, coluna `tipo` do `pesquisas.csv`
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+**sk_familia**
+- Tabela dimensional: `DIM_FAMILIA_PESQUISA`
+- Descrição: Derivada do título da pesquisa. Permite agrupar edições recorrentes, como "Premiação da Força de Vendas"
+
+**sk_fonte**
+- Tabela dimensional: `DIM_FONTE_DADO`
+- Descrição: Dimensão de linhagem. Indica o sistema de origem
+
+**sk_carga**
+- Tabela dimensional: `DIM_EXECUCAO_CARGA`
+- Descrição: Dimensão de governança. Registra a execução de ETL que carregou a linha
+
+#### Observações
+
+Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
+
+A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+
+A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
+
+Este cubo não armazena dados individuais de respondentes, respeitando a política de k-anonimato e LGPD. O acesso aos dados é controlado por camadas: a camada externa só publica agregações com mais de cinco empresas, e a camada interna mantém o detalhe para a equipe da Central de Pesquisas.
+
+---
+
+### 5.2.2 C02 — Participação e Representatividade
+
+Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um evento de resposta, permitindo análises de adesão, engajamento e representatividade de mercado. O objetivo é responder perguntas como quais empresas participaram, qual a taxa de adesão por área, quem são os respondentes mais frequentes e como a cobertura de mercado evolui.
+
+O grão do cubo é uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual. A fonte de dados principal é o arquivo `respondentes.csv`, complementado por `pesquisas.csv` para a data de divulgação da pesquisa, `clientes.csv` para atributos da pessoa respondente e `empresas.csv` para atributos da empresa. O tipo de fato é uma transação (transaction fact), pois cada linha representa um evento único e não acumula estados. A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p><b>Diagrama Cubo 2</b></p>
+  <img src="../docs/assets/prototipos-dashboards/imagens/cubo-02.png" alt="cubo-02" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar participações no ano inteiro.
+
+**qtd_participacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: sempre 1, pois cada linha é uma participação
+- Aditividade: aditiva
+- Observação: Representa o volume de respostas
+
+**seq_ocorrencia**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: número sequencial para duplicatas de (pesquisa, pessoa). A primeira ocorrência recebe 1, as seguintes 2, 3, etc.
+- Aditividade: não aditiva
+- Observação: Usada como filtro para remover duplicatas, selecionando apenas `seq_ocorrencia = 1` quando necessário
+
+**minutos_preenchimento**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Calculado como a diferença entre `hora_termino` e `hora_inicio`, em minutos
+- Aditividade: aditiva onde existir
+- Observação: Cobertura de aproximadamente 4,3% das linhas, pois muitos registros não possuem ambos os horários preenchidos
+
+**pct_mercado_na_participacao**
+- Tipo: decimal
+- Fonte ou regra de cálculo: Coluna `market_share` do `respondentes.csv` no momento da participação
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da participação, pois representa o share da empresa naquela pesquisa específica. Para agregações, deve-se usar a média ponderada ou o share atual da empresa em `DIM_EMPRESA`
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: A pesquisa respondida. Permite agrupar por título, tipo, área, etc.
+
+**sk_empresa**
+- Tabela dimensional: `DIM_EMPRESA`
+- Descrição: A empresa à qual o respondente pertence. Contém atributos como nome, nacionalidade, cidade, tipo de associado e o share de mercado atual
+
+**sk_pessoa**
+- Tabela dimensional: `DIM_PESSOA`
+- Descrição: O respondente. Contém cargo, departamento, nível hierárquico e agrupamento de departamento (para anonimização). O e-mail é removido por ser um pseudônimo reversível
+
+**sk_data_pesquisa**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data da pesquisa, herdada da data de divulgação da pesquisa (`data_divulgacao`) em `pesquisas.csv`. Esta é a chave temporal primária, com cobertura de 97,8% das participações
+
+**sk_data_resposta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data da resposta, extraída da coluna `hora_inicio` do `respondentes.csv`. É uma chave opcional, com cobertura de aproximadamente 4,3% das linhas, utilizada para análises de sazonalidade ou tempo de preenchimento
+
+#### Observações
+
+O arquivo `respondentes.csv` contém 838 casos de duplicatas onde a mesma pessoa aparece respondendo a mesma pesquisa mais de uma vez. O campo `seq_ocorrencia` foi criado para numerar essas ocorrências. Para análises de respondentes únicos, deve-se filtrar por `seq_ocorrencia = 1`. Isso permite que o cubo suporte tanto a contagem bruta de participações quanto a contagem de pessoas distintas, sem perder dados.
+
+A data da resposta (`hora_inicio`) tem cobertura reduzida, de aproximadamente 4,3%. Por isso, a chave temporal primária é a data da pesquisa (`sk_data_pesquisa`), que é derivada de `data_divulgacao` em `pesquisas.csv` e cobre praticamente todas as participações. A data da resposta fica como um campo opcional para análises específicas de duração.
+
+O campo `minutos_preenchimento`, calculado a partir de `hora_inicio` e `hora_termino`, também tem cobertura baixa, de aproximadamente 4,3%, e deve ser usado com cautela. Para métricas de tempo médio de preenchimento, recomenda-se filtrar apenas as linhas com ambos os campos preenchidos.
+
+A coluna `market_share` em `respondentes.csv` representa o percentual de mercado da empresa no momento da participação. Esse valor pode diferir do campo `% de mercado` em `empresas.csv`, que é o valor atual. Para análises de representatividade histórica, deve-se usar o valor da participação; para análises do perfil atual da empresa, usa-se o valor da dimensão.
+
+A dimensão `DIM_PESSOA` contém cargo e departamento em seus valores brutos, mas esses campos são classificados como restritos. Na camada externa, eles devem ser substituídos por níveis hierárquicos (Diretoria, Gerência, Especialista, Analista, etc.) e agrupamentos de departamento (ex.: Recursos Humanos, Jurídico, etc.), garantindo que nenhuma célula com menos de 5 pessoas seja publicada, conforme a política de k-anonimato. O e-mail foi removido da dimensão por ser um pseudônimo reversível (`cliente<N>@empresa<M>.com`), e nenhum dos relatórios previstos o exige.
+
+Para contagens distintas de empresas ou pessoas, deve-se utilizar as chaves duráveis (`id_empresa_durable` e `id_pessoa_durable`) em vez das chaves substitutas, garantindo que a contagem permaneça correta mesmo que futuramente sejam adotadas versões históricas (SCD2).
+
+---
+
+### 5.2.3 C03 - Resultados e Questionários
+
+Este cubo modela a carga de trabalho da Central de Pesquisas ao longo do tempo. Ele é um instantâneo periódico (periodic snapshot) que registra, ao final de cada mês, quantas pesquisas estavam em cada combinação de status, área, tipo e perfil. O objetivo é responder perguntas como quantas pesquisas estavam em andamento em um determinado mês, qual a evolução do fluxo de entregas e onde ocorrem os gargalos operacionais.
+
+O grão do cubo é uma linha por combinação de mês, status, área, tipo e perfil. A fonte de dados é derivada do Cubo 1, mas com uma limitação importante: não há registro histórico de status anteriores, portanto este cubo só começa a ser alimentado a partir do momento em que o sistema entrar em produção (go-live). O tipo de fato é um instantâneo periódico (periodic snapshot), pois captura o estado do pipeline em um momento específico (o fim de cada mês). A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p><b>Diagrama Cubo 3</b></p>
+  <img src="../docs/assets/prototipos-dashboards/imagens/cubo-03.png" alt="cubo-03" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações. No caso deste cubo, algumas métricas podem ser somadas no tempo, mas não entre status diferentes.
+
+**qtd_pesquisas_no_status**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Contagem de pesquisas que estavam naquele status no último dia do mês
+- Aditividade: semi-aditiva
+- Observação: Pode ser somada ao longo do tempo (ex.: total de pesquisas finalizadas em um ano), mas não pode ser somada entre status diferentes (ex.: "Em andamento" + "Finalizada" não faz sentido)
+
+**qtd_entradas_no_mes**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Quantidade de pesquisas que chegaram àquele status durante o mês
+- Aditividade: aditiva
+- Observação: Representa o fluxo de entrada no status
+
+**qtd_saidas_no_mes**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: Quantidade de pesquisas que saíram daquele status durante o mês
+- Aditividade: aditiva
+- Observação: Representa o fluxo de saída do status
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_data_fim_mes**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Último dia do mês. Permite agrupar as métricas por ano, trimestre ou mês
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status da pesquisa no snapshot. Ex.: "Em andamento", "Em tabulação", "Finalizada"
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa. Ex.: "Sindical Trabalhista e RH", "Assuntos Regulatórios"
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa. Ex.: "Solicitação de associado", "Pesquisa fixa anual"
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+#### Observações
+
+Este cubo não possui dados históricos. O backfill não é possível porque os status anteriores nunca foram registrados em nenhuma base disponível. O painel de fluxo mostrará dados apenas a partir do go-live. Isso deve ser comunicado claramente ao cliente.
+
+A métrica `qtd_a_finalizar` foi removida do modelo na revisão adversarial porque, quando calculada como uma agregação sobre múltiplos status, multiplicava o estoque de pesquisas em até sete vezes. No lugar dela, o cálculo de pesquisas a finalizar deve ser feito na camada semântica, utilizando a flag `flag_conta_como_a_finalizar` presente na `DIM_STATUS_PESQUISA`.
+
+A dimensão `DIM_TEMPO` deve ter um papel específico para o último dia do mês (`sk_data_fim_mes`). O grão da `DIM_TEMPO` permanece diário, e esse papel é usado exclusivamente para este cubo.
+
+A dimensão `DIM_STATUS_PESQUISA` deve conter flags que auxiliem na interpretação dos status: `flag_em_aberto`, `flag_conta_como_a_finalizar` e `flag_terminal`. Essas flags permitem que a camada semântica faça cálculos consistentes sem necessidade de hardcode de status no código.
+
+Para o fluxo mensal, recomenda-se que o snapshot seja gerado automaticamente no primeiro dia útil de cada mês, considerando o fechamento do mês anterior. Isso garante que o dado esteja sempre disponível para análises comparativas entre períodos.
+
+---
+
+### 5.2.4 C04 — Qualidade e Governança
+
+Este cubo descreve o conteúdo dos questionários, ou seja, quais perguntas foram feitas em cada pesquisa. Ele é um fato de associação (factless fact), pois não possui métricas numéricas tradicionais para somar, mas sim conexões entre dimensões. O objetivo é responder perguntas como quantas perguntas cada pesquisa possui, qual o tipo predominante de questões e quais pesquisas compartilham perguntas semelhantes.
+
+O grão do cubo é uma linha por pergunta em uma pesquisa, totalizando 231 linhas no snapshot atual, cobrindo apenas 10 das 366 pesquisas (aproximadamente 2,7% do acervo). A fonte de dados é o arquivo questoes.csv. O tipo de fato é um fato de associação, pois conecta a pesquisa à pergunta sem armazenar medidas numéricas de soma. A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p><b>Diagrama Cubo 4</b></p>
+  <img src="../docs/assets/prototipos-dashboards/imagens/cubo-04.png" alt="cubo-04" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna Aditividade define se o número pode ser somado em agregações, como somar o número total de perguntas de uma pesquisa.
+
+qtd_pergunta
+- Tipo: inteiro
+- Fonte ou regra de cálculo: sempre 1, pois cada linha representa uma pergunta
+- Aditividade: aditiva
+- Observação: representa o volume de perguntas por pesquisa
+
+qtd_alternativas
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna qtd_alternativas do questoes.csv
+- Aditividade: aditiva
+- Observação: soma total de alternativas de uma pesquisa ou grupo de pesquisas
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+sk_pesquisa
+- Tabela dimensional: DIM_PESQUISA
+- Descrição: a pesquisa que contém a pergunta
+
+sk_pergunta
+- Tabela dimensional: DIM_PERGUNTA
+- Descrição: a pergunta em si. Contém o enunciado, o tipo de questão, o número de alternativas, o formato de arquivo de origem e outras características
+
+sk_data_pesquisa
+- Tabela dimensional: DIM_TEMPO
+- Descrição: data da pesquisa, herdada da data de divulgação (data_divulgacao) em pesquisas.csv. Permite agrupar por ano ou trimestre
+
+#### Observações
+
+O arquivo questoes.csv contém 10 pesquisas distintas, mas quatro delas (IDs 424, 1116, 1139 e 1147) não existem em pesquisas.csv. Para essas quatro pesquisas, a ligação com DIM_PESQUISA é feita por fallback utilizando o título da pesquisa, que apresenta correspondência exata com os títulos da planilha principal. As seis pesquisas restantes (112, 238, 274, 377, 414 e 415) ligam diretamente pelos IDs, cobrindo 188 das 231 linhas (81,4% do arquivo).
+
+A base de questões cobre apenas 2,7% do acervo total de pesquisas (10 de 366). Os relatórios que dependem deste cubo, como o Relatório #07 (Resultados da Pesquisa) e o Relatório #10 (Benchmark Setorial), só funcionarão plenamente para essas 10 pesquisas. Para as demais, os painéis mostrarão "Dados não disponíveis" ou uma mensagem similar, a menos que a extração de questões seja estendida para todo o acervo.
+
+O cubo é um ponto de extensão para um futuro FATO_RESPOSTA. Hoje não há dados de respostas individuais (o que cada respondente escolheu), e os relatórios que dependem desses dados (Resultados da Pesquisa, Benchmark Setorial e Comparativo Anual) estão bloqueados por essa ausência. O modelo está preparado para receber o FATO_RESPOSTA quando os dados forem disponibilizados, sem necessidade de reestruturação.
+
+A dimensão DIM_PERGUNTA contém metadados adicionais que podem ser úteis para análises futuras: o formato do arquivo de origem, a coluna de origem no arquivo bruto e um campo de confiança que indica o nível de certeza sobre a extração da pergunta.
+
+A métrica qtd_alternativas é aditiva e pode ser usada para responder perguntas como "quantas alternativas no total uma pesquisa possui" ou "qual a média de alternativas por pesquisa em um determinado tipo".
+
+
+---
 
 ## 5.3 Qualidade e Validação de Dados
 
@@ -560,7 +1635,7 @@ Esta seção diagnostica dados ausentes e registros duplicados nas seis bases di
 O grão de `respostas` é **um elemento atômico de resposta de um respondente para uma pergunta de uma pesquisa**. Uma linha não representa necessariamente um questionário completo: caixas de seleção e matrizes podem produzir várias linhas para o mesmo respondente e pergunta. Portanto, `COUNT(*)` nessa fonte mede elementos de resposta, e não respondentes; qualquer KPI de adesão deve usar a chave e a unidade de análise explicitamente.
 
 <div align="center">
-<sub>Tabela X - Resumo de qualidade por base</sub><br>
+<sub>Tabela — Resumo de qualidade por base</sub><br>
 
 | Base | Registros | Duplicados | Variáveis com ausência |
 | :--- | ---: | ---: | ---: |
@@ -582,7 +1657,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### pesquisas.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em pesquisas.csv</sub><br>
+<sub>Tabela — Ausências em pesquisas.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -610,7 +1685,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### empresas.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em empresas.csv</sub><br>
+<sub>Tabela — Ausências em empresas.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -628,7 +1703,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### clientes.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em clientes.csv</sub><br>
+<sub>Tabela — Ausências em clientes.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -644,7 +1719,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### respondentes.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em respondentes.csv</sub><br>
+<sub>Tabela — Ausências em respondentes.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -660,7 +1735,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### questoes.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em questoes.csv</sub><br>
+<sub>Tabela — Ausências em questoes.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -677,7 +1752,7 @@ O resumo de chaves separa unicidade de completude: todas as seis chaves são `UN
 #### respostas.csv
 
 <div align="center">
-<sub>Tabela X - Ausências em respostas.csv</sub><br>
+<sub>Tabela — Ausências em respostas.csv</sub><br>
 
 | Variável | Ausentes | % | Natureza |
 | :--- | ---: | ---: | :--- |
@@ -794,7 +1869,9 @@ O snapshot recebido não informa a data de carga. Para execuções futuras, prop
 
 A matriz fecha a cadeia PB → RF → indicador → cubo → dashboard. Os vínculos
 indicam cobertura de especificação, não implementação. Os IDs permanecem
-estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5.
+estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5. O contrato executável está em
+[`scripts/traceability/manifest.json`](../scripts/traceability/manifest.json) e
+é validado contra os IDs e nomes presentes em `docs/dmc.json`.
 
 | Pergunta de negócio | Requisito | Indicador(es) | Cubo(s) | Dashboard(s) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -807,20 +1884,29 @@ estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5.
 | PB07 | RF07 | I18, I22 | C04 | D04 |
 | PB08 | RF08 | I25 | C04 | D04 |
 | PB09 | RF09 | I23 | C04 | D04 |
-| PB10 | RF10 | I12, I13 | C03 | D03 |
-| PB11 | RF11 | I12, I13, I18, I22 | C03, C04 | D03, D04 |
+| PB10 | RF10 | I12, I13 | Cubo de resultados pendente da Task 43 | D03 |
+| PB11 | RF11 | I12, I13, I18, I22 | C04; cubo de resultados pendente da Task 43 | D03, D04 |
 | PB12 | RF12 | I17, I19, I21, I24 | C04 | D04 |
-| PB13 | RF13 | I14, I15 | C03 | D03 |
+| PB13 | RF13 | I14, I15 | Cubo de resultados pendente da Task 43 | D03 |
 
-Assim, RF01–RF13 e PB01–PB13 chegam a pelo menos um indicador e um dashboard.
-D01–D04 recebem ao menos um requisito. O cruzamento D03 → D04 em PB11 é uma
-navegação de linhagem agregada, não uma autorização para consultar indivíduos.
+RF01–RF13 e PB01–PB13 chegam a pelo menos um indicador e um dashboard, mas a
+cobertura dimensional não está completa: PB10, PB11 e PB13, com I12–I15,
+dependem de um cubo próprio de resultados/questionários. A branch da Task 43
+não contém uma definição exclusiva para integrar, portanto a lacuna permanece
+formalmente pendente em vez de ser preenchida por inferência. D01, D02 e D04
+têm cubos correspondentes; D03 continua apenas especificado. O cruzamento D03
+→ D04 em PB11 é navegação de linhagem agregada, não autorização para consultar
+indivíduos.
 
 ## 5.5 Infraestrutura de Dados
 
-_conteúdo_
-
-**Nota:** Onde os dados vivem e como são processados (DW na nuvem, orquestração, armazenamento de artefatos, retenção).
+Nesta Sprint, os CSVs permanecem em armazenamento externo e somente contratos,
+scripts e agregados seguros são versionados. O repositório não contém data
+warehouse, orquestração ou ambiente produtivo. A arquitetura alvo prevê zonas
+separadas para origem imutável, dados tipados, dados reconciliados e consumo
+autorizado, com catálogo e registros de execução. Tecnologia, retenção,
+localização e frequência de carga dependem de decisão do parceiro e dos
+controles da §6.6.
 
 ## 5.6 Mapa de Cobertura de Indicadores
 
@@ -835,18 +1921,18 @@ do painel continuam propostas.
 | I01 — Pesquisas no portfólio | Calculável agora | C01 / `pesquisas.csv` | `id` e `data_solicitacao`; 366 registros recebidos |
 | I02 — Distribuição do portfólio | Calculável agora | C01 / `pesquisas.csv` | `tipo`, `area`, `complexidade`, `status` e `tipo de resposta`; nulos ficam explícitos |
 | I03 — Cobertura dos marcos do ciclo | Calculável agora | C01 / `pesquisas.csv` | Seis datas documentadas; ausência por marco já perfilada na §5.3 |
-| I04 — Tempo observado entre marcos | Calculável agora | C01 / `pesquisas.csv` | Diferenças calculadas são dias corridos; campos declarados em dias úteis preservam a convenção original e não são tratados como equivalentes sem calendário confirmado |
-| I05 — Taxa observada de prorrogação | Calculável agora | C01 / `pesquisas.csv` | `prorrogada_ate` presente em 68 de 366 linhas; denominador analítico restringe-se às linhas com `data_limite` |
+| I04 — Tempo observado entre marcos | Calculável agora | C01 e C03 / `pesquisas.csv` | Diferenças calculadas são dias corridos; campos declarados em dias úteis preservam a convenção original e não são tratados como equivalentes sem calendário confirmado |
+| I05 — Taxa observada de prorrogação | Calculável agora | C01 e C04 / `pesquisas.csv` | `prorrogada_ate` presente em 68 de 366 linhas; denominador analítico restringe-se às linhas com `data_limite` |
 | I06 — Pesquisas atrasadas ou prioritárias | Exige normalização ou mapeamento | C01 / regra de negócio + `pesquisas.csv` | Faltam data de referência, elegibilidade de atraso e campo/regra aprovada de prioridade |
 | I07 — Empresas participantes distintas | Calculável agora | C02 / `respondentes.csv` | Contagem distinta de `id_empresa` por `id_pesq`; nulos separados |
 | I08 — Taxa de adesão de empresas | Depende de integração futura | C02 / universo de convites | O snapshot não contém empresas convidadas/elegíveis por pesquisa |
 | I09 — Participação de mercado observada | Exige normalização ou mapeamento | C02 / `respondentes.csv` + `empresas.csv` | `market_share` e `% de mercado` estão em texto; divergência entre fontes bloqueia homologação até definir fonte autoritativa, sem precedência presumida |
 | I10 — Engajamento por público | Exige normalização ou mapeamento | C02 / `respondentes.csv` + `clientes.csv` + `pesquisas.csv` | `id_cliente` tem tipos incompatíveis; 856 vazios e 1 `s/i` em respondentes e 1 `s/i` em clientes viram não informado antes da ponte |
 | I11 — Taxa de engajamento do público | Depende de integração futura | C02 / cadastro de convidados elegíveis | Não existe denominador convidado por área, cargo ou departamento |
-| I12 — Distribuição agregada de respostas | Calculável agora | C03 / `respostas.csv` + `questoes.csv` | Elementos atômicos válidos por alternativa/valor/matriz; 8.307 vazios físicos e dois `NA` em `valor` ficam fora da base válida |
-| I13 — Respondentes distintos na fonte de respostas | Calculável agora | C03 / `respostas.csv` | 542 `respondent_id` distintos na fonte; sem ponte para `respondentes.id_cliente` |
-| I14 — Questões por tipo | Calculável agora | C03 / `questoes.csv` | `id_pergunta`, `pesquisa_id` e `tipo`; 43 questões têm pesquisa ausente em `pesquisas.csv` |
-| I15 — Estado de validação e versão do questionário | Depende de integração futura | C03 / repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
+| I12 — Distribuição agregada de respostas | Calculável agora | Cubo de resultados pendente da Task 43 / `respostas.csv` + `questoes.csv` | Elementos atômicos válidos por alternativa/valor/matriz; 8.307 vazios físicos e dois `NA` em `valor` ficam fora da base válida |
+| I13 — Respondentes distintos na fonte de respostas | Calculável agora | Cubo de resultados pendente da Task 43 / `respostas.csv` | 542 `respondent_id` distintos na fonte; sem ponte para `respondentes.id_cliente` |
+| I14 — Questões por tipo | Calculável agora | Cubo de resultados pendente da Task 43 / `questoes.csv` | `id_pergunta`, `pesquisa_id` e `tipo`; 43 questões têm pesquisa ausente em `pesquisas.csv` |
+| I15 — Estado de validação e versão do questionário | Depende de integração futura | Cubo de resultados pendente da Task 43 / repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
 | I16 — Completude aplicável | Calculável agora | C04 / seis CSV | Ausências por campo e natureza documentadas na §5.3; quatro ausências inesperadas nas 4.008 células de matriz aplicáveis |
 | I17 — Taxa de duplicidade | Calculável agora | C04 / seis CSV | Não foram observadas linhas ou IDs primários duplicados; FKs repetidas não são duplicatas |
 | I18 — Integridade referencial | Calculável agora | C04 / chaves dos seis CSV | Por relação: `respondentes → pesquisas`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes → pesquisas`, 188/231, 43 órfãs (18,6%); `respostas → pesquisas`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas usam os IDs 424, 1116, 1139 e 1147; `s/i` é não informado antes do teste |
@@ -874,7 +1960,10 @@ snapshot, mantendo visível a disponibilidade de cada bloco.
 
 # 6. Requisitos e Governança de Dados
 
-_conteúdo_
+Esta seção conecta os comportamentos esperados da solução às perguntas de
+negócio, indicadores, dashboards e controles de dados. Requisitos e políticas
+são contratos propostos para validação; apenas as medições explicitamente
+ligadas ao snapshot ou aos testes são tratadas como observadas.
 
 ## 6.1 Requisitos Funcionais
 
@@ -1237,7 +2326,7 @@ indicado em cada roteiro.
 Os requisitos não funcionais abaixo seguem as características da ISO/IEC 25010 e priorizam desempenho, segurança, confiabilidade, usabilidade e manutenibilidade, derivados das necessidades do parceiro. As metas numéricas são **provisórias e aspiracionais**, a serem confirmadas por medição (ver §4.4 — Aspectos Não Funcionais).[<sup>\[1\]</sup>](#7-referências)
 
 <div align="center">
-<sub>Tabela X - Requisitos não funcionais (ISO/IEC 25010)</sub><br>
+<sub>Tabela — Requisitos não funcionais (ISO/IEC 25010)</sub><br>
 
 | ID | Categoria (ISO 25010) | User Story | Critério de aceitação | Teste |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1337,8 +2426,10 @@ denominadores e estados do gráfico, e não depende de cor ou tooltip.
 
 O protótipo navegável e autocontido está em
 `docs/assets/prototipos-dashboards/index.html`. O snapshot agregado exibido é
-gerado por script a partir dos seis CSVs fictícios, com data de processamento,
-hashes das fontes e regras de privacidade documentadas no mesmo diretório.
+gerado por script a partir dos seis CSVs externos. A natureza real ou sintética
+das linhas não foi confirmada; por isso, somente agregados sem identificação
+entram no protótipo, com data de processamento, hashes e regras de privacidade
+documentadas no mesmo diretório.
 
 ### D01 — Operação: portfólio e prazos
 
@@ -1393,7 +2484,7 @@ campo próprio, e ausência de data impede classificar atraso ou duração.
 <div align="center">
   <p><strong>Figura 1 — Dashboard de operação e portfólio de pesquisas</strong></p>
   <img src="./assets/prototipos-dashboards/imagens/dashboard-operacao.png" alt="Dashboard de operação com rastreabilidade do snapshot, filtros, indicadores de portfólio e gráficos de solicitações, complexidade e tipo de resposta" width="100%">
-  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+  <p><sub>Protótipo visual do grupo. Fonte: agregados dos CSVs externos clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. A natureza real ou sintética das linhas não foi confirmada; nenhum registro individual é exibido. Dados processados em 13/08/2026.</sub></p>
 </div>
 
 ### D02 — Adesão e representatividade
@@ -1434,7 +2525,7 @@ incompatíveis; por isso I08, I09, I10 e I11 respeitam sua disponibilidade e os
 <div align="center">
   <p><strong>Figura 2 — Dashboard de participação observada e representatividade</strong></p>
   <img src="./assets/prototipos-dashboards/imagens/dashboard-participacao.png" alt="Dashboard de participação com contagens agregadas, métricas indisponíveis claramente sinalizadas e distribuição de empresas por pesquisa" width="100%">
-  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+  <p><sub>Protótipo visual do grupo. Fonte: agregados dos CSVs externos clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. A natureza real ou sintética das linhas não foi confirmada; nenhum registro individual é exibido. Dados processados em 13/08/2026.</sub></p>
 </div>
 
 ### D03 — Resultados e questionários
@@ -1475,7 +2566,7 @@ estão representadas no snapshot.
 <div align="center">
   <p><strong>Figura 3 — Dashboard de resultados e questionários</strong></p>
   <img src="./assets/prototipos-dashboards/imagens/dashboard-resultados.png" alt="Dashboard de resultados agregados com exemplos fechados de escolha única e caixas de seleção, denominadores explícitos e ausência de identificadores individuais" width="100%">
-  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+  <p><sub>Protótipo visual do grupo. Fonte: agregados dos CSVs externos clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. A natureza real ou sintética das linhas não foi confirmada; nenhum registro individual é exibido. Dados processados em 13/08/2026.</sub></p>
 </div>
 
 ### D04 — Qualidade e governança
@@ -1533,7 +2624,7 @@ A aprovação final de todas as células cabe ao Data Owner.
 <div align="center">
   <p><strong>Figura 4 — Dashboard de qualidade e governança dos dados</strong></p>
   <img src="./assets/prototipos-dashboards/imagens/dashboard-qualidade.png" alt="Dashboard de qualidade com indicadores de completude, duplicidade e divergência, matriz de regras I16 a I20 e estados de governança" width="100%">
-  <p><sub>Protótipo visual gerado com apoio de IA e revisado pelo grupo. Fonte: bases fictícias clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. Dados processados em 13/08/2026.</sub></p>
+  <p><sub>Protótipo visual do grupo. Fonte: agregados dos CSVs externos clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. A natureza real ou sintética das linhas não foi confirmada; nenhum registro individual é exibido. Dados processados em 13/08/2026.</sub></p>
 </div>
 
 ## 6.6 Governança, Segurança da Informação e LGPD
@@ -1557,21 +2648,77 @@ Para evitar ambiguidade de nomenclatura, `respostas.csv` é o nome canônico usa
 
 Não foi identificado, apenas pelos nomes dos campos, um campo explicitamente de origem racial ou étnica, convicção religiosa, opinião política, filiação a sindicato ou a organização de caráter religioso, filosófico ou político, saúde, vida sexual, dado genético ou biométrico. Isso não autoriza concluir que dados pessoais sensíveis não existam: o conteúdo de `valor`, `enunciado`, `objetivos` e observações precisa ser amostrado e classificado antes da carga. Se uma resposta revelar qualquer dessas categorias, aplicam-se as hipóteses e salvaguardas próprias do art. 11 da LGPD; não se deve tratá-la como dado comum por estar em uma coluna textual.[<sup>\[4\]</sup>](#7-referências)
 
-### 6.6.2 Papéis, agentes e responsabilidades a validar
+### 6.6.2 Estrutura de Governança de Dados da Central de Pesquisas
 
-Os papéis de governança não equivalem automaticamente aos agentes jurídicos da LGPD. A indicação de Data Owner, Data Steward ou Data Custodian é organizacional; controlador, operador, suboperador e encarregado devem ser definidos pela realidade de cada operação, pelas instruções e pelos contratos. A tabela registra os nomes apontados no material do projeto como referência de validação, não como designação já formalizada; os nomes e atribuições foram confrontados com o TAPI, a Arquitetura de Negócio e o Data Model Canvas.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)[<sup>\[3\]</sup>](#7-referências)
+Os papéis de governança não equivalem automaticamente aos agentes jurídicos da
+LGPD. A indicação de Data Owner, Data Steward ou Data Custodian é
+organizacional; controlador, operador, suboperador e encarregado devem ser
+definidos pela realidade de cada operação, pelas instruções e pelos contratos.
+A tabela preserva os nomes do baseline documental do DMC como referência, sem
+inferir designação jurídica. O TAPI [1] confirma lideranças do projeto e a
+Arquitetura [2] registra os papéis de Owner, Stewards e Custodian. O DMC em PDF
+[3] continua indisponível para conferência direta, e controlador, operador e
+encarregado ainda dependem da realidade de cada tratamento.
 
-| Papel de governança | Referência do projeto | Responsabilidade proposta, sujeita a validação |
+| Papel de governança de dados | Referência do projeto | Responsabilidade proposta, sujeita a validação |
 | :--- | :--- | :--- |
-| Data Owner | Fabio Moreira, gestor da Central de Pesquisas | Aprovar finalidades, classificações, acesso por perfil, indicadores e publicação; decidir sobre exceções e risco residual. |
-| Data Steward | Felipe Fernandes Rojas, Reinaldo Nobrega e Lucas Andrade | Manter o catálogo e o dicionário, definir significado e regras de qualidade, acompanhar origem, linhagem, minimização e atendimento operacional das solicitações. |
-| Data Custodian | Rodrigo Giorgetto/TI e, na custódia externa, RentalHost | Administrar infraestrutura, credenciais, cópias, logs e segregação técnica segundo instruções aprovadas; não decidir finalidade por conta própria. |
+| Data Owner | Fabio Moreira, conforme baseline do DMC | Aprovar finalidades, classificações, acesso por perfil, indicadores e publicação; decidir sobre exceções e risco residual. |
+| Data Steward | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade, conforme grafia do baseline do DMC | Manter o catálogo e o dicionário, definir significado e regras de qualidade, acompanhar origem, linhagem, minimização e atendimento operacional das solicitações. |
+| Data Custodian | Rodrigo Giorgetto/TI e RentalHost, conforme baseline do DMC | Administrar infraestrutura, credenciais, cópias, logs e segregação técnica segundo instruções aprovadas; não decidir finalidade por conta própria. |
 | Controlador | A definir pelo Sindusfarma para cada fluxo | Decidir finalidades e meios, validar bases legais, instruir operadores, aprovar compartilhamentos e coordenar respostas e comunicações quando aplicável. |
 | Encarregado | A indicar pelo controlador | Atuar como canal entre titulares, controlador e ANPD, receber reclamações e comunicações, orientar as equipes e apoiar o atendimento dos direitos e incidentes. |
 
+As áreas envolvidas na governança combinam operação, negócio, tecnologia e consumo dos resultados. A Central de Pesquisas é a área principal, pois opera o ciclo completo das pesquisas e valida o valor dos indicadores. As áreas técnicas do Sindusfarma participam da revisão de questionários, da interpretação de resultados e do acompanhamento da adesão nas pesquisas relacionadas aos seus temas. A TI sustenta armazenamento, segurança, disponibilidade e integrações. A RentalHost entra como custódia externa quando houver dados ou componentes mantidos no sistema interno ou no repositório público. Gestores, empresas participantes, solicitantes e respondentes consomem ou fornecem informações, mas devem acessar apenas os recortes autorizados para sua finalidade.
+
+| Área ou ator | Participação na governança | Decisões ou validações esperadas |
+| :--- | :--- | :--- |
+| Central de Pesquisas | Opera solicitações, planejamento, coleta, tabulação, análise e publicação | Priorizar demandas, validar indicadores, solicitar correções e propor publicação de resultados. |
+| Data Owner | Responsável de negócio pelas decisões finais de uso dos dados | Aprovar finalidade, acesso por perfil, publicação, exceções e risco residual. |
+| Data Stewards e responsáveis técnicos | Mantêm significado, qualidade, linhagem e regras de uso | Aprovar dicionário, regras de qualidade, critérios de completude, reconciliação de chaves e tratamento de inconsistências. |
+| TI / Data Custodian | Sustenta infraestrutura, banco, integrações, logs e segurança técnica | Validar viabilidade técnica, disponibilidade, backup, controle de acesso e execução das decisões aprovadas. |
+| RentalHost | Custódia externa do sistema interno ou repositório público, quando aplicável | Operar componentes hospedados segundo contrato e instruções aprovadas, sem decidir finalidade ou publicação. |
+| Áreas técnicas | Validam conteúdo de questionários e acompanham pesquisas por tema | Revisar questionários, interpretar resultados agregados e indicar necessidades de negócio. |
+| Solicitantes, participantes e público autorizado | Consomem resultados permitidos e podem fornecer informações | Acessar apenas acervo e resultados autorizados, agregados e compatíveis com a finalidade informada. |
+
+Os processos de aprovação devem seguir a lógica de que decisões de negócio ficam com o Data Owner, definições semânticas e qualidade ficam com os Data Stewards, e execução técnica fica com o Data Custodian. Quando não existir uma estrutura formal implementada, a decisão deve ser registrada como proposta ou decisão pendente, com responsável, justificativa, fonte usada, data, impacto esperado e condição para revisão. Nenhuma regra provisória deve ser tratada como política definitiva de produção.
+
+| Decisão de dados | Responsável principal | Fluxo de aprovação proposto |
+| :--- | :--- | :--- |
+| Nova fonte ou nova carga de dados | Data Stewards e Data Custodian | Data Steward define significado, campos críticos e regras de qualidade; Data Custodian valida armazenamento e ingestão; Data Owner aprova finalidade e uso. |
+| Regra de qualidade, completude ou reconciliação | Data Stewards | Data Steward propõe e testa a regra; Central valida impacto no indicador; Data Owner aprova exceções relevantes ou bloqueios de publicação. |
+| Indicador, métrica ou dashboard | Central de Pesquisas e Data Stewards | Central define pergunta de negócio; Data Steward valida fórmula, grão e denominador; Data Owner aprova uso gerencial e exposição. |
+| Acesso por perfil | Data Owner, com apoio de TI e Data Stewards | Data Steward classifica dados; TI implementa controle; Data Owner aprova perfis, permissões e exceções. |
+| Publicação no acervo público | Data Owner e Central de Pesquisas | Central prepara resultado agregado; Data Steward revisa risco de reidentificação e linhagem; Data Owner autoriza; Data Custodian/RentalHost executa a disponibilização. |
+| Correção de inconsistência ou alteração em dado histórico | Data Stewards | Data Steward registra problema, origem, correção e impacto; Data Custodian aplica quando necessário; Data Owner decide se houver impacto estratégico ou publicação. |
+
+As políticas de governança de dados identificadas nos artefatos do projeto e as diretrizes propostas para a solução devem cobrir, no mínimo, controle de acesso por perfil, uso restrito dos dados às finalidades das pesquisas, anonimização ou agregação antes de publicação externa, não publicação de dados reais no repositório acadêmico, retenção e descarte conforme finalidade, auditoria de acessos e versionamento de regras de qualidade. Até a formalização pelo parceiro, essas políticas devem ser tratadas como diretrizes de projeto e critérios de validação, não como comprovação de conformidade produtiva.
+
+As ferramentas relacionadas à governança são as fontes e sistemas já citados no contexto do projeto: Excel e bases CSV como origem histórica ou operacional, SurveyMonkey para coleta, Trello para gestão de tarefas, Outlook para comunicação e pastas, n8n como automação/orquestração inicial de solicitações, sistema interno e repositório público do site, banco relacional em nuvem previsto para o MVP, dashboards do data app e artefatos de documentação como Data Model Canvas, catálogo/dicionário de dados, scripts de perfilamento e matriz de rastreabilidade. O projeto não substitui essas ferramentas nesta etapa; ele define como elas devem ser conectadas, catalogadas e governadas.
+
 Antes da produção, o parceiro deve registrar no inventário, por fluxo: controlador, operador, eventual suboperador, encarregado, finalidade, categorias de titulares e dados, origem, destinos, localização, prazo e mecanismo de descarte. SurveyMonkey, Trello, Excel, Outlook, n8n, hospedagem do site, banco em nuvem e ferramentas de dashboard entram nesse inventário somente se realmente tratarem dados pessoais; os respectivos contratos e instruções devem esclarecer acesso, subcontratação, devolução/eliminação e auditoria.[<sup>\[5\]</sup>](#7-referências)
 
-### 6.6.3 Finalidades e hipóteses legais a confirmar
+### 6.6.3 Decisões pendentes e riscos de governança de dados
+
+Os artefatos da sprint registram decisões ainda abertas sobre a arquitetura de dados, a automação do fluxo e os controles de governança. Esses pontos não impedem a especificação inicial da solução, mas precisam ser tratados antes da entrada em produção, pois afetam custódia, rastreabilidade, qualidade, segurança, LGPD e consistência entre o ambiente interno e o repositório público.[<sup>\[1\]</sup>](#7-referências)[<sup>\[3\]</sup>](#7-referências)[<sup>\[14\]</sup>](#7-referências)
+
+| Decisão pendente | Situação registrada nos artefatos | Risco de governança | Encaminhamento necessário |
+| :--- | :--- | :--- | :--- |
+| Plataforma de banco em nuvem | O TAPI prevê banco relacional em nuvem, citando Amazon RDS, Google Cloud SQL ou equivalente, sem fixar a plataforma final. | Escolha da plataforma altera região de armazenamento, contratos, operadores, backups, logs, custos, controle administrativo e eventual transferência internacional. | Selecionar a plataforma com TI e Data Owner, registrar região, perfis administrativos, política de backup, criptografia, retenção, trilha de auditoria e responsabilidades contratuais. |
+| Uso futuro do n8n | O TAPI informa que hoje há um workflow em n8n para replicar novas solicitações, mas o Data Model Canvas trata seu papel futuro como decisão a confirmar. | Manter ou substituir o n8n muda a governança de credenciais, logs, reprocessamento, idempotência, tratamento de falhas e linhagem das integrações. | Definir se o n8n será orquestrador oficial, componente temporário ou substituído; documentar dono técnico, segredos usados, eventos gerados, política de retry e evidência de execução. |
+| Política de acesso por perfil | O projeto prevê controle por perfil, mas os perfis finais, regras de autorização e logs de acesso ainda dependem de aprovação. | Acesso amplo demais pode expor contatos, respostas individuais, indicadores comerciais ou dados com risco de reidentificação; acesso restritivo demais pode impedir a operação da Central. | Aprovar matriz de perfis pelo Data Owner, separar ambiente interno, dashboards e acervo público, registrar exceções e auditar consultas, exportações e publicações. |
+| Alimentação do repositório público | O TAPI prevê integração com o repositório público do site, e o Data Model Canvas indica que a automação da publicação ainda precisa ser definida. | Publicação sem regra clara pode gerar divergência entre resultado interno e acervo, divulgar dado não autorizado ou manter versão desatualizada no site. | Definir fluxo de publicação com aprovação, versão, origem, data, responsável, regra de anonimização/agregação, mecanismo de retirada/correção e validação pela custódia externa. |
+
+Além dessas decisões, há riscos de governança ligados à qualidade e à integração das fontes já identificados no diagnóstico do projeto:
+
+| Risco | Evidência no projeto | Impacto potencial | Controle recomendado |
+| :--- | :--- | :--- | :--- |
+| Qualidade inconsistente dos dados | O Problem Canvas aponta campos incompletos, inválidos ou divergentes; o perfilamento do §5.3 encontrou ausências, colunas vazias, diferenças de tipo e domínios não padronizados. | Indicadores podem ficar indisponíveis, divergentes ou exigir interpretação manual, reduzindo confiança nos dashboards e nas decisões. | Manter regras de completude, validade, domínio e reconciliação por fonte, com status explícito para dado calculável, dado a normalizar e dado dependente de integração futura. |
+| Campos incompletos ou metadados ausentes | Alguns indicadores dependem de informações ainda não presentes no snapshot, como universo de convites, versão de questionário, timestamp de carga, autorização de publicação e logs de acesso. | A solução pode sugerir métricas sem denominador, frescor, autorização ou rastreabilidade suficientes para auditoria. | Exibir indisponibilidade quando faltar metadado obrigatório, evitando inferência; registrar campos mínimos esperados no catálogo e exigir preenchimento antes da automação do KPI. |
+| Validação das integrações com sistemas existentes | O fluxo atual usa ferramentas separadas, como SurveyMonkey, Trello, Excel, Outlook, n8n e repositório público, sem integração estruturada de ponta a ponta. | Falhas de mapeamento, duplicidade, perda de origem ou diferença de status entre sistemas podem comprometer a fonte única da verdade. | Validar cada conector com testes de carga, reconciliação de chaves, logs de erro, reprocessamento idempotente, versionamento da fonte e aprovação do Data Steward antes de liberar o dado para consumo. |
+
+Enquanto esses pontos estiverem abertos, qualquer dashboard, publicação externa ou automação deve deixar claro o estado do dado, a origem utilizada, a limitação conhecida e a decisão de governança pendente. A passagem para produção deve ocorrer apenas quando as decisões acima estiverem registradas e aprovadas pelos responsáveis definidos na estrutura de governança.
+
+### 6.6.4 Finalidades e hipóteses legais a confirmar
 
 Consentimento não é uma autorização universal para o projeto. Cada finalidade deve ser específica, informada, necessária e associada a uma hipótese legal adequada; a hipótese escolhida, a forma de informação ao titular e a eventual necessidade de consentimento devem ser confirmadas pelo controlador e pelo encarregado. Quando essa hipótese for escolhida, consentimento significa manifestação livre, informada e inequívoca para finalidade determinada; o controlador deve conservar prova da obtenção, evitar autorizações genéricas e facilitar a revogação por procedimento gratuito. Consentimentos escritos devem estar destacados das demais cláusulas; para dados pessoais sensíveis, a manifestação deve ser específica e destacada para finalidades específicas. A revogação impede a continuidade de novos tratamentos baseados nesse consentimento, resguardados os tratamentos anteriores válidos e as hipóteses de conservação aplicáveis, e exige reavaliar a eliminação quando cabível.[<sup>\[4\]</sup>](#7-referências)
 
@@ -1588,7 +2735,7 @@ As hipóteses acima são um roteiro de análise, não um parecer jurídico. A do
 
 O uso acadêmico exige separar três situações: (i) protótipo da sprint, que deve usar dados sintéticos, anonimizados ou agregados; (ii) pesquisa acadêmica ou TCC, cuja finalidade deve ser registrada, com avaliação do orientador e verificação de aplicabilidade da Resolução CNS nº 510/2016 e do fluxo CEP/Conep antes de usar dados identificáveis; e (iii) operação administrativa ou comercial do parceiro, à qual a LGPD se aplica integralmente. O art. 4º, II, “b”, afasta parcialmente a LGPD para tratamento exclusivamente acadêmico, pois preserva a aplicação dos arts. 7º e 11; não afasta esses requisitos nem cobre o uso operacional, administrativo, comercial ou de publicação do parceiro. A decisão sobre o enquadramento, o consentimento e as salvaguardas deve ser registrada com o orientador e o parceiro.[<sup>\[4\]</sup>](#7-referências)[<sup>\[10\]</sup>](#7-referências)
 
-### 6.6.4 Minimização, pseudonimização e divulgação
+### 6.6.5 Minimização, pseudonimização e divulgação
 
 O princípio operacional é coletar e disponibilizar somente o que for adequado, necessário e proporcional à finalidade registrada. A camada de identificação deve ficar separada da camada analítica, com acesso restrito e vínculo controlado. Recomenda-se que o data warehouse de indicadores não carregue e-mail, cargo, departamento ou qualquer contato quando a métrica puder ser calculada sem esses campos; a chave de ligação deve ser substituída por um identificador pseudonimizado e rotacionável por finalidade.
 
@@ -1602,7 +2749,7 @@ Para os dashboards e o acervo público, propõem-se as seguintes salvaguardas, a
 - manter `market_share` e outros indicadores comerciais na menor granularidade compatível com a finalidade, validando se uma publicação por empresa é autorizada;
 - bloquear a publicação quando a pergunta, o texto livre ou a combinação de dimensões puder revelar dado pessoal ou sensível, mesmo que os identificadores diretos tenham sido removidos.
 
-### 6.6.5 Segurança da informação, acesso e auditoria
+### 6.6.6 Segurança da informação, acesso e auditoria
 
 A segurança da informação deve proteger o ciclo da pesquisa sem impedir o trabalho legítimo da Central. Como o projeto trata fontes fragmentadas, respostas individuais, dados de empresas, indicadores comerciais e publicação no acervo, os controles abaixo devem seguir menor privilégio, necessidade de conhecer, segregação entre ambientes, rastreabilidade e revisão periódica. A matriz é um desenho de referência para o projeto; nenhum perfil deve ser considerado existente ou homologado sem comprovação no ambiente correspondente.[<sup>\[1\]</sup>](#7-referências)[<sup>\[3\]</sup>](#7-referências)
 
@@ -1634,7 +2781,7 @@ Os controles mínimos de segurança devem ser tratados como critérios de valida
 
 Esses controles complementam os requisitos RF07, RF08, RF09 e RF12 e os indicadores I21 e I23 a I25, que dependem de política aprovada, logs, metadados de carga, decisões de publicação e validação das integrações. Portanto, dashboards, automações e acervo público devem exibir indisponibilidade ou pendência quando a política de acesso, o log, a origem ou a autorização ainda não estiverem registrados.
 
-### 6.6.6 Direitos dos titulares e fluxo de atendimento
+### 6.6.7 Direitos dos titulares e fluxo de atendimento
 
 O titular deve ter canal de fácil acesso e gratuito para solicitar, conforme aplicável, confirmação de tratamento, acesso, correção, anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desconformidade, portabilidade, informação sobre compartilhamentos, informação sobre a possibilidade e as consequências de não fornecer consentimento, revogação do consentimento, oposição ao tratamento nas hipóteses e condições do art. 18, § 2º, e petição contra o controlador perante a ANPD. Também pode solicitar revisão de decisão automatizada, quando aplicável. A confirmação e o acesso devem ser fornecidos em formato simplificado imediatamente ou por declaração completa e clara em até 15 dias; os demais pedidos seguem os prazos e procedimentos específicos da LGPD e da regulamentação aplicável, sem que esta seção fixe prazo não confirmado para o caso concreto.[<sup>\[4\]</sup>](#7-referências)[<sup>\[9\]</sup>](#7-referências)
 
@@ -1649,13 +2796,13 @@ Fluxo mínimo proposto:
 
 O registro de direitos deve ser uma trilha do atendimento, não um novo repositório de respostas. A equipe não deve apagar evidências necessárias à segurança, à auditoria ou ao exercício regular de direitos sem registrar a justificativa e o prazo de retenção correspondente.
 
-### 6.6.7 Incidentes e RIPD sem duplicação
+### 6.6.8 Incidentes e RIPD sem duplicação
 
 O procedimento de incidente deve ter um registro operacional único para o fluxo: detecção, contenção, preservação de evidências, avaliação de dados e titulares afetados, decisão do controlador, comunicações, medidas corretivas e encerramento. Um incidente pode envolver CSV local, GitLab, banco, dashboard, site, credencial ou operador; a origem não muda a necessidade de triagem. A comunicação é devida quando os critérios do art. 5º da Resolução CD/ANPD nº 15/2024 estiverem presentes cumulativamente: o incidente puder afetar significativamente interesses e direitos fundamentais e envolver pelo menos uma categoria de dados sensíveis, de crianças/adolescentes/idosos, financeiros, de autenticação, protegidos por sigilo legal/judicial/profissional ou em larga escala. Atendidos esses critérios, o controlador deve comunicar a ANPD e os titulares em três dias úteis contados do conhecimento de que o incidente afetou dados pessoais, salvo prazo específico diferente; se os critérios não se confirmarem, o incidente continua registrado e avaliado. O operador deve informar o controlador sem demora injustificada e fornecer as informações necessárias; contratos devem estabelecer esse fluxo.[<sup>\[6\]</sup>](#7-referências)
 
 O RIPD deve ser tratado como política interna preventiva proposta para avaliar o processo de tratamento: mapa de dados, operações, finalidades, hipóteses legais, necessidade, riscos, salvaguardas, risco residual, responsáveis e decisões. A abertura ou atualização deve ser um gatilho de governança quando houver resposta sensível, novo operador, mudança de finalidade, publicação, exportação, transferência internacional, combinação de bases ou incidente que altere o risco, mas sempre condicionada à avaliação de alto risco e às exigências aplicáveis; não constitui obrigação legal automática para qualquer operação. O registro de incidente referencia a versão do RIPD e as medidas adotadas; não duplica toda a análise de risco nem substitui a comunicação exigida. A ANPD orienta o RIPD quando o tratamento puder gerar alto risco e indica seu conteúdo mínimo, cabendo ao controlador avaliar a necessidade, eventual exigência específica e publicidade no caso concreto.[<sup>\[7\]</sup>](#7-referências)
 
-### 6.6.8 Retenção, descarte e cópias de segurança
+### 6.6.9 Retenção, descarte e cópias de segurança
 
 Não se propõe um prazo único para todas as tabelas. O critério é manter o mínimo necessário enquanto durar a finalidade, obrigação legal, exercício regular de direitos ou necessidade de prestação de contas; terminada a justificativa, eliminar, anonimizar ou bloquear o dado, observando os requisitos que impeçam a eliminação imediata. Devem ser verificadas as hipóteses de conservação do art. 16 da LGPD, como cumprimento de obrigação legal ou regulatória, estudo por órgão de pesquisa com anonimização sempre que possível, transferência a terceiro respeitados os requisitos legais ou uso exclusivo do controlador com acesso de terceiro vedado.[<sup>\[4\]</sup>](#7-referências)
 
@@ -1671,7 +2818,7 @@ Não se propõe um prazo único para todas as tabelas. O critério é manter o m
 
 Backups devem ter inventário, criptografia, controle de acesso, periodicidade e teste de restauração definidos; a eliminação lógica na base primária não basta se a cópia continuar acessível. O procedimento deve prever expiração automática, destruição segura ou sobrescrita conforme a tecnologia e bloqueio de restauração indevida. Esses são critérios propostos, não evidência de que os backups atuais os atendam.
 
-### 6.6.9 Compartilhamento, operadores e transferência internacional
+### 6.6.10 Compartilhamento, operadores e transferência internacional
 
 O compartilhamento deve ser limitado ao mínimo necessário, com finalidade, campos, destinatários, período, instruções e responsabilidade registrados. Para cada fornecedor ou integração, a Central deve decidir se há operador, suboperador ou controlador independente, exigir confidencialidade e segurança, controlar subcontratação, prever apoio a direitos e incidentes, devolução/eliminação ao término e possibilidade de auditoria. O fluxo não deve enviar a um fornecedor o conjunto inteiro de CSVs quando a operação exige apenas um subconjunto.
 
@@ -1685,7 +2832,7 @@ O compartilhamento deve ser limitado ao mínimo necessário, com finalidade, cam
 
 Se um fornecedor, suporte ou infraestrutura permitir acesso a dados pessoais a partir de país estrangeiro ou hospedagem fora do Brasil, há transferência internacional a ser analisada; não se presume sua existência nem sua inexistência. O inventário deve identificar país ou organismo de destino, exportador, importador, finalidade, categorias, duração, operação de acesso/armazenamento, eventuais transferências posteriores e subcontratados. O controlador deve confirmar a hipótese legal e o mecanismo de transferência, registrar as instruções ao importador e exigir salvaguardas, inclusive cláusulas-padrão contratuais da ANPD quando essa for a base escolhida, condições para transferências posteriores, apoio aos direitos, incidentes, término e eliminação. A validação deve observar a LGPD e a Resolução CD/ANPD nº 19/2024.[<sup>\[8\]</sup>](#7-referências)
 
-### 6.6.10 Impacto por ambiente e critérios de liberação
+### 6.6.11 Impacto por ambiente e critérios de liberação
 
 | Ambiente/artefato | Risco principal | Regra de liberação proposta |
 | :--- | :--- | :--- |
@@ -1700,9 +2847,9 @@ Assim, a governança proposta atende ao ciclo completo — coleta, integração,
 
 # 7. Referências
 
-[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento de projeto (arquivo local `context/Tapi-sinduspharma.txt`) disponibilizado pela faculdade e pelo parceiro de projeto.
+[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
 
-[2] INTELI; SINDUSFARMA. **Arquitetura de Negócio: Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Documento de projeto (arquivo local `context/Arquitetura-de-Negócio-Central-de-Pesquisas-do-Sindusfarma.txt`) disponibilizado pela faculdade e pelo parceiro de projeto.
+[2] INTELI; SINDUSFARMA. **Arquitetura de Negócio: Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Documento externo `Arquitetura-de-Negócio-Central-de-Pesquisas-do-Sindusfarma.txt`, conferido em 13 ago. 2026; SHA-256 `76e50e5f090cadaa39f5fef81473dacccbf069d5071238be84720e0aafb70afd`.
 
 [3] INTELI; SINDUSFARMA. **Data Model Canvas: Data Warehouse — Sindusfarma**. São Paulo, 2026. Artefato de documentação (arquivo `Data Model Canvas.pdf`) disponibilizado pela faculdade e pelo parceiro de projeto.
 
@@ -1730,39 +2877,57 @@ Assim, a governança proposta atende ao ciclo completo — coleta, integração,
 
 # 8. Avaliação dos Resultados
 
-_conteúdo_
-
-**Nota:** Confrontar o cenário AS-IS (§4.0) com os resultados da solução proposta (TO-BE). Separar explicitamente o que foi **medido** do que é **meta projetada**.
+Esta avaliação separa resultados executados nesta Sprint de efeitos esperados
+para uma solução futura. As medições abaixo vêm dos scripts e testes
+versionados aplicados ao snapshot externo identificado pelos hashes da §5.3.6;
+o checkout isolado não contém os CSVs. Benefícios operacionais, metas de serviço
+e ganhos de negócio não foram medidos e permanecem condicionados à implantação
+e a uma linha de base aprovada.
 
 ## 8.1 Resultados Quantitativos
 
-_conteúdo_
+Os resultados medidos demonstram consistência dos artefatos e características
+do snapshot analisado. Eles não demonstram redução de prazo, aumento de adesão
+ou funcionamento de uma plataforma produtiva.
 
 ### 8.1.1 Resultado medido nesta sprint
 
-_conteúdo_
-
-**Nota:** Somente fatos medidos, com a origem de cada número (query, artefato, coleta). Nada de estimativa aqui.
-
 | Indicador | Resultado medido | Como foi medido |
 | :--- | :--- | :--- |
-| _ | _ | _ |
+| Volume do snapshot analisado | 46.148 registros em seis CSVs | soma das contagens reproduzidas pelo perfilador da §5.3 |
+| Duplicidade de linha e das chaves declaradas | 0 ocorrência nas seis bases | `scripts/data_quality/profile_csv.py` e manifesto versionado |
+| Relações pesquisa ausentes | 55 participações, 43 questões e 3.592 elementos de resposta órfãos | relatório `relacionamentos.csv` descrito na §5.3 |
+| Modelo dimensional exportado | 4 cubos; Dados e Governança vazios em todos | `scripts/dmc/validate_dmc.py docs/dmc.json` |
+| Testes estruturais do DMC | 17 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
+| Testes do perfilamento | 5 testes aprovados | `python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'` |
+| Testes de rastreabilidade | 13 testes aprovados, incluindo 2 fontes primárias e 12 afirmações conferidas | `SINDUSFARMA_SOURCE_DIR=/caminho/seguro/das/fontes python3 -m unittest discover -s scripts/traceability -p 'test_*.py'` |
+| Reabertura na ferramenta oficial | 4 cards renderizados, sem erro de aplicação ou resposta HTTP falha | importação e reexportação em sessão nova, com comparação semântica do JSON |
 
 ### 8.1.2 Meta / projetado para sprints futuras
 
-_conteúdo_
-
-**Nota:** Indicadores ainda não medidos, com a meta e a razão de não ter sido medido nesta sprint. Nenhum valor aqui deve ser lido como resultado obtido.
-
 | Indicador (projetado) | Meta | Por que não foi medido nesta sprint |
 | :--- | :--- | :--- |
-| _ | _ | _ |
+| Redução do tempo de ciclo | A definir após baseline operacional aprovado | a Sprint mediu datas do snapshot, não esforço nem processo antes/depois |
+| Aumento de adesão | A definir após receber o universo elegível por pesquisa | o denominador de convidados não está nas fontes |
+| Frescor e disponibilidade | A definir junto da arquitetura produtiva | não há carga automática, timestamp de extração ou SLA aprovado |
+| Cobertura de publicação autorizada | A definir após política e integração com o acervo | decisão, versão e data de publicação não existem no snapshot |
+| Conformidade de acesso | A definir após aprovação de perfis e instrumentação | política final e logs de autorização ainda não estão integrados |
 
 ## 8.2 Diagnóstico Qualitativo
 
-_conteúdo_
+O trabalho torna reproduzíveis o diagnóstico de qualidade, a validação
+estrutural do canvas e a distinção entre métrica disponível e dependência
+futura. O modelo cobre ciclo de vida, participação, desempenho operacional e
+qualidade/publicação, sem preencher as subseções de Dados e Governança que
+ficaram fora do recorte desta Sprint.
 
-**Nota:** Análise textual aderente às tabelas da §8.1 — descrever como "medido" só o que roda de fato e marcar como "projetado" o que ainda é meta.
+A principal lacuna analítica é o cubo de resultados/questionários. PB10, PB11,
+PB13 e I12–I15 permanecem especificados, mas não possuem um contrato dimensional
+próprio porque a Task 43 não entregou conteúdo exclusivo para integração. As
+fontes [3], [12], [13] e [14] ainda precisam ser recuperadas para auditoria
+independente. O TAPI [1] e a Arquitetura [2] foram conferidos pelos hashes
+registrados no mapa de fontes. Esses pontos são pendências declaradas, não
+resultados omitidos nem capacidade presumida.
 
 ## 8.3 Tabela de Fontes e Auditabilidade
 
@@ -1773,13 +2938,31 @@ evidência observada e decisão proposta.
 
 | Bloco | Origem auditável | Classificação e estado |
 | :--- | :--- | :--- |
-| Contexto, escopo, processo e papéis | TAPI [1], Arquitetura de Negócio [2], JTBD [13] e Problem Canvas [14] | Fontes primárias citadas; os arquivos não estão nesta cópia do repositório e a conferência direta permanece pendente |
+| Contexto, escopo, processo e papéis | TAPI [1] e Arquitetura de Negócio [2], identificados por SHA-256 em `docs/fontes-e-dependencias.md`; JTBD [13] e Problem Canvas [14] | TAPI e Arquitetura conferidos diretamente; conteúdo exclusivo de JTBD e Problem Canvas permanece pendente |
 | Estrutura, grão e qualidade das bases | seis CSVs externos identificados pelos hashes da §5.3.6; manifesto, perfilador e testes em `scripts/data_quality/` | Evidência observada no snapshot local; o método é reproduzível quando as fontes e o dicionário estão disponíveis, mas os dados brutos não fazem parte do checkout |
 | Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; histórico das issues #21–#25 e #40–#49 | Síntese derivada; o vínculo específico deve citar issue, branch, commit ou MR e as limitações constam nas §§5.6 e 6.4 |
+| Cadeia analítica executável | `scripts/traceability/manifest.json`, validador e testes; IDs e nomes conferidos contra `docs/dmc.json` | 13 perguntas, 13 requisitos, 25 indicadores e 4 dashboards cobertos; I12–I15 mantidos como lacuna formal da Task 43 |
 | Negócio, Consumo Analítico e Governança Corporativa do canvas | DMC em PDF [3] e exportação `docs/dmc.json` | Baseline documental derivado; papéis e políticas continuam sujeitos a validação |
 | Cubos C01–C04 | contratos da §5.2, derivados das perguntas, indicadores e dados observados | Proposta de modelagem; não prova implantação de data warehouse |
 
+A auditoria transversal aplicou o teste “qual é a fonte?” aos grupos de
+afirmações exigidos nesta Sprint:
+
+| Afirmação auditada | Origem seguida até a fonte | Tipo | Resultado |
+| :--- | :--- | :--- | :--- |
+| Identidade do parceiro e propósito do projeto | TAPI [1] e Arquitetura [2], conferidos por hash | fonte primária | **OK:** parceiro, propósito, escopo macro, MVP e públicos confirmados documentalmente |
+| Fragmentação, cruzamentos manuais e processo AS-IS | TAPI [1] e Arquitetura [2] | fonte primária | **OK:** ausência de integração, dashboard manual, silo e cruzamentos em planilhas confirmados; magnitude de esforço continua sem medição |
+| Seis fontes, estrutura, contagens, chaves, nulos e relações órfãs | CSVs externos identificados pelos hashes da §5.3.6 e `scripts/data_quality/` | observado nos dados e no código | **OK:** reproduzível sem publicar os registros |
+| Natureza real ou sintética dos CSVs | nenhuma declaração primária disponível | pendente | **Correção aplicada:** removida a afirmação de que as linhas são fictícias; o uso continua restrito a agregados |
+| Data Owner, Data Steward e Data Custodian | Arquitetura [2], baseline do DMC [3] e `docs/dmc.json` | referência documental | **OK com limitação:** nomes e responsabilidades constam na Arquitetura; designações jurídicas e política final não são inferidas |
+| Riscos de qualidade, exposição e reidentificação | campos, chaves, e-mail e texto livre observados; §6.6 | observado + avaliação de risco | **OK:** nenhuma autorização de publicação é inferida |
+| RF01–RF13 e PB01–PB13 | TAPI [1], Arquitetura [2], estrutura observada e síntese do grupo | contrato proposto sustentado por fonte | **OK com limitação:** contratos são da equipe; campos e dependências observáveis são citados diretamente |
+| I01–I25 | CSVs, perfilamento e dependências declaradas nas §§5.6 e 6.4 | observado, mapeamento ou integração futura | **OK:** cada indicador explicita disponibilidade e denominador; indisponível nunca vira zero |
+| Atualização automática, acesso e publicação | ausência de timestamp, política, logs e decisão no snapshot | proposta futura | **Correção aplicada:** removidas afirmações de capacidade atual ou tempo real |
+| Quatro cards dimensionais do DMC | issues #44–#47, §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional preenchido; Dados/Governança vazios por escopo; cubo próprio de resultados permanece dependência da Task 43 |
+
 Nenhuma referência a uma fonte ausente deve ser usada, isoladamente, para
-classificar uma afirmação como confirmada pelo parceiro. Até a recuperação do
-arquivo original, a afirmação permanece como síntese derivada ou pendente de
-auditoria primária.
+classificar uma afirmação como confirmada pelo parceiro. TAPI e Arquitetura só
+sustentam os trechos que afirmam explicitamente; conteúdo exclusivo do DMC em
+PDF, dicionário, JTBD ou Problem Canvas permanece derivado ou pendente até a
+recuperação do original.
