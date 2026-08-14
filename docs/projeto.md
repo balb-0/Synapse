@@ -24,6 +24,10 @@ no GitLab. Este documento não replica nomes ou perfis sem uma fonte versionada.
 - [5. Modelagem Dimensional e Cubos OLAP](#5-modelagem-dimensional-e-cubos-olap)
   - [5.1 Visão Geral do Modelo Dimensional (Data Model Canvas)](#51-visão-geral-do-modelo-dimensional-data-model-canvas)
   - [5.2 Cubos Analíticos](#52-cubos-analíticos)
+    - [5.2.1 C01 — Portfólio e Ciclo](#521-c01--portfólio-e-ciclo)
+    - [5.2.2 C02 — Participação e Representatividade](#522-c02--participação-e-representatividade)
+    - [5.2.3 C03 — Resultados e Questionário](#523-c03--resultados-e-questionário)
+    - [5.2.4 C04 — Qualidade e Governança](#524-c04--qualidade-e-governança)
   - [5.3 Qualidade e Validação de Dados](#53-qualidade-e-validação-de-dados)
   - [5.4 Rastreabilidade Analítica](#54-rastreabilidade-analítica)
   - [5.5 Infraestrutura de Dados](#55-infraestrutura-de-dados)
@@ -638,6 +642,148 @@ Os cubos abaixo são contratos analíticos propostos a partir do snapshot dos se
 No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da ocorrência registrada. No C04, o mesmo atributo aparece apenas como estado avaliado em uma fotografia governada, conforme o recorte pedido pela issue #47; ele não cria uma segunda definição de I05. Publicação fica no C04 como estado de autorização e disponibilização, enquanto o C01 preserva os marcos operacionais até a entrega.
 
 Os quatro cubos não criam uma ponte entre participação e resposta. Os 542 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem contrato aprovado. As análises de resultados e questionários continuam especificadas no dashboard D03 e nos indicadores I12–I15, mas a definição de um cubo próprio permanece uma lacuna da Task 43, cuja branch não estava disponível na integração da Task 49.
+
+### 5.2.1 C01 — Portfólio e Ciclo
+
+Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
+
+O grão do cubo é uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual. A fonte de dados é o arquivo `pesquisas.csv`. O tipo de fato é um acumulador (accumulating snapshot), pois a linha é atualizada conforme a pesquisa avança pelos marcos do ciclo, em vez de gerar uma nova linha a cada evento.  A estrutura do cubo pode ser visualizada abaixo.
+
+<div align="center">
+  <p> <b> Diagrama Cubo 1 </b> </p>
+<img src="../docs/assets/prototipos-dashboards/imagens/cubo-01.png" alt="cubo-01" />
+  <p><b>Fonte:</b> Material elaborado pela equipe.</p>
+</div>
+
+#### Métricas
+
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar no ano inteiro.
+
+**dias_uteis_validacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
+- Aditividade: aditiva
+- Observação: Cobertura de 97,8% das pesquisas
+
+**dias_uteis_coleta**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_limite` ou `prorrogada_ate` menos `data_divulgacao`
+- Aditividade: aditiva
+- Observação: Se existir prorrogação, usa a data prorrogada
+
+**dias_uteis_tabulacao**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_limite` ou `prorrogada_ate`
+- Aditividade: aditiva
+
+**dias_uteis_ciclo_total**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: `data_entrega` menos `data_solicitacao`
+- Aditividade: não aditiva
+- Observação: O ciclo total é a soma das fases. Somar as quatro métricas causaria dupla contagem. Para agregar o tempo total de ciclo, deve-se usar apenas esta métrica, sem somá-la às fases
+
+**qtd_empresas_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `participantes` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+
+**qtd_respondentes_na_pesquisa**
+- Tipo: inteiro
+- Fonte ou regra de cálculo: coluna `tempo_preenchimento` do CSV
+- Aditividade: não aditiva
+- Observação: Só pode ser lida no nível da pesquisa, pelo mesmo motivo da métrica anterior
+
+**flag_prorrogada**
+- Tipo: booleano (0 ou 1)
+- Fonte ou regra de cálculo: 1 se `prorrogada_ate` não for nulo, 0 caso contrário
+- Aditividade: não é para somar
+- Observação: Usada como filtro, como mostrar apenas prorrogadas
+
+#### Dimensões
+
+As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é uma tabela separada, e o cubo armazena apenas a chave estrangeira (FK).
+
+**sk_pesquisa**
+- Tabela dimensional: `DIM_PESQUISA`
+- Descrição: Contém atributos da pesquisa como título, objetivos e ano da edição
+
+**sk_data_solicitacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de solicitação. Permite agrupar por mês ou ano de origem
+
+**sk_data_aprovacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de aprovação
+
+**sk_data_divulgacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de divulgação
+
+**sk_data_limite_coleta**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite original
+
+**sk_data_prorrogacao**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data limite prorrogada, pode ser nula
+
+**sk_data_entrega**
+- Tabela dimensional: `DIM_TEMPO`
+- Descrição: Data de entrega
+
+**sk_area**
+- Tabela dimensional: `DIM_AREA`
+- Descrição: Área responsável pela pesquisa, coluna `area` do `pesquisas.csv`
+
+**sk_status**
+- Tabela dimensional: `DIM_STATUS_PESQUISA`
+- Descrição: Status atual da pesquisa, coluna `status` do `pesquisas.csv`
+
+**sk_tipo**
+- Tabela dimensional: `DIM_TIPO_PESQUISA`
+- Descrição: Tipo da pesquisa, coluna `tipo` do `pesquisas.csv`
+
+**sk_perfil**
+- Tabela dimensional: `DIM_PERFIL_PESQUISA`
+- Descrição: Perfil da pesquisa. Contém atributos imutáveis como complexidade e tipo de resposta
+
+**sk_familia**
+- Tabela dimensional: `DIM_FAMILIA_PESQUISA`
+- Descrição: Derivada do título da pesquisa. Permite agrupar edições recorrentes, como "Premiação da Força de Vendas"
+
+**sk_fonte**
+- Tabela dimensional: `DIM_FONTE_DADO`
+- Descrição: Dimensão de linhagem. Indica o sistema de origem
+
+**sk_carga**
+- Tabela dimensional: `DIM_EXECUCAO_CARGA`
+- Descrição: Dimensão de governança. Registra a execução de ETL que carregou a linha
+
+#### Observações
+
+Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
+
+A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+
+A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
+
+Este cubo não armazena dados individuais de respondentes, respeitando a política de k-anonimato e LGPD. O acesso aos dados é controlado por camadas: a camada externa só publica agregações com mais de cinco empresas, e a camada interna mantém o detalhe para a equipe da Central de Pesquisas.
+
+---
+
+### 5.2.2 C02 — Participação e Representatividade
+
+---
+
+### 5.2.3 C03 — Resultados e Questionário
+
+
+---
+
+### 5.2.4 C04 — Qualidade e Governança
+
+---
 
 ## 5.3 Qualidade e Validação de Dados
 
