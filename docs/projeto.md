@@ -840,8 +840,6 @@ Para o fluxo mensal, recomenda-se que o snapshot seja gerado automaticamente no 
 
 ### 5.2.4 C04 — Qualidade e Governança
 
-### 5.2.4 C04 — Instrumento de Coleta
-
 Este cubo descreve o conteúdo dos questionários, ou seja, quais perguntas foram feitas em cada pesquisa. Ele é um fato de associação (factless fact), pois não possui métricas numéricas tradicionais para somar, mas sim conexões entre dimensões. O objetivo é responder perguntas como quantas perguntas cada pesquisa possui, qual o tipo predominante de questões e quais pesquisas compartilham perguntas semelhantes.
 
 O grão do cubo é uma linha por pergunta em uma pesquisa, totalizando 231 linhas no snapshot atual, cobrindo apenas 10 das 366 pesquisas (aproximadamente 2,7% do acervo). A fonte de dados é o arquivo questoes.csv. O tipo de fato é um fato de associação, pois conecta a pesquisa à pergunta sem armazenar medidas numéricas de soma. A estrutura do cubo pode ser visualizada abaixo.
