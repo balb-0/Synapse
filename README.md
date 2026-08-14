@@ -1,47 +1,93 @@
-# Central de Pesquisas do Sindusfarma
+# Nome do Projeto: Governança e Integração de Dados da Central de Pesquisas
 
-Repositório do Grupo 05 para os artefatos de arquitetura e governança de dados
-da Central de Pesquisas. O documento canônico do produto é
-[`docs/projeto.md`](docs/projeto.md); o índice de documentação explica onde
-encontrar cada artefato e como reproduzir as validações.
+## Nome do Grupo: Synapse
 
-## Artefatos da Sprint 1
+## Integrantes:
 
-- [Documento principal](docs/projeto.md): contexto, modelagem quantitativa, requisitos, governança e avaliação.
-- [Data Model Canvas](docs/dmc.json): exportação JSON no schema da ferramenta oficial.
-- [Fontes e dependências](docs/fontes-e-dependencias.md): origem e limitações dos três entregáveis.
-- [Matriz de evidências](docs/matriz-evidencias-problem-canvas.md): distinção entre observação, inferência, proposta e pendência.
-- [Índice de documentação](docs/index.md): estrutura completa e comandos de validação.
+- <a href="https://www.linkedin.com/in/anna-riciopo/">Anna Riciopo</a>
+- <a href="https://www.linkedin.com/in/karine-paixao/">Karine Paixão</a>
+- <a href="https://www.linkedin.com/in/lucas-nunes-matheus/">Lucas Nunes Matheus</a>
+- <a href="https://www.linkedin.com/in/marlos-do-carmo-guedes-366987250/">Marlos Guedes</a>
+- <a href="https://www.linkedin.com/in/milena-castro-vieira/">Milena Castro Vieira</a>
+- <a href="https://www.linkedin.com/in/otavio-vasc/">Otávio Vasconcelos</a>
+- <a href="https://www.linkedin.com/in/vitor-balbo/">Vitor Balbo</a>
 
-## Dados e privacidade
+## Professores:
 
-As bases brutas não fazem parte do repositório. CSV, XLS e XLSX são ignorados
-por padrão porque podem conter e-mail, identificadores estáveis ou texto livre.
-Não use `git add -f` para publicar uma base sem comprovar sua natureza e aplicar
-os controles de anonimização, minimização e autorização necessários.
+- <a href="https://www.linkedin.com/in/afonsolelis/">Afonso Lelis</a> — Programação
+- <a href="https://www.linkedin.com/in/hermano-peixoto-1091796/">Hermano Peixoto</a> — Programação
+- <a href="https://www.linkedin.com/in/reginaldo-arakaki-9574222b/">Reginaldo Arakaki</a> — Programação
+- <a href="https://www.linkedin.com/in/bruno-grandchamp-rodilha/">Bruno Grandchamp Rodilha</a> — Design
+- <a href="https://www.linkedin.com/in/filipe-gon%C3%A7alves-08a55015b/">Filipe Gonçalves</a> — Liderança
+- <a href="https://www.linkedin.com/in/diogo-martins-gon%C3%A7alves-de-morais-96404732/">Diogo Martins Gonçalves de Morais</a> — Negócios
+- <a href="https://www.linkedin.com/in/geraldo-magela-severino-vasconcelos-22b1b220/">Geraldo Magela Severino Vasconcelos</a> — Matemática
 
-## Validação estrutural rápida
+## 📝 Descrição
 
-```bash
-jq empty docs/dmc.json
-python3 scripts/dmc/validate_dmc.py docs/dmc.json
-python3 -m unittest discover -s scripts/dmc -p 'test_*.py'
-python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'
-python3 scripts/traceability/validate_traceability.py
-python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
-git diff --check
+Construir a **espinha dorsal de dados da Central de Pesquisas do Sindusfarma** — integrando as fontes hoje dispersas (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), estruturando um banco de dados centralizado na nuvem, garantindo governança, qualidade e conformidade com a LGPD ao longo do ciclo de vida das pesquisas, e entregando um data app com dashboards operacionais e estratégicos que eliminam a dependência de atualizações manuais.
+
+## 📝 LINKS
+
+<a href="/docs/projeto.md">Link para a documentação geral</a> do projeto.
+<br>
+<a href="/docs/index.md">Índice da documentação</a> (estrutura completa e comandos de validação).
+
+## 📊 Dashboards (Placement)
+
+O projeto prevê uma camada de visualização com dashboards que consomem o banco central, hoje em fase de protótipo:
+
+- **Dashboard Operacional**: status das pesquisas em andamento, adesão por empresa e área, e tempos do ciclo (validação, coleta, tabulação).
+- **Dashboard Estratégico**: volume de pesquisas por período, evolução da adesão e representatividade de mercado das participantes.
+
+## 📁 Estrutura de pastas
+
+```
+g05/
+├─ docs/
+│  ├─ index.md                                        # Índice da documentação
+│  ├─ projeto.md                                      # Documento principal do produto
+│  ├─ modelagem_quantitativa_de_dados_do_parceiro.md  # Modelagem quantitativa das bases
+│  ├─ fontes-e-dependencias.md                        # Origem e limitações dos entregáveis
+│  ├─ matriz-evidencias-problem-canvas.md             # Evidências (observação / inferência / proposta)
+│  ├─ dmc.json                                        # Data Model Canvas exportado
+│  ├─ analise_quantitativa.py                         # Análise quantitativa das bases
+│  ├─ gestao-projeto.md                               # Sprints, riscos e post-mortem
+│  ├─ gestao-configuração.md                          # Políticas de repo, branches e commits
+│  ├─ dev-rules.md                                    # Padrões de código e testes
+│  ├─ assets/                                         # Protótipos de dashboards e imagens
+│  └─ figuras/                                        # Figuras dos documentos
+├─ scripts/
+│  ├─ dmc/                                            # Validação do dmc.json
+│  ├─ data_quality/                                   # Validação da qualidade dos dados
+│  └─ traceability/                                   # Validação de rastreabilidade às fontes
+├─ .gitlab/
+│  └─ merge_request_templates/                        # Template de Merge Request
+├─ .gitignore
+└─ README.md
 ```
 
-A conferência completa da rastreabilidade também compara os hashes e os
-trechos auditáveis do TAPI e da Arquitetura de Negócio, mantidos fora do Git:
+## ✅ Requisitos (Placement)
+
+Para executar as validações localmente, utilize as versões abaixo (ou superiores compatíveis):
+
+- **Git**: 2.40+
+- **Python**: 3.12+ (análise quantitativa e scripts de validação)
+- **jq**: 1.6+ (validação estrutural do `dmc.json`)
+
+## 💻 Configuração para desenvolvimento (Placement)
 
 ```bash
-python3 scripts/traceability/validate_traceability.py \
-  --sources-dir /caminho/seguro/das-fontes
-SINDUSFARMA_SOURCE_DIR=/caminho/seguro/das/fontes \
-  python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
+git clone https://git.inteli.edu.br/graduacao/2026-2a/t13/g05
+cd g05
 ```
 
-Os testes de integração dos protótipos exigem os seis CSVs externos. Consulte
-[`docs/assets/prototipos-dashboards/README.md`](docs/assets/prototipos-dashboards/README.md)
-para executar essa suíte sem publicar as fontes.
+> As bases brutas (CSV/XLS/XLSX) não fazem parte do repositório por conterem dados pessoais — os scripts de validação que dependem delas exigem as fontes em um diretório externo seguro.
+
+## 🗃 Histórico de lançamentos
+
+* 0.1.0 - Sprint 1 - 14/08/2026
+    * Contexto Organizacional, Modelagem Quantitativa dos Dados e Data Model Canvas
+
+## 📋 Licença/License
+
+<p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.inteli.edu.br/graduacao/2026-2a/t13/g05">Governança e Integração de Dados da Central de Pesquisas</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://git.inteli.edu.br/graduacao/2026-2a/t13/g05">INTELI</a>, <a href="https://www.linkedin.com/in/anna-riciopo/">Anna Riciopo</a>, <a href="https://www.linkedin.com/in/karine-paixao/">Karine Paixão</a>, <a href="https://www.linkedin.com/in/lucas-nunes-matheus/">Lucas Nunes Matheus</a>, <a href="https://www.linkedin.com/in/marlos-do-carmo-guedes-366987250/">Marlos Guedes</a>, <a href="https://www.linkedin.com/in/milena-castro-vieira/">Milena Castro Vieira</a>, <a href="https://www.linkedin.com/in/otavio-vasc/">Otávio Vasconcelos</a>, <a href="https://www.linkedin.com/in/vitor-balbo/">Vitor Balbo</a> is licensed under <a href="http://creativecommons.org/licenses/by/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Attribution 4.0 International<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"></a></p>
