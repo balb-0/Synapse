@@ -98,305 +98,340 @@
     {
       "id": "cubo-1",
       "fields": {
-        "nome": "Ciclo de Vida das Pesquisas",
+        "nome": "Portfólio e Ciclo",
         "starSchema": true,
         "snowflakeSchema": false,
-        "outroSchema": "",
+        "outroSchema": "Não aplicável; a documentação descreve estrutura em estrela.",
         "transactionFact": false,
         "periodicSnapshot": false,
         "accumulatingSnapshot": true,
-        "bridgeTables": "",
-        "junkDimensions": "",
-        "dimensoesConformadas": "Pesquisa; Tempo",
-        "particionamento": "",
-        "materializacoesAgregacoes": "",
-        "indicesClusteringOrdenacao": "",
-        "queriesCriticas": "",
-        "classificacaoPublico": false,
-        "classificacaoInterno": false,
+        "bridgeTables": "Não previstas para este cubo na documentação.",
+        "junkDimensions": "Não previstas para este cubo na documentação.",
+        "dimensoesConformadas": "Pesquisa; Tempo; Fonte de Dado; Execução de Carga",
+        "particionamento": "Por data de solicitação ou data de divulgação, conforme necessidade do painel.",
+        "materializacoesAgregacoes": "Agregações por período, área, tipo, status, complexidade, família de pesquisa e flag de prorrogação.",
+        "indicesClusteringOrdenacao": "Chaves de pesquisa, papéis de tempo, status, área, tipo e família de pesquisa.",
+        "queriesCriticas": "Análises de duração por etapa, volume de entregas, pesquisas prorrogadas e gargalos operacionais.",
+        "classificacaoPublico": true,
+        "classificacaoInterno": true,
         "classificacaoConfidencial": false,
         "classificacaoRestrito": false,
         "dadoPessoal": false,
         "dadoSensivel": false,
-        "dadoCritico": false,
-        "criticidade": "",
-        "perfisAutorizados": "",
-        "controleAcesso": "",
-        "trilhaAuditoria": "",
-        "retencao": "",
-        "arquivamento": "",
-        "descarte": "",
-        "metadadosObrigatorios": "",
-        "kpiQualidade": "",
-        "kpiGovernanca": ""
+        "dadoCritico": true,
+        "criticidade": "Cubo operacional central para acompanhamento do ciclo de vida das pesquisas; não armazena dados individuais de respondentes.",
+        "perfisAutorizados": "Camada externa com agregações de mais de cinco empresas; camada interna com detalhe para a equipe da Central de Pesquisas.",
+        "controleAcesso": "Publicação externa apenas em agregações compatíveis com k-anonimato; detalhe operacional restrito à camada interna.",
+        "trilhaAuditoria": "Dimensões DIM_FONTE_DADO e DIM_EXECUCAO_CARGA preservam origem e execução de ETL.",
+        "retencao": "Preservar histórico dos marcos e chaves de origem para auditoria e reconciliação futura.",
+        "arquivamento": "Arquivar execuções de carga e versões de dimensões relacionadas ao ciclo.",
+        "descarte": "Não descartar chaves órfãs; manter como não mapeadas até validação de reconciliação.",
+        "metadadosObrigatorios": "ID da pesquisa, título, marcos do ciclo, área, status, tipo, complexidade, tipo de resposta, fonte e execução de carga.",
+        "kpiQualidade": "Cobertura de marcos do ciclo e presença de datas necessárias para cálculo das métricas.",
+        "kpiGovernanca": "Percentual de pesquisas com linhagem de fonte e execução de carga registrada."
       },
       "lists": {
         "grao": [
-          "Uma linha por pesquisa, acumulando os marcos observados do ciclo da solicitação à entrega."
+          "Uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual.",
+          "A linha acumula os principais marcos do processo: solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega.",
+          "O fato é um acumulador, atualizado conforme a pesquisa avança pelos marcos do ciclo."
         ],
         "fatos": [
           "Solicitação registrada",
           "Aprovação registrada",
           "Divulgação registrada",
-          "Prazo definido",
+          "Limite de coleta definido",
           "Prorrogação registrada",
           "Entrega registrada"
         ],
         "metricas": [
-          "Quantidade de pesquisas (I01)",
-          "Quantidade e percentual de pesquisas por status (I02)",
-          "Quantidade e percentual de pesquisas com cada marco disponível (I03)",
-          "Duração observada entre marcos, em dias corridos (I04)",
-          "Quantidade e percentual de pesquisas prorrogadas (I05)",
-          "Quantidade de pesquisas atrasadas ou prioritárias, quando regra e data de referência forem aprovadas (I06)"
+          "dias_uteis_validacao: data_aprov menos data_solicitacao; métrica aditiva; cobertura de aprovação limitada no snapshot.",
+          "dias_uteis_coleta: data_limite ou prorrogada_ate menos data_divulgacao; métrica aditiva; usa a data prorrogada quando existir.",
+          "dias_uteis_tabulacao: data_entrega menos data_limite ou prorrogada_ate; métrica aditiva.",
+          "dias_uteis_ciclo_total: data_entrega menos data_solicitacao; métrica não aditiva, usada sem soma com as fases para evitar dupla contagem.",
+          "qtd_empresas_na_pesquisa: coluna participantes do CSV; métrica não aditiva, lida no nível da pesquisa.",
+          "qtd_respondentes_na_pesquisa: coluna tempo_preenchimento do CSV; métrica não aditiva, lida no nível da pesquisa.",
+          "flag_prorrogada: booleano 1 quando prorrogada_ate não é nulo e 0 caso contrário; usado como filtro."
         ],
         "dimensoes": [
-          "Pesquisa",
-          "Tempo, com papéis para solicitação, aprovação, divulgação, prazo, prorrogação e entrega",
-          "Tipo de pesquisa",
-          "Área solicitante",
-          "Complexidade",
-          "Status",
-          "Tipo de resposta"
+          "sk_pesquisa: DIM_PESQUISA, com atributos da pesquisa como título, objetivos e ano da edição.",
+          "sk_data_solicitacao: DIM_TEMPO para a data de solicitação.",
+          "sk_data_aprovacao: DIM_TEMPO para a data de aprovação.",
+          "sk_data_divulgacao: DIM_TEMPO para a data de divulgação.",
+          "sk_data_limite_coleta: DIM_TEMPO para a data limite original.",
+          "sk_data_prorrogacao: DIM_TEMPO para a data limite prorrogada, quando existir.",
+          "sk_data_entrega: DIM_TEMPO para a data de entrega.",
+          "sk_area: DIM_AREA, derivada da coluna area de pesquisas.csv.",
+          "sk_status: DIM_STATUS_PESQUISA, derivada da coluna status de pesquisas.csv.",
+          "sk_tipo: DIM_TIPO_PESQUISA, derivada da coluna tipo de pesquisas.csv.",
+          "sk_perfil: DIM_PERFIL_PESQUISA, com atributos imutáveis como complexidade e tipo de resposta.",
+          "sk_familia: DIM_FAMILIA_PESQUISA, derivada do título para agrupar edições recorrentes.",
+          "sk_fonte: DIM_FONTE_DADO, dimensão de linhagem do sistema de origem.",
+          "sk_carga: DIM_EXECUCAO_CARGA, dimensão de governança da execução de ETL."
         ],
         "fontes": [
-          ""
+          "pesquisas.csv"
         ],
         "transformacoes": [
-          ""
+          "Calcular durações a partir das datas do ciclo; quando houver prorrogação, usar prorrogada_ate como fim da coleta e referência para tabulação.",
+          "Derivar flag_prorrogada pela presença de prorrogada_ate.",
+          "Derivar DIM_FAMILIA_PESQUISA por normalização de título, removendo anos e padronizando texto.",
+          "Preservar chaves recebidas como chaves de origem, sem criar chave canônica antes da reconciliação."
         ],
         "qualidade": [
-          ""
+          "Os pesquisa_id 424, 1116, 1139 e 1147 não existem em pesquisas.csv e devem apontar para registro Não mapeado em DIM_PESQUISA até reconciliação.",
+          "A data de aprovação tem baixa cobertura; métricas dependentes de data_aprov terão muitos valores NULL.",
+          "A DIM_FAMILIA_PESQUISA deve ser validada pelo Sindusfarma antes de uso homologado.",
+          "O cubo não armazena dados individuais de respondentes e deve respeitar a política de k-anonimato e LGPD."
         ],
         "scd": [
-          ""
+          "DIM_PESQUISA, DIM_STATUS_PESQUISA, DIM_AREA, DIM_TIPO_PESQUISA, DIM_PERFIL_PESQUISA e DIM_FAMILIA_PESQUISA podem evoluir para versionamento histórico quando houver regra aprovada.",
+          "Manter chaves de origem e linhagem de carga para auditoria e reconciliação futura."
         ]
       }
     },
     {
       "id": "cubo-2",
       "fields": {
-        "nome": "Adesão e Participação",
+        "nome": "Participação e Representatividade",
         "starSchema": true,
         "snowflakeSchema": false,
-        "outroSchema": "",
+        "outroSchema": "Não aplicável; a documentação descreve estrutura em estrela.",
         "transactionFact": true,
         "periodicSnapshot": false,
         "accumulatingSnapshot": false,
-        "bridgeTables": "",
-        "junkDimensions": "",
-        "dimensoesConformadas": "Pesquisa; Empresa; Tempo",
-        "particionamento": "",
-        "materializacoesAgregacoes": "",
-        "indicesClusteringOrdenacao": "",
-        "queriesCriticas": "",
-        "classificacaoPublico": false,
-        "classificacaoInterno": false,
+        "bridgeTables": "Não previstas para este cubo na documentação.",
+        "junkDimensions": "Não previstas para este cubo na documentação.",
+        "dimensoesConformadas": "Pesquisa; Empresa; Pessoa; Tempo",
+        "particionamento": "Por data da pesquisa, herdada de data_divulgacao, e opcionalmente por data de resposta quando hora_inicio existir.",
+        "materializacoesAgregacoes": "Agregações por pesquisa, empresa, pessoa conciliada, cargo, departamento, período e representatividade de mercado.",
+        "indicesClusteringOrdenacao": "Chaves de pesquisa, empresa, pessoa, data da pesquisa, data da resposta e seq_ocorrencia.",
+        "queriesCriticas": "Adesão, engajamento, respondentes frequentes, participação por empresa e evolução de cobertura de mercado.",
+        "classificacaoPublico": true,
+        "classificacaoInterno": true,
         "classificacaoConfidencial": false,
-        "classificacaoRestrito": false,
-        "dadoPessoal": false,
+        "classificacaoRestrito": true,
+        "dadoPessoal": true,
         "dadoSensivel": false,
-        "dadoCritico": false,
-        "criticidade": "",
-        "perfisAutorizados": "",
-        "controleAcesso": "",
-        "trilhaAuditoria": "",
-        "retencao": "",
-        "arquivamento": "",
-        "descarte": "",
-        "metadadosObrigatorios": "",
-        "kpiQualidade": "",
-        "kpiGovernanca": ""
+        "dadoCritico": true,
+        "criticidade": "Contém dimensão de pessoa com cargo e departamento restritos; e-mail é removido por ser pseudônimo reversível.",
+        "perfisAutorizados": "Camada interna para detalhe da Central de Pesquisas; camada externa apenas com agregações protegidas por k-anonimato.",
+        "controleAcesso": "Substituir cargo e departamento brutos por níveis hierárquicos e agrupamentos na camada externa; bloquear células com menos de cinco pessoas.",
+        "trilhaAuditoria": "Registrar fonte da participação, conciliação de empresa/pessoa e regra de deduplicação usada em seq_ocorrencia.",
+        "retencao": "Manter participações brutas e deduplicadas para permitir contagem total e contagem distinta.",
+        "arquivamento": "Arquivar snapshots de conciliação de empresa e pessoa, preservando chaves duráveis.",
+        "descarte": "Remover e-mail da dimensão de pessoa; não descartar duplicatas, apenas numerar ocorrências.",
+        "metadadosObrigatorios": "ID da pesquisa, empresa, pessoa quando conciliada, hora_inicio, hora_termino, cargo, departamento, market_share e seq_ocorrencia.",
+        "kpiQualidade": "Cobertura de hora_inicio/hora_termino, quantidade de duplicatas e taxa de registros conciliados.",
+        "kpiGovernanca": "Percentual de registros com chaves duráveis e regras de anonimização aplicadas."
       },
       "lists": {
         "grao": [
-          "Uma linha por registro de participação em respondentes.csv, sem afirmar que o registro representa uma pessoa única."
+          "Uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual.",
+          "Cada linha representa um evento de resposta e não acumula estados.",
+          "O cubo suporta contagem bruta de participações e contagem distinta quando filtrado por seq_ocorrencia."
         ],
         "fatos": [
           "Participação registrada",
           "Início de participação registrado",
-          "Término de participação registrado"
+          "Término de participação registrado",
+          "Evento único de resposta em respondentes.csv"
         ],
         "metricas": [
-          "Quantidade de participações observadas (I07)",
-          "Taxa de adesão somente quando o universo elegível estiver disponível (I08)",
-          "Participação de mercado somente após homologação da fonte (I09)",
-          "Quantidade distinta de empresas e clientes conciliados (I10)",
-          "Taxa de engajamento somente quando o universo elegível estiver disponível (I11)"
+          "qtd_participacao: sempre 1, pois cada linha é uma participação; métrica aditiva.",
+          "seq_ocorrencia: número sequencial para duplicatas de pesquisa e pessoa; métrica não aditiva usada como filtro para deduplicação.",
+          "minutos_preenchimento: diferença entre hora_termino e hora_inicio em minutos; aditiva onde existir, com cobertura aproximada de 4,3%.",
+          "pct_mercado_na_participacao: market_share de respondentes.csv no momento da participação; não aditiva e lida no nível da participação."
         ],
         "dimensoes": [
-          "Pesquisa",
-          "Empresa",
-          "Cliente ou pessoa, somente após conciliação",
-          "Tempo de início e término",
-          "Cargo",
-          "Departamento"
+          "sk_pesquisa: DIM_PESQUISA, a pesquisa respondida.",
+          "sk_empresa: DIM_EMPRESA, com nome, nacionalidade, cidade, tipo de associado e share de mercado atual.",
+          "sk_pessoa: DIM_PESSOA, com cargo, departamento, nível hierárquico e agrupamento de departamento para anonimização; sem e-mail.",
+          "sk_data_pesquisa: DIM_TEMPO herdada de data_divulgacao em pesquisas.csv, chave temporal primária.",
+          "sk_data_resposta: DIM_TEMPO extraída de hora_inicio em respondentes.csv, chave opcional para sazonalidade e tempo de preenchimento."
         ],
         "fontes": [
-          ""
+          "respondentes.csv",
+          "pesquisas.csv para data_divulgacao da pesquisa",
+          "clientes.csv para atributos da pessoa respondente",
+          "empresas.csv para atributos da empresa"
         ],
         "transformacoes": [
-          ""
+          "Criar qtd_participacao como 1 para cada linha.",
+          "Criar seq_ocorrencia para numerar duplicatas de pesquisa e pessoa; usar seq_ocorrencia = 1 para análises de respondentes únicos.",
+          "Calcular minutos_preenchimento a partir de hora_inicio e hora_termino quando ambos existirem.",
+          "Usar data_divulgacao da pesquisa como chave temporal primária por causa da baixa cobertura de hora_inicio.",
+          "Usar market_share de respondentes.csv para representatividade histórica e percentual atual de empresas.csv para perfil atual da empresa."
         ],
         "qualidade": [
-          ""
+          "Foram observados 838 casos de duplicatas em que a mesma pessoa aparece respondendo à mesma pesquisa mais de uma vez.",
+          "hora_inicio e hora_termino têm cobertura baixa, aproximadamente 4,3%, e devem ser usados com cautela.",
+          "market_share em respondentes.csv pode diferir do percentual de mercado em empresas.csv; a escolha depende do recorte histórico ou atual.",
+          "Cargo e departamento brutos são restritos na camada externa e devem ser agrupados com k-anonimato."
         ],
         "scd": [
-          ""
+          "Usar id_empresa_durable e id_pessoa_durable para contagens distintas.",
+          "As chaves duráveis preservam contagens corretas caso dimensões históricas SCD2 sejam adotadas futuramente."
         ]
       }
     },
     {
       "id": "cubo-3",
       "fields": {
-        "nome": "Desempenho Operacional",
+        "nome": "Resultados e Questionários",
         "starSchema": true,
         "snowflakeSchema": false,
-        "outroSchema": "",
-        "transactionFact": true,
-        "periodicSnapshot": false,
+        "outroSchema": "Não aplicável; a documentação descreve estrutura em estrela.",
+        "transactionFact": false,
+        "periodicSnapshot": true,
         "accumulatingSnapshot": false,
-        "bridgeTables": "",
-        "junkDimensions": "",
-        "dimensoesConformadas": "Pesquisa; Tempo",
-        "particionamento": "",
-        "materializacoesAgregacoes": "",
-        "indicesClusteringOrdenacao": "",
-        "queriesCriticas": "",
-        "classificacaoPublico": false,
-        "classificacaoInterno": false,
+        "bridgeTables": "Não previstas para este cubo na documentação.",
+        "junkDimensions": "Não previstas para este cubo na documentação.",
+        "dimensoesConformadas": "Tempo; Status da Pesquisa; Área; Tipo; Perfil",
+        "particionamento": "Por último dia do mês do snapshot.",
+        "materializacoesAgregacoes": "Agregações mensais por status, área, tipo e perfil.",
+        "indicesClusteringOrdenacao": "sk_data_fim_mes, sk_status, sk_area, sk_tipo e sk_perfil.",
+        "queriesCriticas": "Pesquisas em andamento por mês, evolução do fluxo de entregas, entradas e saídas por status e gargalos operacionais.",
+        "classificacaoPublico": true,
+        "classificacaoInterno": true,
         "classificacaoConfidencial": false,
         "classificacaoRestrito": false,
         "dadoPessoal": false,
         "dadoSensivel": false,
-        "dadoCritico": false,
-        "criticidade": "",
-        "perfisAutorizados": "",
-        "controleAcesso": "",
-        "trilhaAuditoria": "",
-        "retencao": "",
-        "arquivamento": "",
-        "descarte": "",
-        "metadadosObrigatorios": "",
-        "kpiQualidade": "",
-        "kpiGovernanca": ""
+        "dadoCritico": true,
+        "criticidade": "Cubo de fluxo mensal sem histórico anterior ao go-live; usado para análise operacional do pipeline.",
+        "perfisAutorizados": "Central de Pesquisas e áreas técnicas em agregações por status, área, tipo e perfil.",
+        "controleAcesso": "Publicar apenas agregações operacionais, sem detalhe individual de respondentes.",
+        "trilhaAuditoria": "Registrar data de fechamento do mês e execução que gerou o snapshot.",
+        "retencao": "Manter snapshots mensais para comparação histórica a partir do go-live.",
+        "arquivamento": "Arquivar cada fotografia mensal de fechamento do pipeline.",
+        "descarte": "Não há backfill de status anteriores por ausência de histórico disponível.",
+        "metadadosObrigatorios": "Data de fim do mês, status, área, tipo, perfil, flags do status e execução do snapshot.",
+        "kpiQualidade": "Cobertura e consistência de status no fechamento mensal.",
+        "kpiGovernanca": "Snapshots gerados automaticamente no primeiro dia útil e identificados por execução."
       },
       "lists": {
         "grao": [
-          "Uma linha por intervalo mensurável entre dois marcos de uma etapa de uma pesquisa."
+          "Uma linha por combinação de mês, status, área, tipo e perfil.",
+          "O fato é um instantâneo periódico que captura o estado do pipeline no fim de cada mês.",
+          "A fonte é derivada do Cubo 1, mas sem reconstrução histórica de status anteriores."
         ],
         "fatos": [
-          "Intervalo de validação concluído",
-          "Intervalo de coleta concluído",
-          "Intervalo de tabulação concluído",
-          "Intervalo de ciclo total concluído"
+          "Estado mensal da pesquisa no status",
+          "Entrada no status durante o mês",
+          "Saída do status durante o mês",
+          "Fechamento mensal do pipeline"
         ],
         "metricas": [
-          "Duração do intervalo em dias corridos",
-          "Duração declarada em dias úteis, sem conversão quando não houver calendário aprovado",
-          "Quantidade de intervalos válidos",
-          "Média e mediana da duração por etapa e período"
+          "qtd_pesquisas_no_status: contagem de pesquisas naquele status no último dia do mês; semi-aditiva.",
+          "qtd_entradas_no_mes: quantidade de pesquisas que chegaram ao status durante o mês; aditiva.",
+          "qtd_saidas_no_mes: quantidade de pesquisas que saíram do status durante o mês; aditiva."
         ],
         "dimensoes": [
-          "Pesquisa",
-          "Etapa do processo",
-          "Tempo de início",
-          "Tempo de término",
-          "Tipo de pesquisa",
-          "Área solicitante",
-          "Complexidade",
-          "Status"
+          "sk_data_fim_mes: DIM_TEMPO para o último dia do mês.",
+          "sk_status: DIM_STATUS_PESQUISA, com status no snapshot, como Em andamento, Em tabulação e Finalizada.",
+          "sk_area: DIM_AREA, área responsável pela pesquisa.",
+          "sk_tipo: DIM_TIPO_PESQUISA, tipo da pesquisa.",
+          "sk_perfil: DIM_PERFIL_PESQUISA, com atributos imutáveis como complexidade e tipo de resposta."
         ],
         "fontes": [
-          ""
+          "Derivado do Cubo 1",
+          "pesquisas.csv como base inicial dos atributos de pesquisa"
         ],
         "transformacoes": [
-          ""
+          "Gerar snapshot automaticamente no primeiro dia útil de cada mês, considerando o fechamento do mês anterior.",
+          "Usar papel específico de DIM_TEMPO para sk_data_fim_mes.",
+          "Calcular entradas e saídas no mês a partir do histórico gerado após o go-live.",
+          "Calcular pesquisas a finalizar na camada semântica com flag_conta_como_a_finalizar, sem métrica qtd_a_finalizar no cubo."
         ],
         "qualidade": [
-          ""
+          "O cubo não possui dados históricos antes do go-live porque status anteriores não foram registrados em base disponível.",
+          "Backfill não é possível com os dados atuais e isso deve ser comunicado ao cliente.",
+          "A métrica qtd_a_finalizar foi removida porque agregações sobre múltiplos status multiplicavam o estoque de pesquisas.",
+          "A DIM_STATUS_PESQUISA deve conter flag_em_aberto, flag_conta_como_a_finalizar e flag_terminal."
         ],
         "scd": [
-          ""
+          "Manter histórico mensal de snapshots a partir do go-live.",
+          "Versionar mudanças de interpretação de status por meio da DIM_STATUS_PESQUISA quando houver revisão de regras."
         ]
       }
     },
     {
       "id": "cubo-4",
       "fields": {
-        "nome": "Qualidade e Publicação",
+        "nome": "Qualidade e Governança",
         "starSchema": true,
         "snowflakeSchema": false,
-        "outroSchema": "",
+        "outroSchema": "Fato de associação sem medidas numéricas tradicionais (factless fact).",
         "transactionFact": false,
-        "periodicSnapshot": true,
+        "periodicSnapshot": false,
         "accumulatingSnapshot": false,
-        "bridgeTables": "",
-        "junkDimensions": "",
-        "dimensoesConformadas": "Tempo; Pesquisa (quando aplicável)",
-        "particionamento": "",
-        "materializacoesAgregacoes": "",
-        "indicesClusteringOrdenacao": "",
-        "queriesCriticas": "",
-        "classificacaoPublico": false,
-        "classificacaoInterno": false,
+        "bridgeTables": "Não prevista; o vínculo entre pesquisa e pergunta é modelado no próprio fato de associação.",
+        "junkDimensions": "Não previstas para este cubo na documentação.",
+        "dimensoesConformadas": "Pesquisa; Pergunta; Tempo",
+        "particionamento": "Por pesquisa e data de divulgação herdada de pesquisas.csv.",
+        "materializacoesAgregacoes": "Agregações por pesquisa, tipo de questão, pergunta, quantidade de alternativas e período.",
+        "indicesClusteringOrdenacao": "sk_pesquisa, sk_pergunta e sk_data_pesquisa.",
+        "queriesCriticas": "Quantidade de perguntas por pesquisa, tipo predominante de questões e pesquisas que compartilham perguntas semelhantes.",
+        "classificacaoPublico": true,
+        "classificacaoInterno": true,
         "classificacaoConfidencial": false,
         "classificacaoRestrito": false,
         "dadoPessoal": false,
         "dadoSensivel": false,
-        "dadoCritico": false,
-        "criticidade": "",
-        "perfisAutorizados": "",
-        "controleAcesso": "",
-        "trilhaAuditoria": "",
-        "retencao": "",
-        "arquivamento": "",
-        "descarte": "",
-        "metadadosObrigatorios": "",
-        "kpiQualidade": "",
-        "kpiGovernanca": ""
+        "dadoCritico": true,
+        "criticidade": "Cobre apenas parte do acervo e serve como ponto de extensão para futuro FATO_RESPOSTA.",
+        "perfisAutorizados": "Central de Pesquisas e usuários autorizados dos relatórios de resultados e benchmark.",
+        "controleAcesso": "Exibir indisponibilidade quando a pesquisa não estiver coberta pela base de questões; não expor respostas individuais inexistentes no snapshot atual.",
+        "trilhaAuditoria": "Registrar origem da pergunta, coluna de origem no arquivo bruto e nível de confiança de extração.",
+        "retencao": "Preservar perguntas, alternativas e vínculos com pesquisa para extensão futura de respostas.",
+        "arquivamento": "Arquivar versões de DIM_PERGUNTA e mapeamentos de pesquisa usados no fallback.",
+        "descarte": "Não criar entidades artificiais para pesquisas órfãs; preservar mapeamento por título quando aplicável.",
+        "metadadosObrigatorios": "Pesquisa, pergunta, tipo de questão, número de alternativas, formato do arquivo de origem, coluna de origem e confiança da extração.",
+        "kpiQualidade": "Cobertura do acervo por questões e percentual de linhas ligadas diretamente ou por fallback à DIM_PESQUISA.",
+        "kpiGovernanca": "Rastreabilidade da origem da pergunta e prontidão para integração futura com FATO_RESPOSTA."
       },
       "lists": {
         "grao": [
-          "Uma linha por objeto avaliado e regra em cada execução versionada de fotografia; Pesquisa é informada quando aplicável."
+          "Uma linha por pergunta em uma pesquisa, totalizando 231 linhas no snapshot atual.",
+          "A cobertura atual é de 10 das 366 pesquisas, aproximadamente 2,7% do acervo.",
+          "O fato é de associação, conectando pesquisa e pergunta sem medidas numéricas tradicionais para soma."
         ],
         "fatos": [
-          "Estado de qualidade na fotografia",
-          "Estado de inconsistência na fotografia",
-          "Estado de prorrogação na fotografia",
-          "Estado de autorização na fotografia",
-          "Estado de publicação na fotografia"
+          "Associação entre pesquisa e pergunta",
+          "Presença de pergunta em pesquisa",
+          "Metadados de pergunta disponíveis para análise futura"
         ],
         "metricas": [
-          "Quantidade distinta de objetos avaliados na fotografia",
-          "Quantidade distinta de objetos afetados por ao menos uma regra",
-          "Percentual de objetos conformes = objetos sem violação ÷ objetos avaliados na fotografia",
-          "Quantidade de violações abertas no grão objeto–regra–fotografia",
-          "Quantidade distinta de pesquisas com estado de prorrogação na fotografia, sem substituir I05 do C01",
-          "Quantidade distinta de resultados autorizados e publicados na fotografia"
+          "qtd_pergunta: sempre 1, pois cada linha representa uma pergunta; métrica aditiva.",
+          "qtd_alternativas: coluna qtd_alternativas de questoes.csv; métrica aditiva para somar alternativas por pesquisa ou grupo de pesquisas."
         ],
         "dimensoes": [
-          "Pesquisa, quando aplicável",
-          "Execução da fotografia",
-          "Objeto avaliado",
-          "Regra",
-          "Fonte",
-          "Campo",
-          "Estado de qualidade",
-          "Estado de prorrogação",
-          "Estado de publicação"
+          "sk_pesquisa: DIM_PESQUISA, pesquisa que contém a pergunta.",
+          "sk_pergunta: DIM_PERGUNTA, com enunciado, tipo de questão, número de alternativas, formato de arquivo de origem e outras características.",
+          "sk_data_pesquisa: DIM_TEMPO herdada da data_divulgacao de pesquisas.csv."
         ],
         "fontes": [
-          ""
+          "questoes.csv",
+          "pesquisas.csv para vínculo com DIM_PESQUISA e data_divulgacao"
         ],
         "transformacoes": [
-          ""
+          "Criar qtd_pergunta como 1 para cada pergunta em pesquisa.",
+          "Usar qtd_alternativas de questoes.csv como medida aditiva.",
+          "Ligar seis pesquisas diretamente por ID: 112, 238, 274, 377, 414 e 415.",
+          "Para os IDs 424, 1116, 1139 e 1147 ausentes em pesquisas.csv, usar fallback pelo título quando houver correspondência exata.",
+          "Preparar o modelo para receber futuro FATO_RESPOSTA sem reestruturação."
         ],
         "qualidade": [
-          ""
+          "questoes.csv cobre apenas 10 pesquisas distintas e 2,7% do acervo total.",
+          "Quatro IDs de pesquisa em questoes.csv não existem em pesquisas.csv: 424, 1116, 1139 e 1147.",
+          "As seis pesquisas com ligação direta por ID cobrem 188 das 231 linhas, ou 81,4% do arquivo.",
+          "Relatórios dependentes deste cubo funcionam plenamente apenas para as 10 pesquisas cobertas; demais pesquisas devem exibir Dados não disponíveis.",
+          "Hoje não há dados de respostas individuais escolhidas pelos respondentes."
         ],
         "scd": [
-          ""
+          "DIM_PERGUNTA pode versionar mudanças de enunciado, tipo, alternativas, formato de origem, coluna de origem e confiança da extração.",
+          "Manter o cubo como ponto de extensão para futuro FATO_RESPOSTA quando os dados forem disponibilizados."
         ]
       }
     }
