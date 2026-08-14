@@ -107,28 +107,28 @@ implementação, homologação e operação controlada.
 
 # 2. Descrição do Problema
 
-O TAPI [1] confirma que as ferramentas são consolidadas em cada etapa, mas não
-possuem integração estruturada; o dashboard é atualizado manualmente, o acervo
-é isolado, não há rastreabilidade automatizada e decisões dependem de
-cruzamentos em planilhas. A Arquitetura de Negócio [2] confirma a fragmentação
-ao longo do fluxo. A magnitude de esforço, custo, demora e retrabalho não foi
-medida nesta Sprint e continua pendente de linha de base operacional.
+A Central de Pesquisas do Sindusfarma conduz pesquisas setoriais que passam por solicitação, elaboração, validação, divulgação, coleta, tabulação, análise e publicação. O problema central observado é que esse ciclo de vida ainda é sustentado por fontes e ferramentas distribuídas, como planilhas, formulários de coleta, gestão de tarefas, automações pontuais e repositório publicado, sem uma camada integrada de dados que mantenha a mesma pesquisa rastreável do início ao fim.[<sup>\[1\]</sup>](#7-referências)[<sup>\[14\]</sup>](#7-referências)
 
-Os dados permitem confirmar problemas mais específicos: domínios de
-identificadores não coincidentes, relações órfãs, ausência de ponte comprovada
-entre participação e resposta, percentuais textuais e metadados insuficientes
-para alguns indicadores. A matriz completa separa cada dor, causa, impacto,
-necessidade, objetivo, KPI, público, papel e risco em
-[`docs/matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md).
-Ela também indica o artefato de destino e o estado da evidência.
+Essa fragmentação faz com que informações sobre status, participantes, empresas, questionários, respostas, prazos e publicação fiquem espalhadas entre sistemas diferentes. O fluxo atual possui ferramentas consolidadas em cada etapa, mas o único ponto de conexão identificado replica novas solicitações e não consolida nem governa o dado ao longo de todo o processo. Assim, a organização não possui uma visão única, integrada e confiável de todo o ciclo de vida das pesquisas.[<sup>\[1\]</sup>](#7-referências)[<sup>\[2\]</sup>](#7-referências)[<sup>\[14\]</sup>](#7-referências)
 
+As principais dores identificadas são:
+
+| Dor do processo atual | Causas relacionadas | Impactos operacionais e estratégicos |
+| :--- | :--- | :--- |
+| Fragmentação das fontes | Dados distribuídos entre planilhas, SurveyMonkey, Trello, repositório do site, sistema interno e automações pontuais | Dificulta a consolidação das informações, aumenta o risco de divergência entre fontes e impede a formação de uma fonte única da verdade |
+| Dependência de planilhas e cruzamentos manuais | Ausência de Data Warehouse corporativo e de pipelines de ingestão cobrindo o ciclo completo da pesquisa | Aumenta o esforço da equipe, torna a atualização dos indicadores mais lenta e reduz o tempo disponível para análise de valor |
+| Baixa rastreabilidade ponta a ponta | Etapas, responsáveis, versões, status e resultados não ficam conectados por uma identidade única de pesquisa | Limita auditoria, dificulta acompanhamento de prioridades e reduz a confiança sobre qual dado sustenta cada decisão |
+| Qualidade inconsistente dos dados | Falta de padronização, campos incompletos, identificadores divergentes e regras de negócio distribuídas | Pode distorcer indicadores de adesão, prazo, representatividade e qualidade, exigindo validações manuais antes da tomada de decisão |
+| Baixa escalabilidade operacional | O crescimento do volume de pesquisas aumenta proporcionalmente a necessidade de conferência, tabulação e atualização manual | Reduz agilidade de entrega, concentra conhecimento operacional em poucas pessoas e limita a evolução para uma gestão orientada por dados |
+
+Essas causas produzem impacto direto na operação da Central de Pesquisas: maior custo de retrabalho, menor agilidade para acompanhar pesquisas em andamento, dificuldade para medir adesão por empresa, área ou perfil de respondente e risco de inconsistência entre o acervo publicado e as informações internas. Do ponto de vista estratégico, a falta de integração compromete a capacidade de identificar tendências históricas, comparar desempenho entre períodos e sustentar decisões com indicadores atualizados e auditáveis.[<sup>\[14\]</sup>](#7-referências)
+
+Portanto, o projeto se justifica pela necessidade de transformar um processo fragmentado e predominantemente manual em uma arquitetura de dados integrada, governada e confiável, capaz de reduzir esforço operacional, melhorar a qualidade dos indicadores e apoiar decisões estratégicas da Central de Pesquisas sem substituir as ferramentas operacionais já utilizadas pelo parceiro. O TAPI [1] confirma que as ferramentas são consolidadas em cada etapa, mas não possuem integração estruturada; o dashboard é atualizado manualmente, o acervo é isolado, não há rastreabilidade automatizada e decisões dependem de cruzamentos em planilhas. A Arquitetura de Negócio [2] confirma a fragmentação ao longo do fluxo. A magnitude de esforço, custo, demora e retrabalho não foi medida nesta Sprint e continua pendente de linha de base operacional.
+
+Os dados permitem confirmar problemas mais específicos: domínios de identificadores não coincidentes, relações órfãs, ausência de ponte comprovada entre participação e resposta, percentuais textuais e metadados insuficientes para alguns indicadores. A matriz completa separa cada dor, causa, impacto, necessidade, objetivo, KPI, público, papel e risco em [`docs/matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md).
 ## 2.1 Fluxo de Valor
 
-O valor central confirmado na Arquitetura de Negócio [2] é **“transformar uma
-necessidade de informação do setor farmacêutico em conhecimento estruturado e
-confiável”**. Rastreabilidade e autorização são condições propostas para que
-esse conhecimento percorra o fluxo sem perder origem nem expor conteúdo
-indevido. As ferramentas aparecem apenas como contexto operacional.
+O valor central confirmado na Arquitetura de Negócio [2] é **“transformar uma necessidade de informação do setor farmacêutico em conhecimento estruturado e confiável”**. Rastreabilidade e autorização são condições propostas para que esse conhecimento percorra o fluxo sem perder origem nem expor conteúdo indevido. As ferramentas aparecem apenas como contexto operacional.
 
 ### Fluxo atual (AS-IS)
 
