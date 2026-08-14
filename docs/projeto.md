@@ -1624,6 +1624,42 @@ A métrica qtd_alternativas é aditiva e pode ser usada para responder perguntas
 
 ---
 
+### 5.2.1 C01 — Portfólio e Ciclo
+
+---
+
+### 5.2.2 C02 — Participação e Representatividade
+
+---
+
+### 5.2.3 C03 — Resultados e Questionário
+
+---
+
+### 5.2.4 C04 — Qualidade e Governança
+
+---
+
+### 5.2.5 Matriz de Rastreabilidade (PB → RF → Indicador → Cubo → Dashboard)
+
+Matriz de rastreamento entre perguntas de negócio, requisitos, indicadores, cubos e dashboards. Garante que cada PB está vinculada a indicadores e cubos, e cada cubo alimenta ao menos um dashboard.
+
+| Pergunta de negócio | Requisito | Indicador(es) | Cubo(s) | Dashboard(s) |
+| :--- | :--- | :--- | :--- | :--- |
+| PB01 — Quais pesquisas compõem o portfólio e como se distribuem por período, tipo, área, complexidade e status? | RF01 | I01, I02 | C01 | D01 |
+| PB02 — Em que etapa está cada pesquisa, quais marcos foram observados ou derivados e quais informações do seu detalhe estão disponíveis? | RF02 | I03, I04 | C01 | D01 |
+| PB03 — Quais pesquisas estão atrasadas, foram prorrogadas ou demandam prioridade, qual denominador sustenta cada comparação e como os tempos do ciclo se comparam? | RF03 | I04, I05, I06 | C01 | D01 |
+| PB04 — A participação alcançada é suficiente e representa as empresas ou parcelas de mercado relevantes, e qual denominador sustenta essa leitura? | RF04 | I07, I08, I09 | C02 | D02 |
+| PB05 — Quais áreas, departamentos e cargos participam mais ou menos, e qual é o denominador disponível para o engajamento? | RF05 | I10, I11 | C02 | D02 |
+| PB06 — Quais dados estão completos e válidos, quais lacunas permanecem e qual é o estado de atualização de cada fonte? | RF06 | I16, I17, I18, I19, I20, I21 | C04 | D04 |
+| PB07 — Qual sistema ou arquivo sustenta cada elo do agregado, qual é o estado observado, em reconciliação ou proposto, e como tratar os quatro `pesquisa_id` (424, 1116, 1139 e 1147) sem correspondência e as 55 participações com `id_pesq=304` ausente? | RF07 | I18, I22 | C04 | D04 |
+| PB08 — Que dados cada perfil pode consultar, detalhar ou publicar sem expor informações não autorizadas? | RF08 | I25 | C04 | D04 |
+| PB09 — O resultado foi autorizado e publicado, quais metadados sustentam essa decisão e ele está consistente com a pesquisa interna correspondente? | RF09 | I23 | C04 | D04 |
+| PB10 — Qual foi a distribuição das respostas para cada questão, qual denominador está disponível e como ela varia entre pesquisas ou segmentos permitidos? | RF10 | I12, I13 | C03 | D03 |
+| PB11 — Qual evidência agregada sustenta este resultado, que contexto está disponível e a consulta individual é autorizada e suportada pelos dados? | RF11 | I12, I13, I18, I22 | C03, C04 | D03, D04 |
+| PB12 — Quais fontes foram recebidas, atualizadas e padronizadas, quais registros foram deduplicados e qual origem sustenta cada dado? | RF12 | I17, I19, I21, I24 | C04 | D04 |
+| PB13 — Qual versão do questionário foi revisada por qual área técnica, em que estado de validação e antes de qual marco do ciclo? | RF13 | I14, I15 | C03 | D03 |
+
 ## 5.3 Qualidade e Validação de Dados
 
 Esta seção diagnostica dados ausentes e registros duplicados nas seis bases disponibilizadas, para apoiar as regras de qualidade da solução. A medição foi executada pelo artefato versionado `scripts/data_quality/profile_csv.py`, conforme `scripts/data_quality/manifest.json`, usando UTF-8 (BOM aceito), separador `;`, decimal brasileiro e percentual com sufixo `%`. O manifesto registra `teste.csv` como alias local conceitual de `respostas.csv`; o arquivo bruto não foi copiado para o repositório nem para as saídas. O dicionário é validado de fato: cabeçalho, nove variáveis, conteúdo mínimo e alegações verificáveis de cardinalidade e nulos são confrontados com a base. **Não houve duplicidade de linha nem das chaves declaradas** nas seis fontes. Chaves estrangeiras (FKs) podem repetir legitimamente por representarem muitos registros filhos para uma mesma entidade e não foram tratadas como duplicatas. As ausências, por outro lado, exigem leitura cuidadosa: parte é **condicional** — estrutural e esperada, seguindo o tipo da pergunta ou o estágio do ciclo de vida da pesquisa (ex.: `linha_matriz` só existe em perguntas de matriz; `prorrogada_ate` só quando há prorrogação) — e parte é **a investigar**, indicando possível lacuna de preenchimento a tratar antes de automatizar indicadores.[<sup>\[2\]</sup>](#7-referências)[<sup>\[12\]</sup>](#7-referências)
