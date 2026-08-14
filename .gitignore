@@ -14,6 +14,7 @@
 secrets/
 credentials.json
 service-account*.json
+Ai
 
 # --- Dados sensíveis / LGPD --------------------------------------------------
 # Bases brutas e extrações NÃO vão pro repo. Publicar só dados anonimizados
