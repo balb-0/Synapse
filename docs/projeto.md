@@ -1749,6 +1749,30 @@ _conteúdo_
 
 **Nota:** Análise textual aderente às tabelas da §8.1 — descrever como "medido" só o que roda de fato e marcar como "projetado" o que ainda é meta.
 
+<!-- QUANTI:UT-04:START -->
+### 8.2.1 Cuidados matemáticos antes de automatizar os indicadores
+
+0. **Declarar granularidade e denominador.** A adesão medida por pesquisa sobre associados resulta em 8,8%; medida como alcance acumulado do cadastro resulta em 53,8%. São leituras diferentes dos mesmos dados e não devem ser apresentadas como o mesmo indicador.
+
+0. **Nunca contar linhas como entidades.** `respostas.csv` tem 20.607 linhas e 542 respondentes distintos, ou 38,0 linhas por respondente. O erro é proporcional à quantidade de perguntas de matriz: pesquisas com instrumentos mais complexos podem parecer ter mais respondentes quando se contam elementos de resposta.
+
+0. **Aplicar completude por tipo de informação.** `linha_matriz` vazio em pergunta aberta pode ser correto, enquanto `prorrogada_ate` vazio significa “não prorrogada”. Uma regra uniforme de preenchimento confundiria ausência esperada com falha de qualidade.
+
+0. **Excluir períodos incompletos e registros futuros.** Há 12 pesquisas com divulgação posterior a 14/08/2026 e `data_limite` chegando a 18/09/2027. Séries de desempenho devem aplicar uma data de referência antes de comparar períodos.
+
+0. **Reportar dispersão junto com posição.** O coeficiente de variação é 58% no ciclo de entrega e 190% em `dias úteis aberta`; médias isoladas escondem a heterogeneidade do processo.
+
+0. **Preferir mediana em distribuições concentradas.** Participações por empresa têm mediana 6, terceiro quartil 58, máximo 266 e média 44,7. A média não descreve uma empresa típica nesse recorte.
+
+0. **Não tratar identificadores como números.** `respondent_id` tem 12 dígitos e é um identificador externo; o código de dia da semana é ordinal e cíclico. Operações aritméticas sobre esses campos não representam medidas de negócio.
+
+0. **Usar redundâncias internas como testes automatizados.** `participantes` coincide com a contagem observada em 290 de 326 pesquisas (89,0%); o dia da semana coincide em 100% dos registros datados; e `dias_uteis_para_entrega` correlaciona 0,996 com o cálculo derivado das datas.
+
+0. **Não substituir uma variável por outra parecida.** `tempo_preenchimento` é um valor declarado, enquanto a duração derivada de `hora_inicio` e `hora_termino` mede intervalo entre acessos. As duas variáveis não devem ser comparadas como se tivessem a mesma definição.
+
+As regras devem permanecer alinhadas ao grão de `respostas` e às distinções entre linha, respondente e entidade descritas nas §§5.2 e 5.3.
+<!-- QUANTI:UT-04:END -->
+
 ## 8.3 Tabela de Fontes e Auditabilidade
 
 O mapa completo de origem e dependências está em
