@@ -1827,6 +1827,15 @@ _conteúdo_
 | Indicador | Resultado medido | Como foi medido |
 | :--- | :--- | :--- |
 | _ | _ | _ |
+| Volume anual de pesquisas divulgadas | 104,3/ano nos três anos completos (97 em 2023, 99 em 2024, 117 em 2025) | `docs/analise_quantitativa.py` sobre `pesquisas.csv`, bloco [T2] |
+| Tempo de ciclo até a entrega | Mediana de 19 dias úteis; média 21,1; desvio 12,2 (CV 58%) em 331 pesquisas | `docs/analise_quantitativa.py` sobre `pesquisas.csv`, bloco [T6] |
+| Taxa observada de prorrogação | 18,6% global (68 de 366); 26,8% em 2023 e 11,1% em 2025 | `docs/analise_quantitativa.py` sobre `pesquisas.csv`, bloco [T7] |
+| Empresas participantes por pesquisa | Mediana de 54 empresas distintas (média 57,3; mínimo 7; máximo 187) | `docs/analise_quantitativa.py` sobre `respondentes.csv`, agregado por pesquisa |
+| Alcance acumulado do cadastro de empresas | 419 de 779 empresas com ao menos uma participação (53,8%); 360 sem nenhuma | `docs/analise_quantitativa.py` sobre `empresas.csv` e `respondentes.csv` |
+| Representatividade de mercado declarada | Mediana de 51% por pesquisa em 322 registros; 74 abaixo de 40% | `docs/analise_quantitativa.py` sobre `respondentes.csv`, agregado por pesquisa |
+| Completude dos campos operacionais críticos | 94,2% de média em seis campos; `data_aprov` em 5,5% e `complexidade` em 24,6% | `docs/analise_quantitativa.py` sobre `pesquisas.csv` |
+| Densidade de elementos de resposta | 38,0 linhas por respondente; matriz com mediana 23 e máximo 96 por par respondente–pergunta | `docs/analise_quantitativa.py` sobre `respostas.csv` |
+| Consistência declarado × observado de participantes | Coincidência em 290 de 326 pesquisas (89,0%); divergência média de 3,10 empresas | `docs/analise_quantitativa.py` sobre `pesquisas.csv` e `respondentes.csv` |
 
 ### 8.1.2 Meta / projetado para sprints futuras
 
