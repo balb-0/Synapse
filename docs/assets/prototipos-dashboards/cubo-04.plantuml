@@ -1,0 +1,60 @@
+@startuml
+
+!define table(x) class x << (T,#FFAAAA) >>
+!define fact(x) class x << (F,#AAFFAA) >>
+
+hide circle
+skinparam classAttributeIconSize 0
+skinparam nodesep 50
+skinparam ranksep 50
+
+table(DIM_TEMPO) {
+  + sk_tempo : PK
+  + data
+  + ano
+  + mes
+  + trimestre
+  + flag_dia_util
+}
+
+table(DIM_PESQUISA) {
+  + sk_pesquisa : PK
+  + id_origem_planilha
+  + id_pesquisa_externo
+  + flag_metodo_costura
+  + titulo
+  + titulo_normalizado
+  + ano_edicao
+}
+
+table(DIM_PERGUNTA) {
+  + sk_pergunta : PK
+  + id_pergunta
+  + enunciado
+  + tipo_pergunta
+  + qtd_alternativas
+  + alternativas
+  + linhas_matriz
+  + colunas_matriz
+  + nivel_confianca
+  + formato_arquivo_origem
+  + col_origem
+  + flag_pergunta_perfil
+}
+
+fact(FATO_INSTRUMENTO) {
+  + sk_pesquisa : FK
+  + sk_pergunta : FK
+  + sk_data_pesquisa : FK
+  --
+  + qtd_pergunta
+  + qtd_alternativas
+  + qtd_linhas_matriz
+  + qtd_colunas_matriz
+}
+
+DIM_TEMPO "1" -- "0..n" FATO_INSTRUMENTO : sk_data_pesquisa
+DIM_PESQUISA "1" -- "0..n" FATO_INSTRUMENTO : sk_pesquisa
+DIM_PERGUNTA "1" -- "0..n" FATO_INSTRUMENTO : sk_pergunta
+
+@enduml
