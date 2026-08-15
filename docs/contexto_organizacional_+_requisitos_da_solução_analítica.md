@@ -1,5 +1,23 @@
 # Contexto organizacional e requisitos da solução analítica
 
+## Nome do Projeto
+
+Governança e Integração de Dados da Central de Pesquisas
+
+## Nome do Grupo
+
+Synapse
+
+## Integrantes
+
+- [Anna Riciopo](https://www.linkedin.com/in/anna-riciopo/)
+- [Karine Paixão](https://www.linkedin.com/in/karine-paixao/)
+- [Lucas Nunes Matheus](https://www.linkedin.com/in/lucas-nunes-matheus/)
+- [Marlos Guedes](https://www.linkedin.com/in/marlos-do-carmo-guedes-366987250/)
+- [Milena Castro Vieira](https://www.linkedin.com/in/milena-castro-vieira/)
+- [Otávio Vasconcelos](https://www.linkedin.com/in/otavio-vasc/)
+- [Vitor Balbo](https://www.linkedin.com/in/vitor-balbo/)
+
 Este arquivo registra a entrada formal do Entregável A da Sprint 1. O conteúdo
 completo está consolidado em [`projeto.md`](projeto.md), que funciona como
 documento canônico para evitar divergência entre versões paralelas.
