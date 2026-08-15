@@ -241,8 +241,8 @@ O estado atual possui duas camadas de evidência. A estrutura, as contagens e os
 problemas de qualidade são observados diretamente nos seis CSVs identificados
 na §5.3.6. O processo, as ferramentas e a ausência de integração são
 confirmados no TAPI e na Arquitetura de Negócio [1], [2]. Detalhes atribuídos
-exclusivamente a JTBD ou Problem Canvas continuam pendentes porque esses
-originais não estão disponíveis.
+exclusivamente a referências complementares são usados apenas como apoio e não
+como confirmação primária isolada.
 
 ### 4.0.1 Fontes de dados e ferramentas atuais
 
@@ -623,11 +623,9 @@ uma carga de data warehouse já implementada.
 O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
 ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
 Governança Corporativa e quatro cards de cubo. Negócio, Consumo Analítico e
-Governança Corporativa preservam o baseline preenchido pelo orientador no JSON.
-A Task 49 substituiu os dois cards vazios do baseline pelos quatro cubos
-definidos nas issues #44–#47. As subseções Dados e Governança dos cubos
-foram preenchidas no JSON como contrato técnico proposto, mantendo a distinção
-entre evidência observada no snapshot e desenho ainda sujeito a homologação.
+Governança Corporativa preservam o baseline do JSON. Os quatro cubos foram
+preenchidos como contratos técnicos propostos, mantendo a distinção entre
+evidência observada no snapshot e desenho ainda sujeito a homologação.
 
 ### Síntese do negócio
 
@@ -720,7 +718,7 @@ As seguintes decisões permanecem abertas e limitam o consumo:
 | Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [1], [2], [13], [14]. O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
 | Consumo Analítico | O JSON preserva os indicadores, usuários/canais, decisões e riscos preenchidos pelo orientador como baseline documental [3]. | A interpretação de dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanece condicionada às limitações das §§5.6–6.5. |
 | Governança Corporativa | O JSON preserva os nomes e textos preenchidos pelo orientador como baseline documental [3]. | A formalização jurídica e operacional dos papéis ainda deve ser validada pelo parceiro; política de acesso, retenção, auditoria e publicação também requer aprovação antes da produção. |
-| Cubos | O baseline do JSON tinha dois cards vazios. As issues #44–#47 definem quatro recortes: portfólio e ciclo, participação e representatividade, pipeline mensal e resultados/questionários. | Os quatro modelos foram preenchidos como contratos propostos. As branches das dependências não tinham commits próprios; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro. |
+| Cubos | O JSON define quatro recortes: portfólio e ciclo, participação e representatividade, pipeline mensal e resultados/questionários. | Os quatro modelos foram preenchidos como contratos propostos; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro antes da implantação produtiva. |
 
 Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON; nenhuma continuação foi reconstruída a partir do TAPI, da Arquitetura de Negócio ou do Problem Canvas. Essa preservação separa o que o artefato recebido efetivamente evidencia do que os demais documentos apenas permitiriam inferir.
 
@@ -1810,7 +1808,8 @@ Os requisitos não funcionais abaixo seguem as características da ISO/IEC 25010
 
 As perguntas abaixo explicitam o vínculo mínimo entre os requisitos e o uso
 analítico. Elas não definem dashboards, visualizações ou critérios de teste;
-essas especificações ficam para as seções e issues próprias.
+essas especificações ficam nas seções de indicadores, dashboards e requisitos
+não funcionais deste documento.
 
 | ID | Pergunta de negócio | Requisito(s) associado(s) |
 | :--- | :--- | :--- |
@@ -2393,10 +2392,11 @@ As principais lacunas analíticas passam a ser a ausência de metadados de vers�
 validação e publicação, além da falta de ponte observada entre participação e
 resposta individual. O C04 cobre o instrumento de pesquisa por questões, mas
 não afirma uma `FATO_RESPOSTA` conciliada nem substitui regras futuras de
-autorização, catálogo, frescor e acesso. As fontes [3], [12], [13] e [14] ainda
-precisam ser recuperadas para auditoria independente. O TAPI [1] e a Arquitetura
-[2] foram conferidos pelos hashes registrados no mapa de fontes. Esses pontos
-são pendências declaradas, não resultados omitidos nem capacidade presumida.
+autorização, catálogo, frescor e acesso. O TAPI [1] e a Arquitetura [2] foram
+conferidos pelos hashes registrados no mapa de fontes; conteúdos derivados de
+DMC, dicionário, JTBD e Problem Canvas são tratados como referência documental
+ou proposta, não como confirmação primária isolada. Esses pontos são fronteiras
+de evidência, não resultados omitidos nem capacidade presumida.
 
 <!-- QUANTI:UT-04:START -->
 ### 8.2.1 Cuidados matemáticos antes de automatizar os indicadores
@@ -2431,9 +2431,9 @@ evidência observada e decisão proposta.
 
 | Bloco | Origem auditável | Classificação e estado |
 | :--- | :--- | :--- |
-| Contexto, escopo, processo e papéis | TAPI [1] e Arquitetura de Negócio [2], identificados por SHA-256 em `docs/fontes-e-dependencias.md`; JTBD [13] e Problem Canvas [14] | TAPI e Arquitetura conferidos diretamente; conteúdo exclusivo de JTBD e Problem Canvas permanece pendente |
+| Contexto, escopo, processo e papéis | TAPI [1] e Arquitetura de Negócio [2], identificados por SHA-256 em `docs/fontes-e-dependencias.md`; referências complementares [13] e [14] | TAPI e Arquitetura conferidos diretamente; referências complementares não substituem fonte primária |
 | Estrutura, grão e qualidade das bases | seis CSVs externos identificados pelos hashes da §5.3.6; manifesto, perfilador e testes em `scripts/data_quality/` | Evidência observada no snapshot local; o método é reproduzível quando as fontes e o dicionário estão disponíveis, mas os dados brutos não fazem parte do checkout |
-| Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; histórico das issues #21–#25 e #40–#49 | Síntese derivada; o vínculo específico deve citar issue, branch, commit ou MR e as limitações constam nas §§5.6 e 6.4 |
+| Perguntas, requisitos, indicadores e dashboards | PB01–PB13, RF01–RF13 e I01–I25 deste documento; matrizes e validadores versionados em `scripts/` | Síntese derivada; as limitações constam nas §§5.6 e 6.4 |
 | Cadeia analítica executável | `scripts/traceability/manifest.json`, validador e testes; IDs e nomes conferidos contra `docs/dmc.json` | 13 perguntas, 13 requisitos, 25 indicadores e 4 dashboards cobertos; I12, I13 e I15 mantidos como extensões futuras de resposta conciliada e metadados |
 | Negócio, Consumo Analítico e Governança Corporativa do canvas | DMC em PDF [3] e exportação `docs/dmc.json` | Baseline documental derivado; papéis e políticas continuam sujeitos a validação |
 | Cubos C01–C04 | contratos da §5.2, derivados das perguntas, indicadores e dados observados | Proposta de modelagem; não prova implantação de data warehouse |
@@ -2453,10 +2453,10 @@ afirmações exigidos nesta Sprint:
 | RF01–RF13 e PB01–PB13 | TAPI [1], Arquitetura [2], estrutura observada e síntese do grupo | contrato proposto sustentado por fonte | **OK com limitação:** contratos são da equipe; campos e dependências observáveis são citados diretamente |
 | I01–I25 | CSVs, perfilamento e dependências declaradas nas §§5.6 e 6.4 | observado, mapeamento ou integração futura | **OK:** cada indicador explicita disponibilidade e denominador; indisponível nunca vira zero |
 | Atualização automática, acesso e publicação | ausência de timestamp, política, logs e decisão no snapshot | proposta futura | **Correção aplicada:** removidas afirmações de capacidade atual ou tempo real |
-| Quatro cards dimensionais do DMC | issues #44–#47, §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional, Dados e Governança preenchidos; C03 é Pipeline Mensal e C04 é Resultados e Questionários |
+| Quatro cards dimensionais do DMC | §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional, Dados e Governança preenchidos; C03 é Pipeline Mensal e C04 é Resultados e Questionários |
 
-Nenhuma referência a uma fonte ausente deve ser usada, isoladamente, para
-classificar uma afirmação como confirmada pelo parceiro. TAPI e Arquitetura só
-sustentam os trechos que afirmam explicitamente; conteúdo exclusivo do DMC em
-PDF, dicionário, JTBD ou Problem Canvas permanece derivado ou pendente até a
-recuperação do original.
+Nenhuma referência complementar deve ser usada, isoladamente, para classificar
+uma afirmação como confirmada pelo parceiro. TAPI e Arquitetura só sustentam os
+trechos que afirmam explicitamente; conteúdo exclusivo do DMC, dicionário, JTBD
+ou Problem Canvas permanece tratado como referência documental, evidência
+observada nos dados ou proposta, conforme indicado nas tabelas.

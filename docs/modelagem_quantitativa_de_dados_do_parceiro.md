@@ -103,7 +103,7 @@ A distinção entre **ausência condicional** (estruturalmente esperada pela ló
 | `data_aprov` | 344 | 6,0% | Condicional | Só existe quando há etapa formal de aprovação |
 | `prorrogada_ate` | 298 | 18,6% | Condicional | Só preenchida se a pesquisa foi prorrogada |
 | `complexidade` | 276 | **24,6%** | **A investigar** | Campo operacional; ausência sem justificativa técnica |
-| `tempo_preenchimento` | 135 | 63,1% | **A investigar** | Estimativa de preenchimento; deveria ser sempre declarada |
+| `tempo_preenchimento` | 135 | 63,1% | **A investigar** | Estimativa de preenchimento; cobertura baixa deve ser considerada nas análises |
 | `objetivos` | 123 | 66,4% | **A investigar** | Texto descritivo; omissão no cadastro |
 | `part_mercado` | 44 | 88,0% | **A investigar** | Representatividade de mercado; dado operacional |
 | `participantes` | 31 | 91,5% | **A investigar** | Campo importante para KPIs de adesão |

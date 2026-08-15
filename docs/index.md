@@ -27,9 +27,8 @@ documento principal.
 - [`gestao-projeto.md`](gestao-projeto.md): acompanhamento e avaliação das sprints.
 - [`dev-rules.md`](dev-rules.md): regras gerais de desenvolvimento.
 
-Esses documentos ainda seguem o template acadêmico onde não houve task
-específica de preenchimento. Eles não são fonte primária de requisitos do
-parceiro.
+Esses documentos registram práticas internas do projeto e não são fonte
+primária de requisitos do parceiro.
 
 ## Bases e insumos locais
 
