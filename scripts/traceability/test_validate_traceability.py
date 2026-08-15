@@ -61,8 +61,15 @@ class ValidateTraceabilityTest(unittest.TestCase):
 
     def test_pending_cube_requires_future_integration(self) -> None:
         changed = copy.deepcopy(self.manifest)
-        changed["questions"][9]["pendingCube"]["dependency"] = "Task 99"
+        changed["questions"][9]["pendingCube"]["dependency"] = "Dependência indefinida"
         with self.assertRaisesRegex(validate_traceability.TraceabilityError, "integração futura"):
+            validate_traceability.validate(changed, self.dmc)
+
+    def test_quality_questions_do_not_use_questionnaire_cube(self) -> None:
+        changed = copy.deepcopy(self.manifest)
+        changed["questions"][5]["cubes"] = ["C04"]
+        changed["questions"][5]["artifacts"] = []
+        with self.assertRaisesRegex(validate_traceability.TraceabilityError, "vínculo dimensional"):
             validate_traceability.validate(changed, self.dmc)
 
     def test_pending_indicators_are_restricted_to_response_and_versioning(self) -> None:

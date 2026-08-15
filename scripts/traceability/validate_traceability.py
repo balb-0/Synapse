@@ -24,14 +24,29 @@ EXPECTED_IMPLEMENTED_CUBES = {
     "PB03": ["C01"],
     "PB04": ["C02"],
     "PB05": ["C02"],
-    "PB06": ["C04"],
-    "PB07": ["C04"],
-    "PB08": ["C04"],
-    "PB09": ["C04"],
+    "PB06": [],
+    "PB07": [],
+    "PB08": [],
+    "PB09": [],
     "PB10": ["C04"],
     "PB11": ["C04"],
-    "PB12": ["C04"],
+    "PB12": [],
     "PB13": ["C04"],
+}
+EXPECTED_ANALYTIC_ARTIFACTS = {
+    "PB01": [],
+    "PB02": [],
+    "PB03": [],
+    "PB04": [],
+    "PB05": [],
+    "PB06": ["Perfilamento de qualidade e governança"],
+    "PB07": ["Perfilamento de qualidade e governança"],
+    "PB08": ["Política de acesso proposta"],
+    "PB09": ["Política de publicação proposta"],
+    "PB10": [],
+    "PB11": [],
+    "PB12": ["Perfilamento de qualidade e governança"],
+    "PB13": [],
 }
 
 
@@ -164,7 +179,7 @@ def validate_project_matrix(manifest: dict[str, Any], project_path: Path) -> Non
     questions = manifest["questions"]
     expected: list[list[str]] = []
     for question in questions:
-        cube_cells = list(question["cubes"])
+        cube_cells = list(question["cubes"]) + list(question.get("artifacts", []))
         if question["pendingIndicators"]:
             pending_cube = question.get("pendingCube")
             pending_name = (
@@ -226,6 +241,9 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
 
         question_indicators = _string_list(question.get("indicators"), "indicators", question_id)
         question_cubes = _string_list(question.get("cubes"), "cubes", question_id)
+        question_artifacts = _string_list(
+            question.get("artifacts", []), "artifacts", question_id
+        )
         question_dashboards = _string_list(question.get("dashboards"), "dashboards", question_id)
         question_pending = _string_list(
             question.get("pendingIndicators"), "pendingIndicators", question_id
@@ -238,6 +256,8 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
             raise TraceabilityError(f"{question_id} referencia cubo desconhecido")
         if question_cubes != EXPECTED_IMPLEMENTED_CUBES[question_id]:
             raise TraceabilityError(f"{question_id} diverge do vínculo dimensional aprovado")
+        if question_artifacts != EXPECTED_ANALYTIC_ARTIFACTS[question_id]:
+            raise TraceabilityError(f"{question_id} diverge do vínculo analítico aprovado")
         if not set(question_dashboards) <= EXPECTED_DASHBOARDS:
             raise TraceabilityError(f"{question_id} referencia dashboard desconhecido")
         if not set(question_pending) <= set(question_indicators):
@@ -253,8 +273,10 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
                 raise TraceabilityError(f"{question_id} deve nomear o cubo pendente")
         elif pending_cube is not None:
             raise TraceabilityError(f"{question_id} tem cubo pendente sem indicador pendente")
-        if not question_cubes and not question_pending:
-            raise TraceabilityError(f"{question_id} não tem cubo implementado nem lacuna formal")
+        if not question_cubes and not question_pending and not question_artifacts:
+            raise TraceabilityError(
+                f"{question_id} não tem cubo implementado, artefato analítico nem lacuna formal"
+            )
 
         indicators.update(question_indicators)
         dashboards.update(question_dashboards)

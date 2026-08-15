@@ -150,7 +150,7 @@
           "dias_uteis_tabulacao: data_entrega menos data_limite ou prorrogada_ate; métrica aditiva.",
           "dias_uteis_ciclo_total: data_entrega menos data_solicitacao; métrica não aditiva, usada sem soma com as fases para evitar dupla contagem.",
           "qtd_empresas_na_pesquisa: coluna participantes do CSV; métrica não aditiva, lida no nível da pesquisa.",
-          "qtd_respondentes_na_pesquisa: coluna tempo_preenchimento do CSV; métrica não aditiva, lida no nível da pesquisa.",
+          "qtd_respondentes_na_pesquisa: métrica removida de C01; contagens de respondentes devem ser calculadas no C02 a partir de respondentes.csv, usando participação ou pessoa conciliada conforme denominador aprovado.",
           "flag_prorrogada: booleano 1 quando prorrogada_ate não é nulo e 0 caso contrário; usado como filtro."
         ],
         "dimensoes": [

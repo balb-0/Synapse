@@ -12,7 +12,7 @@ A Central realiza aproximadamente 120 pesquisas por ano, envolvendo cerca de 60 
 
 Os dados permitem apoiar decisões em três frentes principais:
 
-- **Gestão operacional:** acompanhar o status de cada pesquisa em tempo real, identificar gargalos no fluxo (etapas com maior tempo de espera), antecipar prorrogações e dimensionar a carga de trabalho da equipe.
+- **Gestão operacional:** acompanhar o status de cada pesquisa quando houver integração com o banco central, identificar gargalos no fluxo (etapas com maior tempo de espera), antecipar prorrogações e dimensionar a carga de trabalho da equipe.
 - **Engajamento e adesão:** identificar quais empresas mais participam, quais nunca participaram, como a taxa de adesão varia entre áreas temáticas e períodos, e quais públicos (cargos, departamentos) são mais ativos nas respostas.
 - **Estratégia e governança:** quantificar a representatividade de mercado das respondentes, avaliar tendências de volume ao longo dos anos, medir a qualidade dos dados coletados e sustentar decisões com evidências em vez de estimativas manuais.
 
@@ -395,7 +395,7 @@ $$\text{Volume}_{(p)} = \text{COUNT}(\text{pesquisas}) \mid \text{data\_solicita
 
 ### I02 — Distribuição do portfólio por status
 
-**Objetivo:** Monitorar em tempo real a composição do portfólio entre pesquisas do acervo (Finalizadas) e do pipeline ativo (demais status), identificando gargalos operacionais.
+**Objetivo:** Monitorar a composição do portfólio entre pesquisas do acervo (Finalizadas) e do pipeline ativo (demais status), identificando gargalos operacionais quando a base central estiver integrada.
 
 **Fórmula:**
 
@@ -410,7 +410,7 @@ $$\text{Pct}_{(s)} = \frac{\text{COUNT}(\text{pesquisas} \mid \text{status} = s)
 | Acervo (Finalizada) | 332 | 90,7% |
 | Pipeline ativo (demais) | 34 | 9,3% |
 
-**Interpretação:** 90,7% das pesquisas na base estão finalizadas — os dados disponibilizados representam principalmente o histórico. O pipeline ativo tem 34 pesquisas em diferentes etapas. Nos dashboards operacionais (D01), este indicador deve ser atualizado em tempo real a partir do banco centralizado, sem atualização manual.
+**Interpretação:** 90,7% das pesquisas na base estão finalizadas — os dados disponibilizados representam principalmente o histórico. O pipeline ativo tem 34 pesquisas em diferentes etapas. Nos dashboards operacionais (D01), este indicador deve ser atualizado a partir do banco centralizado após a implantação da integração, sem depender de atualização manual.
 
 ---
 
@@ -441,7 +441,7 @@ $$\text{Taxa de adesão}_{(i)} = \frac{\text{COUNT DISTINCT}(\text{id\_empresa} 
 
 ### I04 — Tempo mediano de ciclo (solicitação → entrega)
 
-**Objetivo:** Medir o tempo real de entrega das pesquisas em dias úteis, servindo de base para definição e monitoramento de SLA.
+**Objetivo:** Medir o tempo efetivo de entrega das pesquisas em dias úteis, servindo de base para definição e monitoramento de SLA.
 
 **Fórmula:**
 
@@ -559,7 +559,7 @@ Com base nas análises realizadas, as variáveis e indicadores de maior impacto 
 **Indicadores com maior valor estratégico:**
 - **I03 (Taxa de adesão)** — KPI de engajamento central; diferentes granularidades revelam diferentes oportunidades de melhoria.
 - **I04 (Tempo mediano de ciclo)** — base para SLAs e para detectar etapas com gargalo operacional.
-- **I02 (Portfólio por status)** — único indicador em tempo real do trabalho em andamento; hoje depende de atualização manual.
+- **I02 (Portfólio por status)** — indicador operacional do trabalho em andamento; hoje depende de atualização manual e deve passar a ser alimentado pelo banco central após a integração.
 - **I05 (Taxa de prorrogação)** — proxy de qualidade do planejamento; 19% é um nível que justifica investigação.
 
 ### 6.3 Problemas de qualidade que precisam ser tratados antes de automatizar os KPIs

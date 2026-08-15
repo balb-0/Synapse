@@ -32,7 +32,7 @@ Construir a **espinha dorsal de dados da Central de Pesquisas do Sindusfarma** �
 <br>
 <a href="/docs/index.md">Índice da documentação</a> (estrutura completa e comandos de validação).
 
-## 📊 Dashboards (Placement)
+## 📊 Dashboards
 
 O projeto prevê uma camada de visualização com dashboards que consomem o banco central, hoje em fase de protótipo:
 
@@ -46,6 +46,9 @@ g05/
 ├─ docs/
 │  ├─ index.md                                        # Índice da documentação
 │  ├─ projeto.md                                      # Documento principal do produto
+│  ├─ contexto_organizacional_+_requisitos_da_solução_analítica.md
+│  │                                                   # Entrada formal do Entregável A
+│  ├─ arquitetura-de-negocio.md                       # Fonte primária local de contexto
 │  ├─ modelagem_quantitativa_de_dados_do_parceiro.md  # Modelagem quantitativa das bases
 │  ├─ fontes-e-dependencias.md                        # Origem e limitações dos entregáveis
 │  ├─ matriz-evidencias-problem-canvas.md             # Evidências (observação / inferência / proposta)
@@ -67,7 +70,7 @@ g05/
 └─ README.md
 ```
 
-## ✅ Requisitos (Placement)
+## ✅ Requisitos
 
 Para executar as validações localmente, utilize as versões abaixo (ou superiores compatíveis):
 
@@ -76,7 +79,7 @@ Para executar as validações localmente, utilize as versões abaixo (ou superio
 - **matplotlib**: 3.9+ (geração dos gráficos da análise quantitativa)
 - **jq**: 1.6+ (validação estrutural do `dmc.json`)
 
-## 💻 Configuração para desenvolvimento (Placement)
+## 💻 Configuração para desenvolvimento
 
 ```bash
 git clone https://git.inteli.edu.br/graduacao/2026-2a/t13/g05

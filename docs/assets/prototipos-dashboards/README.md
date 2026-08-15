@@ -61,7 +61,7 @@ python3 scripts/prototipos-dashboards/gerar-dados-prototipos.py --input-dir <dir
 
 ### 2. Execução da suíte de testes
 
-Valida esquemas, invariantes numéricas, valores de referência (D01–D04), regras de privacidade e determinismo. Por padrão, a suíte procura `context/csv` na estrutura do workspace; em outro ambiente, informe o diretório sem alterar o teste:
+Valida esquemas, invariantes numéricas, valores de referência (D01–D04), regras de privacidade e determinismo. Informe o diretório seguro das fontes por variável de ambiente:
 
 ```bash
 SINDUSFARMA_CSV_DIR=<diretorio-das-fontes> python3 -m unittest scripts/prototipos-dashboards/test_gerar_dados_prototipos.py

@@ -5,6 +5,8 @@
 | Artefato | Papel |
 | :--- | :--- |
 | [`projeto.md`](projeto.md) | Documento canônico: contexto, arquitetura, modelagem dimensional, requisitos, governança e avaliação |
+| [`contexto_organizacional_+_requisitos_da_solução_analítica.md`](contexto_organizacional_+_requisitos_da_solução_analítica.md) | Entrada formal do Entregável A, apontando para as seções canônicas |
+| [`arquitetura-de-negocio.md`](arquitetura-de-negocio.md) | Cópia local da Arquitetura de Negócio usada como fonte primária de contexto |
 | [`dmc.json`](dmc.json) | Exportação do Data Model Canvas para importação na ferramenta oficial |
 | [`fontes-e-dependencias.md`](fontes-e-dependencias.md) | Mapa de fontes, limitações e dependências entre os três entregáveis da Sprint 1 |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |

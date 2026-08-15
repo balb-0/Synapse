@@ -10,6 +10,9 @@ no GitLab. Este documento não replica nomes ou perfis sem uma fonte versionada.
 # Sumário
 
 - [1. Introdução](#1-introdução)
+  - [1.1 Finalidade do documento](#11-finalidade-do-documento)
+  - [1.2 Fontes primárias de contexto](#12-fontes-primárias-de-contexto)
+  - [1.3 Como distinguir evidência e proposta](#13-como-distinguir-evidência-e-proposta)
   - [1.4 Escopo do Projeto](#14-escopo-do-projeto)
 - [2. Descrição do Problema](#2-descrição-do-problema)
   - [2.1 Fluxo de Valor](#21-fluxo-de-valor)
@@ -55,6 +58,36 @@ de governança. Resultados observados nos CSVs são separados de sínteses
 derivadas e de decisões ainda pendentes; as fontes e limitações de cada bloco
 estão consolidadas na §8.3 e em
 [`docs/fontes-e-dependencias.md`](fontes-e-dependencias.md).
+
+## 1.1 Finalidade do documento
+
+A Sprint 1 consolida o entendimento do problema, os requisitos da solução
+analítica, a modelagem quantitativa inicial e o Data Model Canvas. O documento
+não declara implantação produtiva de banco, pipeline, dashboards conectados,
+automação contínua ou política final de acesso; esses pontos pertencem ao MVP e
+às próximas etapas de implementação e homologação.
+
+## 1.2 Fontes primárias de contexto
+
+O contexto do projeto é sustentado por duas fontes primárias: o TAPI [1] e a
+[Arquitetura de Negócio](arquitetura-de-negocio.md) [2]. A Arquitetura de
+Negócio foi incorporada à pasta `docs/` para manter o repositório autocontido
+mesmo quando os insumos temporários de trabalho forem removidos.
+
+Essas fontes confirmam que a Central de Pesquisas atua com ferramentas
+operacionais distribuídas, como planilhas, SurveyMonkey, Trello, sistema
+interno, automações pontuais e repositório público. O projeto não propõe
+substituir essas ferramentas: a solução esperada é integrar, governar e tornar
+rastreável o ciclo de vida das pesquisas, preservando a operação existente e
+reduzindo a dependência de cruzamentos manuais.
+
+## 1.3 Como distinguir evidência e proposta
+
+Ao longo do documento, afirmações sobre o estado atual do parceiro são tratadas
+como evidência apenas quando aparecem nas fontes primárias ou nos dados
+perfilados. Requisitos, dashboards, cubos, políticas, perfis de acesso e
+automação são contratos propostos pela equipe quando ainda dependem de validação
+do parceiro, integração técnica ou implantação futura.
 
 ## 1.4 Escopo do Projeto
 
@@ -784,9 +817,9 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 
 **qtd_respondentes_na_pesquisa**
 - Tipo: inteiro
-- Fonte ou regra de cálculo: coluna `tempo_preenchimento` do CSV
+- Fonte ou regra de cálculo: métrica removida de C01; contagens de respondentes devem ser calculadas no C02 a partir de `respondentes.csv`, usando a unidade de participação ou pessoa conciliada conforme o denominador aprovado
 - Aditividade: não aditiva
-- Observação: Só pode ser lida no nível da pesquisa, pelo mesmo motivo da métrica anterior
+- Observação: `tempo_preenchimento` é duração declarada, não quantidade de respondentes. Mantê-la como contagem em C01 produziria interpretação incorreta
 
 **flag_prorrogada**
 - Tipo: booleano (0 ou 1)
@@ -1075,23 +1108,23 @@ A métrica qtd_alternativas é aditiva e pode ser usada para responder perguntas
 
 ### 5.2.5 Matriz de Rastreabilidade (PB → RF → Indicador → Cubo → Dashboard)
 
-Matriz de rastreamento entre perguntas de negócio, requisitos, indicadores, cubos e dashboards. Garante que cada PB está vinculada a indicadores e cubos, e cada cubo alimenta ao menos um dashboard.
+Matriz de rastreamento entre perguntas de negócio, requisitos, indicadores, cubos, artefatos analíticos e dashboards. Garante que cada PB está vinculada a indicadores e a uma base analítica adequada, sem forçar indicadores de qualidade e governança dentro do cubo C04 de resultados/questionários.
 
-| Pergunta de negócio | Requisito | Indicador(es) | Cubo(s) | Dashboard(s) |
+| Pergunta de negócio | Requisito | Indicador(es) | Cubo(s) / artefato(s) | Dashboard(s) |
 | :--- | :--- | :--- | :--- | :--- |
 | PB01 — Quais pesquisas compõem o portfólio e como se distribuem por período, tipo, área, complexidade e status? | RF01 | I01, I02 | C01: Contém cada pesquisa com seus atributos (tipo, área, complexidade, status), permitindo análise de composição e distribuição do portfólio | D01 |
 | PB02 — Em que etapa está cada pesquisa, quais marcos foram observados ou derivados e quais informações do seu detalhe estão disponíveis? | RF02 | I03, I04 | C01: Acumula marcos do ciclo (solicitação, aprovação, divulgação, prorrogação, entrega) para cada pesquisa | D01 |
 | PB03 — Quais pesquisas estão atrasadas, foram prorrogadas ou demandam prioridade, qual denominador sustenta cada comparação e como os tempos do ciclo se comparam? | RF03 | I04, I05, I06 | C01 e C03: C01 fornece datas dos marcos e prorrogações para calcular atrasos e prioridades; C03 mostra evolução do pipeline mensalmente para comparação de ciclos e identificação de gargalos | D01 |
 | PB04 — A participação alcançada é suficiente e representa as empresas ou parcelas de mercado relevantes, e qual denominador sustenta essa leitura? | RF04 | I07, I08, I09 | C02: Contém cada participação associada a empresa e mercado, permitindo cálculo de adesão e representatividade | D02 |
 | PB05 — Quais áreas, departamentos e cargos participam mais ou menos, e qual é o denominador disponível para o engajamento? | RF05 | I10, I11 | C02: Armazena participação ligada a pessoa, cargo e departamento para análise de engajamento por público | D02 |
-| PB06 — Quais dados estão completos e válidos, quais lacunas permanecem e qual é o estado de atualização de cada fonte? | RF06 | I16, I17, I18, I19, I20, I21 | C04: Valida integridade referencial e cobertura dos dados através das dimensões e métricas | D04 |
-| PB07 — Qual sistema ou arquivo sustenta cada elo do agregado, qual é o estado observado, em reconciliação ou proposto, e como tratar os quatro `pesquisa_id` (424, 1116, 1139 e 1147) sem correspondência e as 55 participações com `id_pesq=304` ausente? | RF07 | I18, I22 | C04: Rastreia linhagem agregada e integridade referencial entre fontes para identificar elos ausentes | D04 |
-| PB08 — Que dados cada perfil pode consultar, detalhar ou publicar sem expor informações não autorizadas? | RF08 | I25 | C04: Contém políticas e controles de acesso por perfil associados aos dados | D04 |
-| PB09 — O resultado foi autorizado e publicado, quais metadados sustentam essa decisão e ele está consistente com a pesquisa interna correspondente? | RF09 | I23 | C04: Registra estado de publicação autorizada e metadados que sustentam decisão de publicação | D04 |
-| PB10 — Qual foi a distribuição das respostas para cada questão, qual denominador está disponível e como ela varia entre pesquisas ou segmentos permitidos? | RF10 | I12, I13 | C04: Contém perguntas associadas a pesquisas, permitindo análise de questionários e instrumentos | D04 |
-| PB11 — Qual evidência agregada sustenta este resultado, que contexto está disponível e a consulta individual é autorizada e suportada pelos dados? | RF11 | I12, I13, I18, I22 | C04: Fornece contexto através de instrumentos, qualidade de dados e controles de autorização | D04 |
-| PB12 — Quais fontes foram recebidas, atualizadas e padronizadas, quais registros foram deduplicados e qual origem sustenta cada dado? | RF12 | I17, I19, I21, I24 | C04: Valida processamento das fontes, deduplicação e frescor dos dados | D04 |
-| PB13 — Qual versão do questionário foi revisada por qual área técnica, em que estado de validação e antes de qual marco do ciclo? | RF13 | I14, I15 | C04: Contém histórico de questionários associados a pesquisas e suas versões | D04 |
+| PB06 — Quais dados estão completos e válidos, quais lacunas permanecem e qual é o estado de atualização de cada fonte? | RF06 | I16, I17, I18, I19, I20, I21 | Perfilamento de qualidade e governança (§5.3 e §6.6): mede completude, duplicidade, parseabilidade, integridade, frescor e pendências por fonte/campo | D04 |
+| PB07 — Qual sistema ou arquivo sustenta cada elo do agregado, qual é o estado observado, em reconciliação ou proposto, e como tratar os quatro `pesquisa_id` (424, 1116, 1139 e 1147) sem correspondência e as 55 participações com `id_pesq=304` ausente? | RF07 | I18, I22 | Perfilamento de qualidade e governança (§5.3 e §6.6): registra elos observados, órfãos e estados de reconciliação sem transformar isso em fato de questionário | D04 |
+| PB08 — Que dados cada perfil pode consultar, detalhar ou publicar sem expor informações não autorizadas? | RF08 | I25 | Política de acesso proposta (§6.6): depende de perfis aprovados, decisão do Data Owner e logs de autorização | D04 |
+| PB09 — O resultado foi autorizado e publicado, quais metadados sustentam essa decisão e ele está consistente com a pesquisa interna correspondente? | RF09 | I23 | Política de publicação proposta (§6.6): depende de autorização, estado de publicação, metadados do acervo e decisão registrada | D04 |
+| PB10 — Qual foi a distribuição das respostas para cada questão, qual denominador está disponível e como ela varia entre pesquisas ou segmentos permitidos? | RF10 | I12, I13 | C04: Contém perguntas associadas a pesquisas, permitindo análise de questionários e instrumentos | D03 |
+| PB11 — Qual evidência agregada sustenta este resultado, que contexto está disponível e a consulta individual é autorizada e suportada pelos dados? | RF11 | I12, I13, I18, I22 | C04 para o instrumento de questionário; perfilamento de qualidade e governança (§5.3 e §6.6) para integridade e linhagem agregada | D03, D04 |
+| PB12 — Quais fontes foram recebidas, atualizadas e padronizadas, quais registros foram deduplicados e qual origem sustenta cada dado? | RF12 | I17, I19, I21, I24 | Perfilamento de qualidade e governança (§5.3 e §6.6): sustenta deduplicação, parseabilidade, frescor futuro e cobertura de processamento | D04 |
+| PB13 — Qual versão do questionário foi revisada por qual área técnica, em que estado de validação e antes de qual marco do ciclo? | RF13 | I14, I15 | C04: Contém histórico de questionários associados a pesquisas e suas versões | D03 |
 
 ## 5.3 Qualidade e Validação de Dados
 
@@ -1345,13 +1378,13 @@ estáveis entre as §§5.2, 5.6, 6.3, 6.4 e 6.5. O contrato executável está em
 | PB03 | RF03 | I04, I05, I06 | C01 | D01 |
 | PB04 | RF04 | I07, I08, I09 | C02 | D02 |
 | PB05 | RF05 | I10, I11 | C02 | D02 |
-| PB06 | RF06 | I16, I17, I18, I19, I20, I21 | C04 | D04 |
-| PB07 | RF07 | I18, I22 | C04 | D04 |
-| PB08 | RF08 | I25 | C04 | D04 |
-| PB09 | RF09 | I23 | C04 | D04 |
+| PB06 | RF06 | I16, I17, I18, I19, I20, I21 | Perfilamento de qualidade e governança | D04 |
+| PB07 | RF07 | I18, I22 | Perfilamento de qualidade e governança | D04 |
+| PB08 | RF08 | I25 | Política de acesso proposta | D04 |
+| PB09 | RF09 | I23 | Política de publicação proposta | D04 |
 | PB10 | RF10 | I12, I13 | C04; fato de resposta conciliado pendente de integração futura | D03 |
 | PB11 | RF11 | I12, I13, I18, I22 | C04; fato de resposta conciliado pendente de integração futura | D03, D04 |
-| PB12 | RF12 | I17, I19, I21, I24 | C04 | D04 |
+| PB12 | RF12 | I17, I19, I21, I24 | Perfilamento de qualidade e governança | D04 |
 | PB13 | RF13 | I14, I15 | C04; metadados de versão e validação pendente de integração futura | D03 |
 
 RF01–RF13 e PB01–PB13 chegam a pelo menos um indicador, um dashboard e um cubo.
@@ -1397,16 +1430,16 @@ do painel continuam propostas.
 | I13 — Respondentes distintos na fonte de respostas | Calculável agora | C04 + futura `FATO_RESPOSTA` / `respostas.csv` | 542 `respondent_id` distintos na fonte; sem ponte para `respondentes.id_cliente` |
 | I14 — Questões por tipo | Calculável agora | C04 / `questoes.csv` | `id_pergunta`, `pesquisa_id` e `tipo`; 43 questões têm pesquisa ausente em `pesquisas.csv` |
 | I15 — Estado de validação e versão do questionário | Depende de integração futura | C04 + metadados do repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
-| I16 — Completude aplicável | Calculável agora | C04 / seis CSV | Ausências por campo e natureza documentadas na §5.3; quatro ausências inesperadas nas 4.008 células de matriz aplicáveis |
-| I17 — Taxa de duplicidade | Calculável agora | C04 / seis CSV | Não foram observadas linhas ou IDs primários duplicados; FKs repetidas não são duplicatas |
-| I18 — Integridade referencial | Calculável agora | C04 / chaves dos seis CSV | Por relação: `respondentes → pesquisas`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes → pesquisas`, 188/231, 43 órfãs (18,6%); `respostas → pesquisas`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas usam os IDs 424, 1116, 1139 e 1147; `s/i` é não informado antes do teste |
-| I19 — Parseabilidade por tipo | Calculável agora | C04 / seis CSV | Datas, inteiros e medidas numéricas armazenadas como texto podem ser testados sem imputação; `s/i` é inválido/não informado, não valor de chave |
-| I20 — Divergência de título de pesquisa | Calculável agora | C04 / `pesquisas.csv` + `questoes.csv` | 41 linhas de questão divergentes entre 188 linhas comparáveis |
-| I21 — Frescor da fonte | Depende de integração futura | C04 / metadado de carga | Nenhum timestamp de extração/carga ou regra de frescor foi recebido |
-| I22 — Cobertura da linhagem agregada | Exige normalização ou mapeamento | C04 / chaves dos seis CSV | Chaves permitem elos parciais; sistema de origem e ponte participação–resposta estão ausentes |
-| I23 — Estado de publicação autorizada | Depende de integração futura | C04 / decisão do Data Owner + acervo | Autorização, estado e data de publicação não existem; `data_divulgacao` não os substitui |
-| I24 — Cobertura do processamento das fontes | Depende de integração futura | C04 / catálogo e execuções de ingestão | Faltam catálogo de fontes esperadas, execução, resultado e timestamp de carga |
-| I25 — Conformidade de acesso | Depende de integração futura | C04 / política e auditoria de acesso | Perfis finais, decisões do Data Owner e logs de autorização precisam ser aprovados e integrados |
+| I16 — Completude aplicável | Calculável agora | Perfilamento / seis CSV | Ausências por campo e natureza documentadas na §5.3; quatro ausências inesperadas nas 4.008 células de matriz aplicáveis |
+| I17 — Taxa de duplicidade | Calculável agora | Perfilamento / seis CSV | Não foram observadas linhas ou IDs primários duplicados; FKs repetidas não são duplicatas |
+| I18 — Integridade referencial | Calculável agora | Perfilamento / chaves dos seis CSV | Por relação: `respondentes → pesquisas`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes → pesquisas`, 188/231, 43 órfãs (18,6%); `respostas → pesquisas`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas usam os IDs 424, 1116, 1139 e 1147; `s/i` é não informado antes do teste |
+| I19 — Parseabilidade por tipo | Calculável agora | Perfilamento / seis CSV | Datas, inteiros e medidas numéricas armazenadas como texto podem ser testados sem imputação; `s/i` é inválido/não informado, não valor de chave |
+| I20 — Divergência de título de pesquisa | Calculável agora | Perfilamento / `pesquisas.csv` + `questoes.csv` | 41 linhas de questão divergentes entre 188 linhas comparáveis |
+| I21 — Frescor da fonte | Depende de integração futura | Governança / metadado de carga | Nenhum timestamp de extração/carga ou regra de frescor foi recebido |
+| I22 — Cobertura da linhagem agregada | Exige normalização ou mapeamento | Perfilamento e governança / chaves dos seis CSV | Chaves permitem elos parciais; sistema de origem e ponte participação–resposta estão ausentes |
+| I23 — Estado de publicação autorizada | Depende de integração futura | Governança / decisão do Data Owner + acervo | Autorização, estado e data de publicação não existem; `data_divulgacao` não os substitui |
+| I24 — Cobertura do processamento das fontes | Depende de integração futura | Governança / catálogo e execuções de ingestão | Faltam catálogo de fontes esperadas, execução, resultado e timestamp de carga |
+| I25 — Conformidade de acesso | Depende de integração futura | Governança / política e auditoria de acesso | Perfis finais, decisões do Data Owner e logs de autorização precisam ser aprovados e integrados |
 
 ## 5.7 Mapa de Cobertura de Dashboards
 
@@ -2314,7 +2347,7 @@ Assim, a governança proposta atende ao ciclo completo — coleta, integração,
 
 [1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
 
-[2] INTELI; SINDUSFARMA. **Arquitetura de Negócio: Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Documento externo `Arquitetura-de-Negócio-Central-de-Pesquisas-do-Sindusfarma.txt`, conferido em 13 ago. 2026; SHA-256 `76e50e5f090cadaa39f5fef81473dacccbf069d5071238be84720e0aafb70afd`.
+[2] INTELI; SINDUSFARMA. [**Arquitetura de Negócio: Central de Pesquisas do Sindusfarma**](arquitetura-de-negocio.md). São Paulo, 2026. Cópia local incorporada à pasta `docs/` para manter a documentação autocontida.
 
 [3] INTELI; SINDUSFARMA. **Data Model Canvas: Data Warehouse — Sindusfarma**. São Paulo, 2026. Artefato de documentação (arquivo `Data Model Canvas.pdf`) disponibilizado pela faculdade e pelo parceiro de projeto.
 
@@ -2336,9 +2369,9 @@ Assim, a governança proposta atende ao ciclo completo — coleta, integração,
 
 [12] GRUPO G05. **Dicionário de Variáveis — Respostas**. São Paulo, 2026. Arquivo local `Dicionario_Variaveis_Respostas_Grupo6.xlsx - Dicionário.csv`, disponibilizado junto às bases do parceiro.
 
-[13] GRUPO 5. **JTBD a partir do Data Model Canvas — Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Artefato local de levantamento (arquivo `context/JTBD-a-partir-do-Data-Model-Canvas.txt`).
+[13] GRUPO 5. **JTBD a partir do Data Model Canvas — Central de Pesquisas do Sindusfarma**. São Paulo, 2026. Artefato local de levantamento usado como referência complementar; não substitui TAPI, Arquitetura de Negócio nem evidência observada nos dados.
 
-[14] GRUPO 5. **Problem Canvas — Gestão integrada de pesquisas setoriais**. São Paulo, 2026. Artefato local de levantamento (arquivo `context/problem_canvas_sindusfarma_completo (1).html`).
+[14] GRUPO 5. **Problem Canvas — Gestão integrada de pesquisas setoriais**. São Paulo, 2026. Artefato local de levantamento usado como referência complementar; não substitui TAPI, Arquitetura de Negócio nem evidência observada nos dados.
 
 [15] GRUPO 5. **Relatório de modelagem quantitativa de dados do parceiro e análise reproduzível**. São Paulo, 2026. Relatório, script e log locais (`docs/modelagem_quantitativa_de_dados_do_parceiro.md`, `scripts/analysis/analise_quantitativa.py`, `docs/resultados_analise.txt`).
 
@@ -2444,7 +2477,7 @@ afirmações exigidos nesta Sprint:
 
 | Afirmação auditada | Origem seguida até a fonte | Tipo | Resultado |
 | :--- | :--- | :--- | :--- |
-| Identidade do parceiro e propósito do projeto | TAPI [1] e Arquitetura [2], conferidos por hash | fonte primária | **OK:** parceiro, propósito, escopo macro, MVP e públicos confirmados documentalmente |
+| Identidade do parceiro e propósito do projeto | TAPI [1] e Arquitetura [2], com Arquitetura preservada em cópia local | fonte primária | **OK:** parceiro, propósito, escopo macro, MVP e públicos confirmados documentalmente |
 | Fragmentação, cruzamentos manuais e processo AS-IS | TAPI [1] e Arquitetura [2] | fonte primária | **OK:** ausência de integração, dashboard manual, silo e cruzamentos em planilhas confirmados; magnitude de esforço continua sem medição |
 | Seis fontes, estrutura, contagens, chaves, nulos e relações órfãs | CSVs externos identificados pelos hashes da §5.3.6 e `scripts/data_quality/` | observado nos dados e no código | **OK:** reproduzível sem publicar os registros |
 | Natureza real ou sintética dos CSVs | nenhuma declaração primária disponível | pendente | **Correção aplicada:** removida a afirmação de que as linhas são fictícias; o uso continua restrito a agregados |

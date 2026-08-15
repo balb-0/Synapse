@@ -18,9 +18,9 @@ Exemplo, a partir da raiz do repositório:
 
 ```bash
 python3 scripts/data_quality/profile_csv.py \
-  --input-dir /caminho/local/context/csv \
+  --input-dir /caminho/seguro/das-fontes \
   --output-dir /tmp/perfil-g05 \
-  --dictionary "/caminho/local/context/Dicionario_Variaveis_Respostas_Grupo6.xlsx - Dicionário.csv"
+  --dictionary "/caminho/seguro/dicionario-respostas.csv"
 ```
 
 Saídas: `resumo.csv`, `campos.csv`, `dominios.csv`, `relacionamentos.csv`,

@@ -10,7 +10,7 @@ python3 scripts/traceability/validate_traceability.py
 python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
 ```
 
-Para o gate completo da Task 52, informe o diretório externo que contém os
+Para o gate completo de rastreabilidade, informe o diretório externo que contém os
 arquivos originais. O validador confere SHA-256 e os trechos que sustentam
 escopo, MVP, problema, fluxo, públicos, conceitos e papéis:
 
@@ -25,5 +25,7 @@ limitação na saída.
 
 PB10, PB11 e PB13 usam C04 para o instrumento de questionário, mas mantêm I12,
 I13 e I15 com extensão futura para resposta conciliada e metadados de validação.
-Essa classificação evita tratar a existência de fonte ou dashboard proposto
-como se um cubo de resultados/questionários já tivesse sido entregue.
+PB06, PB07, PB08, PB09 e PB12 são sustentadas pelo perfilamento de qualidade e
+por políticas futuras de governança, e não pelo cubo C04. Essa classificação
+evita tratar a existência de fonte ou dashboard proposto como se um cubo de
+resultados/questionários resolvesse qualidade, acesso, publicação e frescor.
