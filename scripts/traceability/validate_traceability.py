@@ -17,20 +17,35 @@ EXPECTED_REQUIREMENTS = tuple(f"RF{number:02d}" for number in range(1, 14))
 EXPECTED_INDICATORS = {f"I{number:02d}" for number in range(1, 26)}
 EXPECTED_DASHBOARDS = {f"D{number:02d}" for number in range(1, 5)}
 EXPECTED_PENDING_QUESTIONS = {"PB10", "PB11", "PB13"}
-EXPECTED_PENDING_INDICATORS = {"I12", "I13", "I14", "I15"}
+EXPECTED_PENDING_INDICATORS = {"I12", "I13", "I15"}
 EXPECTED_IMPLEMENTED_CUBES = {
     "PB01": ["C01"],
     "PB02": ["C01"],
     "PB03": ["C01"],
     "PB04": ["C02"],
     "PB05": ["C02"],
-    "PB06": ["C04"],
-    "PB07": ["C04"],
-    "PB08": ["C04"],
-    "PB09": ["C04"],
-    "PB10": [],
+    "PB06": [],
+    "PB07": [],
+    "PB08": [],
+    "PB09": [],
+    "PB10": ["C04"],
     "PB11": ["C04"],
-    "PB12": ["C04"],
+    "PB12": [],
+    "PB13": ["C04"],
+}
+EXPECTED_ANALYTIC_ARTIFACTS = {
+    "PB01": [],
+    "PB02": [],
+    "PB03": [],
+    "PB04": [],
+    "PB05": [],
+    "PB06": ["Perfilamento de qualidade e governança"],
+    "PB07": ["Perfilamento de qualidade e governança"],
+    "PB08": ["Política de acesso proposta"],
+    "PB09": ["Política de publicação proposta"],
+    "PB10": [],
+    "PB11": [],
+    "PB12": ["Perfilamento de qualidade e governança"],
     "PB13": [],
 }
 
@@ -164,11 +179,15 @@ def validate_project_matrix(manifest: dict[str, Any], project_path: Path) -> Non
     questions = manifest["questions"]
     expected: list[list[str]] = []
     for question in questions:
-        cube_cells = list(question["cubes"])
+        cube_cells = list(question["cubes"]) + list(question.get("artifacts", []))
         if question["pendingIndicators"]:
-            pending = "Cubo de resultados pendente da Task 43"
-            if cube_cells:
-                pending = pending[0].lower() + pending[1:]
+            pending_cube = question.get("pendingCube")
+            pending_name = (
+                pending_cube.get("name")
+                if isinstance(pending_cube, dict) and isinstance(pending_cube.get("name"), str)
+                else "extensão futura"
+            )
+            pending = f"{pending_name} pendente de integração futura"
             cube_cells.append(pending)
         expected.append(
             [
@@ -222,6 +241,9 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
 
         question_indicators = _string_list(question.get("indicators"), "indicators", question_id)
         question_cubes = _string_list(question.get("cubes"), "cubes", question_id)
+        question_artifacts = _string_list(
+            question.get("artifacts", []), "artifacts", question_id
+        )
         question_dashboards = _string_list(question.get("dashboards"), "dashboards", question_id)
         question_pending = _string_list(
             question.get("pendingIndicators"), "pendingIndicators", question_id
@@ -234,6 +256,8 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
             raise TraceabilityError(f"{question_id} referencia cubo desconhecido")
         if question_cubes != EXPECTED_IMPLEMENTED_CUBES[question_id]:
             raise TraceabilityError(f"{question_id} diverge do vínculo dimensional aprovado")
+        if question_artifacts != EXPECTED_ANALYTIC_ARTIFACTS[question_id]:
+            raise TraceabilityError(f"{question_id} diverge do vínculo analítico aprovado")
         if not set(question_dashboards) <= EXPECTED_DASHBOARDS:
             raise TraceabilityError(f"{question_id} referencia dashboard desconhecido")
         if not set(question_pending) <= set(question_indicators):
@@ -243,14 +267,16 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
         if question_pending:
             pending_questions.add(question_id)
             pending_indicators.update(question_pending)
-            if not isinstance(pending_cube, dict) or pending_cube.get("dependency") != "Task 43":
-                raise TraceabilityError(f"{question_id} deve registrar a dependência da Task 43")
+            if not isinstance(pending_cube, dict) or pending_cube.get("dependency") != "Integração futura":
+                raise TraceabilityError(f"{question_id} deve registrar a dependência de integração futura")
             if not isinstance(pending_cube.get("name"), str) or not pending_cube["name"].strip():
                 raise TraceabilityError(f"{question_id} deve nomear o cubo pendente")
         elif pending_cube is not None:
             raise TraceabilityError(f"{question_id} tem cubo pendente sem indicador pendente")
-        if not question_cubes and not question_pending:
-            raise TraceabilityError(f"{question_id} não tem cubo implementado nem lacuna formal")
+        if not question_cubes and not question_pending and not question_artifacts:
+            raise TraceabilityError(
+                f"{question_id} não tem cubo implementado, artefato analítico nem lacuna formal"
+            )
 
         indicators.update(question_indicators)
         dashboards.update(question_dashboards)
@@ -266,7 +292,7 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
     if pending_questions != EXPECTED_PENDING_QUESTIONS:
         raise TraceabilityError("lacunas dimensionais devem ficar restritas a PB10, PB11 e PB13")
     if pending_indicators != EXPECTED_PENDING_INDICATORS:
-        raise TraceabilityError("lacunas dimensionais devem ficar restritas a I12–I15")
+        raise TraceabilityError("lacunas dimensionais devem ficar restritas a I12, I13 e I15")
 
     return {
         "questions": len(ids),
@@ -307,7 +333,7 @@ def main() -> int:
         "Rastreabilidade válida: "
         f"{summary['questions']} perguntas; {summary['indicators']} indicadores; "
         f"{summary['cubes']} cubos; {summary['pendingIndicators']} indicadores "
-        "com lacuna formal da Task 43"
+        "com extensão futura de resposta conciliada"
     )
     if source_summary:
         message += (

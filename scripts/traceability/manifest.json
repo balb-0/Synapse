@@ -16,8 +16,8 @@
     },
     {
       "id": "ARQUITETURA_NEGOCIO",
-      "filename": "Arquitetura-de-Negócio-Central-de-Pesquisas-do-Sindusfarma.txt",
-      "sha256": "76e50e5f090cadaa39f5fef81473dacccbf069d5071238be84720e0aafb70afd",
+      "filename": "arquitetura-de-negocio.md",
+      "sha256": "356201f412e2ffe253db18ac5a99c870d00364c95d99bd3e2b01c3da6f642ef4",
       "claims": [
         {"id": "valor_central", "phrase": "Transformar uma necessidade de informação do setor farmacêutico em conhecimento estruturado e confiável."},
         {"id": "fluxo_inicio", "phrase": "1. Solicitação"},
@@ -29,24 +29,24 @@
     }
   ],
   "cubes": {
-    "C01": {"dmcId": "cubo-1", "name": "Ciclo de Vida das Pesquisas"},
-    "C02": {"dmcId": "cubo-2", "name": "Adesão e Participação"},
-    "C03": {"dmcId": "cubo-3", "name": "Desempenho Operacional"},
-    "C04": {"dmcId": "cubo-4", "name": "Qualidade e Publicação"}
+    "C01": {"dmcId": "cubo-1", "name": "Portfólio e Ciclo"},
+    "C02": {"dmcId": "cubo-2", "name": "Participação e Representatividade"},
+    "C03": {"dmcId": "cubo-3", "name": "Pipeline Mensal"},
+    "C04": {"dmcId": "cubo-4", "name": "Resultados e Questionários"}
   },
   "questions": [
-    {"id": "PB01", "requirement": "RF01", "indicators": ["I01", "I02"], "cubes": ["C01"], "dashboards": ["D01"], "pendingIndicators": []},
-    {"id": "PB02", "requirement": "RF02", "indicators": ["I03", "I04"], "cubes": ["C01"], "dashboards": ["D01"], "pendingIndicators": []},
-    {"id": "PB03", "requirement": "RF03", "indicators": ["I04", "I05", "I06"], "cubes": ["C01"], "dashboards": ["D01"], "pendingIndicators": []},
-    {"id": "PB04", "requirement": "RF04", "indicators": ["I07", "I08", "I09"], "cubes": ["C02"], "dashboards": ["D02"], "pendingIndicators": []},
-    {"id": "PB05", "requirement": "RF05", "indicators": ["I10", "I11"], "cubes": ["C02"], "dashboards": ["D02"], "pendingIndicators": []},
-    {"id": "PB06", "requirement": "RF06", "indicators": ["I16", "I17", "I18", "I19", "I20", "I21"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
-    {"id": "PB07", "requirement": "RF07", "indicators": ["I18", "I22"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
-    {"id": "PB08", "requirement": "RF08", "indicators": ["I25"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
-    {"id": "PB09", "requirement": "RF09", "indicators": ["I23"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
-    {"id": "PB10", "requirement": "RF10", "indicators": ["I12", "I13"], "cubes": [], "dashboards": ["D03"], "pendingIndicators": ["I12", "I13"], "pendingCube": {"name": "Resultados e Questionários", "dependency": "Task 43"}},
-    {"id": "PB11", "requirement": "RF11", "indicators": ["I12", "I13", "I18", "I22"], "cubes": ["C04"], "dashboards": ["D03", "D04"], "pendingIndicators": ["I12", "I13"], "pendingCube": {"name": "Resultados e Questionários", "dependency": "Task 43"}},
-    {"id": "PB12", "requirement": "RF12", "indicators": ["I17", "I19", "I21", "I24"], "cubes": ["C04"], "dashboards": ["D04"], "pendingIndicators": []},
-    {"id": "PB13", "requirement": "RF13", "indicators": ["I14", "I15"], "cubes": [], "dashboards": ["D03"], "pendingIndicators": ["I14", "I15"], "pendingCube": {"name": "Resultados e Questionários", "dependency": "Task 43"}}
+    {"id": "PB01", "requirement": "RF01", "indicators": ["I01", "I02"], "cubes": ["C01"], "artifacts": [], "dashboards": ["D01"], "pendingIndicators": []},
+    {"id": "PB02", "requirement": "RF02", "indicators": ["I03", "I04"], "cubes": ["C01"], "artifacts": [], "dashboards": ["D01"], "pendingIndicators": []},
+    {"id": "PB03", "requirement": "RF03", "indicators": ["I04", "I05", "I06"], "cubes": ["C01"], "artifacts": [], "dashboards": ["D01"], "pendingIndicators": []},
+    {"id": "PB04", "requirement": "RF04", "indicators": ["I07", "I08", "I09"], "cubes": ["C02"], "artifacts": [], "dashboards": ["D02"], "pendingIndicators": []},
+    {"id": "PB05", "requirement": "RF05", "indicators": ["I10", "I11"], "cubes": ["C02"], "artifacts": [], "dashboards": ["D02"], "pendingIndicators": []},
+    {"id": "PB06", "requirement": "RF06", "indicators": ["I16", "I17", "I18", "I19", "I20", "I21"], "cubes": [], "artifacts": ["Perfilamento de qualidade e governança"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB07", "requirement": "RF07", "indicators": ["I18", "I22"], "cubes": [], "artifacts": ["Perfilamento de qualidade e governança"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB08", "requirement": "RF08", "indicators": ["I25"], "cubes": [], "artifacts": ["Política de acesso proposta"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB09", "requirement": "RF09", "indicators": ["I23"], "cubes": [], "artifacts": ["Política de publicação proposta"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB10", "requirement": "RF10", "indicators": ["I12", "I13"], "cubes": ["C04"], "artifacts": [], "dashboards": ["D03"], "pendingIndicators": ["I12", "I13"], "pendingCube": {"name": "fato de resposta conciliado", "dependency": "Integração futura"}},
+    {"id": "PB11", "requirement": "RF11", "indicators": ["I12", "I13", "I18", "I22"], "cubes": ["C04"], "artifacts": [], "dashboards": ["D03", "D04"], "pendingIndicators": ["I12", "I13"], "pendingCube": {"name": "fato de resposta conciliado", "dependency": "Integração futura"}},
+    {"id": "PB12", "requirement": "RF12", "indicators": ["I17", "I19", "I21", "I24"], "cubes": [], "artifacts": ["Perfilamento de qualidade e governança"], "dashboards": ["D04"], "pendingIndicators": []},
+    {"id": "PB13", "requirement": "RF13", "indicators": ["I14", "I15"], "cubes": ["C04"], "artifacts": [], "dashboards": ["D03"], "pendingIndicators": ["I15"], "pendingCube": {"name": "metadados de versão e validação", "dependency": "Integração futura"}}
   ]
 }

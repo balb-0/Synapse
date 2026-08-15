@@ -6,10 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
-import math
-import struct
 import sys
-import zlib
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -17,14 +14,15 @@ from statistics import mean, median, stdev
 
 
 SOURCES = {
-    "pesquisas": ("pesquisas.csv", ["id", "data_divulgacao"]),
-    "empresas": ("empresas.csv", ["ID"]),
-    "clientes": ("clientes.csv", ["id_cliente"]),
-    "respondentes": ("respondentes.csv", ["id_pesq", "id_empresa"]),
-    "questoes": ("questoes.csv", ["id_pergunta", "pesquisa_id"]),
-    "respostas": ("respostas.csv", ["id_resposta", "pesquisa_id", "respondent_id"]),
+    "pesquisas": (("pesquisas.csv",), ["id", "data_divulgacao"]),
+    "empresas": (("empresas.csv",), ["ID"]),
+    "clientes": (("clientes.csv", "clientes (1).csv"), ["id_cliente"]),
+    "respondentes": (("respondentes.csv",), ["id_pesq", "id_empresa"]),
+    "questoes": (("questoes.csv", "questoes (2).csv"), ["id_pergunta", "pesquisa_id"]),
+    "respostas": (("respostas.csv", "teste.csv"), ["id_resposta", "pesquisa_id", "respondent_id"]),
 }
 DATE_FORMATS = ("%d/%m/%Y %H:%M", "%d/%m/%Y", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d")
+MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
 
 def clean(value: str | None) -> str:
@@ -70,38 +68,11 @@ def read_csv(path: Path, required: list[str]) -> list[dict[str, str]]:
 def load_sources(root: Path) -> tuple[dict[str, list[dict[str, str]]], dict[str, str]]:
     data: dict[str, list[dict[str, str]]] = {}
     hashes: dict[str, str] = {}
-    for source, (filename, required) in SOURCES.items():
-        path = root / filename
-        if source == "respostas" and not path.is_file():
-            path = root / "teste.csv"
+    for source, (filenames, required) in SOURCES.items():
+        path = next((root / filename for filename in filenames if (root / filename).is_file()), root / filenames[0])
         data[source] = read_csv(path, required)
         hashes[source] = hashlib.sha256(path.read_bytes()).hexdigest()
     return data, hashes
-
-
-def png(path: Path, values: list[float], color: tuple[int, int, int] = (38, 103, 170)) -> None:
-    """Escreve um gráfico de barras RGB sem dependência externa."""
-    width, height = 720, 360
-    canvas = bytearray([255, 255, 255] * width * height)
-    top = max(values or [1]) or 1
-    for index, value in enumerate(values):
-        x0 = 35 + index * max(1, (width - 60) // max(1, len(values)))
-        x1 = min(width - 5, x0 + max(2, (width - 80) // max(1, len(values)) - 4))
-        y1 = height - 25
-        y0 = max(10, y1 - int((height - 55) * value / top))
-        for y in range(y0, y1):
-            start = (y * width + x0) * 3
-            end = (y * width + x1) * 3
-            canvas[start:end] = bytes(color) * (x1 - x0)
-    raw = b"".join(b"\0" + canvas[y * width * 3 : (y + 1) * width * 3] for y in range(height))
-
-    def chunk(kind: bytes, body: bytes) -> bytes:
-        return struct.pack(">I", len(body)) + kind + body + struct.pack(">I", zlib.crc32(kind + body) & 0xFFFFFFFF)
-
-    output = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
-    output += chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(output)
 
 
 def calculate(data: dict[str, list[dict[str, str]]]) -> dict[str, object]:
@@ -162,7 +133,7 @@ def calculate(data: dict[str, list[dict[str, str]]]) -> dict[str, object]:
         "researches": researches, "dated": dated, "years": years, "months": months,
         "weekdays": weekdays, "weekday_matches": weekday_matches, "weekday_total": len(valid_weekdays),
         "cycle_by_year": cycle_by_year, "cycle_all": cycle_all, "extension_by_year": extension_by_year,
-        "participation_year": participation_year, "completeness": completeness,
+        "participation_year": participation_year, "completeness": completeness, "completeness_fields": six_fields,
         "response_people": response_people, "density": density, "relations": relations,
         "hours": hours, "matching": matching, "consistency_total": len(consistency),
     }
@@ -208,15 +179,114 @@ def log_text(stats: dict[str, object], hashes: dict[str, str], files: dict[str, 
 
 
 def make_figures(stats: dict[str, object], output: Path) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
     years: Counter[int] = stats["years"]  # type: ignore[assignment]
     months: Counter[int] = stats["months"]  # type: ignore[assignment]
     cycle: dict[int, list[float]] = stats["cycle_by_year"]  # type: ignore[assignment]
     participation: dict[int, dict[str, object]] = stats["participation_year"]  # type: ignore[assignment]
-    png(output / "fig1.png", [years[y] for y in sorted(years)])
-    png(output / "fig2.png", [months[m] for m in range(1, 13)], (224, 126, 34))
-    png(output / "fig3.png", [mean(cycle[y]) for y in sorted(cycle)], (52, 132, 85))
-    png(output / "fig4.png", [len(participation[y]["companies"]) for y in sorted(participation)], (124, 83, 160))
-    png(output / "fig5.png", [100 * value for value in stats["completeness"]], (40, 145, 145))
+    completeness: list[float] = stats["completeness"]  # type: ignore[assignment]
+    completeness_fields: list[str] = stats["completeness_fields"]  # type: ignore[assignment]
+    output.mkdir(parents=True, exist_ok=True)
+
+    plt.rcParams.update({
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.titleweight": "bold",
+        "figure.dpi": 140,
+        "font.size": 10,
+    })
+
+    def save(path: Path) -> None:
+        plt.tight_layout()
+        plt.savefig(path, bbox_inches="tight")
+        plt.close()
+
+    # fig1: série anual como linha baseada apenas em data_divulgacao.
+    ordered_years = sorted(years)
+    annual_values = [years[year] for year in ordered_years]
+    fig, ax = plt.subplots(figsize=(9, 4.8))
+    ax.plot(ordered_years, annual_values, marker="o", linewidth=2.4, color="#2567AA")
+    ax.fill_between(ordered_years, annual_values, color="#2567AA", alpha=0.12)
+    for year, value in zip(ordered_years, annual_values):
+        ax.annotate(str(value), (year, value), textcoords="offset points", xytext=(0, 8), ha="center")
+    ax.set_title("Pesquisas divulgadas por ano")
+    ax.set_ylabel("pesquisas")
+    ax.set_xticks(ordered_years)
+    ax.grid(axis="y", alpha=0.25)
+    save(output / "fig1.png")
+
+    # fig2: sazonalidade mensal como linha, evitando outra barra simples.
+    monthly_values = [months[month] for month in range(1, 13)]
+    fig, ax = plt.subplots(figsize=(9, 4.8))
+    ax.plot(MONTH_LABELS, monthly_values, marker="o", color="#E07E22", linewidth=2.2)
+    ax.fill_between(range(len(MONTH_LABELS)), monthly_values, color="#E07E22", alpha=0.16)
+    ax.set_title("Sazonalidade mensal das divulgações")
+    ax.set_ylabel("pesquisas")
+    ax.grid(axis="y", alpha=0.25)
+    for idx, value in enumerate(monthly_values):
+        ax.annotate(str(value), (idx, value), textcoords="offset points", xytext=(0, 7), ha="center", fontsize=8)
+    save(output / "fig2.png")
+
+    # fig3: duração média e mediana do ciclo por ano, com taxa de prorrogação no eixo secundário.
+    cycle_years = sorted(cycle)
+    means = [mean(cycle[year]) for year in cycle_years]
+    medians = [median(cycle[year]) for year in cycle_years]
+    extension_by_year: Counter[int] = stats["extension_by_year"]  # type: ignore[assignment]
+    extension_rates = [extension_by_year[year] * 100 / years[year] if years[year] else 0 for year in cycle_years]
+    fig, ax = plt.subplots(figsize=(9, 4.8))
+    ax.plot(cycle_years, medians, marker="o", linewidth=2.2, color="#348455", label="mediana do ciclo")
+    ax.plot(cycle_years, means, marker="s", linewidth=2.0, color="#7C53A0", label="média do ciclo")
+    ax.set_title("Ciclo de entrega e prorrogação por ano")
+    ax.set_ylabel("dias úteis")
+    ax.set_xticks(cycle_years)
+    ax.grid(axis="y", alpha=0.25)
+    ax2 = ax.twinx()
+    ax2.bar(cycle_years, extension_rates, color="#E0A800", alpha=0.28, label="taxa de prorrogação")
+    ax2.set_ylabel("prorrogação (%)")
+    lines, labels = ax.get_legend_handles_labels()
+    bars, bar_labels = ax2.get_legend_handles_labels()
+    ax.legend(lines + bars, labels + bar_labels, loc="upper right")
+    save(output / "fig3.png")
+
+    # fig4: participação por ano em barras agrupadas, separando registros, empresas e pessoas.
+    participation_years = sorted(participation)
+    records = [participation[year]["records"] for year in participation_years]
+    companies = [len(participation[year]["companies"]) for year in participation_years]
+    people = [len(participation[year]["people"]) for year in participation_years]
+    positions = list(range(len(participation_years)))
+    width = 0.24
+    fig, ax = plt.subplots(figsize=(9, 4.8))
+    ax.bar([x - width for x in positions], records, width=width, color="#2567AA", label="registros")
+    ax.bar(positions, people, width=width, color="#7C53A0", label="pessoas distintas")
+    ax.bar([x + width for x in positions], companies, width=width, color="#348455", label="empresas distintas")
+    ax.set_title("Participação observada por ano")
+    ax.set_ylabel("contagem")
+    ax.set_xticks(positions, participation_years)
+    ax.grid(axis="y", alpha=0.25)
+    ax.legend(ncol=3, loc="upper left")
+    save(output / "fig4.png")
+
+    # fig5: completude horizontal por campo crítico, com linha de referência de 90%.
+    completeness_pct = [value * 100 for value in completeness]
+    ordered = sorted(zip(completeness_fields, completeness_pct), key=lambda item: item[1])
+    labels = [field.replace("_", " ") for field, _ in ordered]
+    values = [value for _, value in ordered]
+    colors = ["#C94C4C" if value < 90 else "#348455" for value in values]
+    fig, ax = plt.subplots(figsize=(9, 4.8))
+    ax.barh(labels, values, color=colors, alpha=0.9)
+    ax.axvline(90, color="#444444", linestyle="--", linewidth=1.2, label="referência 90%")
+    ax.set_title("Completude de campos críticos em pesquisas.csv")
+    ax.set_xlabel("completude (%)")
+    ax.set_xlim(0, 105)
+    ax.grid(axis="x", alpha=0.2)
+    for idx, value in enumerate(values):
+        ax.text(min(value + 1, 101), idx, f"{value:.1f}%", va="center", fontsize=8)
+    ax.legend(loc="lower right")
+    save(output / "fig5.png")
 
 
 def main(argv: list[str] | None = None) -> int:

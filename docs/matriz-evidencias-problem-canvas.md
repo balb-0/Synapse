@@ -1,10 +1,9 @@
 # Matriz de evidências do Problem Canvas
 
 Esta matriz conecta os elementos atribuídos ao Problem Canvas aos artefatos da
-Sprint 1 sem tratar uma referência indireta como confirmação do parceiro. O
-arquivo primário do canvas não está neste checkout; por isso, elementos que
-dependem exclusivamente dele permanecem **pendentes de validação**, com a
-auditoria da fonte primária registrada na evidência.
+Sprint 1 sem tratar uma referência indireta como confirmação do parceiro.
+Elementos não sustentados diretamente pelas fontes primárias conferidas ficam
+classificados como inferência ou proposta, com a origem indicada na evidência.
 
 | Elemento | Evidência disponível | Fonte | Status | Artefato de destino |
 | :--- | :--- | :--- | :--- | :--- |
@@ -20,14 +19,14 @@ auditoria da fonte primária registrada na evidência.
 | Necessidade: integrar o ciclo da pesquisa | TAPI e Arquitetura conectam solicitação, questionário, participação, resposta, análise e publicação | TAPI [1], Arquitetura [2], §§4.0.2, 5.2 e 6.1 | Confirmado pelo parceiro; implementação pendente | fluxo TO-BE e C01–C04 |
 | Necessidade: governar acesso e publicação | política final e logs não estão comprovados nas fontes analisadas | §§6.4–6.6 | Pendente de validação | RF08/RF09, I23/I25 e Governança Corporativa |
 | Objetivo: rastreabilidade da solicitação à publicação | o TAPI confirma rastreabilidade e auditabilidade ponta a ponta como benefício esperado; PB02/PB07/PB09/PB11/PB12 operacionalizam a necessidade | TAPI [1], Arquitetura [2], §§3, 5.4 e 6.3 | Confirmado pelo parceiro; implementação pendente | RF02/RF07/RF09/RF12, C01/C04 |
-| Objetivo: reduzir esforço manual | TAPI e Arquitetura confirmam o objetivo, mas não fornecem baseline de horas, custo ou retrabalho | TAPI [1], Arquitetura [2] e §3 | Confirmado pelo parceiro; medição pendente | avaliação futura; não apresentar ganho nesta Sprint |
+| Objetivo: reduzir esforço manual | TAPI e Arquitetura confirmam o objetivo; a linha de base de horas, custo e retrabalho ainda não foi medida | TAPI [1], Arquitetura [2] e §3 | Confirmado pelo parceiro; medição futura | avaliação futura; não apresentar ganho nesta Sprint |
 | Perguntas de negócio | PB01–PB13 são contratos derivados que cobrem necessidades confirmadas de portfólio, ciclo, participação, qualidade, acesso, publicação e resultados | TAPI [1], Arquitetura [2] e §6.3 | Proposta da equipe sustentada por fonte primária | indicadores, dashboards e cubos |
 | KPIs de portfólio e ciclo disponíveis | I01–I05 têm campos observáveis | CSVs; §§5.6 e 6.4 | Observado nos dados | C01 e D01 |
 | KPI de atraso e prioridade | I06 depende de regra e data de referência aprovadas | §§5.6 e 6.4 | Pendente de validação | C01 e D01 |
 | KPI de participação observada | I07 conta participações sem afirmar adesão | `respondentes.csv`; §§5.6 e 6.4 | Observado nos dados | C02 e D02 |
 | KPIs de adesão, mercado e engajamento | I08 e I11 não têm denominador; I09/I10 exigem reconciliação | CSVs; §§5.6 e 6.4 | Pendente de validação | C02 e D02 |
-| KPIs de resultados disponíveis | I12–I14 usam resposta atômica; o cubo próprio de resultados/questionários não foi definido pela Task 43 | CSVs; §§5.4, 5.6 e 6.4 | Observado nos dados; modelagem dimensional pendente | cubo de resultados pendente; D03 |
-| KPI de questionário validado | I15 depende de metadados de versão e validação e do cubo próprio ainda não definido | Arquitetura [2]; §§5.4, 5.6 e 6.4 | Pendente de integração e modelagem | cubo de resultados pendente; D03 |
+| KPIs de resultados disponíveis | I12–I14 usam resposta atômica; C04 cobre o instrumento de questionário, enquanto a resposta conciliada permanece extensão futura | CSVs; §§5.4, 5.6 e 6.4 | Observado nos dados; modelagem dimensional parcial | C04; D03 |
+| KPI de questionário validado | I15 depende de metadados de versão e validação; C04 cobre perguntas e pesquisas, mas não registra decisão de validação | Arquitetura [2]; §§5.4, 5.6 e 6.4 | Pendente de integração | C04; D03 |
 | KPIs de qualidade disponíveis | I16–I20 são derivados do perfilamento | perfilador; §§5.3–5.6 e 6.4 | Observado nos dados | C04 e D04 |
 | KPIs de atualização, publicação e acesso | I21 e I23–I25 exigem logs e decisões futuras | §§5.6 e 6.4 | Pendente de validação | C04 e D04 |
 | Público: Central de Pesquisas | o TAPI define a equipe interna como usuária principal para operar o fluxo e acompanhar indicadores | TAPI [1], Arquitetura [2], D01, D02 e D04; §6.5 | Confirmado pelo parceiro | Consumo Analítico |

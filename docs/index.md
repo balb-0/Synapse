@@ -5,6 +5,8 @@
 | Artefato | Papel |
 | :--- | :--- |
 | [`projeto.md`](projeto.md) | Documento canônico: contexto, arquitetura, modelagem dimensional, requisitos, governança e avaliação |
+| [`contexto_organizacional_+_requisitos_da_solução_analítica.md`](contexto_organizacional_+_requisitos_da_solução_analítica.md) | Entrada formal do Entregável A, apontando para as seções canônicas |
+| [`arquitetura-de-negocio.md`](arquitetura-de-negocio.md) | Cópia local da Arquitetura de Negócio usada como fonte primária de contexto |
 | [`dmc.json`](dmc.json) | Exportação do Data Model Canvas para importação na ferramenta oficial |
 | [`fontes-e-dependencias.md`](fontes-e-dependencias.md) | Mapa de fontes, limitações e dependências entre os três entregáveis da Sprint 1 |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
@@ -19,7 +21,7 @@ documento principal.
 | :--- | :--- |
 | [`assets/prototipos-dashboards/`](assets/prototipos-dashboards/) | interface autocontida, agregado sem identificação, testes e capturas dos dashboards D01–D04 |
 | [`../scripts/data_quality/`](../scripts/data_quality/) | manifesto, perfilador, testes e contrato das saídas agregadas |
-| [`../scripts/traceability/`](../scripts/traceability/) | contrato executável PB–RF–indicador–cubo/dashboard e validação da lacuna da Task 43 |
+| [`../scripts/traceability/`](../scripts/traceability/) | contrato executável PB–RF–indicador–cubo/dashboard e validação das extensões futuras de resposta conciliada |
 
 ## Documentos de gestão
 
@@ -27,9 +29,8 @@ documento principal.
 - [`gestao-projeto.md`](gestao-projeto.md): acompanhamento e avaliação das sprints.
 - [`dev-rules.md`](dev-rules.md): regras gerais de desenvolvimento.
 
-Esses documentos ainda seguem o template acadêmico onde não houve task
-específica de preenchimento. Eles não são fonte primária de requisitos do
-parceiro.
+Esses documentos registram práticas internas do projeto e não são fonte
+primária de requisitos do parceiro.
 
 ## Bases e insumos locais
 

@@ -22,6 +22,8 @@ import { createRequire } from 'module';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const PROJECT_ROOT = resolve(__dirname, '..', '..');
+const DASHBOARD_DIR = resolve(PROJECT_ROOT, 'docs', 'assets', 'prototipos-dashboards');
 
 let chromium;
 try {
@@ -48,7 +50,7 @@ if (!chromium) {
 
 const PORT = Number(process.env.PROTOTIPOS_PORT || 8089);
 const BASE_URL = `http://localhost:${PORT}/index.html`;
-const IMAGES_DIR = resolve(__dirname, 'imagens');
+const IMAGES_DIR = resolve(DASHBOARD_DIR, 'imagens');
 
 if (!existsSync(IMAGES_DIR)) {
   mkdirSync(IMAGES_DIR, { recursive: true });
@@ -57,7 +59,7 @@ if (!existsSync(IMAGES_DIR)) {
 function startServer() {
   return new Promise((resolveServer, rejectServer) => {
     const serverProc = spawn('python3', ['-m', 'http.server', String(PORT)], {
-      cwd: __dirname,
+      cwd: DASHBOARD_DIR,
       stdio: 'ignore'
     });
 

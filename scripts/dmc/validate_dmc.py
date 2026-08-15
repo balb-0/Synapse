@@ -11,10 +11,10 @@ from typing import Any
 
 
 EXPECTED_CUBES = (
-    "Ciclo de Vida das Pesquisas",
-    "Adesão e Participação",
-    "Desempenho Operacional",
-    "Qualidade e Publicação",
+    "Portfólio e Ciclo",
+    "Participação e Representatividade",
+    "Pipeline Mensal",
+    "Resultados e Questionários",
 )
 EXPECTED_CUBE_IDS = ("cubo-1", "cubo-2", "cubo-3", "cubo-4")
 REQUIRED_TOP_LEVEL = (
@@ -156,7 +156,6 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         schemas = (
             fields.get("starSchema") is True,
             fields.get("snowflakeSchema") is True,
-            isinstance(fields.get("outroSchema"), str) and bool(fields["outroSchema"].strip()),
         )
         if sum(schemas) != 1:
             raise DmcValidationError(f"cubo {name} deve selecionar exatamente um esquema")
@@ -166,18 +165,21 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
             fields.get("periodicSnapshot") is True,
             fields.get("accumulatingSnapshot") is True,
         )
-        if sum(fact_types) != 1:
+        is_factless_association = cube["id"] == "cubo-4" and sum(fact_types) == 0
+        if sum(fact_types) != 1 and not is_factless_association:
             raise DmcValidationError(f"cubo {name} deve selecionar exatamente um tipo de fato")
 
         for key in DIMENSIONAL_LISTS:
             if not _nonempty_strings(lists.get(key)):
                 raise DmcValidationError(f"cubo {name} deve preencher {key}")
         for key in DATA_GOVERNANCE_LISTS:
-            if key not in lists or not _semantically_empty(lists[key]):
-                raise DmcValidationError(f"cubo {name} preencheu Dados/Governança em {key}")
+            if not _nonempty_strings(lists.get(key)):
+                raise DmcValidationError(f"cubo {name} deve preencher Dados/Governança em {key}")
         for key in DATA_GOVERNANCE_FIELDS:
-            if key not in fields or not _semantically_empty(fields[key]):
-                raise DmcValidationError(f"cubo {name} preencheu Dados/Governança em {key}")
+            value = fields.get(key)
+            filled = type(value) is bool or (isinstance(value, str) and bool(value.strip()))
+            if not filled:
+                raise DmcValidationError(f"cubo {name} deve preencher Dados/Governança em {key}")
 
     if tuple(names) != EXPECTED_CUBES:
         raise DmcValidationError("nomes ou ordem dos cubos divergem do contrato da Sprint")
@@ -217,7 +219,7 @@ def main() -> int:
 
     print(
         f"DMC válido: schema {summary['schemaVersion']}; "
-        f"{len(summary['cubos'])} cubos; Dados/Governança dos cubos vazios"
+        f"{len(summary['cubos'])} cubos; Dados/Governança dos cubos preenchidos"
     )
     return 0
 
