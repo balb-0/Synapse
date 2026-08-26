@@ -157,7 +157,7 @@ Quando um KPI (2.4) cruza um limiar da seção 2.3, dispara-se um **procedimento
 4. **Correção** — o dado é saneado na origem ou por regra de padronização documentada; nunca por edição manual não rastreada.
 5. **Re-ingestão** — o registro corrigido retorna ao início do pipeline e passa novamente pelas regras de validação (2.6).
 6. **Reavaliação** — o KPI é recalculado; se voltou à meta, o caso é encerrado no histórico.
-7. **Escalonamento** — se o desvio persistir após a correção, o caso sobe ao Data Owner para decisão (aceitar exceção documentada ou acionar a fonte).
+7. **Escalonamento** — se o desvio persistir após a correção, **ou** se o prazo máximo da severidade estourar sem resolução, o caso sobe ao Data Owner para decisão (aceitar exceção documentada ou acionar a fonte). Um caso crítico cuja correção **depende do parceiro** (ex.: reconciliação de chave órfã) não permanece bloqueando a ingestão: os registros afetados vão para **quarentena** (retidos e isolados, sem entrar no banco central) e a decisão é escalada, evitando que uma dependência externa trave o pipeline por tempo indeterminado.
 
 <div align="center">
 <sub>Tabela X - Fluxo de ações corretivas por severidade</sub><br>
