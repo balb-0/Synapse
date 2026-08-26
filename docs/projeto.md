@@ -48,6 +48,7 @@
   - [6.4 Indicadores e Métricas de Negócio](#64-indicadores-e-métricas-de-negócio)
   - [6.5 Dashboards Analíticos](#65-dashboards-analíticos)
   - [6.6 Governança, Segurança da Informação e LGPD](#66-governança-segurança-da-informação-e-lgpd)
+  - [6.7 Fluxo de Interação Anotado](#67-fluxo-de-interação-anotado)
 - [7. Referências](#7-referências)
 - [8. Avaliação dos Resultados](#8-avaliação-dos-resultados)
   - [8.1 Resultados Quantitativos](#81-resultados-quantitativos)
@@ -2347,6 +2348,88 @@ Se um fornecedor, suporte ou infraestrutura permitir acesso a dados pessoais a p
 | Entrega acadêmica | Confusão entre protótipo da sprint e sistema produtivo | Tratar a entrega como ambiente acadêmico independente; não prometer conformidade operacional nem reproduzir controles não verificados. |
 
 Assim, a governança proposta atende ao ciclo completo — coleta, integração, análise, publicação, atendimento e descarte — sem afirmar que os controles já existem. A passagem para produção deve ser condicionada ao fechamento do inventário, à validação das bases legais e papéis, à revisão do RIPD, ao teste de acesso e de reidentificação, à confirmação de retenção/backups e à aprovação da publicação pelo parceiro.
+
+## 6.7 Fluxo de Interação Anotado
+
+Esta seção organiza a base do Fluxo de Interação Anotado da Sprint 2 para o
+perfil operacional principal: a equipe interna da Central de Pesquisas. O texto
+parte do JTBD definido em discussão do grupo, da Arquitetura de Negócio
+[<sup>[2]</sup>](#ref-2), do fluxo de valor da §2.1, dos requisitos funcionais da §6.1 e
+das perguntas de negócio da §6.3. O objetivo é manter um apoio textual curto
+para o diagrama, sem substituir a representação visual exigida pelo artefato.
+
+### 6.7.1 Perfil, JTBD e critérios de sucesso
+
+O perfil operacional principal opera o ciclo das pesquisas desde a solicitação
+até a entrega/publicação, acompanhando status, prazos, participantes, resultados
+e qualidade em um processo hoje distribuído entre planilhas, SurveyMonkey,
+Trello, sistema interno e acervo publicado.
+
+O JTBD usado como base é:
+
+> Quando preciso acompanhar uma pesquisa desde a solicitação até a publicação,
+> quero acessar em um único ambiente dados integrados e atualizados sobre
+> status, prazos, adesão e resultados, para reduzir o trabalho manual,
+> identificar gargalos e tomar decisões com mais agilidade e confiança.
+
+| Job | Critério de sucesso associado |
+| :--- | :--- |
+| Registrar e iniciar uma pesquisa com identidade rastreável. | A pesquisa foi criada ou localizada sem duplicidade aparente, com origem e status inicial explícitos. |
+| Acompanhar status, prazos e marcos do ciclo. | O usuário vê etapa atual, próximos marcos, prazos, pendências e motivo de atraso/prorrogação quando aplicável. |
+| Monitorar participação e risco de baixa adesão. | A participação é exibida com numerador, denominador quando existir e limitação quando o cálculo de adesão não for possível. |
+| Validar qualidade antes de tabular ou publicar. | Inconsistências, órfãos, duplicidades e ausências críticas aparecem com impacto no indicador e ação esperada. |
+| Entregar e publicar resultado autorizado. | O resultado só avança com autorização, versão, perfil permitido e vínculo com a pesquisa interna. |
+
+### 6.7.2 Pontos de checagem do fluxo
+
+Os pontos abaixo selecionam quatro momentos em que o usuário operacional checa
+se o trabalho está progredindo. Eles servem como âncoras do fluxo visual.
+
+| Momento | Confirmação necessária | Dados informados pelo sistema | Estado esperado do dado após a ação |
+| :--- | :--- | :--- | :--- |
+| 1. Receber ou localizar solicitação | Confirmar criação ou localização da pesquisa e sinalizar duplicidade/conflito. | ID, título, origem, status inicial, data de solicitação e responsável quando disponível. | `Pesquisa` existe como entidade operacional, com origem preservada e pendências marcadas. |
+| 2. Acompanhar ciclo e carteira ativa | Confirmar atualização de marco e indicar se atraso, prorrogação ou prioridade são calculáveis. | Etapa atual, datas do ciclo, campos ausentes, regra aplicada e motivo da classificação. | Marcos ficam atualizados; ausências permanecem pendentes; cálculo fica disponível ou marcado como insuficiente. |
+| 3. Monitorar participação e qualidade | Confirmar numeradores, denominadores disponíveis e anomalias que afetam KPIs. | Participações, empresas/pessoas relacionadas, representatividade, completude, duplicidade, órfãos e impacto no indicador. | Participações são ligadas quando há chave observada; ausência de denominador bloqueia taxa; campos recebem estado de qualidade. |
+| 4. Preparar entrega ou publicação | Confirmar autorização ou bloqueio, perfil permitido e vínculo com a versão publicada. | Estado de autorização/publicação, versão, data, responsável, regra de agregação e pendências do acervo. | Resultado agregado fica autorizado ou bloqueado como pendente; acervo não é atualizado sem decisão registrada. |
+
+### 6.7.3 Fluxo principal de ponta a ponta
+
+A sequência abaixo representa o fluxo previsto para a equipe interna da Central
+de Pesquisas, do recebimento da demanda até a entrega ou publicação do
+resultado. A tabela não descreve todas as regras de tela; ela identifica os
+atores, passos sequenciais e interfaces que devem aparecer no diagrama do perfil
+principal.
+
+| Ordem | Etapa do fluxo | Atores envolvidos | Interface ou canal | Ação principal | Resposta esperada da solução | Ponto de checagem |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Receber demanda de pesquisa | Solicitante, equipe da Central | Outlook, n8n, sistema interno | Receber solicitação e registrar necessidade, objetivo e contexto. | Criar ou localizar uma pesquisa com origem preservada e status inicial. | Checagem 1 |
+| 2 | Triar e aprovar continuidade | Equipe da Central, coordenação/Data Owner, área técnica quando necessário | Sistema interno ou fila operacional | Validar se a demanda deve seguir, ser ajustada ou ser recusada. | Atualizar status de triagem, registrar decisão e marcar pendências de informação. | Checagem 2 |
+| 3 | Planejar pesquisa e questionário | Equipe da Central, área técnica | Sistema interno, SurveyMonkey, documentos de apoio | Definir cronograma, público, perguntas, alternativas e responsáveis. | Associar plano e questionário à pesquisa; preservar versão ou indicar que metadados ainda estão pendentes. | Checagem 2 |
+| 4 | Criar tarefas e preparar coleta | Equipe da Central | Trello, SurveyMonkey, Outlook | Criar tarefas operacionais, configurar formulário e preparar comunicação aos participantes. | Confirmar tarefas vinculadas, instrumento preparado e pendências antes da divulgação. | Checagem 2 |
+| 5 | Divulgar pesquisa | Equipe da Central, empresas/participantes | Outlook, SurveyMonkey | Enviar convite e abrir coleta. | Registrar data de divulgação, prazo de coleta e estado da pesquisa como em andamento. | Checagem 2 |
+| 6 | Monitorar participação | Equipe da Central, empresas/participantes | Dashboard operacional, SurveyMonkey, base de respondentes | Acompanhar respostas, empresas participantes e sinais de baixa adesão. | Exibir participação observada, limitações de denominador, representatividade disponível e alertas. | Checagem 3 |
+| 7 | Encerrar coleta e validar dados | Equipe da Central, Data Steward | Dashboard de qualidade, bases CSV, regras de validação | Encerrar coleta, verificar completude, duplicidade, chaves órfãs e consistência. | Classificar dados como válidos, pendentes, órfãos ou dependentes de integração futura. | Checagem 3 |
+| 8 | Tabular e analisar resultados | Equipe da Central, área técnica | Dashboard de resultados, planilha de apoio quando necessária | Consolidar respostas e interpretar agregados por pesquisa, pergunta e recorte permitido. | Exibir resultados agregados com `n`, `N`, filtros permitidos e limitações de cálculo. | Checagem 3 |
+| 9 | Revisar entrega | Equipe da Central, área técnica, coordenação/Data Owner | Sistema interno, dashboard, documento de resultado | Revisar consistência, autorização, versão e público de destino. | Registrar aprovação, bloqueio ou pendência antes de qualquer disponibilização externa. | Checagem 4 |
+| 10 | Publicar ou disponibilizar resultado | Equipe da Central, Data Owner, Data Custodian/RentalHost, solicitante ou público autorizado | Acervo do site, dashboard ou relatório autorizado | Disponibilizar apenas o resultado aprovado para o perfil correto. | Atualizar acervo ou manter bloqueado; preservar vínculo entre pesquisa, resultado, versão e autorização. | Checagem 4 |
+
+### 6.7.4 Divergências, atritos e suporte ao usuário
+
+Esta subseção será detalhada no confronto com o perfil secundário e com o
+modelo de dados. Para o fluxo principal, os pontos que já devem permanecer
+visíveis no diagrama são: expectativa de atualização automática sem SLA
+comprovado, cálculo de adesão sem denominador, vínculo incompleto entre
+participação e resposta individual, e publicação dependente de autorização e
+metadados ainda não observados no snapshot.
+
+### 6.7.5 Premissas e validação de consistência
+
+A equipe interna é tratada como perfil com acesso operacional ao fluxo, mas não
+como administradora irrestrita dos dados. O fluxo assume treinamento básico,
+permissão para consultar e acompanhar pesquisas internas, e existência futura de
+regras aprovadas para edição, publicação e acesso. Cada critério de sucesso
+listado em §6.7.1 possui pelo menos um ponto de confirmação em §6.7.2 e aparece
+em uma ou mais etapas do fluxo principal da §6.7.3.
 
 # 7. Referências
 
