@@ -48,6 +48,7 @@
   - [6.4 Indicadores e Métricas de Negócio](#64-indicadores-e-métricas-de-negócio)
   - [6.5 Dashboards Analíticos](#65-dashboards-analíticos)
   - [6.6 Governança, Segurança da Informação e LGPD](#66-governança-segurança-da-informação-e-lgpd)
+  - [6.7 Fluxo de Interação Anotado](#67-fluxo-de-interação-anotado)
 - [7. Referências](#7-referências)
 - [8. Avaliação dos Resultados](#8-avaliação-dos-resultados)
   - [8.1 Resultados Quantitativos](#81-resultados-quantitativos)
@@ -2347,6 +2348,118 @@ Se um fornecedor, suporte ou infraestrutura permitir acesso a dados pessoais a p
 | Entrega acadêmica | Confusão entre protótipo da sprint e sistema produtivo | Tratar a entrega como ambiente acadêmico independente; não prometer conformidade operacional nem reproduzir controles não verificados. |
 
 Assim, a governança proposta atende ao ciclo completo — coleta, integração, análise, publicação, atendimento e descarte — sem afirmar que os controles já existem. A passagem para produção deve ser condicionada ao fechamento do inventário, à validação das bases legais e papéis, à revisão do RIPD, ao teste de acesso e de reidentificação, à confirmação de retenção/backups e à aprovação da publicação pelo parceiro.
+
+## 6.7 Fluxo de Interação Anotado
+
+Esta seção registra a base analítica do artefato de Fluxo de Interação Anotado
+da Sprint 2. O recorte inicial cobre o perfil operacional principal: a equipe
+interna da Central de Pesquisas. O objetivo é revisar o JTBD já produzido pelo
+grupo durante as atividades em sala, extrair critérios de sucesso e traduzir
+esses critérios em expectativas verificáveis ao longo do fluxo de interação.
+
+As fontes usadas nesta análise são o JTBD definido durante uma discussão do
+grupo, a Arquitetura de Negócio [<sup>[2]</sup>](#ref-2), o fluxo de valor da
+§2.1, os requisitos funcionais da §6.1 e as perguntas de negócio da §6.3. O
+JTBD orienta a leitura das expectativas do usuário, mas não substitui TAPI nem
+Arquitetura de Negócio como fonte primária do parceiro.
+
+### 6.7.1 Perfil operacional principal
+
+O perfil operacional principal é a equipe interna da Central de Pesquisas do
+Sindusfarma. Esse perfil opera o ciclo das pesquisas desde a solicitação até a
+entrega/publicação, mantendo informações de status, prazos, participantes,
+resultados e qualidade em um processo hoje apoiado por ferramentas separadas.
+
+O JTBD base é:
+
+> Quando preciso acompanhar uma pesquisa desde a solicitação até a publicação,
+> quero acessar em um único ambiente dados integrados e atualizados sobre
+> status, prazos, adesão e resultados, para reduzir o trabalho manual,
+> identificar gargalos e tomar decisões com mais agilidade e confiança.
+
+A equipe interna não busca apenas consultar dashboards. O trabalho principal é
+confirmar se cada pesquisa avançou corretamente no ciclo, se o dado gerado em
+uma etapa permanece conectado à pesquisa certa e se a próxima ação pode ser
+executada sem depender de conferências manuais entre planilhas, SurveyMonkey,
+Trello, sistema interno e acervo publicado.
+
+Por isso, a percepção de progresso desse usuário depende de três condições:
+
+1. a pesquisa possui um estado operacional claro;
+2. os marcos e dados usados pelo estado são rastreáveis até a fonte;
+3. pendências, indisponibilidades e conflitos aparecem explicitamente, sem
+   serem confundidos com dado válido.
+
+### 6.7.2 Jobs do perfil operacional principal
+
+| ID | Job operacional | Descrição do trabalho | Evidência na documentação |
+| :--- | :--- | :--- | :--- |
+| JOP01 | Registrar e iniciar uma pesquisa com identidade rastreável | Receber uma necessidade de pesquisa, criar ou localizar a pesquisa correspondente e garantir que ela passe a existir como objeto acompanhado no fluxo. | Fluxo de valor etapas 1 e 2; RF01, RF02 e PB01. |
+| JOP02 | Acompanhar status, prazos e marcos do ciclo | Ver em que etapa cada pesquisa está, quais marcos já ocorreram, quais datas estão pendentes e quais pesquisas exigem atenção. | Fluxo de valor etapas 2 a 6; C01 Portfólio e Ciclo; D01 Operação. |
+| JOP03 | Monitorar participação e risco de baixa adesão | Acompanhar empresas e pessoas participantes, representatividade e sinais de baixa adesão, sem inventar denominadores indisponíveis. | Fluxo de valor etapa 6; C02 Participação e Representatividade; RF04 e RF05. |
+| JOP04 | Validar qualidade antes de tabular ou publicar | Distinguir dados válidos, incompletos, inconsistentes, órfãos ou ainda não reconciliados antes de usar indicadores e resultados. | Fluxo de valor etapa 8; RF06, RF07 e D04 Qualidade e Governança. |
+| JOP05 | Entregar e publicar resultado autorizado | Confirmar que o resultado está agregado, revisado, autorizado e coerente com a pesquisa interna antes de disponibilizar ao solicitante ou ao acervo. | Fluxo de valor etapas 9 e 10; RF09, I23 e política de publicação proposta. |
+
+### 6.7.3 Critérios de sucesso
+
+Os critérios abaixo traduzem o JTBD em sinais observáveis de que o trabalho da
+equipe interna avançou. Eles devem ser usados como base para anotar o fluxo
+visual nas próximas tarefas.
+
+| ID | Job relacionado | Critério de sucesso | Como o usuário percebe que avançou |
+| :--- | :--- | :--- | :--- |
+| CS01 | JOP01 | A pesquisa foi registrada ou localizada sem duplicidade aparente. | O sistema mostra ID/título da pesquisa, origem do registro, status inicial e alerta se houver pesquisa semelhante ou chave divergente. |
+| CS02 | JOP01, JOP02 | A pesquisa possui status e próximos marcos visíveis. | O usuário vê etapa atual, datas de solicitação/aprovação/divulgação/limite/entrega quando existirem e uma indicação clara de campos pendentes. |
+| CS03 | JOP02 | A prioridade operacional pode ser decidida sem cruzamento manual. | O sistema destaca pesquisas atrasadas, prorrogadas, sem data crítica ou com informação insuficiente para avaliar atraso. |
+| CS04 | JOP03 | A participação é apresentada com denominador e limitação explícitos. | O usuário vê participantes observados, empresas relacionadas, representatividade disponível e aviso quando taxa de adesão não pode ser calculada por falta de universo elegível. |
+| CS05 | JOP03 | Gargalos de adesão são localizados por pesquisa, área ou empresa. | O sistema permite filtrar e comparar recortes, preservando diferença entre empresa participante, pessoa respondente e elemento de resposta. |
+| CS06 | JOP04 | A qualidade do dado é compreensível antes da tomada de decisão. | O usuário vê completude, duplicidade, integridade de chaves, campos críticos e classificação de pendências por fonte ou campo. |
+| CS07 | JOP04 | Anomalias não bloqueiam a análise sem explicação. | O sistema sinaliza o motivo da pendência, o impacto no indicador e a ação esperada, como reconciliar chave, revisar regra ou excluir do denominador. |
+| CS08 | JOP05 | Resultado só avança para entrega/publicação com decisão registrada. | O usuário vê estado de autorização, responsável, versão, data da decisão e restrição de acesso antes de publicar. |
+| CS09 | JOP05 | O acervo publicado permanece coerente com o dado interno autorizado. | O sistema mostra vínculo entre pesquisa, resultado, versão publicada e trilha de origem, ou explicita que a integração ainda está pendente. |
+
+### 6.7.4 Expectativas verificáveis no fluxo
+
+Esta tabela converte os critérios de sucesso em quatro pontos de checagem do
+perfil operacional principal, respeitando o recorte de 2 a 4 momentos por
+perfil indicado para o artefato de fluxo anotado. A coluna "estado esperado do
+dado" deve orientar o mapeamento posterior contra o modelo de dados.
+
+| Momento do fluxo | Expectativa verificável do usuário | Confirmação esperada na interface | Estado esperado do dado | Requisito/pergunta relacionada |
+| :--- | :--- | :--- | :--- | :--- |
+| 1. Receber ou localizar uma solicitação de pesquisa | Saber se a demanda já virou uma pesquisa acompanhável, se não está duplicada e qual é seu status inicial. | Mensagem de pesquisa criada/localizada, ID da pesquisa, fonte de origem, status inicial e aviso de possível duplicidade. | `Pesquisa` existe como entidade operacional, com origem preservada e status inicial definido ou pendente. | RF01, RF02, PB01, PB02 |
+| 2. Acompanhar avanço do ciclo e carteira ativa | Saber se o ciclo avançou, quais marcos continuam incompletos e quais pesquisas exigem ação operacional. | Linha do tempo com marco atualizado, data usada, usuário/fonte, campos ausentes, atraso/prorrogação e motivo da classificação. | `Pesquisa` tem marcos de ciclo atualizados; datas ausentes permanecem nulas/pendentes; fato de ciclo fica calculável ou marcado como insuficiente. | RF02, RF03, PB02, PB03 |
+| 3. Monitorar participação e qualidade antes da tabulação | Entender se a adesão é suficiente, se o dado permite essa conclusão e se o conjunto pode sustentar indicadores. | Numerador observado, denominador quando existir, representatividade, completude, duplicidade, órfãos, regra aplicada e impacto no KPI. | Participações ficam ligadas a pesquisa/empresa/pessoa quando houver chave observada; ausência de denominador impede taxa; fontes e campos recebem estado de qualidade. | RF04, RF05, RF06, RF07, PB04, PB05, PB06, PB07 |
+| 4. Preparar entrega ou publicação | Saber se o resultado está autorizado para o público correto e se o acervo ficará coerente com o dado interno. | Estado de autorização/publicação, perfil permitido, versão, data, responsável, vínculo com a pesquisa e bloqueio quando faltar decisão. | Resultado agregado possui decisão de publicação ou fica bloqueado como pendente; acervo não é atualizado sem autorização. | RF08, RF09, PB08, PB09 |
+
+### 6.7.5 Pontos de atenção para o fluxo visual
+
+1. O fluxo visual deve deixar claro quando uma expectativa é atendida por
+   acomodação, ruptura deliberada ou lacuna no modelo.
+2. A expectativa de dados atualizados não pode virar promessa de tempo real,
+   porque o snapshot analisado não comprova integração contínua, timestamp de
+   carga ou SLA operacional.
+3. A expectativa de adesão precisa preservar denominador. Quando o universo de
+   convidados não existir, a interface deve declarar indisponibilidade em vez
+   de calcular uma taxa aparente.
+4. A expectativa de publicação depende de metadados futuros de decisão,
+   autorização, versão e vínculo com o acervo. Isso deve aparecer no fluxo como
+   pendência ou lacuna, não como capacidade já implementada.
+5. A ausência de correspondência entre alguns identificadores de pesquisa e a
+   falta de ponte comprovada entre participação e resposta individual devem ser
+   tratadas como divergências relevantes entre modelo mental e modelo de dados.
+
+### 6.7.6 Relação com a análise de stakeholders
+
+O perfil operacional principal é um dos stakeholders centrais do projeto. Por
+isso, a análise resumida de stakeholders foi incorporada também ao arquivo
+[`contexto_organizacional_+_requisitos_da_solução_analítica.md`](contexto_organizacional_+_requisitos_da_solução_analítica.md),
+mantendo explícitos papel, interesse, benefícios esperados e possíveis
+preocupações de cada grupo envolvido.
+
+Essa análise não substitui o fluxo anotado da Sprint 2; ela dá sustentação aos
+perfis que serão usados no diagrama e ajuda a separar expectativas operacionais,
+decisões de governança e preocupações de adoção.
 
 # 7. Referências
 
