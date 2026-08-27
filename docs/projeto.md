@@ -2584,6 +2584,22 @@ fluxo operacional.
 | `Adesão = Insuficiente (sem denominador)` | Ausência estrutural do universo convidado | Depende de dado inexistente (§6.7.9), não de ação de usuário | Só se resolve quando o denominador for modelado. |
 
 
+### 6.7.11 Pontos de divergência no ciclo de vida das pesquisas
+
+Aqui se localizam os pontos em que o **modelo mental dos usuários contraria o
+ciclo de vida do dado** modelado pelo grupo — o coração do fluxo anotado. Cada
+divergência é ancorada na fase (coleta no SurveyMonkey, consolidação, liberação do
+acervo) e, quando possível, quantificada com o snapshot recebido.
+
+| Fase do ciclo | Expectativa do usuário | O que o modelo/fluxo exige | Impacto (com evidência) |
+| :--- | :--- | :--- | :--- |
+| Coleta (SurveyMonkey) | "Cada linha de resposta é uma pessoa." | 1 linha de `Resposta` é um elemento (matriz/checkbox), não um respondente. | 20.607 linhas de `respostas` para 18.735 `respondentes`: contar linha infla participação. |
+| Coleta / identidade | "O respondente é o mesmo entre as bases." | `id_cliente` aparece como texto (`s/i`) e como inteiro; exige conciliação de tipo. | Reconcilia 100% como string, mas o sentinela `s/i` quebra join numérico ingênuo. |
+| Coleta / cobertura | "Toda pesquisa tem questionário e respostas." | Só **10 das 366 pesquisas** têm questionário/respostas no snapshot. | Cubo de resultados cobre ~2,7% do acervo; indicador de conteúdo é parcial. |
+| Consolidação | "Encerrei a coleta, então o resultado está pronto." | Encerrar coleta só muda `status`; validação e tabulação são etapas próprias. | Publicação precoce de dado não validado. |
+| Liberação do acervo | "Aprovei tecnicamente, logo está publicado." | Publicação exige autorização, versão e perfil — não modelados (§6.7.14). | Expectativa de publicação automática sem controle. |
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
