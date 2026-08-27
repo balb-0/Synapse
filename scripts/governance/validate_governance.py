@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import json
 import re
 import subprocess
 import sys
@@ -1008,6 +1009,156 @@ def validate_document(markdown: str) -> dict[str, int]:
     )
 
 
+def validate_role_consistency(
+    document: str, tapi: str, dmc: dict[str, object], architecture: str
+) -> dict[str, int]:
+    """Confronta os papéis documentados com as quatro fontes de evidência."""
+    section = extract_section(document, SECTION_ONE)
+    role_rows = table_rows(section, "Papel", "Referência documental")
+    role_by_name = _rows_by_first_column(
+        role_rows, label="papéis de governança", width=4
+    )
+
+    _require_terms(
+        tapi,
+        (
+            "Fabio Moreira",
+            "Felipe Fernandes Rojas",
+            "Reinaldo Nobrega",
+            "Lucas Andrade",
+            "Trello",
+            "Outlook",
+        ),
+        label="evidências obrigatórias do TAPI",
+    )
+
+    governance = dmc.get("governancaCorporativa")
+    if not isinstance(governance, dict):
+        raise GovernanceValidationError(
+            "governancaCorporativa ausente ou inválida no DMC"
+        )
+    dmc_requirements = {
+        "owner": ("Fabio Moreira",),
+        "steward": ("Felipe Rojas", "Reinaldo Nobrega", "Lucas Andrade"),
+        "custodian": ("Rodrigo Giorgetto", "RentalHost"),
+    }
+    for field, expected in dmc_requirements.items():
+        value = governance.get(field)
+        if not isinstance(value, str):
+            raise GovernanceValidationError(
+                f"campo obrigatório de governança ausente no DMC: {field}"
+            )
+        _require_terms(value, expected, label=f"papel {field} no DMC")
+
+    _require_terms(
+        architecture,
+        (
+            "Fabio Moreira",
+            "Felipe Rojas",
+            "Reinaldo Nobrega",
+            "Lucas Andrade",
+            "Rodrigo Giorgetto",
+            "RentalHost",
+        ),
+        label="evidências obrigatórias da Arquitetura de Negócio",
+    )
+
+    document_roles = {
+        "Data Owner": ("Fabio Moreira",),
+        "Data Steward": ("Felipe Rojas", "Reinaldo Nobrega", "Lucas Andrade"),
+        "Data Custodian / TI": ("Rodrigo Giorgetto", "TI"),
+    }
+    for role, expected in document_roles.items():
+        _require_terms(
+            role_by_name[role][1],
+            expected,
+            label=f"referência documental de {role}",
+        )
+    role_table_text = "\n".join(" | ".join(row) for row in role_rows)
+    for tool in ("Trello", "Outlook", "RentalHost"):
+        if tool in role_table_text:
+            raise GovernanceValidationError(
+                f"ferramenta ou fornecedor não pode ocupar papel de governança: {tool}"
+            )
+
+    actor_rows = table_rows(section, "Ator ou grupo", "Dados, sistemas ou etapa")
+    actor_by_name = _rows_by_first_column(
+        actor_rows, label="atribuições internas e externas", width=4
+    )
+    owner_actor = actor_by_name.get("Fabio Moreira / Data Owner")
+    steward_actor = actor_by_name.get(
+        "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade / Data Stewards"
+    )
+    custodian_actor = actor_by_name.get("Rodrigo Giorgetto / TI / Data Custodian")
+    rentalhost_actor = actor_by_name.get("RentalHost")
+    tools_actor = actor_by_name.get(
+        "SurveyMonkey, Trello, Outlook, n8n e provedor de nuvem"
+    )
+    required_actors = {
+        "Fabio Moreira": owner_actor,
+        "Stewards": steward_actor,
+        "Rodrigo Giorgetto": custodian_actor,
+        "RentalHost": rentalhost_actor,
+        "Trello e Outlook": tools_actor,
+    }
+    missing_actors = [name for name, row in required_actors.items() if row is None]
+    if missing_actors:
+        raise GovernanceValidationError(
+            "atores obrigatórios ausentes na cadeia de custódia: "
+            + ", ".join(missing_actors)
+        )
+
+    assert owner_actor and steward_actor and custodian_actor
+    assert rentalhost_actor and tools_actor
+    if "autoridade formal ainda depende de homologação" not in owner_actor[3]:
+        raise GovernanceValidationError(
+            "autoridade do Data Owner deve permanecer pendente de homologação"
+        )
+    if not re.search(
+        r"Felipe Fernandes Rojas[\s\S]{0,180}equivalência[\s\S]{0,100}deve ser confirmada",
+        steward_actor[3],
+    ):
+        raise GovernanceValidationError(
+            "equivalência entre Felipe Fernandes Rojas e Felipe Rojas deve permanecer pendente"
+        )
+    if "não localizado no TAPI" not in custodian_actor[3]:
+        raise GovernanceValidationError(
+            "Rodrigo Giorgetto não pode ser atribuído ao TAPI sem evidência"
+        )
+    if not re.search(r"Executar custódia técnica", rentalhost_actor[2]):
+        raise GovernanceValidationError(
+            "RentalHost deve permanecer limitada à custódia técnica"
+        )
+    if not re.search(
+        r"Participação condicional[\s\S]{0,180}Não decide finalidade",
+        rentalhost_actor[3],
+    ):
+        raise GovernanceValidationError(
+            "RentalHost não pode receber autoridade de negócio"
+        )
+    if not all(tool in tools_actor[0] for tool in ("Trello", "Outlook")) or not re.search(
+        r"dependem de inventário e contrato", tools_actor[3]
+    ):
+        raise GovernanceValidationError(
+            "Trello e Outlook devem permanecer ferramentas com escopo pendente"
+        )
+
+    plain = re.sub(r"[*`]", "", section)
+    if not re.search(
+        r"não equivalem automaticamente a controlador, operador,[\s\S]{0,80}encarregado",
+        plain,
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "papéis jurídicos não podem ser equiparados aos papéis organizacionais"
+        )
+
+    return {
+        "role_evidence_sources": 4,
+        "consistent_governance_roles": len(REQUIRED_GOVERNANCE_ROLES),
+    }
+
+
 def validate_tapi_hash(document: str, tapi_path: Path) -> str:
     section_four = extract_section(document, SECTION_FOUR)
     matches = re.findall(r"SHA-256[\s\S]{0,160}?([0-9a-fA-F]{64})", section_four)
@@ -1080,7 +1231,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--document", type=Path, required=True)
     parser.add_argument("--tapi", type=Path, required=True)
     parser.add_argument("--repository-root", type=Path, default=Path("."))
+    parser.add_argument("--dmc", type=Path, default=Path("docs/dmc.json"))
+    parser.add_argument(
+        "--architecture",
+        type=Path,
+        default=Path("docs/arquitetura-de-negocio.md"),
+    )
     return parser
+
+
+def _resolve_repository_path(path: Path, repository_root: Path) -> Path:
+    return path if path.is_absolute() else repository_root / path
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1089,6 +1250,20 @@ def main(argv: list[str] | None = None) -> int:
         document = load_document(args.document)
         summary = validate_document(document)
         validate_tapi_hash(document, args.tapi)
+        tapi = load_document(args.tapi)
+        architecture = load_document(
+            _resolve_repository_path(args.architecture, args.repository_root)
+        )
+        dmc_path = _resolve_repository_path(args.dmc, args.repository_root)
+        try:
+            dmc = json.loads(dmc_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            raise GovernanceValidationError(
+                f"não foi possível ler o DMC: {dmc_path}"
+            ) from error
+        if not isinstance(dmc, dict):
+            raise GovernanceValidationError("a raiz do DMC deve ser um objeto JSON")
+        summary |= validate_role_consistency(document, tapi, dmc, architecture)
         forbidden = validate_tracked_inputs(args.repository_root)
         if forbidden:
             raise GovernanceValidationError(
@@ -1106,6 +1281,8 @@ def main(argv: list[str] | None = None) -> int:
         f"{summary['catalog_dimensions']} dimensões e "
         f"{summary['catalog_measures']} medidas no exemplo; "
         f"{summary['catalog_cubes']} cubos; "
+        f"{summary['consistent_governance_roles']} papéis consistentes em "
+        f"{summary['role_evidence_sources']} fontes de evidência; "
         f"{summary['classes']} classes; "
         f"{summary['markers']} marcadores; "
         f"{summary['sources']} fontes; "

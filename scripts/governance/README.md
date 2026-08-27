@@ -7,12 +7,17 @@ imprimir as bases do parceiro. A checagem cobre:
 - campos comuns do catálogo e requisitos específicos de fatos, dimensões,
   medidas e fontes;
 - exemplo `FATO_CICLO_PESQUISA`, seus contratos e os quatro cubos;
+- consistência dos papéis entre documento, TAPI, DMC e Arquitetura de Negócio,
+  mantendo aliases, fornecedores e ferramentas como evidências distintas;
 - classificação, campos de risco, perfis e matriz de acesso por camada;
 - identidade do TAPI e ausência de fontes brutas rastreadas pelo Git.
 
 Os checks estruturais aceitam estados explícitos como `indisponivel` e
 `pendente_confirmacao`. Eles bloqueiam ausência, duplicidade ou contradição do
 contrato; não interpretam uma proposta documentada como implantação produtiva.
+Por padrão, o gate lê `docs/dmc.json` e `docs/arquitetura-de-negocio.md` a
+partir de `--repository-root`; caminhos alternativos podem ser informados por
+`--dmc` e `--architecture`.
 
 ```bash
 python3 scripts/governance/validate_governance.py \
