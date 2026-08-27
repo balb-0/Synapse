@@ -217,6 +217,47 @@ As atribuições da matriz são responsabilidades propostas pelo grupo. Os nomes
 da Seção 1.2 permanecem como baseline documental, e a vigência operacional
 depende das homologações listadas na Seção 1.4.
 
+## 1.8 Atribuições internas, externas e cadeia de custódia
+
+A tabela a seguir liga cada participante ao trecho do ciclo em que atua. Ela
+não converte presença em uma ferramenta ou contrato em responsabilidade
+jurídica: a atribuição legal depende do tratamento realizado e das designações
+pendentes da Seção 1.4.
+
+| Ator ou grupo | Dados, sistemas ou etapa | Responsabilidade no desenho | Limite e estado da evidência |
+| :--- | :--- | :--- | :--- |
+| **Central de Pesquisas** | Solicitações, pesquisas, questionários, indicadores e resultados | Operar o ciclo, registrar necessidades, validar indicadores, solicitar correções e preparar resultados para aprovação. | Atuação confirmada no TAPI e na Arquitetura de Negócio; não aprova sozinha exposição externa, exceção de acesso ou risco residual. |
+| **Fabio Moreira / Data Owner** | Finalidade, prioridades, perfis, indicadores e publicação | Aprovar o uso de negócio, os perfis, a publicação e as exceções sob sua alçada. | Nome no baseline documental; autoridade formal ainda depende de homologação. Não administra infraestrutura nem recebe papel LGPD por inferência. |
+| **Felipe Rojas, Reinaldo Nobrega e Lucas Andrade / Data Stewards** | Catálogo, dicionário, qualidade, linhagem e significado | Definir regras, documentar metadados, acompanhar inconformidades e validar a coerência do dado. | Papéis derivados do DMC e da Arquitetura; não autorizam sozinhos nova finalidade ou exposição externa. O TAPI registra o nome completo **Felipe Fernandes Rojas**; a equivalência com “Felipe Rojas” deve ser confirmada. |
+| **Rodrigo Giorgetto / TI / Data Custodian** | Banco, integrações, credenciais, camadas, backups e logs | Executar ingestões e controles técnicos; manter disponibilidade, trilha de execução, recuperação e descarte autorizado. | Nome presente no DMC e na Arquitetura, não localizado no TAPI; escopo por ambiente e suplência precisam ser homologados. Não decide finalidade ou publicação. |
+| **Áreas técnicas** | Questionários, conteúdo temático e resultados agregados | Revisar conteúdo, regras temáticas e interpretação dos resultados quando consultadas. | Participação documentada; não implica custódia técnica nem acesso a identidade sem necessidade e autorização. |
+| **Empresas e respondentes** | Dados cadastrais, participação e respostas | Fornecer dados e receber resultados compatíveis com autorização e perfil. | Respondentes podem ser titulares de dados pessoais; empresas são fontes ou consumidoras conforme o fluxo. Nenhum deles se torna custodiante ou responsável técnico por participar da pesquisa. |
+| **RentalHost** | Sistema interno ou repositório hospedado, se contratados | Executar custódia técnica, disponibilidade, logs, backup, devolução e descarte conforme instruções documentadas. | Participação condicional, citada no DMC e na Arquitetura; contrato e escopo não foram localizados. Não decide finalidade, hipótese legal, classificação ou publicação. |
+| **SurveyMonkey, Trello, Outlook, n8n e provedor de nuvem** | Coleta, tarefas, comunicação, automação e hospedagem, conforme o serviço | Executar somente a função configurada e contratada; fornecer evidência técnica e apoiar exportação, correção ou eliminação quando aplicável. | Ferramentas confirmadas no TAPI, mas dados efetivamente tratados, região, retenção, subcontratação e papéis LGPD ainda dependem de inventário e contrato. O provedor de nuvem ainda não foi escolhido. |
+| **Provedor de LLM a definir** | Otimização ou análise futura que venha a usar modelo externo | Processar apenas o conteúdo mínimo autorizado, com registro de finalidade, versão do serviço e evidência de envio. | O TAPI prevê uso de LLM, mas não identifica provedor, conteúdo enviado, região, retenção ou contrato; nenhum envio de dado pessoal é pressuposto. |
+| **Controlador, operadores, suboperadores e encarregado** | Cada tratamento que envolva dados pessoais | Definir ou executar, conforme o papel legal designado, finalidade, hipótese legal, instruções, direitos dos titulares e resposta a incidentes. | Papéis pendentes de designação pelo Sindusfarma; não equivalem automaticamente a Owner, Steward, Custodian ou fornecedor. |
+
+### 1.8.1 Interfaces de responsabilidade na custódia
+
+| Interface | Quem entrega ou solicita | Quem executa | Quem aprova ou valida | Evidência mínima exigida |
+| :--- | :--- | :--- | :--- | :--- |
+| Fonte operacional → `staging` | Central, área técnica ou integração autorizada | Data Custodian/TI; fornecedor somente sob contrato | Data Steward valida estrutura e classificação | Fonte, arquivo ou evento, data, responsável, hash ou identificador da carga, classificação e resultado da validação. |
+| `staging` → `trusted` | Data Steward fornece regras e pendências | Data Custodian/TI executa padronização, quarentena e reprocessamento | Data Steward valida qualidade; Data Owner decide exceção relevante | Versão da regra, contagens de entrada/saída, rejeições, reconciliações, execução e aprovador da exceção. |
+| `trusted` → `analytics` | Central define a necessidade analítica; Steward mantém semântica | Data Custodian/TI materializa fatos, dimensões e agregações | Data Steward valida cálculo e linhagem; Data Owner aprova o uso de negócio; agentes LGPD atuam conforme designação | Versão do modelo, grão, fontes, fórmula, teste de qualidade, classificação e data da atualização. |
+| `analytics` → publicação | Central ou área técnica prepara resultado | Data Custodian/TI ou custodiante externo disponibiliza | Data Owner aprova publicação; agentes LGPD atuam conforme designação | Versão, recorte, teste de agregação ou anonimização, aprovadores, destino, data e procedimento de retirada. |
+| Correção, incidente ou direito do titular | Central, titular, auditoria ou monitoramento registra a demanda | Custodian e fornecedores propagam a ação nos ambientes sob sua custódia | Steward comprova linhagem; agente LGPD designado decide e acompanha o aspecto legal | Protocolo, escopo, sistemas afetados, logs, prazo, resultado, exceções e encerramento aprovado. |
+
+### 1.8.2 Confirmações externas pendentes
+
+Antes de considerar a cadeia implantada, o inventário de fornecedores deve
+confirmar para cada serviço: entidade contratada, dados e ambientes abrangidos,
+papel LGPD, região de processamento, subcontratados, perfis administrativos,
+criptografia, logs, resposta a incidentes, retenção, backup, devolução,
+portabilidade e descarte. Também permanecem pendentes a confirmação nominal dos
+papéis internos, o alcance da responsabilidade de TI por ambiente e o destino
+do repositório público. Ausência dessas respostas é registrada como lacuna de
+governança, não preenchida por suposição do grupo.
+
 # 2. Política de Qualidade de Dados
 
 A Política de Qualidade de Dados define quais atributos de qualidade são monitorados no acervo de pesquisas e no banco de dados relacional, como cada um é medido, quais metas e indicadores (KPIs) acompanham a saúde do dado, e como a equipe reage quando a qualidade sai do aceitável. As definições partem do diagnóstico realizado na Sprint 1 sobre as bases disponibilizadas (completude e duplicidade medidas por base e variável) e seguem as dimensões de qualidade consagradas no DAMA-DMBOK 2.0.
