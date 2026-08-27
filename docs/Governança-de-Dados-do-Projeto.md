@@ -546,25 +546,37 @@ classificação das Seções 4 e 5.
 
 ## 3.2 Estratégia e fontes de verdade
 
-Cada tipo de metadado possui um artefato canônico. Referências cruzadas usam um
-`asset_id` estável, legível e independente do nome de exibição, no formato
-`<camada>.<tipo>.<nome>`, por exemplo `source.file.pesquisas`,
-`dw.fact.fato_ciclo_pesquisa` e `metric.ciclo.dias_uteis_validacao`. Renomear o
-ativo não permite reutilizar seu identificador para outro significado.
+Cada tipo de metadado possui um artefato canônico. Como evolução proposta,
+referências cruzadas deverão usar um `asset_id` estável, legível e independente
+do nome de exibição, no formato `<camada>.<tipo>.<nome>`, por exemplo
+`source.file.pesquisas`, `dw.fact.fato_ciclo_pesquisa` e
+`metric.ciclo.dias_uteis_validacao`. Esses identificadores ainda não foram
+incorporados ao DMC e ao manifesto; sua implantação começa quando o inventário
+da Seção 3 for materializado. Depois disso, renomear o ativo não permitirá
+reutilizar seu identificador para outro significado.
 
 | Metadado | Fonte canônica nesta Sprint | Regra de precedência e reconciliação |
 | :--- | :--- | :--- |
-| Termo de negócio, definição, grão, fatos, dimensões e medidas | Seção 3 e DMC aprovado | Divergência bloqueia a publicação; o Steward abre uma mudança e mantém o ativo como `em revisão` até haver uma versão aprovada. |
+| Termo de negócio, definição, grão, fatos, dimensões e medidas | Seção 3 e DMC versionado como baseline, com homologação pendente | Divergência bloqueia a publicação; o Steward abre uma mudança e mantém o ativo como `em revisão` até haver uma versão homologada. |
 | Contrato da fonte, formato, chave, domínio, sentinela e nulabilidade | Manifesto de qualidade, perfil observado e dicionário recebido | A estrutura observada sustenta o diagnóstico; mudança proposta só vira contrato após teste e revisão. Não se altera a definição de negócio para esconder erro da fonte. |
 | Responsável e alçada | Seção 1 | Nomes permanecem baseline documental até homologação; o catálogo referencia o papel mesmo quando a pessoa ainda está pendente. |
 | Regra e resultado de qualidade | Seção 2 e relatórios versionados | Regra deve indicar fórmula, limiar e aplicabilidade; medição não sobrescreve a regra que a produziu. |
 | Classificação, marcador LGPD e perfil de acesso | Seções 4 e 5 | Em conflito ou ausência, vale a proteção mais restritiva até decisão registrada. |
 | Linhagem dimensional e execução da carga | DMC, `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA` propostas | Linhagem operacional só será confirmada quando o pipeline registrar origem, versão e execução; até lá permanece documental. |
 
-O Git guarda a revisão aprovada; não é usado como repositório de dados brutos,
+O Git guarda cada revisão aceita pelo grupo e distingue essa revisão da
+homologação pelo parceiro; não é usado como repositório de dados brutos,
 respostas, contatos, credenciais ou amostras pessoais. O catálogo registra
 schema, regra e evidência agregada suficiente para auditoria, nunca valores
 individuais apenas para ilustrar um campo.
+
+O catálogo mantém dois eixos de estado para não confundir evidência com
+vigência. O `estado_evidencia` usa `observado` para estrutura medida nos dados,
+`documentado` para afirmação sustentada por artefato, `proposto` para decisão do
+grupo e `pendente_confirmacao` para informação ainda não comprovada. O
+`estado_ciclo` usa `rascunho`, `em_revisao`, `vigente`, `depreciado` e
+`indisponivel`. Um item só se torna `vigente` após aprovação registrada; estar
+`documentado` não significa que já esteja homologado ou implantado.
 
 ## 3.3 Busca, reutilização, descoberta e rastreabilidade
 
@@ -582,16 +594,19 @@ fonte e campo de origem
     → indicador, pergunta de negócio e requisito
 ```
 
-- **Busca e descoberta:** o índice do catálogo apresenta filtros pelos campos
-  acima e diferencia `observado`, `proposto`, `em revisão`, `homologado`,
-  `depreciado` e `indisponível`.
+- **Busca e descoberta:** o índice planejado do catálogo deverá apresentar
+  filtros pelos campos acima e pelos dois eixos de estado. Nesta Sprint, a
+  busca é manual nos arquivos versionados e não há interface de filtros
+  implantada.
 - **Reutilização:** um novo painel ou cubo referencia o `asset_id` existente. Se
   precisar mudar fórmula, grão, aditividade, finalidade ou classificação, abre
   nova versão em vez de criar um homônimo incompatível.
-- **Rastreabilidade:** todo ativo aponta para fonte, coluna, transformação,
-  regra de qualidade, execução de carga quando disponível e consumidores. Um
-  campo sem origem ou uma medida sem fórmula não pode ser promovido para uso
-  analítico.
+- **Rastreabilidade:** o inventário planejado deverá fazer cada ativo apontar
+  para fonte, coluna, transformação, regra de qualidade, execução de carga
+  quando disponível e consumidores. Enquanto `asset_id` e linhagem operacional
+  não estiverem implantados, os links documentais cumprem apenas a
+  rastreabilidade de projeto. Um campo sem origem ou uma medida sem fórmula não
+  pode ser promovido para uso analítico.
 - **Responsabilidade:** o Data Steward mantém semântica e relações; o Data
   Custodian/TI mantém schema técnico e execução; o Data Owner aprova uso de
   negócio e exceções. Papéis LGPD atuam conforme a designação da Seção 1.
