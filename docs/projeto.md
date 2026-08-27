@@ -2600,6 +2600,21 @@ acervo) e, quando possível, quantificada com o snapshot recebido.
 | Liberação do acervo | "Aprovei tecnicamente, logo está publicado." | Publicação exige autorização, versão e perfil — não modelados (§6.7.14). | Expectativa de publicação automática sem controle. |
 
 
+### 6.7.12 Divergências de expectativa quanto ao status da pesquisa
+
+Detalhamento de uma classe específica da §6.7.11: os momentos em que o **usuário
+acredita que a pesquisa está concluída, mas o modelo ainda exige validações
+pendentes**. É onde o status percebido descola do status real e gera cobrança ou
+publicação indevida.
+
+| Status percebido pelo usuário | Status real no modelo | Validação pendente que falta | Efeito no trabalho |
+| :--- | :--- | :--- | :--- |
+| "Coleta encerrada = concluída" | `Coleta encerrada` (≠ `Publicada`) | Validação de qualidade + tabulação + revisão | Retrabalho e cobrança indevida de resultado. |
+| "Questionário aprovado = pronto para publicar" | `Questionário validado` | Coleta, análise e autorização de publicação | Pressão para publicar antes da coleta. |
+| "Tabulado = disponível no acervo" | `Tabulada` | Revisão de entrega + autorização + versionamento | Resultado exposto sem autorização registrada. |
+| "Prorroguei, então o prazo não conta" | `Em coleta` com `prorrogada_ate` | Registro de motivo e recálculo de dias úteis | Indicador de tempo distorcido sem a causa da prorrogação. |
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
