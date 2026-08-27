@@ -94,7 +94,7 @@ Data Owner aprova finalidade, acesso, exceção ou publicação
     ↓
 Data Custodian / TI implementa o controle e registra a execução
     ↓
-Data Steward verifica o resultado e mantém a evidência rastreável
+Data Steward ou Data Owner verifica o resultado conforme a regra aplicável
 ```
 
 O Data Custodian pode bloquear tecnicamente uma operação insegura ou fora da
@@ -102,7 +102,9 @@ política, mas não pode autorizar uma nova finalidade. O Data Steward pode
 reprovar um dado que não atende à regra registrada, mas uma exceção com impacto
 de negócio ou publicação retorna ao Data Owner. A separação preserva a
 segregação de funções adotada nas políticas de qualidade, classificação e
-acesso das Seções 2, 4 e 5.
+acesso das Seções 2, 4 e 5. No encerramento de uma ação corretiva, o validador
+segue a severidade definida na Seção 2.5; casos críticos e baixos cabem ao Data
+Owner, enquanto os demais seguem a matriz específica daquele fluxo.
 
 ## 1.4 Homologações pendentes
 
