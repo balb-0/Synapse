@@ -80,6 +80,43 @@ e das instruções aprovadas. A empresa executa a custódia contratada, mas não
 decide por conta própria a finalidade do tratamento, a regra de qualidade ou a
 publicação de resultados.
 
+## 1.3 Encadeamento das decisões
+
+Os papéis se complementam sem concentrar decisão de negócio e execução técnica
+na mesma função. O fluxo proposto é:
+
+```text
+Central de Pesquisas ou área técnica identifica a necessidade
+    ↓
+Data Steward define significado, regra de qualidade e impacto nos dados
+    ↓
+Data Owner aprova finalidade, acesso, exceção ou publicação
+    ↓
+Data Custodian / TI implementa o controle e registra a execução
+    ↓
+Data Steward verifica o resultado e mantém a evidência rastreável
+```
+
+O Data Custodian pode bloquear tecnicamente uma operação insegura ou fora da
+política, mas não pode autorizar uma nova finalidade. O Data Steward pode
+reprovar um dado que não atende à regra registrada, mas uma exceção com impacto
+de negócio ou publicação retorna ao Data Owner. A separação preserva a
+segregação de funções adotada nas políticas de qualidade, classificação e
+acesso das Seções 2, 4 e 5.
+
+## 1.4 Homologações pendentes
+
+| Decisão a confirmar | Evidência atual | Condição para tratar como vigente |
+| :--- | :--- | :--- |
+| Designação nominal de Owner, Stewards e Custodian | Nomes registrados na Arquitetura de Negócio e no baseline do DMC | Aprovação formal do Sindusfarma com escopo, autoridade, substitutos e data de vigência. |
+| Controlador, operador, suboperadores e encarregado | Não definidos pelos papéis organizacionais | Inventário de cada tratamento e validação jurídica ou organizacional pelo parceiro. |
+| Participação da RentalHost | Custódia externa indicada no baseline | Contrato e inventário que identifiquem dados, ambiente, instruções, acesso, retenção, auditoria e descarte. |
+| Concessão de acesso excepcional aos dados protegidos | Matrizes propostas nas Seções 4 e 5 | Procedimento aprovado com solicitante, aprovador, finalidade, prazo, log e revisão posterior. |
+
+Até essas confirmações, a estrutura desta seção é o desenho de governança do
+projeto. Ela não comprova a implantação dos papéis ou dos controles no ambiente
+produtivo do Sindusfarma.
+
 # 2. Política de Qualidade de Dados
 
 A Política de Qualidade de Dados define quais atributos de qualidade são monitorados no acervo de pesquisas e no banco de dados relacional, como cada um é medido, quais metas e indicadores (KPIs) acompanham a saúde do dado, e como a equipe reage quando a qualidade sai do aceitável. As definições partem do diagnóstico realizado na Sprint 1 sobre as bases disponibilizadas (completude e duplicidade medidas por base e variável) e seguem as dimensões de qualidade consagradas no DAMA-DMBOK 2.0.
