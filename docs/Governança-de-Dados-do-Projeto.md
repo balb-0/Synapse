@@ -357,6 +357,56 @@ cargo, departamento, período, questão e resposta recebem a maior classe
 aplicável ao conjunto. A matriz descreve a classificação padrão; o catálogo
 deve registrar as exceções por campo, finalidade e ambiente.
 
+## 4.4 Controles por classe
+
+| Classe | Controles mínimos antes do uso | Aprovação e evidência |
+| :--- | :--- | :--- |
+| **Público** | Inventário da versão publicada, teste de reidentificação, remoção de metadados internos e validação dos filtros disponíveis. | Decisão de publicação, Data Owner, responsável pela revisão, data, versão, origem e regra de proteção aplicada. |
+| **Interno** | Autenticação individual, autorização por perfil, registro de alteração e exportação, ambiente separado do público e revisão periódica da necessidade. | Perfil aprovado e trilha que associe usuário, finalidade, recurso e ação. |
+| **Confidencial** | Menor privilégio, mascaramento em tela, exportação restrita, criptografia, retenção definida e compartilhamento mínimo. | Justificativa de acesso, aprovação do responsável, destinatário, prazo e revisão de exceções. |
+| **Sensível** | Separação entre identidade e conteúdo, pseudonimização quando o vínculo ainda for necessário, bloqueio de download por padrão, acesso excepcional e monitorado e anonimização ou agregação antes de qualquer divulgação. | Hipótese legal e finalidade registradas, risco avaliado, aprovação expressa, teste da proteção e trilha de todos os acessos administrativos. |
+
+A classe mais alta de qualquer elemento prevalece durante transporte,
+armazenamento, processamento, exportação e backup. Uma cópia não perde a classe
+da origem. Logs, caches, arquivos temporários e amostras de teste seguem a mesma
+regra do dado que reproduzem.
+
+## 4.5 Técnicas de proteção e limites
+
+| Técnica | Aplicação no projeto | Limite que precisa ser observado |
+| :--- | :--- | :--- |
+| **Minimização** | Coletar, integrar e disponibilizar somente campos necessários à finalidade documentada. | Conveniência futura não é finalidade; novo uso exige nova avaliação. |
+| **Mascaramento** | Ocultar e-mail, identificadores e trechos de valores em telas, suporte e evidências. | Protege a visualização, mas não transforma o dado de origem em anônimo. |
+| **Pseudonimização** | Substituir chaves de pessoa/empresa e guardar a informação de associação separadamente. | Como a associação pode ser refeita, o resultado continua sendo dado pessoal. |
+| **Anonimização** | Remover ou generalizar identificadores e combinações quando a identificação deixar de ser razoavelmente possível no contexto. | Hash simples, retirada do nome ou exclusão de uma coluna não comprovam anonimização. |
+| **Agregação** | Publicar contagens, taxas e estatísticas por pesquisa, período ou grupo autorizado. | Filtros, drill-downs e dedução por diferença podem reidentificar células pequenas. |
+| **Supressão** | Ocultar célula, corte ou resultado com frequência insuficiente ou conteúdo de alto risco. | O limiar inicial `k < 5` é proposta da equipe, não controle confirmado; deve ser testado e aprovado para cada publicação. |
+
+Antes de liberar um resultado, o Data Steward propõe a classificação e testa a
+proteção; a Central confirma o sentido do resultado; o Data Owner decide a
+publicação; e o Data Custodian executa a disponibilização aprovada. Esses papéis
+são organizacionais. Controlador, operador e encarregado são papéis jurídicos
+que ainda precisam ser definidos pelo Sindusfarma para cada fluxo.
+
+## 4.6 Controles organizacionais e LGPD
+
+O projeto adota privacidade desde a concepção, necessidade, finalidade,
+transparência, prevenção, segurança e prestação de contas como critérios de
+revisão. Para cada tratamento com dado pessoal, o inventário deve registrar:
+
+0. finalidade específica e resultado esperado;
+0. categorias de titulares, dados e destinatários;
+0. origem, sistemas envolvidos e localização de armazenamento;
+0. hipótese legal proposta e decisão do controlador;
+0. responsável de negócio, custódia, operadores e suboperadores;
+0. retenção, descarte, compartilhamento e eventual transferência internacional;
+0. controles aplicados, risco residual e condição de revisão.
+
+O Data Owner, os Data Stewards e o Data Custodian não substituem a definição
+formal de controlador, operador ou encarregado. Também não se presume que a
+RentalHost ou outro fornecedor ocupe determinado papel jurídico sem contrato,
+instrução documentada e análise do tratamento efetivamente realizado.
+
 # 5. Segurança e Acesso
 
 _conteúdo_
