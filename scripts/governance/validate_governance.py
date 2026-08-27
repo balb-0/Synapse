@@ -1019,18 +1019,30 @@ def validate_role_consistency(
         role_rows, label="papéis de governança", width=4
     )
 
-    _require_terms(
-        tapi,
-        (
-            "Fabio Moreira",
+    tapi_assignments = {
+        "líder do projeto": (
+            r"^[ \t]*(?:●[ \t]*)?LÍDER DO PROJETO:[ \t]*Felipe Fernandes Rojas\b",
             "Felipe Fernandes Rojas",
-            "Reinaldo Nobrega",
-            "Lucas Andrade",
-            "Trello",
-            "Outlook",
         ),
-        label="evidências obrigatórias do TAPI",
-    )
+        "ponto focal backup": (
+            r"^[ \t]*(?:●[ \t]*)?PONTO FOCAL BACKUP:[ \t]*Reinaldo Nobrega\b",
+            "Reinaldo Nobrega",
+        ),
+        "analista de dados": (
+            r"^[ \t]*Lucas Andrade[ \t]*[–-][ \t]*Analista de Dados Jr\.",
+            "Lucas Andrade",
+        ),
+        "líder executivo": (
+            r"^[ \t]*(?:●[ \t]*)?LÍDER EXECUTIVO(?: \[Onboarding Executivo\])?:[ \t]*Fabio Moreira\b",
+            "Fabio Moreira",
+        ),
+    }
+    for label, (pattern, expected_name) in tapi_assignments.items():
+        if not re.search(pattern, tapi, re.MULTILINE):
+            raise GovernanceValidationError(
+                f"atribuição obrigatória ausente no TAPI: {label} — {expected_name}"
+            )
+    _require_terms(tapi, ("Trello", "Outlook"), label="ferramentas do TAPI")
 
     governance = dmc.get("governancaCorporativa")
     if not isinstance(governance, dict):
@@ -1038,9 +1050,14 @@ def validate_role_consistency(
             "governancaCorporativa ausente ou inválida no DMC"
         )
     dmc_requirements = {
-        "owner": ("Fabio Moreira",),
-        "steward": ("Felipe Rojas", "Reinaldo Nobrega", "Lucas Andrade"),
-        "custodian": ("Rodrigo Giorgetto", "RentalHost"),
+        "owner": "Fabio Moreira.",
+        "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
+        "custodian": (
+            "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados "
+            "na rede interna ou na nuvem do Sindusfarma + empresa RentalHost "
+            "(fornecedora do sistema interno) para custódia dos dados hospedados "
+            "no repositório público."
+        ),
     }
     for field, expected in dmc_requirements.items():
         value = governance.get(field)
@@ -1048,32 +1065,32 @@ def validate_role_consistency(
             raise GovernanceValidationError(
                 f"campo obrigatório de governança ausente no DMC: {field}"
             )
-        _require_terms(value, expected, label=f"papel {field} no DMC")
+        if value.strip() != expected:
+            raise GovernanceValidationError(
+                f"atribuição canônica divergente para {field} no DMC; esperado {expected}"
+            )
 
-    _require_terms(
-        architecture,
-        (
-            "Fabio Moreira",
-            "Felipe Rojas",
-            "Reinaldo Nobrega",
-            "Lucas Andrade",
-            "Rodrigo Giorgetto",
-            "RentalHost",
-        ),
-        label="evidências obrigatórias da Arquitetura de Negócio",
+    architecture_pattern = (
+        r"Data Model Canvas identifica Fabio Moreira como Data Owner;\s*"
+        r"Felipe Rojas, Reinaldo Nobrega e Lucas Andrade como Data Stewards"
+        r"[\s\S]{0,120}Rodrigo Giorgetto/TI como Data Custodian"
+        r"[\s\S]{0,120}RentalHost na custódia externa"
     )
+    if not re.search(architecture_pattern, architecture):
+        raise GovernanceValidationError(
+            "atribuições canônicas ausentes na Arquitetura de Negócio"
+        )
 
     document_roles = {
-        "Data Owner": ("Fabio Moreira",),
-        "Data Steward": ("Felipe Rojas", "Reinaldo Nobrega", "Lucas Andrade"),
-        "Data Custodian / TI": ("Rodrigo Giorgetto", "TI"),
+        "Data Owner": "Fabio Moreira",
+        "Data Steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade",
+        "Data Custodian / TI": "Rodrigo Giorgetto / TI",
     }
     for role, expected in document_roles.items():
-        _require_terms(
-            role_by_name[role][1],
-            expected,
-            label=f"referência documental de {role}",
-        )
+        if role_by_name[role][1] != expected:
+            raise GovernanceValidationError(
+                f"referência documental canônica divergente para {role}; esperado {expected}"
+            )
     role_table_text = "\n".join(" | ".join(row) for row in role_rows)
     for tool in ("Trello", "Outlook", "RentalHost"):
         if tool in role_table_text:
@@ -1136,11 +1153,53 @@ def validate_role_consistency(
         raise GovernanceValidationError(
             "RentalHost não pode receber autoridade de negócio"
         )
+    if re.search(
+        r"\b(?:decidir|decide|aprovar|aprova|definir)\b[\s\S]{0,80}"
+        r"(?:finalidade|classificação|publicação)",
+        rentalhost_actor[2],
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "RentalHost não pode receber autoridade de negócio"
+        )
     if not all(tool in tools_actor[0] for tool in ("Trello", "Outlook")) or not re.search(
         r"dependem de inventário e contrato", tools_actor[3]
     ):
         raise GovernanceValidationError(
             "Trello e Outlook devem permanecer ferramentas com escopo pendente"
+        )
+    if re.search(
+        r"Data Owner|Data Steward|Data Custodian|\b(?:aprovar|aprova|decidir|decide)\b",
+        tools_actor[2],
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "Trello e Outlook não podem receber papel ou autoridade de governança"
+        )
+
+    legal_actor = actor_by_name.get(
+        "Controlador, operadores, suboperadores e encarregado"
+    )
+    if legal_actor is None or re.search(
+        r"\bEquivalem?\s+(?:ao|aos)\s+(?:Data )?(?:Owner|Steward|Custodian)",
+        " | ".join(legal_actor[1:]),
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "papéis jurídicos não podem ser equiparados aos papéis organizacionais"
+        )
+
+    if re.search(r"já (?:está )?homologad", owner_actor[3], re.IGNORECASE):
+        raise GovernanceValidationError(
+            "autoridade do Data Owner contém homologação contraditória"
+        )
+    if len(re.findall(r"confirmad", steward_actor[3], re.IGNORECASE)) != 1 or re.search(
+        r"não (?:corresponde|é a mesma)|já está confirmada",
+        steward_actor[3],
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "equivalência entre os nomes de Felipe contém estado contraditório"
         )
 
     plain = re.sub(r"[*`]", "", section)
@@ -1247,13 +1306,20 @@ def _resolve_repository_path(path: Path, repository_root: Path) -> Path:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        document = load_document(args.document)
+        document_path = _resolve_repository_path(args.document, args.repository_root)
+        document = load_document(document_path)
         summary = validate_document(document)
         validate_tapi_hash(document, args.tapi)
         tapi = load_document(args.tapi)
-        architecture = load_document(
-            _resolve_repository_path(args.architecture, args.repository_root)
+        architecture_path = _resolve_repository_path(
+            args.architecture, args.repository_root
         )
+        try:
+            architecture = load_document(architecture_path)
+        except GovernanceValidationError as error:
+            raise GovernanceValidationError(
+                f"não foi possível ler a Arquitetura de Negócio: {architecture_path}"
+            ) from error
         dmc_path = _resolve_repository_path(args.dmc, args.repository_root)
         try:
             dmc = json.loads(dmc_path.read_text(encoding="utf-8"))
