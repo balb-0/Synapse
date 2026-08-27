@@ -350,7 +350,7 @@ A seção está organizada da definição à operação: primeiro **o que** se m
 Atributo de qualidade é a dimensão sob a qual a confiabilidade de um dado é avaliada. O projeto adota cinco atributos, selecionados a partir das dimensões do DAMA-DMBOK 2.0 e priorizados pelo que o diagnóstico da Sprint 1 mostrou ser crítico para o acervo de pesquisas: cada um responde por um tipo distinto de risco sobre os indicadores que a solução vai calcular (adesão, tempos de ciclo, representatividade). Um mesmo registro pode estar completo mas impreciso, ou único mas desatualizado — por isso os atributos são monitorados de forma independente.
 
 <div align="center">
-<sub>Tabela X - Atributos de qualidade monitorados no projeto</sub><br>
+<sub>Tabela 1 — Atributos de qualidade monitorados no projeto</sub><br>
 
 | Atributo | Definição | Relevância para o acervo de pesquisas | Bases/variáveis mais sensíveis |
 | :--- | :--- | :--- | :--- |
@@ -371,7 +371,7 @@ Atributo de qualidade é a dimensão sob a qual a confiabilidade de um dado é a
 Cada atributo definido em 2.1 é traduzido em uma métrica calculável sobre as bases de pesquisas, clientes, empresas, respondentes, questões e respostas. Uma métrica só é útil se tiver **fórmula, unidade e granularidade** explícitas — por isso cada uma é especificada com o denominador de referência (o universo esperado) e o nível em que é apurada (por campo, por base ou por relacionamento entre bases).
 
 <div align="center">
-<sub>Tabela X - Métricas de mensuração da qualidade por atributo</sub><br>
+<sub>Tabela 2 — Métricas de mensuração da qualidade por atributo</sub><br>
 
 | Atributo | Métrica | Fórmula | Unidade | Granularidade |
 | :--- | :--- | :--- | :--- | :--- |
@@ -396,7 +396,7 @@ Cada atributo definido em 2.1 é traduzido em uma métrica calculável sobre as 
 Uma métrica sem meta não governa nada: é preciso dizer **a partir de qual valor o dado é aceitável** e **em que ponto a equipe é acionada ou a ingestão é barrada**. Esta seção fixa, para cada métrica da 2.2, três referências — a meta mínima (nível desejado), o limiar de alerta (dispara a ação corretiva da seção 2.5) e o limiar de bloqueio (barra a gravação na ingestão, seção 2.6). As metas são **provisórias**: foram calibradas pela linha de base medida na Sprint 1 e serão renegociadas com o parceiro à medida que o histórico de qualidade amadurecer.
 
 <div align="center">
-<sub>Tabela X - Metas mínimas e limiares de tolerância por métrica</sub><br>
+<sub>Tabela 3 — Metas mínimas e limiares de tolerância por métrica</sub><br>
 
 | Métrica | Meta mínima | Limiar de alerta | Limiar de bloqueio | Justificativa da calibragem |
 | :--- | :--- | :--- | :--- | :--- |
@@ -419,7 +419,7 @@ Uma métrica sem meta não governa nada: é preciso dizer **a partir de qual val
 Os KPIs consolidam as métricas (2.2) e suas metas (2.3) em indicadores acompanhados nos dashboards analíticos. Separam-se em **operacionais** — acompanhados a cada carga pela equipe de dados, orientados à ação imediata — e **estratégicos** — agregados por período, voltados à leitura de tendência pela gestão. Cada KPI declara fórmula, meta de referência, forma de apresentação e o público que o consome.
 
 <div align="center">
-<sub>Tabela X - KPIs de qualidade de dados</sub><br>
+<sub>Tabela 4 — KPIs de qualidade de dados</sub><br>
 
 | KPI | Tipo | Fórmula | Meta (ref. 2.3) | Apresentação no dashboard |
 | :--- | :--- | :--- | :--- | :--- |
@@ -454,7 +454,7 @@ Quando um KPI (2.4) cruza um limiar da seção 2.3, dispara-se um **procedimento
 7. **Escalonamento** — se o desvio persistir após a correção, **ou** se o prazo máximo da severidade estourar sem resolução, o caso sobe ao Data Owner para decisão (aceitar exceção documentada ou acionar a fonte). Um caso crítico cuja correção **depende do parceiro** (ex.: reconciliação de chave órfã) não permanece bloqueando a ingestão: os registros afetados vão para **quarentena** (retidos e isolados, sem entrar no banco central) e a decisão é escalada, evitando que uma dependência externa trave o pipeline por tempo indeterminado.
 
 <div align="center">
-<sub>Tabela X - Fluxo de ações corretivas por severidade</sub><br>
+<sub>Tabela 5 — Fluxo de ações corretivas por severidade</sub><br>
 
 | Severidade | Gatilho (limiar da 2.3) | Ação | Prazo | Responsável (ver Seção 1) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -472,7 +472,7 @@ Quando um KPI (2.4) cruza um limiar da seção 2.3, dispara-se um **procedimento
 **Matriz de responsáveis pelo disparo e execução.** Para que o fluxo não fique sem dono, cada severidade tem responsáveis explícitos em três momentos — **disparo** (quem detecta e classifica), **execução** (quem corrige e reingere) e **validação do encerramento** (quem confirma que o KPI voltou à meta) — com um prazo máximo de resposta. As funções remetem aos papéis da Seção 1 (Estrutura Organizacional).
 
 <div align="center">
-<sub>Tabela X - Responsáveis pelo disparo e execução das ações corretivas</sub><br>
+<sub>Tabela 6 — Responsáveis pelo disparo e execução das ações corretivas</sub><br>
 
 | Severidade | Disparo (detecção/classificação) | Execução (correção/re-ingestão) | Validação do encerramento | Prazo máximo |
 | :--- | :--- | :--- | :--- | :--- |
@@ -495,7 +495,7 @@ As regras de validação são a primeira linha de defesa da qualidade: rodam nos
 - **Validação semântica** — verifica *significado*: domínio válido, integridade referencial entre fontes e regras de negócio. Só roda sobre registros que passaram na sintática, pois depende de valores já bem formados.
 
 <div align="center">
-<sub>Tabela X - Regras de validação aplicadas na ingestão</sub><br>
+<sub>Tabela 7 — Regras de validação aplicadas na ingestão</sub><br>
 
 | Regra | Tipo | Aplicação | Ação em caso de falha |
 | :--- | :--- | :--- | :--- |
@@ -520,7 +520,7 @@ As regras de validação são a primeira linha de defesa da qualidade: rodam nos
 Qualidade não é um estado que se atinge uma vez: é uma condição que se mantém por vigilância. Esta seção define **com que frequência** as checagens rodam, **o que é registrado** para auditoria posterior e **como a equipe é avisada** antes que um desvio vire um problema de negócio. Distinguem-se dois regimes complementares: o **monitoramento contínuo** (automático, orientado a alerta imediato) e a **auditoria periódica** (programada, orientada a evidência e conformidade).
 
 <div align="center">
-<sub>Tabela X - Checagens de qualidade por periodicidade</sub><br>
+<sub>Tabela 8 — Checagens de qualidade por periodicidade</sub><br>
 
 | Checagem | Periodicidade | Escopo | Saída | Destinatário |
 | :--- | :--- | :--- | :--- | :--- |
@@ -546,7 +546,7 @@ O diagnóstico da Sprint 1 mediu **0% de duplicidade** nas seis bases isoladas �
 **Identificação (matching).** A detecção de duplicatas usa a chave natural de cada base; quando a chave não é confiável, aplica-se correspondência aproximada (*fuzzy*) sobre atributos identificadores, sempre com revisão antes da mesclagem definitiva.
 
 <div align="center">
-<sub>Tabela X - Política de deduplicação por base</sub><br>
+<sub>Tabela 9 — Política de deduplicação por base</sub><br>
 
 | Base | Chave de deduplicação | Critério de match | Regra de mesclagem (survivorship) |
 | :--- | :--- | :--- | :--- |
