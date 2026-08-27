@@ -1042,6 +1042,21 @@ def validate_role_consistency(
             raise GovernanceValidationError(
                 f"atribuição obrigatória ausente no TAPI: {label} — {expected_name}"
             )
+    tapi_labeled_roles = {
+        "líder do projeto": r"LÍDER DO PROJETO",
+        "ponto focal backup": r"PONTO FOCAL BACKUP",
+        "líder executivo": r"LÍDER EXECUTIVO(?: \[Onboarding Executivo\])?",
+    }
+    for label, role_pattern in tapi_labeled_roles.items():
+        assignments = re.findall(
+            rf"^[ \t]*(?:●[ \t]*)?{role_pattern}[ \t]*:",
+            tapi,
+            re.MULTILINE | re.IGNORECASE,
+        )
+        if len(assignments) != 1:
+            raise GovernanceValidationError(
+                f"o TAPI deve conter exatamente uma atribuição para {label}"
+            )
     _require_terms(tapi, ("Trello", "Outlook"), label="ferramentas do TAPI")
 
     governance = dmc.get("governancaCorporativa")
@@ -1080,6 +1095,22 @@ def validate_role_consistency(
         raise GovernanceValidationError(
             "atribuições canônicas ausentes na Arquitetura de Negócio"
         )
+    architecture_role_pairs = (
+        (r"Fabio Moreira", r"Data Owner"),
+        (r"(?:Felipe Rojas|Reinaldo Nobrega|Lucas Andrade)", r"Data Stewards?"),
+        (r"Rodrigo Giorgetto(?:/TI)?", r"Data Custodian"),
+    )
+    for actor_pattern, role_pattern in architecture_role_pairs:
+        if re.search(
+            rf"\b(?:{actor_pattern})\b[^.\n]{{0,80}}"
+            rf"\bnão\s+(?:é|atua(?:\s+como)?|exerce|possui)\b"
+            rf"[^.\n]{{0,80}}\b(?:{role_pattern})\b",
+            architecture,
+            re.IGNORECASE,
+        ):
+            raise GovernanceValidationError(
+                "a Arquitetura de Negócio contém atribuição de papel contraditória"
+            )
 
     document_roles = {
         "Data Owner": "Fabio Moreira",
@@ -1194,7 +1225,8 @@ def validate_role_consistency(
             "autoridade do Data Owner contém homologação contraditória"
         )
     if len(re.findall(r"confirmad", steward_actor[3], re.IGNORECASE)) != 1 or re.search(
-        r"não (?:corresponde|é a mesma)|já está confirmada",
+        r"não (?:corresponde|é a mesma)|já está confirmada|"
+        r"\bpessoas?\s+(?:diferentes?|distintas?)\b|\bhomologad\w*\b",
         steward_actor[3],
         re.IGNORECASE,
     ):
