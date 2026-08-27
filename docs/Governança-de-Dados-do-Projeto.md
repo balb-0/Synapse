@@ -44,6 +44,9 @@
   - [2.7 Auditoria e monitoramento contínuo](#27-auditoria-e-monitoramento-contínuo)
   - [2.8 Tratamento de inconformidades e registros duplicados](#28-tratamento-de-inconformidades-e-registros-duplicados)
 - [3. Gestão de Metadados e Catálogo](#3-gestão-de-metadados-e-catálogo)
+  - [3.1 Estado e objetivo do catálogo](#31-estado-e-objetivo-do-catálogo)
+  - [3.2 Estratégia e fontes de verdade](#32-estratégia-e-fontes-de-verdade)
+  - [3.3 Busca, reutilização, descoberta e rastreabilidade](#33-busca-reutilização-descoberta-e-rastreabilidade)
 - [4. Classificação e Proteção de Dados](#4-classificação-e-proteção-de-dados)
 - [5. Segurança e Acesso](#5-segurança-e-acesso)
 - [6. Ciclo de Vida dos Dados](#6-ciclo-de-vida-dos-dados)
@@ -515,9 +518,109 @@ Esses tratamentos alimentam a regra de não duplicidade e de integridade referen
 
 # 3. Gestão de Metadados e Catálogo
 
-_conteúdo_
+O catálogo conecta os termos usados pelo negócio às fontes, estruturas do DW,
+medidas, regras de qualidade, classificação e responsáveis. Seu objetivo é
+permitir que uma pessoa encontre um ativo, entenda se ele serve à decisão,
+verifique sua origem e reutilize a mesma definição sem reconstruí-la por conta
+própria. Metadados herdam a proteção do dado descrito; registrar uma coluna no
+catálogo não a torna pública.
 
-**Nota:** Estratégia e ferramentas de catalogação, metadados obrigatórios para tabelas de fato, dimensões e medidas (nome, definição, fonte, periodicidade, sensibilidade, grão), versionamento do catálogo e tabela de exemplo de metadados do DW.
+## 3.1 Estado e objetivo do catálogo
+
+| Componente | Estado em 27/08/2026 | Uso nesta Sprint | Limite |
+| :--- | :--- | :--- | :--- |
+| Dicionário recebido | **Observado, parcial** | Documenta nove campos de `respostas.csv`. | Não cobre todas as fontes nem os objetos do DW. |
+| [`dmc.json`](dmc.json) | **Confirmado documentalmente e versionado no Git** | Registra quatro cubos, grãos, fatos, medidas, dimensões, fontes, qualidade e governança. | É desenho conceitual; não comprova tabelas físicas ou pipeline implantados. |
+| [`manifest.json`](../scripts/data_quality/manifest.json) | **Confirmado documentalmente e versionado no Git** | Registra contratos das fontes, chaves, domínios, relações, formatos, sentinelas e nulos condicionais. | Não é catálogo produtivo nem substitui a semântica de negócio. |
+| Este documento e documentação relacionada | **Confirmado como artefato do projeto** | Mantém definições legíveis, responsabilidades, classificação, acesso e referências de linhagem. | A vigência operacional depende de homologação e implantação. |
+| Git e Merge Requests | **Estratégia transitória adotada pelo grupo** | Preservam autoria, revisão, diff, versão e histórico auditável dos metadados. | Não oferecem, sozinhos, busca federada, coleta automática de schema, classificação automática ou portal de descoberta. |
+| Catálogo dedicado, banco, orquestrador e SLA | **Pendentes de decisão do parceiro** | Possível evolução para coleta e descoberta automatizadas. | Nenhuma ferramenta específica é declarada como escolhida ou operante. |
+
+O catálogo desta Sprint é, portanto, **documental e versionado**, não um serviço
+produtivo. A adoção futura de DataHub, OpenMetadata ou solução equivalente só
+deve ocorrer após prova de conceito e decisão do Sindusfarma. A avaliação deve
+considerar integração com o banco e o orquestrador escolhidos, importação dos
+metadados existentes, busca, glossário, linhagem, controle de acesso, API,
+versionamento, custo, operação, portabilidade e hospedagem compatível com a
+classificação das Seções 4 e 5.
+
+## 3.2 Estratégia e fontes de verdade
+
+Cada tipo de metadado possui um artefato canônico. Como evolução proposta,
+referências cruzadas deverão usar um `asset_id` estável, legível e independente
+do nome de exibição, no formato `<camada>.<tipo>.<nome>`, por exemplo
+`source.file.pesquisas`, `dw.fact.fato_ciclo_pesquisa` e
+`metric.ciclo.dias_uteis_validacao`. Esses identificadores ainda não foram
+incorporados ao DMC e ao manifesto; sua implantação começa quando o inventário
+da Seção 3 for materializado. Depois disso, renomear o ativo não permitirá
+reutilizar seu identificador para outro significado.
+
+| Metadado | Fonte canônica nesta Sprint | Regra de precedência e reconciliação |
+| :--- | :--- | :--- |
+| Termo de negócio, definição, grão, fatos, dimensões e medidas | Seção 3 e DMC versionado como baseline, com homologação pendente | Divergência bloqueia a publicação; o Steward abre uma mudança e mantém o ativo como `em revisão` até haver uma versão homologada. |
+| Contrato da fonte, formato, chave, domínio, sentinela e nulabilidade | Manifesto de qualidade, perfil observado e dicionário recebido | A estrutura observada sustenta o diagnóstico; mudança proposta só vira contrato após teste e revisão. Não se altera a definição de negócio para esconder erro da fonte. |
+| Responsável e alçada | Seção 1 | Nomes permanecem baseline documental até homologação; o catálogo referencia o papel mesmo quando a pessoa ainda está pendente. |
+| Regra e resultado de qualidade | Seção 2 e relatórios versionados | Regra deve indicar fórmula, limiar e aplicabilidade; medição não sobrescreve a regra que a produziu. |
+| Classificação, marcador LGPD e perfil de acesso | Seções 4 e 5 | Em conflito ou ausência, vale a proteção mais restritiva até decisão registrada. |
+| Linhagem dimensional e execução da carga | DMC, `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA` propostas | Linhagem operacional só será confirmada quando o pipeline registrar origem, versão e execução; até lá permanece documental. |
+
+O Git guarda cada revisão aceita pelo grupo e distingue essa revisão da
+homologação pelo parceiro; não é usado como repositório de dados brutos,
+respostas, contatos, credenciais ou amostras pessoais. O catálogo registra
+schema, regra e evidência agregada suficiente para auditoria, nunca valores
+individuais apenas para ilustrar um campo.
+
+O catálogo mantém dois eixos de estado para não confundir evidência com
+vigência. O `estado_evidencia` usa `observado` para estrutura medida nos dados,
+`documentado` para afirmação sustentada por artefato, `proposto` para decisão do
+grupo e `pendente_confirmacao` para informação ainda não comprovada. O
+`estado_ciclo` usa `rascunho`, `em_revisao`, `vigente`, `depreciado` e
+`indisponivel`. Um item só se torna `vigente` após aprovação registrada; estar
+`documentado` não significa que já esteja homologado ou implantado.
+
+## 3.3 Busca, reutilização, descoberta e rastreabilidade
+
+Para que o catálogo seja útil antes de uma ferramenta dedicada, cada ativo deve
+ser localizável pelo `asset_id`, nome técnico, nome de negócio, sinônimos,
+domínio, fonte, Owner, Steward, classe, cubo, pergunta de negócio, requisito e
+indicador relacionado. Os links devem permitir percorrer a cadeia nos dois
+sentidos:
+
+```text
+fonte e campo de origem
+    → transformação e regra de qualidade
+    → fato, dimensão ou medida
+    → cubo e visualização
+    → indicador, pergunta de negócio e requisito
+```
+
+- **Busca e descoberta:** o índice planejado do catálogo deverá apresentar
+  filtros pelos campos acima e pelos dois eixos de estado. Nesta Sprint, a
+  busca é manual nos arquivos versionados e não há interface de filtros
+  implantada.
+- **Reutilização:** um novo painel ou cubo referencia o `asset_id` existente. Se
+  precisar mudar fórmula, grão, aditividade, finalidade ou classificação, abre
+  nova versão em vez de criar um homônimo incompatível.
+- **Rastreabilidade:** o inventário planejado deverá fazer cada ativo apontar
+  para fonte, coluna, transformação, regra de qualidade, execução de carga
+  quando disponível e consumidores. Enquanto `asset_id` e linhagem operacional
+  não estiverem implantados, os links documentais cumprem apenas a
+  rastreabilidade de projeto. Um campo sem origem ou uma medida sem fórmula não
+  pode ser promovido para uso analítico.
+- **Responsabilidade:** o Data Steward mantém semântica e relações; o Data
+  Custodian/TI mantém schema técnico e execução; o Data Owner aprova uso de
+  negócio e exceções. Papéis LGPD atuam conforme a designação da Seção 1.
+- **Acesso:** a busca mostra apenas metadados permitidos ao perfil. Enunciados,
+  nomes, contatos, chaves e detalhes de origem recebem a mesma restrição do dado
+  que descrevem.
+
+Até existir portal de catálogo, a descoberta ocorre pelos arquivos versionados
+e pelo sumário da documentação. A coleta automática de schema, a busca
+federada, a linhagem de execução e alertas de impacto são capacidades futuras,
+não resultados já entregues.
+
+As subseções seguintes especificam os campos obrigatórios, o versionamento e um
+exemplo aplicado a uma tabela proposta do DW.
 
 # 4. Classificação e Proteção de Dados
 
