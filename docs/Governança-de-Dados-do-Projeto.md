@@ -1406,9 +1406,104 @@ governança da solução, não uma declaração de conformidade produtiva.
 
 # 6. Ciclo de Vida dos Dados
 
-_conteúdo_
+Esta seção define o desenho de referência para o ciclo de vida dos dados das
+pesquisas, da ingestão ao descarte, e para a linhagem que liga cada resultado
+publicado à sua origem. O TAPI confirma rastreabilidade e auditabilidade ponta a
+ponta como benefício esperado, mas não confirma que prazos de retenção, rotinas
+de expurgo, camadas de arquivamento ou registro de execução já existam. Até a
+homologação, o conteúdo abaixo é requisito e proposta da equipe.
 
-**Nota:** Retenção, arquivamento, descarte e linhagem dos dados ao longo do ciclo de vida das pesquisas.
+Quatro pontos do documento dependem desta seção e permanecem abertos até que ela
+seja homologada: a retenção do histórico de qualidade (Seção 2.7), o
+preenchimento dos metadados `retencao` e `descarte` (Seção 3.4), o contrato de
+retenção do exemplo `FATO_CICLO_PESQUISA` (Seção 3.6) e a integração do catálogo
+com o ciclo de vida (Seção 3.8). Esta seção fornece o critério que cada um deles
+referencia. Onde o prazo depender de decisão do parceiro, o valor registrado
+continua `pendente_confirmacao`, sem prazo substituto.
+
+## 6.1 Fases do ciclo e camadas correspondentes
+
+O ciclo de vida do dado não coincide com o ciclo de vida da pesquisa. A pesquisa
+percorre as dez etapas de solicitação a publicação descritas na documentação
+geral; o dado percorre seis fases que atravessam essas etapas e se apoiam nas
+quatro camadas da Seção 5.5.
+
+| Fase do ciclo do dado | Etapas da pesquisa que a alimentam | Camada | Evidência mínima da transição | Limite |
+| :--- | :--- | :--- | :--- | :--- |
+| **Ingestão** | Solicitação, triagem, divulgação, coleta e registro de respostas | `staging` | Fonte, arquivo ou evento, data, responsável, hash ou identificador da carga, classificação e resultado da validação. | A cópia recebida permanece Sensível até a classificação e nunca alimenta painel diretamente. |
+| **Processamento** | Encerramento da coleta, tabulação e análise | `trusted` e `analytics` | Origem, hash ou versão da entrada, execução, schema, regras aplicadas, contagens, rejeições, responsável e destino. | Lote inválido vai para quarentena; o reprocessamento gera nova execução e não sobrescreve a trilha anterior. |
+| **Armazenamento** | Todas | Todas as camadas | Inventário da cópia, classe herdada da origem, criptografia, controle de acesso e responsável técnico. | Uma cópia não perde a classe da origem; logs, caches, arquivos temporários e amostras seguem a regra do dado que reproduzem. |
+| **Uso** | Análise, entrega, consulta autorizada e publicação | `analytics` e publicação | Finalidade, perfil, decisão de acesso, versão consultada e evento na trilha da Seção 5.9. | Busca por metadado não concede leitura do dado, e navegação por agregado não autoriza consulta individual. |
+| **Arquivamento** | Encerramento da pesquisa e fim do uso corrente | Camada de arquivo proposta na Seção 6.5 | Inventário do lote arquivado, classe e linhagem preservadas, motivo, responsável e data da próxima revisão. | Arquivar não é descartar: o dado arquivado continua sujeito a acesso autorizado, auditoria e direitos do titular. |
+| **Descarte** | Vencimento do critério de retenção, revogação de autorização ou pedido de titular deferido | Todas, inclusive cópias e backups | Registro de expurgo com escopo, critério aplicado, responsável, data, resultado e confirmação nas cópias alcançadas. | A eliminação lógica na base primária não basta enquanto a cópia continuar acessível. |
+
+As fases não formam um percurso de mão única. Correção, reprocessamento e
+atendimento a direitos do titular retornam do uso para o processamento, e a
+restauração de uma cópia retorna do arquivamento para o armazenamento. A Seção
+5.7 permanece a referência do percurso técnico de promoção entre camadas; a
+Seção 6.2 acrescenta as transições de ciclo de vida que a promoção não cobre.
+
+## 6.2 Transições e gates do ciclo
+
+Cada transição exige um gate: uma condição verificável sem a qual o dado não
+avança. O desenho apresenta a sequência proposta e marca o estado de cada
+elemento com a mesma convenção da Seção 1.5.
+
+```mermaid
+flowchart LR
+    FONTE["[DOC] Fontes operacionais<br/>SurveyMonkey, Excel, Trello,<br/>repositório do site e n8n"]:::baseline
+    ING["[PROP] Ingestão<br/>camada staging"]:::proposal
+    QUAR["[PROP] Quarentena<br/>lote ou registro retido<br/>com chave de origem"]:::proposal
+    PROC["[PROP] Processamento<br/>camadas trusted e analytics"]:::proposal
+    ARM["[PROP] Armazenamento<br/>ativo, classificado<br/>e inventariado"]:::proposal
+    USO["[PROP] Uso autorizado<br/>análise, entrega<br/>e publicação"]:::proposal
+    BKP["[PEND] Backup<br/>cópia criptografada,<br/>rotação e restauração"]:::pending
+    ARQ["[PEND] Arquivamento<br/>custo menor, acesso raro,<br/>classe preservada"]:::pending
+    DESC["[PEND] Descarte<br/>expurgo registrado<br/>na base e nas cópias"]:::pending
+
+    FONTE -->|G1 admissão| ING
+    ING -->|G2 tipificação| PROC
+    ING -.->|lote inválido| QUAR
+    QUAR -.->|correção aprovada, nova execução| PROC
+    PROC -->|G3 materialização| ARM
+    ARM -->|G4 liberação de uso| USO
+    USO -.->|correção ou direito do titular| PROC
+    ARM -.->|cópia inventariada| BKP
+    BKP -.->|G5 restauração| ARM
+    ARM -->|G6 arquivamento| ARQ
+    ARQ -->|G7 descarte| DESC
+    ARM -->|G7 descarte| DESC
+    DESC -.->|confirmação do expurgo| BKP
+
+    classDef baseline fill:#E8F1FB,stroke:#2563EB,color:#0F172A,stroke-width:1.5px
+    classDef proposal fill:#ECFDF5,stroke:#059669,color:#064E3B,stroke-width:1.5px
+    classDef pending fill:#FFF7ED,stroke:#EA580C,color:#7C2D12,stroke-width:1.5px,stroke-dasharray:5 3
+```
+
+| Elemento visual | Leitura |
+| :--- | :--- |
+| `[DOC]`, nó azul | Fonte confirmada no TAPI como existente na operação atual. |
+| `[PROP]`, nó verde | Fase desenhada pelo grupo sobre as camadas propostas na Seção 5.5. |
+| `[PEND]`, nó laranja tracejado | Fase dependente de decisão do parceiro sobre plataforma, contrato ou prazo. |
+| Seta contínua | Transição do percurso principal, condicionada ao gate indicado. |
+| Seta tracejada | Retorno, exceção ou operação sobre cópia; não integra o percurso principal. |
+
+| Gate | Condição de passagem | Efeito quando a condição falha |
+| :--- | :--- | :--- |
+| **G1 — Admissão** | Schema, encoding e domínios conferem com o manifesto da fonte, e a carga possui hash ou identificador próprio. | Lote rejeitado ou sinalizado conforme a Seção 2.6; nenhum registro alcança `trusted`. |
+| **G2 — Tipificação** | Tipos, chaves e integridade referencial validados; duplicatas tratadas pela Seção 2.8 e chaves órfãs preservadas como “Não mapeado”. | Registro segue para quarentena com a chave de origem preservada; nada é apagado silenciosamente. |
+| **G3 — Materialização** | Grão, fonte e execução registrados em `sk_fonte` e `sk_carga`, com contagens conciliadas contra a entrada. | Promoção bloqueada e a execução anterior permanece vigente. |
+| **G4 — Liberação de uso** | Finalidade, perfil, decisão de acesso e classificação conferidos conforme as Seções 4 e 5. | Acesso negado e evento registrado na trilha, sem expor o conteúdo protegido na negativa. |
+| **G5 — Restauração** | Bloqueios, revogações e eliminações posteriores ao ponto da cópia reaplicados em ambiente isolado. | Retorno ao serviço bloqueado; nenhuma versão antiga é republicada automaticamente. |
+| **G6 — Arquivamento** | Uso corrente encerrado, classe e linhagem preservadas e data de revisão definida. | O dado permanece em armazenamento ativo; arquivamento sem inventário não é executado. |
+| **G7 — Descarte** | Critério de retenção da Seção 6.3 vencido, ausência de obrigação legal concorrente e autorização registrada. | Expurgo suspenso e o item permanece retido com a justificativa e o novo prazo registrados. |
+
+Os gates G1 a G4 apoiam-se em controles já descritos nas Seções 2, 4 e 5 e
+herdam o estado dessas seções. Os gates G5 a G7 dependem de decisões que ainda
+não foram tomadas — plataforma de nuvem, contratos de custódia e prazos de
+retenção —, e por isso backup, arquivamento e descarte aparecem como pendentes
+no desenho. Nenhum gate deve ser descrito como operante antes das evidências
+listadas na Seção 6.11.
 
 # 7. Avaliação de Maturidade
 
