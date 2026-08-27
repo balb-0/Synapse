@@ -2372,13 +2372,13 @@ O JTBD usado como base é:
 > status, prazos, adesão e resultados, para reduzir o trabalho manual,
 > identificar gargalos e tomar decisões com mais agilidade e confiança.
 
-| Job | Critério de sucesso associado |
-| :--- | :--- |
-| Registrar e iniciar uma pesquisa com identidade rastreável. | A pesquisa foi criada ou localizada sem duplicidade aparente, com origem e status inicial explícitos. |
-| Acompanhar status, prazos e marcos do ciclo. | O usuário vê etapa atual, próximos marcos, prazos, pendências e motivo de atraso/prorrogação quando aplicável. |
-| Monitorar participação e risco de baixa adesão. | A participação é exibida com numerador, denominador quando existir e limitação quando o cálculo de adesão não for possível. |
-| Validar qualidade antes de tabular ou publicar. | Inconsistências, órfãos, duplicidades e ausências críticas aparecem com impacto no indicador e ação esperada. |
-| Entregar e publicar resultado autorizado. | O resultado só avança com autorização, versão, perfil permitido e vínculo com a pesquisa interna. |
+| ID | Job operacional | Critério de sucesso associado | Evidência na documentação |
+| :--- | :--- | :--- | :--- |
+| JOP01 | Registrar e iniciar uma pesquisa com identidade rastreável. | A pesquisa foi criada ou localizada sem duplicidade aparente, com origem e status inicial explícitos. | Fluxo de valor etapas 1 e 2; RF01, RF02 e PB01. |
+| JOP02 | Acompanhar status, prazos e marcos do ciclo. | O usuário vê etapa atual, próximos marcos, prazos, pendências e motivo de atraso/prorrogação quando aplicável. | Fluxo de valor etapas 2 a 6; C01 Portfólio e Ciclo; D01 Operação. |
+| JOP03 | Monitorar participação e risco de baixa adesão. | A participação é exibida com numerador, denominador quando existir e limitação quando o cálculo de adesão não for possível. | Fluxo de valor etapa 6; C02 Participação e Representatividade; RF04 e RF05. |
+| JOP04 | Validar qualidade antes de tabular ou publicar. | Inconsistências, órfãos, duplicidades e ausências críticas aparecem com impacto no indicador e ação esperada. | Fluxo de valor etapa 8; RF06, RF07 e D04 Qualidade e Governança. |
+| JOP05 | Entregar e publicar resultado autorizado. | O resultado só avança com autorização, versão, perfil permitido e vínculo com a pesquisa interna. | Fluxo de valor etapas 9 e 10; RF09, PB09 e política de publicação proposta. |
 
 ### 6.7.2 Pontos de checagem do fluxo
 
