@@ -50,6 +50,8 @@
   - [3.4 Metadados obrigatórios](#34-metadados-obrigatórios)
   - [3.5 Atualização e versionamento](#35-atualização-e-versionamento)
   - [3.6 Exemplo de catálogo: FATO_CICLO_PESQUISA](#36-exemplo-de-catálogo-fato_ciclo_pesquisa)
+  - [3.7 Escopo dos cubos e limitações do catálogo](#37-escopo-dos-cubos-e-limitações-do-catálogo)
+  - [3.8 Integração com qualidade, proteção e acesso](#38-integração-com-qualidade-proteção-e-acesso)
 - [4. Classificação e Proteção de Dados](#4-classificação-e-proteção-de-dados)
 - [5. Segurança e Acesso](#5-segurança-e-acesso)
 - [6. Ciclo de Vida dos Dados](#6-ciclo-de-vida-dos-dados)
@@ -863,6 +865,50 @@ seus tipos físicos, vigência operacional e implementação permanecem pendente
 - O exemplo não contém amostras de respostas, contatos ou valores pessoais; a
   classificação pode subir se o schema físico futuro incorporar texto ou
   ligação identificável.
+
+## 3.7 Escopo dos cubos e limitações do catálogo
+
+| Cubo | Grão e fontes | Medidas principais | Limitação que o catálogo deve exibir |
+| :--- | :--- | :--- | :--- |
+| **C01 — Portfólio e Ciclo** | Uma linha por pesquisa; `pesquisas.csv`. | Durações das etapas e do ciclo, empresas declaradas e flag de prorrogação. | `data_aprov` tem baixa completude observada e documentação conflitante de cobertura; calendários, aditividade e periodicidade ainda exigem validação. |
+| **C02 — Participação e Representatividade** | Uma linha por participação; `respondentes.csv`, com atributos conciliados de pesquisas, clientes e empresas. | Quantidade de participação, sequência de ocorrência, minutos de preenchimento e participação de mercado. | Repetições da mesma pessoa/pesquisa não são automaticamente duplicidade técnica; `seq_ocorrencia` permite recortes. Ponte pessoa–resposta, denominadores e identidade canônica não estão comprovados; tempo de preenchimento tem baixa cobertura. |
+| **C03 — Pipeline Mensal** | Mês × status × área × tipo × perfil; snapshot periódico derivado do C01. | Estoque, entradas, saídas e transições mensais propostas. | Não reconstrói histórico anterior ao início dos snapshots. Timestamp de carga, periodicidade e SLA ainda não existem. |
+| **C04 — Questionários e Cobertura** | Uma pergunta por pesquisa; `questoes.csv`, com ligação a pesquisa quando comprovada. | Quantidade de pergunta e alternativas; características de tipo/matriz. | Cobre 10 de aproximadamente 366 pesquisas e não contém respostas individuais. Não suporta distribuição de respostas antes de futuro `FATO_RESPOSTA`. |
+
+Para ligações de pesquisa, o catálogo registra `metodo_costura` e
+`status_mapeamento`. Valores previstos incluem `direto`, `fallback_por_titulo`,
+`nao_mapeado` e `pendente_validacao`, além da `confianca_extracao` observada.
+Fallback por título preserva a evidência de associação, mas não substitui uma
+chave canônica homologada. IDs órfãos continuam rastreáveis como “Não mapeado”
+até reconciliação.
+
+A ausência de duplicidade de chave ou linha nas fontes não elimina repetições
+de evento no modelo analítico. Em C02, múltiplas participações podem representar
+reenvio, correção ou evento legítimo e só recebem tratamento após regra de
+negócio. Em C04, linha de pergunta não representa resposta, e linha de
+`respostas.csv` não representa automaticamente pessoa única.
+
+## 3.8 Integração com qualidade, proteção e acesso
+
+- **Responsabilidade:** Owner, Steward, Custodian, Central, áreas técnicas e
+  papéis jurídicos seguem as alçadas e pendências da Seção 1.
+- **Qualidade:** fórmula, limiar, aplicabilidade, cobertura, exceção e ação
+  corretiva referenciam a Seção 2. Um conflito documental mantém o ativo
+  `em_revisao`; o catálogo não escolhe o número mais conveniente.
+- **Classificação e LGPD:** metadados recebem classe e marcador da Seção 4. O
+  catálogo não expõe amostras, contatos, enunciados restritos ou chaves de
+  reidentificação para facilitar descoberta.
+- **Acesso:** visibilidade e edição seguem perfis e camadas da Seção 5. Busca
+  por metadado não concede leitura do dado, e toda exportação ou publicação
+  continua sujeita à autorização aplicável.
+- **Ciclo de vida:** retenção, arquivo e descarte apontam para a Seção 6. Como
+  ela ainda depende de consolidação e homologação, o catálogo registra a
+  pendência e não cria prazos substitutos.
+
+Com essas dependências, a Seção 3 constitui o contrato documental do catálogo
+na Sprint 2. Inventário com `asset_id`, coleta automática de schema, portal de
+busca, linhagem de execução e atualização por pipeline permanecem capacidades
+planejadas, não implantadas.
 
 # 4. Classificação e Proteção de Dados
 
