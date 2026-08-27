@@ -137,6 +137,33 @@ controlador ou encarregado só passa a valer após a designação pelo Sindusfar
 | Aprovar e disponibilizar resultados | A | R na classificação, linhagem e proteção | C sobre o sentido do resultado | R na disponibilização | C/A quando houver decisão legal | R somente na publicação sob contrato |
 | Auditar conformidade e atender direitos dos titulares | C | R na evidência, inventário e rastreabilidade | C | R na propagação, nos logs e na retenção técnica | A/R conforme a atribuição legal | C/R conforme o contrato |
 
+## 1.6 Regras de aplicação da matriz
+
+- **Metadados semânticos e técnicos:** o Data Steward mantém significado,
+  domínio, criticidade, regra de qualidade e linhagem. O Data Custodian mantém
+  origem técnica, execução da carga, armazenamento, versão e logs. Mudança que
+  altere uso, finalidade ou indicador retorna ao Data Owner.
+- **Qualidade:** detecção, correção, validação e escalonamento seguem a matriz de
+  severidade da Seção 2.5. A marca `A` desta matriz não transforma o Data Owner
+  em executor das correções rotineiras.
+- **Segurança:** o Data Owner aprova política, perfis e exceções; o Data Steward
+  classifica o dado; o Data Custodian implementa acesso, autenticação, camadas,
+  backup e auditoria. Acesso emergencial exige prazo, justificativa, log e
+  revisão posterior.
+- **Compliance e LGPD:** controlador, operador, suboperador e encarregado
+  continuam pendentes de designação. Até essa definição, nenhum nome desta
+  seção recebe responsabilidade jurídica por inferência.
+- **Custódia externa:** fornecedor executa somente o que contrato e instruções
+  autorizarem. Escopo de acesso, retenção, auditoria, devolução e descarte devem
+  constar do inventário antes da operação.
+- **Proteção do catálogo:** metadados não são públicos por definição. Objetivos,
+  enunciados, contatos, chaves de relacionamento e informações de origem herdam
+  a classificação e a restrição do dado que descrevem.
+
+As atribuições da matriz são responsabilidades propostas pelo grupo. Os nomes
+da Seção 1.2 permanecem como baseline documental, e a vigência operacional
+depende das homologações listadas na Seção 1.4.
+
 # 2. Política de Qualidade de Dados
 
 A Política de Qualidade de Dados define quais atributos de qualidade são monitorados no acervo de pesquisas e no banco de dados relacional, como cada um é medido, quais metas e indicadores (KPIs) acompanham a saúde do dado, e como a equipe reage quando a qualidade sai do aceitável. As definições partem do diagnóstico realizado na Sprint 1 sobre as bases disponibilizadas (completude e duplicidade medidas por base e variável) e seguem as dimensões de qualidade consagradas no DAMA-DMBOK 2.0.
