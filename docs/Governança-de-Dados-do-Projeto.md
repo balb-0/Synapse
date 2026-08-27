@@ -593,6 +593,60 @@ Restauração de backup ocorre em ambiente isolado. Antes de voltar ao serviço,
 deve reaplicar bloqueios, revogações e eliminações registradas após o ponto da
 cópia e nunca republicar automaticamente uma versão antiga.
 
+## 5.8 Práticas de segurança da informação
+
+Os controles desta subseção são o baseline técnico **proposto** para a solução.
+Eles ainda dependem da plataforma escolhida, da política do Sindusfarma e de
+evidência de configuração e teste antes da produção.
+
+| Controle | Baseline proposto | Evidência para homologação |
+| :--- | :--- | :--- |
+| Criptografia em trânsito | TLS 1.2 ou superior em Data App, APIs, banco, integrações, cópias e administração; rejeitar conexão insegura. | Configuração efetiva, teste de protocolo e inventário de certificados. |
+| Criptografia em repouso | Banco, volumes, objetos, filas, logs e backups criptografados com chaves gerenciadas e acesso separado. | Configuração do provedor, responsáveis pela chave, rotação e teste de recuperação. |
+| Segredos | Credencial individual por serviço e ambiente, mínimo escopo, rotação e armazenamento em cofre de segredos. | Nenhuma senha, chave ou token no Git, imagem, planilha, payload ou log; trilha de uso e rotação. |
+| Aplicação | Validação de entrada e saída, consultas parametrizadas, proteção CSRF, cookies seguros, política de conteúdo e codificação de texto não confiável. | Testes negativos e revisão que impeçam transformar questão, resposta ou nome externo em HTML executável. |
+| Auditoria | Eventos estruturados, minimizados, protegidos contra alteração e ligados à versão da política aplicada. | Consulta por incidente e prova de que o log não contém token, senha, e-mail, resposta bruta ou texto livre. |
+| Monitoramento | Alertar falha de autorização, comportamento incomum, exportação sensível, erro de integração, replay, mudança de permissão e publicação. | Regra, destinatário, severidade, teste do alerta e registro do tratamento. |
+| Backup e recuperação | Meta inicial: backup diário criptografado, janela operacional de 30 dias, RPO de 24 horas, RTO de 8 horas e teste mensal de restauração. | Aprovação do Data Owner e Data Custodian, cópia isolada/imutável, resultado do teste e expiração verificada. |
+| Incidentes | Registro único da detecção ao encerramento, com contenção, preservação de evidência, análise de risco, decisão e comunicação aplicável. | Responsáveis, playbook testado, tempos medidos e vínculo com o RIPD quando cabível. |
+
+Os números de backup, RPO e RTO são metas provisórias, não compromissos
+confirmados pelo parceiro. Retenção do dado e rotação da cópia são decisões
+diferentes: uma restauração não pode reintroduzir de forma ativa um registro
+eliminado, bloqueado ou cuja autorização tenha sido revogada.
+
+## 5.9 Contrato da trilha de auditoria
+
+Devem gerar evento: login, MFA, logout e revogação; concessão ou retirada de
+permissão; decisão de permitir ou negar; leitura Sensível; exportação;
+alteração ou eliminação; aprovação, publicação, retirada e correção; acesso
+emergencial; rotação de segredo; rejeição ou replay de integração; backup,
+restauração, incidente e pedido de titular.
+
+Cada evento registra somente:
+
+- `event_id` e timestamp UTC;
+- ator pseudonimizado e snapshot de perfil/escopo;
+- ação, tipo do recurso e identificador não sensível;
+- versão da política, decisão e motivo codificado;
+- correlação, execução ou sessão necessária à investigação;
+- resultado e referência ao registro operacional relacionado.
+
+O log não replica conteúdo de negócio. Senha, token, chave, e-mail, resposta,
+enunciado, texto livre e corpo integral de payload são proibidos.
+
+## 5.10 Segurança das integrações
+
+Cada fonte usa credencial dedicada e escopo mínimo. Eventos recebidos por n8n,
+SurveyMonkey ou outro provedor só produzem efeito depois de TLS, autenticação ou
+assinatura, validação de timestamp e identificador de entrega, schema permitido,
+proteção contra replay e verificação de idempotência.
+
+Evento inválido vai para quarentena sem conteúdo sensível no alerta. Quando o
+provedor não oferecer assinatura confiável, a preferência é coleta autenticada
+ou entrada isolada com credencial própria e reconciliação posterior. O papel
+futuro do n8n e os provedores finais continuam como decisões pendentes.
+
 # 6. Ciclo de Vida dos Dados
 
 _conteúdo_
