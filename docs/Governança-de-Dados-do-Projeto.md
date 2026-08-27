@@ -1505,6 +1505,78 @@ retenção —, e por isso backup, arquivamento e descarte aparecem como pendent
 no desenho. Nenhum gate deve ser descrito como operante antes das evidências
 listadas na Seção 6.11.
 
+## 6.3 Tabela de temporalidade
+
+Não se propõe um prazo único para todos os dados. O critério é manter o mínimo
+necessário enquanto durar a finalidade, a obrigação legal, o exercício regular
+de direitos ou a prestação de contas, conforme o art. 16 da LGPD. A tabela
+registra, para cada classe de dado, o critério proposto, o prazo quando ele tem
+âncora normativa e a condição que precisa ser atendida para o prazo deixar de
+ser `pendente_confirmacao`.
+
+| Classe de dado | Critério de retenção proposto | Prazo | Condição para tratar como vigente |
+| :--- | :--- | :--- | :--- |
+| **Contatos e mapa de identidade** | Manter enquanto a pessoa for elegível a participar de pesquisas e enquanto a identidade for necessária para reconciliar participações. | `pendente_confirmacao` | Definir com o Sindusfarma o critério de elegibilidade, a base legal e o gatilho de remoção do contato. |
+| **Respostas brutas e participação identificável** | Manter enquanto a pesquisa estiver em execução, conciliação ou contestação de resultado. | `pendente_confirmacao` | Aprovar o marco que encerra a contestação e o prazo de guarda posterior à publicação. |
+| **Dados pseudonimizados para indicadores** | Manter enquanto o indicador for comparável e a série histórica for necessária à análise setorial. | `pendente_confirmacao` | Definir a janela de série histórica exigida pela Central e o momento de remoção da chave de reidentificação. |
+| **Resultado agregado publicado** | Manter enquanto a autorização de publicação permanecer válida, preservando a versão aprovada e sua linhagem. | `pendente_confirmacao` | Definir política de acervo, critério de retirada e responsável pela revogação da autorização. |
+| **Histórico de qualidade e ações corretivas** | Manter enquanto for necessário reconstruir o estado da qualidade em data passada e comprovar o tratamento de um desvio. | `pendente_confirmacao` | Aprovar a janela de reconstrução exigida pela auditoria mensal da Seção 2.7. |
+| **Logs de acesso e auditoria** | Manter pelo período necessário à responsabilização, à investigação e às obrigações aplicáveis, protegidos contra alteração. | `pendente_confirmacao` | Aprovar prazo de expiração formal com o Data Owner e a TI, considerando investigação de incidente. |
+| **Registro de incidente com dados pessoais** | Manter para prestação de contas perante a ANPD, inclusive quando o incidente não for comunicado. | **No mínimo cinco anos** contados da data do registro | Prazo com âncora normativa; resta comprovar o armazenamento protegido e o inventário dos registros. |
+| **Trilha de atendimento a direitos do titular** | Manter como comprovação do atendimento, sem constituir novo repositório de respostas. | `pendente_confirmacao` | Definir canal, responsável e prazo de guarda da evidência do atendimento. |
+| **Artefatos acadêmicos e documentação do projeto** | Manter conforme a exigência do curso, sem dado pessoal, base bruta ou credencial. | `pendente_confirmacao` | Confirmar a exigência institucional de guarda e a data de encerramento do projeto. |
+
+**Prazos com âncora normativa.** Três prazos desta seção não dependem de decisão
+do parceiro porque decorrem de norma: a guarda mínima de cinco anos do registro
+de incidente, prevista na Resolução CD/ANPD nº 15/2024; a resposta ao titular em
+até quinze dias na hipótese do art. 19 da LGPD; e a comunicação de incidente à
+ANPD e aos titulares em três dias úteis quando presentes cumulativamente os
+critérios do art. 5º da mesma resolução. Os dois últimos são prazos de
+atendimento, não de retenção, e não devem ser convertidos em prazo de guarda.
+
+**Por que as demais linhas não recebem número.** As Seções 3.4, 3.6 e 3.8 já
+determinam que o catálogo registre dependência e não invente prazo enquanto esta
+seção não estiver homologada, e a Seção 4.10 mantém as retenções como pendentes
+de validação jurídica. Atribuir aqui um número sem decisão do parceiro
+transformaria uma lacuna conhecida em obrigação aparente e faria o catálogo
+herdar um prazo sem lastro. O critério de cada linha é suficiente para orientar
+a modelagem e para instruir a conversa com o Sindusfarma; o número entra quando
+a condição da última coluna for cumprida.
+
+## 6.4 Descarte seguro e expurgo
+
+O descarte é um procedimento com evidência, não a ausência do dado. Cada
+execução registra escopo, critério aplicado, responsável, data, resultado e
+confirmação nas cópias alcançadas, e gera evento na trilha da Seção 5.9.
+
+| Procedimento | Aplicação proposta | Evidência exigida |
+| :--- | :--- | :--- |
+| **Eliminação lógica** | Bloqueio imediato de leitura, exportação e publicação no banco primário, quando o expurgo físico depender de janela técnica. | Registro do bloqueio, alcance verificado e data prevista da eliminação física. |
+| **Eliminação física** | Remoção definitiva do registro e de suas derivações no banco, índices, caches e exports. | Contagem antes e depois, inventário das derivações alcançadas e responsável pela execução. |
+| **Anonimização** | Alternativa ao descarte quando a série histórica precisa ser preservada e a identificação não é mais necessária. | Teste de reidentificação considerando filtros, exports e dedução por diferença, com o limiar da Seção 4.5. |
+| **Expurgo em cópias e backups** | Propagação do descarte às cópias que ainda contenham o registro eliminado. | Lista das cópias alcançadas, confirmação de expiração ou sobrescrita e bloqueio de restauração indevida. |
+| **Retirada de publicação** | Remoção do acervo quando a autorização deixar de ser válida ou a proteção for comprometida. | Decisão registrada, versão retirada, responsável e comunicação ao público quando aplicável. |
+| **Suspensão de descarte** | Retenção prolongada por obrigação legal, investigação de incidente ou exercício regular de direitos. | Justificativa, responsável, prazo revisado e data de reavaliação da suspensão. |
+
+**Pseudonimização não é descarte.** Remover a chave de reidentificação reduz o
+risco, mas o registro continua existindo e continua sujeito às regras desta
+seção. Da mesma forma, hash simples, retirada do nome ou exclusão de uma coluna
+não comprovam anonimização, conforme a Seção 4.5.
+
+**Retenção do dado e rotação da cópia são decisões diferentes.** A janela
+operacional de trinta dias de backup proposta na Seção 5.8 é rotação de cópia,
+não prazo de retenção do dado, e não substitui as linhas da Seção 6.3. Uma
+restauração não pode reintroduzir de forma ativa um registro eliminado,
+bloqueado ou cuja autorização tenha sido revogada: o gate G5 exige reaplicar,
+em ambiente isolado, todos os bloqueios, revogações e eliminações posteriores ao
+ponto da cópia antes do retorno ao serviço.
+
+**Nenhum descarte silencioso.** Duplicata absorvida por mesclagem é marcada e
+mantida na camada bruta com referência ao registro que a absorveu, conforme a
+Seção 2.8, e chave órfã é preservada como “Não mapeado” até a reconciliação. O
+expurgo previsto nesta seção se aplica ao vencimento do critério de retenção e
+ao pedido de titular deferido, não ao tratamento de inconformidade de qualidade.
+
 # 7. Avaliação de Maturidade
 
 _conteúdo_
