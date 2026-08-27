@@ -119,7 +119,54 @@ Até essas confirmações, a estrutura desta seção é o desenho de governança
 projeto. Ela não comprova a implantação dos papéis ou dos controles no ambiente
 produtivo do Sindusfarma.
 
-## 1.5 Matriz de responsabilidades por domínio
+## 1.5 Mapa funcional da governança de dados
+
+O diagrama representa **relações funcionais de decisão e execução; não
+representa organograma empregatício** nem designação jurídica. Os nomes nos
+nós azuis vêm do baseline documental; as atribuições e relações são propostas
+do projeto. A matriz RACI da Seção 1.6 é a fonte detalhada de autoridade quando
+uma relação resumida no desenho envolver mais de um responsável.
+
+```mermaid
+flowchart TB
+    SIND["[DOC] Sindusfarma<br/>homologa papéis, alçadas e vigência"]:::baseline
+    OWNER["[DOC] Data Owner<br/>Fabio Moreira<br/>aprova finalidade, acesso,<br/>publicação e exceções"]:::baseline
+    STEWARD["[DOC] Data Stewards<br/>Felipe Rojas, Reinaldo Nobrega<br/>e Lucas Andrade<br/>definem semântica, catálogo,<br/>qualidade e linhagem"]:::baseline
+    CUST["[DOC] Data Custodian / TI<br/>Rodrigo Giorgetto / TI<br/>implementa infraestrutura,<br/>segurança, cargas, logs e backups"]:::baseline
+    CENTRAL["[PROP] Central de Pesquisas<br/>opera o ciclo, valida indicadores<br/>e prepara resultados"]:::proposal
+    AREAS["[PROP] Áreas técnicas<br/>revisam questionários,<br/>conteúdo e resultados"]:::proposal
+    LEGAL["[PEND] Agentes LGPD<br/>controlador, operadores, suboperadores<br/>e encarregado a designar"]:::pending
+    EXT["[COND] RentalHost<br/>custódia técnica sob contrato<br/>e conforme instruções"]:::external
+
+    SIND -->|homologa função| OWNER
+    SIND -->|homologa função| STEWARD
+    SIND -->|homologa função| CUST
+    SIND -.->|designa por tratamento| LEGAL
+    CENTRAL -->|necessidade e validação operacional| STEWARD
+    AREAS -->|validação temática| STEWARD
+    STEWARD -->|regra, metadado e controle esperado| OWNER
+    OWNER -->|decisão aprovada| CUST
+    CUST -->|execução e evidência técnica| STEWARD
+    LEGAL -.->|orientação jurídica após designação| OWNER
+    LEGAL -.->|requisitos de privacidade| STEWARD
+    CUST -.->|instrução técnica contratada| EXT
+
+    classDef baseline fill:#E8F1FB,stroke:#2563EB,color:#0F172A,stroke-width:1.5px
+    classDef proposal fill:#ECFDF5,stroke:#059669,color:#064E3B,stroke-width:1.5px
+    classDef pending fill:#FFF7ED,stroke:#EA580C,color:#7C2D12,stroke-width:1.5px,stroke-dasharray:5 3
+    classDef external fill:#F5F3FF,stroke:#7C3AED,color:#4C1D95,stroke-width:1.5px,stroke-dasharray:5 3
+```
+
+| Elemento visual | Leitura |
+| :--- | :--- |
+| `[DOC]`, nó azul | Nome ou papel presente no baseline documental; atribuição ainda sujeita à homologação. |
+| `[PROP]`, nó verde | Função operacional proposta para a Central ou para as áreas técnicas. |
+| `[PEND]`, nó laranja tracejado | Agente legal pendente de designação por tratamento. |
+| `[COND]`, nó roxo tracejado | Participação externa condicionada a contrato e instruções. |
+| Seta contínua | Interface funcional proposta de definição, aprovação, execução ou verificação. |
+| Seta tracejada | Relação pendente ou condicional; não comprova subordinação ou vínculo jurídico. |
+
+## 1.6 Matriz de responsabilidades por domínio
 
 A matriz usa a notação RACI: **A** responde pela decisão final, **R** executa,
 **C** é consultado antes da decisão e **I** recebe a informação. Quando uma
@@ -140,7 +187,7 @@ controlador ou encarregado só passa a valer após a designação pelo Sindusfar
 | Aprovar e disponibilizar resultados | A | R na classificação, linhagem e proteção | C sobre o sentido do resultado | R na disponibilização | C/A quando houver decisão legal | R técnico somente na publicação sob contrato |
 | Auditar conformidade e atender direitos dos titulares | C | R na evidência, inventário e rastreabilidade | C | R na propagação, nos logs e na retenção técnica | A/R conforme a atribuição legal | R técnico conforme instrução e contrato |
 
-## 1.6 Regras de aplicação da matriz
+## 1.7 Regras de aplicação da matriz
 
 - **Metadados semânticos e técnicos:** o Data Steward mantém significado,
   domínio, criticidade, regra de qualidade e linhagem. O Data Custodian mantém
