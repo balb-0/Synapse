@@ -283,9 +283,52 @@ _conteúdo_
 
 # 4. Classificação e Proteção de Dados
 
-_conteúdo_
+Esta seção transforma as restrições do TAPI e o mapa de dados do projeto em
+uma regra única de classificação. O TAPI exige controle de acesso por perfil,
+tratamento de dados sensíveis em conformidade com a LGPD e proíbe a publicação
+aberta de bases reais, respostas individuais identificáveis e dados de contato.
+A fonte foi conferida pelo projeto sob o SHA-256
+`16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`. [TAPI e
+fontes primárias](projeto.md#ref-1)
 
-**Nota:** Categorias de classificação (público, interno, confidencial, restrito; dado pessoal/sensível/crítico) e a aplicação da LGPD ao tratamento dos dados de empresas e respostas individuais.
+As regras abaixo são diretrizes do projeto. Elas não comprovam que os controles
+já estejam implantados pelo Sindusfarma. A classificação final, as hipóteses
+legais e as exceções de acesso ainda dependem da aprovação do Data Owner, do
+controlador e do encarregado aplicáveis a cada tratamento.
+
+## 4.1 Plano de classificação
+
+Todo ativo recebe uma classe de informação e, separadamente, um marcador de
+proteção de dados. Essa separação evita tratar informação comercial restrita
+como dado pessoal sensível ou concluir que um dado deixou de ser pessoal apenas
+porque foi pseudonimizado.
+
+| Classe de informação | Critério | Uso permitido | Regra de divulgação |
+| :--- | :--- | :--- | :--- |
+| **Público** | Conteúdo aprovado para divulgação, sem segredo de negócio e sem risco razoável de identificar pessoa ou participação. | Acervo público, comunicação externa e entrega acadêmica. | Publicação somente após autorização, agregação ou anonimização e revisão de reidentificação. |
+| **Interno** | Informação operacional necessária ao trabalho da Central e das áreas técnicas, sem conteúdo individual de alta criticidade. | Operação, qualidade, acompanhamento e análise interna conforme o perfil. | Não publicar por padrão; uma versão pode se tornar pública após revisão e aprovação. |
+| **Confidencial** | Dado pessoal, contato, vínculo profissional, informação comercial ou resultado cuja exposição possa afetar titular, empresa ou pesquisa. | Somente pessoas autorizadas, pela finalidade registrada e com trilha de acesso. | Proibida divulgação aberta; usar recorte minimizado, mascarado ou agregado quando necessário. |
+| **Sensível** | Resposta identificável, vínculo pessoa–empresa–pesquisa, credencial, segredo, dado pessoal sensível nos termos da LGPD ou combinação com alto risco de reidentificação. | Acesso excepcional, mínimo, justificado e auditado. | Nunca publicar na forma identificável; a liberação exige anonimização efetiva ou agregação suficiente e aprovação expressa. |
+
+Neste documento, **Sensível** é a classe organizacional mais restritiva. Ela
+inclui, mas não se limita, ao conceito jurídico de dado pessoal sensível do art.
+5º, II, da LGPD. O enquadramento jurídico deve ser registrado no marcador
+próprio, sem ser inferido apenas pelo nome de uma coluna ou tabela.
+
+## 4.2 Marcadores de proteção de dados
+
+| Marcador | Significado para o projeto |
+| :--- | :--- |
+| **Não pessoal** | Não se refere a pessoa natural identificada ou identificável; ainda pode ser Confidencial por motivo comercial. |
+| **Pessoal** | Relaciona-se direta ou indiretamente a uma pessoa natural. |
+| **Pessoal sensível** | Enquadra-se nas categorias do art. 5º, II, da LGPD; exige hipótese e salvaguardas compatíveis. |
+| **Pseudonimizado** | O vínculo foi separado, mas pode ser recomposto com informação adicional; continua sujeito à LGPD. |
+| **Anonimizado ou agregado** | A identificação não é razoavelmente possível no contexto e os filtros não desfazem a proteção; o risco deve ser reavaliado a cada publicação. |
+
+Uma classificação pode aumentar quando a finalidade, o conteúdo ou a combinação
+de campos elevar o risco. A redução de classe só ocorre com evidência da
+transformação aplicada e aprovação registrada; remover nome ou e-mail, sozinho,
+não basta para declarar anonimização.
 
 # 5. Segurança e Acesso
 
