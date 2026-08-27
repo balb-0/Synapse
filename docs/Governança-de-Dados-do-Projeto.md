@@ -711,6 +711,23 @@ governança.
 9. **Encerrar sem apagar:** registrar resultado, evidências e versão
    substituída. Histórico anterior permanece imutável e consultável.
 
+O registro da mudança exige `change_id`, `change_owner`, status, solicitante,
+datas, motivo, escopo, ativos e consumidores afetados, evidência, impacto,
+versão anterior/candidata, testes, plano de migração/rollback e gates
+aplicáveis. Cada decisão registra papel, pessoa ou agente designado, resultado
+(`aprovado`, `rejeitado` ou `pendente`), escopo, data e evidência. A homologação
+do parceiro é um gate separado da revisão do grupo. Se uma decisão obrigatória
+estiver ausente ou pendente, o ativo continua `em_revisao` e a publicação é
+bloqueada.
+
+Na automação futura, a publicação usa a chave idempotente
+`change_id + ambiente_alvo`. Repetir a mesma chave com o mesmo hash de conteúdo
+retorna a publicação já aplicada, sem criar nova versão; a mesma chave com hash
+diferente gera conflito e não publica. Cada tentativa recebe `attempt_id`, mas
+somente uma execução pode ser marcada como publicação efetiva. Para cargas de
+dados, a chave deve combinar fonte, versão ou hash recebido, destino e
+`schema_version`, mantendo tentativa separada de lote efetivamente aplicado.
+
 ### 3.5.2 Política de versões
 
 | Identificador | O que versiona | Regra proposta |
