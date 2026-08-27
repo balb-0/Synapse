@@ -2634,6 +2634,23 @@ acontece, mas não deixa rastro consultável nem auditável.
   de versionamento do questionário ainda não existe.
 
 
+### 6.7.14 Lacunas no modelo de dados — publicação no acervo
+
+Identifica as falhas na estrutura de dados que impedem o **rastreamento
+automatizado entre o DW e o repositório público** do site.
+
+- **O que falta:** vínculo persistido entre a `Pesquisa` interna e o item
+  publicado — `Pesquisa.autorizacao`, `versao_publicada`, `data_publicacao`,
+  `perfil_autorizado` e o identificador do recurso externo.
+- **O que o modelo precisaria conter:** uma relação de publicação ligando
+  resultado, versão, autorização e destino, preservando a linhagem entre o dado
+  interno e o divulgado.
+- **Evidência da lacuna:** não há na base qualquer chave que ligue `Pesquisa` ao
+  acervo publicado; a publicação hoje é manual e sem vínculo rastreável.
+- **Status de implementação:** **pendente** — é uma das evoluções previstas para o
+  TO-BE (§2.1).
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
