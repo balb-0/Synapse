@@ -2351,115 +2351,85 @@ Assim, a governança proposta atende ao ciclo completo — coleta, integração,
 
 ## 6.7 Fluxo de Interação Anotado
 
-Esta seção registra a base analítica do artefato de Fluxo de Interação Anotado
-da Sprint 2. O recorte inicial cobre o perfil operacional principal: a equipe
-interna da Central de Pesquisas. O objetivo é revisar o JTBD já produzido pelo
-grupo durante as atividades em sala, extrair critérios de sucesso e traduzir
-esses critérios em expectativas verificáveis ao longo do fluxo de interação.
+Esta seção organiza a base do Fluxo de Interação Anotado da Sprint 2 para o
+perfil operacional principal: a equipe interna da Central de Pesquisas. O texto
+parte do JTBD definido em discussão do grupo, da Arquitetura de Negócio
+[<sup>[2]</sup>](#ref-2), do fluxo de valor da §2.1, dos requisitos funcionais da §6.1 e
+das perguntas de negócio da §6.3. O objetivo é manter um apoio textual curto
+para o diagrama, sem substituir a representação visual exigida pelo artefato.
 
-As fontes usadas nesta análise são o JTBD definido durante uma discussão do
-grupo, a Arquitetura de Negócio [<sup>[2]</sup>](#ref-2), o fluxo de valor da
-§2.1, os requisitos funcionais da §6.1 e as perguntas de negócio da §6.3. O
-JTBD orienta a leitura das expectativas do usuário, mas não substitui TAPI nem
-Arquitetura de Negócio como fonte primária do parceiro.
+### 6.7.1 Perfil, JTBD e critérios de sucesso
 
-### 6.7.1 Perfil operacional principal
+O perfil operacional principal opera o ciclo das pesquisas desde a solicitação
+até a entrega/publicação, acompanhando status, prazos, participantes, resultados
+e qualidade em um processo hoje distribuído entre planilhas, SurveyMonkey,
+Trello, sistema interno e acervo publicado.
 
-O perfil operacional principal é a equipe interna da Central de Pesquisas do
-Sindusfarma. Esse perfil opera o ciclo das pesquisas desde a solicitação até a
-entrega/publicação, mantendo informações de status, prazos, participantes,
-resultados e qualidade em um processo hoje apoiado por ferramentas separadas.
-
-O JTBD base é:
+O JTBD usado como base é:
 
 > Quando preciso acompanhar uma pesquisa desde a solicitação até a publicação,
 > quero acessar em um único ambiente dados integrados e atualizados sobre
 > status, prazos, adesão e resultados, para reduzir o trabalho manual,
 > identificar gargalos e tomar decisões com mais agilidade e confiança.
 
-A equipe interna não busca apenas consultar dashboards. O trabalho principal é
-confirmar se cada pesquisa avançou corretamente no ciclo, se o dado gerado em
-uma etapa permanece conectado à pesquisa certa e se a próxima ação pode ser
-executada sem depender de conferências manuais entre planilhas, SurveyMonkey,
-Trello, sistema interno e acervo publicado.
-
-Por isso, a percepção de progresso desse usuário depende de três condições:
-
-1. a pesquisa possui um estado operacional claro;
-2. os marcos e dados usados pelo estado são rastreáveis até a fonte;
-3. pendências, indisponibilidades e conflitos aparecem explicitamente, sem
-   serem confundidos com dado válido.
-
-### 6.7.2 Jobs do perfil operacional principal
-
-| ID | Job operacional | Descrição do trabalho | Evidência na documentação |
+| ID | Job operacional | Critério de sucesso associado | Evidência na documentação |
 | :--- | :--- | :--- | :--- |
-| JOP01 | Registrar e iniciar uma pesquisa com identidade rastreável | Receber uma necessidade de pesquisa, criar ou localizar a pesquisa correspondente e garantir que ela passe a existir como objeto acompanhado no fluxo. | Fluxo de valor etapas 1 e 2; RF01, RF02 e PB01. |
-| JOP02 | Acompanhar status, prazos e marcos do ciclo | Ver em que etapa cada pesquisa está, quais marcos já ocorreram, quais datas estão pendentes e quais pesquisas exigem atenção. | Fluxo de valor etapas 2 a 6; C01 Portfólio e Ciclo; D01 Operação. |
-| JOP03 | Monitorar participação e risco de baixa adesão | Acompanhar empresas e pessoas participantes, representatividade e sinais de baixa adesão, sem inventar denominadores indisponíveis. | Fluxo de valor etapa 6; C02 Participação e Representatividade; RF04 e RF05. |
-| JOP04 | Validar qualidade antes de tabular ou publicar | Distinguir dados válidos, incompletos, inconsistentes, órfãos ou ainda não reconciliados antes de usar indicadores e resultados. | Fluxo de valor etapa 8; RF06, RF07 e D04 Qualidade e Governança. |
-| JOP05 | Entregar e publicar resultado autorizado | Confirmar que o resultado está agregado, revisado, autorizado e coerente com a pesquisa interna antes de disponibilizar ao solicitante ou ao acervo. | Fluxo de valor etapas 9 e 10; RF09, I23 e política de publicação proposta. |
+| JOP01 | Registrar e iniciar uma pesquisa com identidade rastreável. | A pesquisa foi criada ou localizada sem duplicidade aparente, com origem e status inicial explícitos. | Fluxo de valor etapas 1 e 2; RF01, RF02 e PB01. |
+| JOP02 | Acompanhar status, prazos e marcos do ciclo. | O usuário vê etapa atual, próximos marcos, prazos, pendências e motivo de atraso/prorrogação quando aplicável. | Fluxo de valor etapas 2 a 6; C01 Portfólio e Ciclo; D01 Operação. |
+| JOP03 | Monitorar participação e risco de baixa adesão. | A participação é exibida com numerador, denominador quando existir e limitação quando o cálculo de adesão não for possível. | Fluxo de valor etapa 6; C02 Participação e Representatividade; RF04 e RF05. |
+| JOP04 | Validar qualidade antes de tabular ou publicar. | Inconsistências, órfãos, duplicidades e ausências críticas aparecem com impacto no indicador e ação esperada. | Fluxo de valor etapa 8; RF06, RF07 e D04 Qualidade e Governança. |
+| JOP05 | Entregar e publicar resultado autorizado. | O resultado só avança com autorização, versão, perfil permitido e vínculo com a pesquisa interna. | Fluxo de valor etapas 9 e 10; RF09, PB09 e política de publicação proposta. |
 
-### 6.7.3 Critérios de sucesso
+### 6.7.2 Pontos de checagem do fluxo
 
-Os critérios abaixo traduzem o JTBD em sinais observáveis de que o trabalho da
-equipe interna avançou. Eles devem ser usados como base para anotar o fluxo
-visual nas próximas tarefas.
+Os pontos abaixo selecionam quatro momentos em que o usuário operacional checa
+se o trabalho está progredindo. Eles servem como âncoras do fluxo visual.
 
-| ID | Job relacionado | Critério de sucesso | Como o usuário percebe que avançou |
+| Momento | Confirmação necessária | Dados informados pelo sistema | Estado esperado do dado após a ação |
 | :--- | :--- | :--- | :--- |
-| CS01 | JOP01 | A pesquisa foi registrada ou localizada sem duplicidade aparente. | O sistema mostra ID/título da pesquisa, origem do registro, status inicial e alerta se houver pesquisa semelhante ou chave divergente. |
-| CS02 | JOP01, JOP02 | A pesquisa possui status e próximos marcos visíveis. | O usuário vê etapa atual, datas de solicitação/aprovação/divulgação/limite/entrega quando existirem e uma indicação clara de campos pendentes. |
-| CS03 | JOP02 | A prioridade operacional pode ser decidida sem cruzamento manual. | O sistema destaca pesquisas atrasadas, prorrogadas, sem data crítica ou com informação insuficiente para avaliar atraso. |
-| CS04 | JOP03 | A participação é apresentada com denominador e limitação explícitos. | O usuário vê participantes observados, empresas relacionadas, representatividade disponível e aviso quando taxa de adesão não pode ser calculada por falta de universo elegível. |
-| CS05 | JOP03 | Gargalos de adesão são localizados por pesquisa, área ou empresa. | O sistema permite filtrar e comparar recortes, preservando diferença entre empresa participante, pessoa respondente e elemento de resposta. |
-| CS06 | JOP04 | A qualidade do dado é compreensível antes da tomada de decisão. | O usuário vê completude, duplicidade, integridade de chaves, campos críticos e classificação de pendências por fonte ou campo. |
-| CS07 | JOP04 | Anomalias não bloqueiam a análise sem explicação. | O sistema sinaliza o motivo da pendência, o impacto no indicador e a ação esperada, como reconciliar chave, revisar regra ou excluir do denominador. |
-| CS08 | JOP05 | Resultado só avança para entrega/publicação com decisão registrada. | O usuário vê estado de autorização, responsável, versão, data da decisão e restrição de acesso antes de publicar. |
-| CS09 | JOP05 | O acervo publicado permanece coerente com o dado interno autorizado. | O sistema mostra vínculo entre pesquisa, resultado, versão publicada e trilha de origem, ou explicita que a integração ainda está pendente. |
+| 1. Receber ou localizar solicitação | Confirmar criação ou localização da pesquisa e sinalizar duplicidade/conflito. | ID, título, origem, status inicial, data de solicitação e responsável quando disponível. | `Pesquisa` existe como entidade operacional, com origem preservada e pendências marcadas. |
+| 2. Acompanhar ciclo e carteira ativa | Confirmar atualização de marco e indicar se atraso, prorrogação ou prioridade são calculáveis. | Etapa atual, datas do ciclo, campos ausentes, regra aplicada e motivo da classificação. | Marcos ficam atualizados; ausências permanecem pendentes; cálculo fica disponível ou marcado como insuficiente. |
+| 3. Monitorar participação e qualidade | Confirmar numeradores, denominadores disponíveis e anomalias que afetam KPIs. | Participações, empresas/pessoas relacionadas, representatividade, completude, duplicidade, órfãos e impacto no indicador. | Participações são ligadas quando há chave observada; ausência de denominador bloqueia taxa; campos recebem estado de qualidade. |
+| 4. Preparar entrega ou publicação | Confirmar autorização ou bloqueio, perfil permitido e vínculo com a versão publicada. | Estado de autorização/publicação, versão, data, responsável, regra de agregação e pendências do acervo. | Resultado agregado fica autorizado ou bloqueado como pendente; acervo não é atualizado sem decisão registrada. |
 
-### 6.7.4 Expectativas verificáveis e pontos de checagem no fluxo
+### 6.7.3 Fluxo principal de ponta a ponta
 
-Esta tabela seleciona quatro momentos do perfil operacional principal em que o
-usuário checa se o job está progredindo. Cada ponto registra a confirmação
-necessária, os dados que o sistema deve informar e o estado esperado do dado
-após a ação.
+A sequência abaixo representa o fluxo previsto para a equipe interna da Central
+de Pesquisas, do recebimento da demanda até a entrega ou publicação do
+resultado. A tabela não descreve todas as regras de tela; ela identifica os
+atores, passos sequenciais e interfaces que devem aparecer no diagrama do perfil
+principal.
 
-| Momento do fluxo | Job e critérios relacionados | Expectativa verificável do usuário | Confirmação necessária | Dados informados pelo sistema | Estado esperado do dado após a ação |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1. Receber ou localizar uma solicitação de pesquisa | JOP01; CS01, CS02 | Saber se a demanda já virou uma pesquisa acompanhável, se não está duplicada e qual é seu status inicial. | Confirmar criação ou localização da pesquisa e sinalizar conflito quando houver registro semelhante ou chave divergente. | ID da pesquisa, título, origem da solicitação, status inicial, data de solicitação, responsável quando disponível e alerta de duplicidade/conflito. | `Pesquisa` existe como entidade operacional, com origem preservada; status inicial fica definido ou marcado como pendente; possíveis duplicidades ficam sinalizadas para revisão. |
-| 2. Acompanhar avanço do ciclo e carteira ativa | JOP02; CS02, CS03 | Saber se o ciclo avançou, quais marcos continuam incompletos e quais pesquisas exigem ação operacional. | Confirmar atualização de marco e indicar se atraso, prorrogação ou prioridade são calculáveis com os dados existentes. | Etapa atual, datas de solicitação/aprovação/divulgação/limite/prorrogação/entrega, campos ausentes, regra de atraso/prioridade e motivo da classificação. | Marcos do ciclo ficam atualizados na pesquisa; datas ausentes permanecem nulas/pendentes; o fato de ciclo fica calculável ou marcado como insuficiente para cálculo. |
-| 3. Monitorar participação e qualidade antes da tabulação | JOP03, JOP04; CS04, CS05, CS06, CS07 | Entender se a adesão é suficiente, se o dado permite essa conclusão e se o conjunto pode sustentar indicadores. | Confirmar numeradores observados, explicitar denominadores disponíveis ou ausentes e apontar anomalias de qualidade que afetam KPIs. | Participações observadas, empresas/pessoas relacionadas, representatividade disponível, denominador quando existir, completude, duplicidade, órfãos, regra aplicada e impacto no indicador. | Participações ficam ligadas a pesquisa/empresa/pessoa quando houver chave observada; ausência de denominador impede taxa; fontes e campos recebem estado de qualidade como válido, pendente, órfão ou dependente de integração futura. |
-| 4. Preparar entrega ou publicação | JOP05; CS08, CS09 | Saber se o resultado está autorizado para o público correto e se o acervo ficará coerente com o dado interno. | Confirmar autorização ou bloqueio, perfil de acesso permitido e vínculo entre resultado, pesquisa e versão publicada. | Estado de autorização/publicação, versão, data, responsável, perfil autorizado, regra de agregação, vínculo com a pesquisa e pendências de integração com o acervo. | Resultado agregado possui decisão de publicação ou fica bloqueado como pendente; acervo não é atualizado sem autorização; a versão autorizada preserva linhagem e regra de acesso. |
+| Ordem | Etapa do fluxo | Atores envolvidos | Interface ou canal | Ação principal | Resposta esperada da solução | Ponto de checagem |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Receber demanda de pesquisa | Solicitante, equipe da Central | Outlook, n8n, sistema interno | Receber solicitação e registrar necessidade, objetivo e contexto. | Criar ou localizar uma pesquisa com origem preservada e status inicial. | Checagem 1 |
+| 2 | Triar e aprovar continuidade | Equipe da Central, coordenação/Data Owner, área técnica quando necessário | Sistema interno ou fila operacional | Validar se a demanda deve seguir, ser ajustada ou ser recusada. | Atualizar status de triagem, registrar decisão e marcar pendências de informação. | Checagem 2 |
+| 3 | Planejar pesquisa e questionário | Equipe da Central, área técnica | Sistema interno, SurveyMonkey, documentos de apoio | Definir cronograma, público, perguntas, alternativas e responsáveis. | Associar plano e questionário à pesquisa; preservar versão ou indicar que metadados ainda estão pendentes. | Checagem 2 |
+| 4 | Criar tarefas e preparar coleta | Equipe da Central | Trello, SurveyMonkey, Outlook | Criar tarefas operacionais, configurar formulário e preparar comunicação aos participantes. | Confirmar tarefas vinculadas, instrumento preparado e pendências antes da divulgação. | Checagem 2 |
+| 5 | Divulgar pesquisa | Equipe da Central, empresas/participantes | Outlook, SurveyMonkey | Enviar convite e abrir coleta. | Registrar data de divulgação, prazo de coleta e estado da pesquisa como em andamento. | Checagem 2 |
+| 6 | Monitorar participação | Equipe da Central, empresas/participantes | Dashboard operacional, SurveyMonkey, base de respondentes | Acompanhar respostas, empresas participantes e sinais de baixa adesão. | Exibir participação observada, limitações de denominador, representatividade disponível e alertas. | Checagem 3 |
+| 7 | Encerrar coleta e validar dados | Equipe da Central, Data Steward | Dashboard de qualidade, bases CSV, regras de validação | Encerrar coleta, verificar completude, duplicidade, chaves órfãs e consistência. | Classificar dados como válidos, pendentes, órfãos ou dependentes de integração futura. | Checagem 3 |
+| 8 | Tabular e analisar resultados | Equipe da Central, área técnica | Dashboard de resultados, planilha de apoio quando necessária | Consolidar respostas e interpretar agregados por pesquisa, pergunta e recorte permitido. | Exibir resultados agregados com `n`, `N`, filtros permitidos e limitações de cálculo. | Checagem 3 |
+| 9 | Revisar entrega | Equipe da Central, área técnica, coordenação/Data Owner | Sistema interno, dashboard, documento de resultado | Revisar consistência, autorização, versão e público de destino. | Registrar aprovação, bloqueio ou pendência antes de qualquer disponibilização externa. | Checagem 4 |
+| 10 | Publicar ou disponibilizar resultado | Equipe da Central, Data Owner, Data Custodian/RentalHost, solicitante ou público autorizado | Acervo do site, dashboard ou relatório autorizado | Disponibilizar apenas o resultado aprovado para o perfil correto. | Atualizar acervo ou manter bloqueado; preservar vínculo entre pesquisa, resultado, versão e autorização. | Checagem 4 |
 
-### 6.7.5 Pontos de atenção para o fluxo visual
+### 6.7.4 Divergências, atritos e suporte ao usuário
 
-1. O fluxo visual deve deixar claro quando uma expectativa é atendida por
-   acomodação, ruptura deliberada ou lacuna no modelo.
-2. A expectativa de dados atualizados não pode virar promessa de tempo real,
-   porque o snapshot analisado não comprova integração contínua, timestamp de
-   carga ou SLA operacional.
-3. A expectativa de adesão precisa preservar denominador. Quando o universo de
-   convidados não existir, a interface deve declarar indisponibilidade em vez
-   de calcular uma taxa aparente.
-4. A expectativa de publicação depende de metadados futuros de decisão,
-   autorização, versão e vínculo com o acervo. Isso deve aparecer no fluxo como
-   pendência ou lacuna, não como capacidade já implementada.
-5. A ausência de correspondência entre alguns identificadores de pesquisa e a
-   falta de ponte comprovada entre participação e resposta individual devem ser
-   tratadas como divergências relevantes entre modelo mental e modelo de dados.
+Esta subseção será detalhada no confronto com o perfil secundário e com o
+modelo de dados. Para o fluxo principal, os pontos que já devem permanecer
+visíveis no diagrama são: expectativa de atualização automática sem SLA
+comprovado, cálculo de adesão sem denominador, vínculo incompleto entre
+participação e resposta individual, e publicação dependente de autorização e
+metadados ainda não observados no snapshot.
 
-### 6.7.6 Relação com a análise de stakeholders
+### 6.7.5 Premissas e validação de consistência
 
-O perfil operacional principal é um dos stakeholders centrais do projeto. Por
-isso, a análise resumida de stakeholders foi incorporada também ao arquivo
-[`contexto_organizacional_+_requisitos_da_solução_analítica.md`](contexto_organizacional_+_requisitos_da_solução_analítica.md),
-mantendo explícitos papel, interesse, benefícios esperados e possíveis
-preocupações de cada grupo envolvido.
-
-Essa análise não substitui o fluxo anotado da Sprint 2; ela dá sustentação aos
-perfis que serão usados no diagrama e ajuda a separar expectativas operacionais,
-decisões de governança e preocupações de adoção.
+A equipe interna é tratada como perfil com acesso operacional ao fluxo, mas não
+como administradora irrestrita dos dados. O fluxo assume treinamento básico,
+permissão para consultar e acompanhar pesquisas internas, e existência futura de
+regras aprovadas para edição, publicação e acesso. Cada critério de sucesso
+listado em §6.7.1 possui pelo menos um ponto de confirmação em §6.7.2 e aparece
+em uma ou mais etapas do fluxo principal da §6.7.3.
 
 # 7. Referências
 
