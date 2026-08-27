@@ -1,0 +1,88 @@
+# Análise quantitativa do snapshot
+
+Fonte: seis CSVs externos; dados brutos não versionados.
+Eixo temporal principal: data_divulgacao.
+
+[T1] Cobertura dos marcos
+pesquisas: 366
+data_solicitacao: 362 (98,9%)
+data_divulgacao: 358 (97,8%)
+data_limite: 358 (97,8%)
+data_entrega: 334 (91,3%)
+prorrogada_ate: 68 (18,6%)
+data_aprov: 20 (5,5%)
+
+[T2] Volume por ano de divulgação
+2022: 3
+2023: 97
+2024: 99
+2025: 117
+2026: 39
+2027: 3
+sem data: 8
+
+[T4] Sazonalidade mensal
+01: 25
+02: 30
+03: 36
+04: 34
+05: 30
+06: 32
+07: 24
+08: 30
+09: 37
+10: 43
+11: 28
+12: 9
+
+[T5] Dia da semana
+código sem código: 3
+código 2: 132
+código 3: 87
+código 4: 77
+código 5: 46
+código 6: 16
+código 7: 5
+coerência contra data_divulgacao: 358/358
+
+[T6] Ciclo até a entrega
+n: 331
+mediana: 19.0
+média: 21.1
+desvio-padrão: 12.2
+CV: 57.6%
+
+[T7] Prorrogação
+global: 68/366 (18,6%)
+2023: 26
+2024: 25
+2025: 13
+2026: 4
+
+[T8] Participação por ano
+2022: registros=201; empresas=100; pessoas=153
+2023: registros=4910; empresas=275; pessoas=2272
+2024: registros=5708; empresas=339; pessoas=2220
+2025: registros=6915; empresas=330; pessoas=2761
+2026: registros=807; empresas=145; pessoas=376
+
+[4.5] Horários
+registros com início e término: 807/18735 (4,3%)
+
+[QUALIDADE]
+completude média dos seis campos: 94.2%
+elementos por respondente: 38.0
+respondentes → pesquisas: 18680
+questoes → pesquisas: 188
+respostas → pesquisas: 17015
+consistência participantes × observado: 290/326
+
+[HASHES SHA-256]
+clientes: 5073960065f3ce92a3eab34eeebb38af2b0aaa7e398c862963444a5b608719af
+empresas: 850aaa1840cd24f43c033a0f06d339c9b5186bdaad10f1b653c956e307d3ded5
+pesquisas: b8b5773018953a59d25fabb0875825660efe1723fdd37af58a2d85b46b80e7dc
+questoes: e2c592898d75d13fd4cc6a5181966707d8c836e7c52ad99ccbaef69b3efbec8f
+respondentes: cb53e8517e7c43793f14131bd76a792f658c808c034f56da95c3235444afca05
+respostas: db4ebd90fdaf203084aff947b50d19a55dab9d0b05b6b692bcbb6eee9f3dd82a
+
+Nenhum CSV bruto foi adicionado ao Git; esta saída contém somente agregados.

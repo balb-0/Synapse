@@ -1,0 +1,83 @@
+@startuml
+
+!define table(x) class x << (T,#FFAAAA) >>
+!define fact(x) class x << (F,#AAFFAA) >>
+
+hide circle
+skinparam classAttributeIconSize 0
+skinparam nodesep 50
+skinparam ranksep 50
+
+table(DIM_TEMPO) {
+  + sk_tempo : PK
+  + data
+  + ano
+  + mes
+  + trimestre
+  + flag_dia_util
+}
+
+table(DIM_PESQUISA) {
+  + sk_pesquisa : PK
+  + id_origem_planilha
+  + titulo
+  + objetivos
+  + ano_edicao
+}
+
+table(DIM_EMPRESA) {
+  + sk_empresa : PK
+  + id_empresa_durable
+  + nome_fantasia
+  + pct_mercado
+  + faixa_share
+  + nacionalidade
+  + flag_associado
+  + tipo_associado
+  + cidade
+  + estado
+  + regiao
+  + pais
+  + flag_ja_participou
+  + qtd_participacoes
+  + data_primeira_participacao
+  + data_ultima_participacao
+  + faixa_engajamento
+}
+
+table(DIM_PESSOA) {
+  + sk_pessoa : PK
+  + id_pessoa_durable
+  + sk_empresa : FK
+  + cargo
+  + nivel_hierarquico
+  + departamento
+  + agrupamento_departamento
+  + qtd_participacoes
+  + flag_respondente_recorrente
+  + data_inclusao
+  + base_legal_finalidade
+  + flag_titular_anonimizado
+  + data_anonimizacao
+}
+
+fact(FATO_PARTICIPACAO) {
+  + sk_pesquisa : FK
+  + sk_empresa : FK
+  + sk_pessoa : FK
+  + sk_data_pesquisa : FK
+  + sk_data_resposta : FK
+  --
+  + qtd_participacao
+  + seq_ocorrencia
+  + minutos_preenchimento
+  + pct_mercado_na_participacao
+}
+
+DIM_TEMPO "1" -- "0..n" FATO_PARTICIPACAO : sk_data_pesquisa
+DIM_TEMPO "1" -- "0..n" FATO_PARTICIPACAO : sk_data_resposta
+DIM_PESQUISA "1" -- "0..n" FATO_PARTICIPACAO : sk_pesquisa
+DIM_EMPRESA "1" -- "0..n" FATO_PARTICIPACAO : sk_empresa
+DIM_PESSOA "1" -- "0..n" FATO_PARTICIPACAO : sk_pessoa
+
+@enduml
