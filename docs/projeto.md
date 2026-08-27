@@ -2431,6 +2431,277 @@ regras aprovadas para edição, publicação e acesso. Cada critério de sucesso
 listado em §6.7.1 possui pelo menos um ponto de confirmação em §6.7.2 e aparece
 em uma ou mais etapas do fluxo principal da §6.7.3.
 
+### 6.7.6 Fluxo de interação do perfil secundário (área técnica)
+
+O perfil secundário é a **área técnica** que dá suporte especializado à Central
+de Pesquisas. Diferente da equipe interna — que opera o ciclo de ponta a ponta
+(§6.7.3) —, a área técnica não conduz a pesquisa: ela **entra no fluxo em três
+instantes pontuais, de alto impacto e alta responsabilidade técnica**. São eles a
+validação técnica do questionário (antes da divulgação), o acompanhamento da
+adesão sob a ótica de representatividade do setor farmacêutico, e a revisão de
+consistência dos resultados antes da tabulação ou publicação. Em todos, o papel é
+de **revisão e sinalização qualificada**: possui acesso de leitura qualificada,
+valida e devolve, mas não avança o ciclo nem publica por conta própria.
+
+Esse recorte importa porque é justamente nesses três pontos que o **modelo mental
+da área técnica tende a divergir** do ciclo de vida modelado pelo grupo. O caso
+mais frequente é presumir que um questionário "aprovado tecnicamente" já está
+pronto para publicar, quando o modelo ainda exige coleta, tabulação, autorização
+e vínculo de versão — divergência classificada na §6.7.12. Por atuar em pontos de
+controle, a área técnica é também quem primeiro **observa** os problemas de dado
+que a §4.0 já havia diagnosticado (chaves órfãs, participação sem denominador,
+respostas que não equivalem a respondentes), o que faz do seu fluxo o principal
+gerador de sinalizações de qualidade.
+
+O diagrama abaixo representa o trecho de interação do perfil secundário; os
+losangos são os pontos de decisão (S1–S3) e os retângulos, os estados resultantes
+no modelo. A notação de estados segue a §6.7.17.
+
+```mermaid
+flowchart TD
+    A([Pesquisa Planejada]) --> S1{S1 · Validar<br/>questionário}
+    S1 -->|inconsistência técnica| P1[Devolvida:<br/>pendente de ajuste]
+    S1 -->|instrumento coerente| V[Questionário validado]
+    P1 -.retrabalho.-> A
+    V --> COL([Em coleta])
+    COL --> S2{S2 · Acompanhar<br/>adesão}
+    S2 -->|sem denominador| L1[Adesão insuficiente<br/>lacuna §6.7.9]
+    S2 -->|base disponível| AD[Adesão disponível]
+    AD --> ENC([Coleta encerrada])
+    L1 --> ENC
+    ENC --> S3{S3 · Revisar<br/>resultados}
+    S3 -->|órfão / duplicidade| P2[Pendente de<br/>reconciliação]
+    S3 -->|consistente| REV[Revisável → tabulação]
+```
+
+A tabela restringe o escopo a esse trecho de divergência; não repete o fluxo
+principal, apenas os passos em que a área técnica age, e associa cada um às
+entidades do modelo e ao estado resultante.
+
+| Ordem | Etapa (área técnica) | Ação principal | Interface ou canal | Entidades tocadas | Resposta esperada da solução | Estado resultante | Checagem (§6.7.2) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| S1 | Validar tecnicamente o questionário | Revisar tipos de questão, alternativas, matrizes e coerência do instrumento antes da divulgação. | SurveyMonkey, documentos de apoio, sistema interno | `Questao`, `Pesquisa` | Registrar o questionário como validado ou pendente, preservando versão e vínculo com a pesquisa. | `Questionário validado` ou `Planejada` (com pendência) | Checagem 2 |
+| S2 | Acompanhar adesão e representatividade | Avaliar participação observada, empresas respondentes e risco de baixa representatividade. | Dashboard operacional, base de respondentes/empresas | `Respondente`, `Empresa`, `Pesquisa` | Exibir numerador e denominador quando existir; sinalizar limitação de cálculo e baixa cobertura. | Adesão `Disponível` ou `Insuficiente` | Checagem 3 |
+| S3 | Revisar consistência dos resultados | Conferir agregados, inconsistências, órfãos e duplicidades antes da tabulação/publicação. | Dashboard de qualidade e de resultados | `Resposta`, `Questao`, `Pesquisa` | Classificar resultado como consistente, pendente ou dependente de reconciliação; nunca liberar sem revisão. | `Revisável` ou `Pendente de reconciliação` | Checagem 3 e 4 |
+
+A área técnica atua como **revisora e validadora**, não como operadora do ciclo:
+seu acesso é de leitura qualificada e sinalização, e suas ações alimentam as
+decisões da equipe interna e do Data Owner, sem substituí-las.
+
+
+### 6.7.7 Transições de estado do modelo — fluxo principal
+
+Esta subseção associa **cada passo do fluxo principal (§6.7.3)** à transição de
+estado que ele provoca no modelo relacional, explicitando qual **entidade** é
+alterada, qual **atributo** muda e qual é o **novo estado**. O objetivo é permitir
+que o diagrama anotado mostre não apenas a ação de interface, mas o efeito
+persistente no dado — e servir de base para localizar, nas §6.7.9 e §6.7.10, onde
+fluxo e modelo deixam de se corresponder.
+
+O ciclo de vida do atributo `status` da entidade `Pesquisa` é a espinha dorsal
+dessas transições:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Solicitada
+    Solicitada --> EmTriagem: triar
+    EmTriagem --> Aprovada: aprovar
+    EmTriagem --> Recusada: recusar
+    Aprovada --> Planejada: planejar + questionário
+    Planejada --> QuestionarioValidado: validação técnica (S1)
+    QuestionarioValidado --> EmColeta: divulgar
+    EmColeta --> ColetaEncerrada: encerrar coleta
+    ColetaEncerrada --> Tabulada: tabular
+    Tabulada --> Revisada: revisar entrega
+    Revisada --> Publicada: publicar (autorização)
+    Revisada --> Bloqueada: bloquear
+    ColetaEncerrada --> PendenteReconciliacao: órfão / duplicidade
+    Recusada --> [*]
+    Publicada --> [*]
+```
+
+| Passo (§6.7.3) | Entidade | Atributo alterado | Transição de estado | Observação de integridade |
+| :--- | :--- | :--- | :--- | :--- |
+| 1. Receber demanda | `Pesquisa` | `status`, `data_solicitacao`, origem | `—` → `Solicitada` | Origem preservada; duplicidade apenas sinalizada — sem campo próprio (§6.7.9). |
+| 2. Triar e aprovar | `Pesquisa` | `status`, `data_aprov` | `Solicitada` → `Em triagem` → `Aprovada`/`Recusada` | `data_aprov` ausente em 94,5% do legado — mede validação sobre poucos casos (§4.0). |
+| 3. Planejar pesquisa e questionário | `Pesquisa`, `Questao` | `status`, vínculo `Questao`↔`Pesquisa` | `Aprovada` → `Planejada` | Versão do questionário não é persistida (lacuna §6.7.13). |
+| 4. Criar tarefas e preparar coleta | `Pesquisa` | `status` operacional | `Planejada` → `Preparada` | Tarefas de Trello não têm entidade no modelo (§6.7.9). |
+| 5. Divulgar pesquisa | `Pesquisa` | `data_divulgacao`, `data_limite`, `status` | `Preparada` → `Em coleta` | Marca o início da janela de coleta. |
+| 6. Monitorar participação | `Respondente` | cria vínculo `Empresa`/`Cliente`↔`Pesquisa` | cria `Participação` (`Em coleta`) | Denominador de adesão não é atributo do modelo (§6.7.9). |
+| 7. Encerrar coleta e validar | `Pesquisa`, `Resposta` | `status`, flags de qualidade | `Em coleta` → `Coleta encerrada` / `Pendente de reconciliação` | Órfãos e duplicidades classificados aqui. |
+| 8. Tabular e analisar | `Resposta`, `Questao` | agregação | `Coleta encerrada` → `Tabulada` | 1 linha de `Resposta` ≠ 1 respondente (matriz/checkbox — §6.7.11). |
+| 9. Revisar entrega | `Pesquisa` | `status`, autorização | `Tabulada` → `Revisada`/`Bloqueada` | Autorização e perfil não têm atributo próprio (§6.7.14). |
+| 10. Publicar resultado | `Pesquisa` | `status`, vínculo com acervo | `Revisada` → `Publicada` | Vínculo com o repositório externo não é modelado (§6.7.14). |
+
+
+### 6.7.8 Transições de estado do modelo — fluxo do perfil secundário
+
+Mesma associação da §6.7.7, agora para os passos da área técnica (§6.7.6). Como o
+perfil secundário **revisa e qualifica** em vez de avançar o ciclo, suas
+transições são de *qualificação de estado* (validar, sinalizar, liberar); por isso
+cada ação declara a **integridade relacional pressuposta** — a condição de dado
+que precisa valer para a transição ser legítima, verificada empiricamente na
+§6.7.15.
+
+| Passo (§6.7.6) | Entidade | Atributo alterado | Transição de estado | Integridade relacional pressuposta |
+| :--- | :--- | :--- | :--- | :--- |
+| S1. Validar questionário | `Questao`, `Pesquisa` | flag de validação técnica, `status` | `Planejada` → `Questionário validado` | Toda `Questao` referencia uma `Pesquisa` existente; matrizes têm alternativas coerentes. |
+| S2. Acompanhar adesão | `Respondente`, `Empresa` | estado de cálculo de adesão | `Em coleta` → adesão `Disponível`/`Insuficiente` | `id_empresa` íntegro (100%) e `id_cliente` conciliado; falta o denominador (universo convidado). |
+| S3. Revisar resultados | `Resposta`, `Pesquisa` | flag de consistência, `status` | `Coleta encerrada` → `Revisável`/`Pendente de reconciliação` | Toda `Resposta` liga a `Questao` (100%) e `Pesquisa` — exceto as chaves órfãs conhecidas. |
+
+
+### 6.7.9 Passos do fluxo sem correspondência no modelo de dados
+
+Confrontando os fluxos (§6.7.3 e §6.7.6) com o modelo relacional, alguns passos
+previstos na interface **não têm entidade ou atributo** que os persista. Cada um é
+uma **lacuna potencial de modelagem**: a ação existe na tela, mas o dado que ela
+produziria não tem onde morar hoje — e portanto se perde entre uma sessão e outra.
+
+| Passo de interface (fluxo) | O que a tela faz | Entidade/atributo faltante | Consequência se não modelado |
+| :--- | :--- | :--- | :--- |
+| Sinalizar duplicidade/conflito ao criar pesquisa (passo 1) | Marca suspeita de duplicata | `Pesquisa.flag_duplicidade` / entidade de conflito | Suspeita se perde; sem trilha da deduplicação. |
+| Registrar motivo de atraso/prorrogação (passo 2/5) | Explica o atraso | `Pesquisa.motivo_prorrogacao` | Prorrogação vira número sem causa; análise de gargalo fica cega. |
+| Preparar tarefas operacionais (passo 4) | Cria tarefas no Trello | Entidade `Tarefa` vinculada à `Pesquisa` | Trabalho operacional não é rastreável no DW. |
+| Exibir denominador de adesão (passo 6 / S2) | Calcula taxa de adesão | `Pesquisa.universo_convidado` (denominador) | Taxa de adesão incalculável ou estimada sem base. |
+| Capturar consentimento do respondente (coleta) | Registra consentimento LGPD | Entidade/atributo `Consentimento` | Base legal e direito do titular ficam sem rastro. |
+| Autorizar publicação com perfil/versão (passo 9/10) | Aprova e versiona a saída | `Pesquisa.autorizacao`, `versao_publicada` | Publicação sem controle de autorização/versão. |
+| Registrar parecer da validação técnica (S1) | Guarda o "aceito/devolvido" | Histórico de validação (revisor, data, parecer) | Decisão técnica não é auditável (§6.7.13). |
+
+
+### 6.7.10 Estados do modelo não produzidos por nenhum passo do fluxo
+
+O inverso da §6.7.9: estados ou marcações que o **modelo prevê (ou precisará
+prever)**, mas que **nenhuma ação do fluxo de interação alcança**. São estados
+isolados — entram por regra de qualidade/governança ou por processo de carga, não
+por interação do usuário — e por isso exigem rotina automática ou decisão fora do
+fluxo operacional.
+
+| Estado/marcação do modelo | Como surge | Por que nenhum passo do fluxo o produz | Encaminhamento |
+| :--- | :--- | :--- | :--- |
+| `Pesquisa = Não mapeada` (chave órfã) | Reconciliação dos `pesquisa_id` órfãos 424, 1116, 1139, 1147 (e `id_pesq` 304 em respondentes) | Nenhuma tela cria ou resolve o órfão; é decisão de governança com o parceiro | Rotina de qualidade + conciliação (política §2.8 do doc de Governança). |
+| `Registro em quarentena` | Bloqueio na ingestão por desvio crítico | O fluxo opera dados já ingeridos; a quarentena é anterior ao usuário | Fluxo de ações corretivas (governança), não o fluxo de interação. |
+| Histórico de mudança (SCD Tipo 2) | Versionamento de dimensão (ex.: `Empresa`) | O usuário não versiona dimensão pela tela | Processo de carga/ETL; evolução prevista no blueprint dimensional. |
+| `Adesão = Insuficiente (sem denominador)` | Ausência estrutural do universo convidado | Depende de dado inexistente (§6.7.9), não de ação de usuário | Só se resolve quando o denominador for modelado. |
+
+
+### 6.7.11 Pontos de divergência no ciclo de vida das pesquisas
+
+Aqui se localizam os pontos em que o **modelo mental dos usuários contraria o
+ciclo de vida do dado** modelado pelo grupo — o coração do fluxo anotado. Cada
+divergência é ancorada na fase (coleta no SurveyMonkey, consolidação, liberação do
+acervo) e, quando possível, quantificada com o snapshot recebido.
+
+| Fase do ciclo | Expectativa do usuário | O que o modelo/fluxo exige | Impacto (com evidência) |
+| :--- | :--- | :--- | :--- |
+| Coleta (SurveyMonkey) | "Cada linha de resposta é uma pessoa." | 1 linha de `Resposta` é um elemento (matriz/checkbox), não um respondente. | 20.607 linhas de `respostas` para 18.735 `respondentes`: contar linha infla participação. |
+| Coleta / identidade | "O respondente é o mesmo entre as bases." | `id_cliente` aparece como texto (`s/i`) e como inteiro; exige conciliação de tipo. | Reconcilia 100% como string, mas o sentinela `s/i` quebra join numérico ingênuo. |
+| Coleta / cobertura | "Toda pesquisa tem questionário e respostas." | Só **10 das 366 pesquisas** têm questionário/respostas no snapshot. | Cubo de resultados cobre ~2,7% do acervo; indicador de conteúdo é parcial. |
+| Consolidação | "Encerrei a coleta, então o resultado está pronto." | Encerrar coleta só muda `status`; validação e tabulação são etapas próprias. | Publicação precoce de dado não validado. |
+| Liberação do acervo | "Aprovei tecnicamente, logo está publicado." | Publicação exige autorização, versão e perfil — não modelados (§6.7.14). | Expectativa de publicação automática sem controle. |
+
+
+### 6.7.12 Divergências de expectativa quanto ao status da pesquisa
+
+Detalhamento de uma classe específica da §6.7.11: os momentos em que o **usuário
+acredita que a pesquisa está concluída, mas o modelo ainda exige validações
+pendentes**. É onde o status percebido descola do status real e gera cobrança ou
+publicação indevida.
+
+| Status percebido pelo usuário | Status real no modelo | Validação pendente que falta | Efeito no trabalho |
+| :--- | :--- | :--- | :--- |
+| "Coleta encerrada = concluída" | `Coleta encerrada` (≠ `Publicada`) | Validação de qualidade + tabulação + revisão | Retrabalho e cobrança indevida de resultado. |
+| "Questionário aprovado = pronto para publicar" | `Questionário validado` | Coleta, análise e autorização de publicação | Pressão para publicar antes da coleta. |
+| "Tabulado = disponível no acervo" | `Tabulada` | Revisão de entrega + autorização + versionamento | Resultado exposto sem autorização registrada. |
+| "Prorroguei, então o prazo não conta" | `Em coleta` com `prorrogada_ate` | Registro de motivo e recálculo de dias úteis | Indicador de tempo distorcido sem a causa da prorrogação. |
+
+
+### 6.7.13 Lacunas no modelo de dados — validação de pesquisas
+
+Documenta o que o banco **precisaria conter** para persistir os históricos de
+validação técnica, hoje ausentes. Sem isso, a validação da área técnica (S1)
+acontece, mas não deixa rastro consultável nem auditável.
+
+- **O que falta:** entidade/atributos de validação técnica — `Questao.validada`,
+  `Pesquisa.versao_questionario` e um registro de *quem validou, quando e com qual
+  parecer*.
+- **O que o modelo precisaria conter:** um histórico de validação (data, revisor,
+  resultado, versão do instrumento) ligado à `Pesquisa`, permitindo auditar por
+  que um questionário foi aceito ou devolvido.
+- **Evidência da lacuna:** o snapshot não possui nenhuma coluna de parecer ou
+  versão de questionário nas 231 linhas de `questoes`; a decisão técnica existe no
+  processo, não no dado.
+- **Status de implementação:** **pendente** — sinalizado como lacuna; a estrutura
+  de versionamento do questionário ainda não existe.
+
+
+### 6.7.14 Lacunas no modelo de dados — publicação no acervo
+
+Identifica as falhas na estrutura de dados que impedem o **rastreamento
+automatizado entre o DW e o repositório público** do site.
+
+- **O que falta:** vínculo persistido entre a `Pesquisa` interna e o item
+  publicado — `Pesquisa.autorizacao`, `versao_publicada`, `data_publicacao`,
+  `perfil_autorizado` e o identificador do recurso externo.
+- **O que o modelo precisaria conter:** uma relação de publicação ligando
+  resultado, versão, autorização e destino, preservando a linhagem entre o dado
+  interno e o divulgado.
+- **Evidência da lacuna:** não há na base qualquer chave que ligue `Pesquisa` ao
+  acervo publicado; a publicação hoje é manual e sem vínculo rastreável.
+- **Status de implementação:** **pendente** — é uma das evoluções previstas para o
+  TO-BE (§2.1).
+
+
+### 6.7.15 Verificação de alinhamento entre o modelo (DER) e os passos do fluxo
+
+Verificação de consistência (tarefa de teste) que confronta cada **relacionamento
+do DER** com os passos dos fluxos §6.7.3 e §6.7.6, para garantir que a
+correspondência fluxo↔banco esteja mapeada e que toda chave estrangeira usada nas
+transições de estado (§6.7.7 e §6.7.8) se sustente nos dados reais. A checagem é
+**reproduzível** pelo script `scripts/data_quality/valida_integridade_referencial.py`,
+executado sobre o snapshot do parceiro; os resultados abaixo são a sua saída.
+
+<div align="center">
+<sub>Tabela X - Integridade referencial medida nas bases reais (evidência do alinhamento)</sub><br>
+
+| Relacionamento do DER | Chaves distintas | Órfãs | Cobertura | Leitura |
+| :--- | ---: | ---: | ---: | :--- |
+| `questoes.pesquisa_id` → `pesquisas.id` | 10 | 4 | 60,0% | Órfãos documentados (424, 1116, 1139, 1147). |
+| `respostas.pesquisa_id` → `pesquisas.id` | 10 | 4 | 60,0% | Mesmos órfãos; só 10 pesquisas têm questionário. |
+| `respostas.id_pergunta` → `questoes.id_pergunta` | 231 | 0 | 100% | Íntegro. |
+| `respostas.id_empresa` → `empresas.ID` | 131 | 0 | 100% | Íntegro. |
+| `respondentes.id_pesq` → `pesquisas.id` | 327 | 1 | 99,7% | Órfão novo `304` (reter e reconciliar). |
+| `respondentes.id_empresa` → `empresas.ID` | 419 | 0 | 100% | Íntegro. |
+| `respondentes.id_cliente` → `clientes.id_cliente` | 5.430 | 0 | 100% | Íntegro (reconcilia como texto; há sentinela `s/i`). |
+| `clientes.id_empresa` → `empresas.ID` | 410 | 0 | 100% | Íntegro. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Resultado: das oito relações do DER, **seis estão 100% íntegras**; as duas
+exceções são as **chaves órfãs de pesquisa** — as quatro já conhecidas (424, 1116,
+1139, 1147) e a nova `304` encontrada em `respondentes`, todas encaminhadas para
+retenção e reconciliação com o parceiro (§6.7.10 e §2.8 do documento de
+Governança). Nenhuma ação do fluxo fica sem correspondência não analisada; as
+lacunas residuais (denominador de adesão, consentimento e versão de questionário)
+estão registradas nas §6.7.9, §6.7.13 e §6.7.14 como itens de modelagem, não como
+inconsistência de dado.
+
+
+### 6.7.16 Premissas do modelo de dados para o perfil secundário
+
+Hipóteses assumidas sobre a atuação da área técnica, organizadas para compor a
+legenda do artefato e para sinalizar o que precisa ser confirmado com o parceiro.
+
+| Premissa | Descrição | Impacto se não se confirmar |
+| :--- | :--- | :--- |
+| Acesso de leitura qualificada | A área técnica consulta e sinaliza, mas não edita o ciclo. | Se tiver escrita, muda o modelo de permissões e a trilha de auditoria (§5). |
+| Atuação pontual | Entra em S1, S2 e S3, não em todo o ciclo. | Se atuar em mais etapas, o fluxo secundário precisa ser reexpandido. |
+| Papel de validação técnica reconhecido | Existe um responsável técnico formal pela validação do questionário. | Sem papel formal, a §6.7.13 vira bloqueio, não só lacuna. |
+| Frequência de acesso sob demanda | Acessa nos marcos de validação/revisão, não continuamente. | Se for contínuo, muda requisitos de desempenho e concorrência (RNF01). |
+| Denominador obtível no futuro | O universo convidado poderá ser capturado na integração com o SurveyMonkey. | Se nunca existir, a taxa de adesão permanece estruturalmente insuficiente. |
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
