@@ -608,6 +608,11 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
             validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
 
+    def test_tapi_cannot_repeat_analyst_assignment(self) -> None:
+        tapi = self.tapi + "\nLucas Andrade – Analista de Dados Jr.\n"
+        with self.assertRaisesRegex(GovernanceValidationError, "analista de dados"):
+            validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
+
     def test_dmc_owner_mismatch_fails(self) -> None:
         dmc = json.loads(json.dumps(self.dmc))
         dmc["governancaCorporativa"]["owner"] = "Pessoa não confirmada"

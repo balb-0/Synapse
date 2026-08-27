@@ -1042,20 +1042,34 @@ def validate_role_consistency(
             raise GovernanceValidationError(
                 f"atribuição obrigatória ausente no TAPI: {label} — {expected_name}"
             )
-    tapi_labeled_roles = {
-        "líder do projeto": r"LÍDER DO PROJETO",
-        "ponto focal backup": r"PONTO FOCAL BACKUP",
-        "líder executivo": r"LÍDER EXECUTIVO(?: \[Onboarding Executivo\])?",
+    tapi_unique_assignments = {
+        "líder do projeto": r"(?:●[ \t]*)?LÍDER DO PROJETO[ \t]*:[^\n]*",
+        "ponto focal backup": r"(?:●[ \t]*)?PONTO FOCAL BACKUP[ \t]*:[^\n]*",
+        "analista de dados": (
+            r"Lucas Andrade[ \t]*[–-][ \t]*Analista de Dados Jr\.[^\n]*"
+        ),
+        "líder executivo": (
+            r"(?:●[ \t]*)?LÍDER EXECUTIVO(?: \[Onboarding Executivo\])?"
+            r"[ \t]*:[^\n]*"
+        ),
     }
-    for label, role_pattern in tapi_labeled_roles.items():
-        assignments = re.findall(
-            rf"^[ \t]*(?:●[ \t]*)?{role_pattern}[ \t]*:",
+    for label, assignment_pattern in tapi_unique_assignments.items():
+        assignment_lines = re.findall(
+            rf"^[ \t]*{assignment_pattern}",
             tapi,
             re.MULTILINE | re.IGNORECASE,
         )
-        if len(assignments) != 1:
+        if len(assignment_lines) != 1:
             raise GovernanceValidationError(
                 f"o TAPI deve conter exatamente uma atribuição para {label}"
+            )
+        if re.search(
+            r"\b(?:mas\s+)?não\s+(?:é|atua(?:\s+como)?|exerce|possui|ocupa)\b",
+            assignment_lines[0],
+            re.IGNORECASE,
+        ):
+            raise GovernanceValidationError(
+                f"a atribuição do TAPI contém negação contraditória para {label}"
             )
     _require_terms(tapi, ("Trello", "Outlook"), label="ferramentas do TAPI")
 
