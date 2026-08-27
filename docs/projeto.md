@@ -2688,6 +2688,20 @@ estão registradas nas §6.7.9, §6.7.13 e §6.7.14 como itens de modelagem, nã
 inconsistência de dado.
 
 
+### 6.7.16 Premissas do modelo de dados para o perfil secundário
+
+Hipóteses assumidas sobre a atuação da área técnica, organizadas para compor a
+legenda do artefato e para sinalizar o que precisa ser confirmado com o parceiro.
+
+| Premissa | Descrição | Impacto se não se confirmar |
+| :--- | :--- | :--- |
+| Acesso de leitura qualificada | A área técnica consulta e sinaliza, mas não edita o ciclo. | Se tiver escrita, muda o modelo de permissões e a trilha de auditoria (§5). |
+| Atuação pontual | Entra em S1, S2 e S3, não em todo o ciclo. | Se atuar em mais etapas, o fluxo secundário precisa ser reexpandido. |
+| Papel de validação técnica reconhecido | Existe um responsável técnico formal pela validação do questionário. | Sem papel formal, a §6.7.13 vira bloqueio, não só lacuna. |
+| Frequência de acesso sob demanda | Acessa nos marcos de validação/revisão, não continuamente. | Se for contínuo, muda requisitos de desempenho e concorrência (RNF01). |
+| Denominador obtível no futuro | O universo convidado poderá ser capturado na integração com o SurveyMonkey. | Se nunca existir, a taxa de adesão permanece estruturalmente insuficiente. |
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
