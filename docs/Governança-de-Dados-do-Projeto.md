@@ -1998,3 +1998,57 @@ qualquer afirmação de conformidade.
 | Aproveitar a série histórica já recebida | Cobertura temporal de 2022 a 2027, com anos completos em 2023, 2024 e 2025 | Análise de tendência e sazonalidade viável antes mesmo do pipeline, com as ressalvas de denominador. |
 | Partir de um MVP estreito | Escopo do TAPI: banco central, um pipeline e um dashboard | Sobe o nível das dimensões operacionais com um recorte verificável, em vez de esperar a integração completa. |
 | Usar a gestão de configuração como modelo | Branches por tarefa, revisor distinto do autor e validação antes da entrega, já em prática | A prática madura do grupo serve de referência para a rotina de mudança da própria governança. |
+
+## 7.9 Plano de ação e roadmap
+
+O plano é organizado em três ondas encadeadas por dependência, não por
+calendário. A escolha é deliberada: o projeto não recebeu linha de base de
+capacidade operacional, tamanho de equipe, custo ou esforço em fonte auditável,
+e atribuir datas sem esses insumos produziria um cronograma de aparência
+precisa e sem lastro. A ordem das ondas, essa sim, é determinada pelas
+evidências: a homologação é a fronteira do nível 3, e a escolha da plataforma
+bloqueia todas as dimensões operacionais.
+
+**Onda 1 — Formalização.** Não depende de infraestrutura e pode começar
+imediatamente.
+
+| Iniciativa | Dimensão afetada | Meta | Evidência de conclusão |
+| :--- | :--- | :---: | :--- |
+| Homologar a designação de Data Owner, Stewards e Custodian | Governança de Dados | 2 → 3 | Ato formal com escopo, autoridade, substitutos e data de vigência. |
+| Designar controlador, operador, suboperadores e encarregado por fluxo | Governança e Segurança | 2 → 3 | Inventário de tratamento com agente identificado e hipótese legal por finalidade. |
+| Escolher a plataforma de nuvem e definir o papel do n8n | Armazenamento e Integração | desbloqueio | Registro de região, criptografia, administradores, logs, backup, retenção e contrato. |
+| Aprovar a política de acesso por perfil | Segurança de Dados | 2 → 3 | Matriz aprovada e teste negativo executado para cada perfil e ação crítica. |
+| Aprovar os critérios e prazos de retenção da Seção 6.3 | Ciclo de vida | 2 → 3 | Tabela sem `pendente_confirmacao` nas classes com dado pessoal; fecha as dependências das Seções 2.7, 3.4, 3.6 e 3.8. |
+| Contratar e inventariar a custódia externa | Governança de Dados | 2 → 3 | Contrato identificando dados, ambiente, instruções, acesso, retenção, auditoria e descarte. |
+| Conciliar as divergências do baseline e as afirmações do TAPI | Governança de Dados | 2 → 3 | Registro da grafia correta dos nomes, do papel não localizado e da natureza real das bases recebidas. |
+
+**Onda 2 — MVP operacional.** Depende da plataforma escolhida na Onda 1 e
+implementa o recorte já previsto no TAPI: banco central, um pipeline e um
+dashboard.
+
+| Iniciativa | Dimensão afetada | Meta | Evidência de conclusão |
+| :--- | :--- | :---: | :--- |
+| Implantar as camadas `staging`, `trusted` e `analytics` para uma fonte | Armazenamento e Operação | 1 → 2 | Isolamento comprovado entre camadas e contas, com gates de promoção operando. |
+| Implantar um pipeline com registro de execução | Integração e Interoperabilidade | 1 → 2 | `load_id`, hash da entrada, contagens e resultado gravados a cada carga; reprocessamento idempotente testado. |
+| Aprovar a identidade canônica preservando o identificador de origem | Dados Mestres e de Referência | 1 → 2 | Regra de reconciliação aprovada; chaves órfãs conhecidas resolvidas ou mantidas como não mapeadas. |
+| Aplicar as regras de validação da Seção 2.6 como gate de ingestão | Qualidade de Dados | 2 → 3 | Lote inválido efetivamente rejeitado ou sinalizado, com registro do resultado. |
+| Migrar um dashboard para o banco central | Data Warehousing e BI | 1 → 2 | Painel alimentado pela carga, sem atualização manual, com indicador de frescor exibido. |
+
+**Onda 3 — Medição e melhoria.** Depende do MVP em operação e é o que leva as
+dimensões documentais acima do nível 3.
+
+| Iniciativa | Dimensão afetada | Meta | Evidência de conclusão |
+| :--- | :--- | :---: | :--- |
+| Instrumentar os KPIs de qualidade com limiar homologado | Qualidade de Dados | 3 → 4 | Histórico append-only em operação, com desvio disparando ação corretiva rastreável. |
+| Implantar o catálogo com `asset_id` e linhagem de execução | Metadados | 2 → 4 | Inventário navegável, coleta de schema automatizada e cobertura de linhagem medida. |
+| Executar o primeiro ciclo de expurgo e o teste de restauração | Ciclo de vida | 3 → 4 | Expurgo propagado às cópias e restauração sem reintroduzir registro eliminado. |
+| Obter o universo convidado por pesquisa | Data Warehousing e BI | 2 → 3 | Denominador aprovado, encerrando a ambiguidade atual do cálculo de adesão. |
+| Estabelecer a revisão periódica da política de governança | Todas | 4 → 5 | Evidência de mudança de política decorrente de uma medição, e não de uma opinião. |
+
+**Sequenciamento e primeira medida.** As três iniciativas de maior efeito estão
+na Onda 1 e não custam infraestrutura: homologar os papéis, escolher a
+plataforma e aprovar os prazos de retenção. Juntas, elas destravam seis das dez
+dimensões e fecham as quatro dependências que a Seção 6 mantém abertas. Enquanto
+a Onda 1 não avançar, qualquer investimento nas ondas seguintes produz
+capacidade técnica sem alçada para operá-la — que é exatamente o desequilíbrio
+diagnosticado na Seção 7.7.
