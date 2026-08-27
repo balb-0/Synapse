@@ -354,7 +354,7 @@ class GovernanceDocumentTests(unittest.TestCase):
             validate_document(document)
 
     def test_catalog_must_distinguish_fallback_from_unmapped(self) -> None:
-        document = self.document.replace("`fallback_por_titulo`", "`nao_mapeado`")
+        document = self.document.replace("fallback_por_titulo", "nao_mapeado")
         with self.assertRaisesRegex(GovernanceValidationError, "fallback_por_titulo"):
             validate_document(document)
 
