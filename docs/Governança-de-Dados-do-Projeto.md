@@ -32,6 +32,8 @@
   - [1.6 Matriz de responsabilidades por domínio](#16-matriz-de-responsabilidades-por-domínio)
   - [1.7 Regras de aplicação da matriz](#17-regras-de-aplicação-da-matriz)
   - [1.8 Atribuições internas, externas e cadeia de custódia](#18-atribuições-internas-externas-e-cadeia-de-custódia)
+    - [1.8.1 Interfaces de responsabilidade na custódia](#181-interfaces-de-responsabilidade-na-custódia)
+    - [1.8.2 Confirmações externas pendentes](#182-confirmações-externas-pendentes)
 - [2. Política de Qualidade de Dados](#2-política-de-qualidade-de-dados)
   - [2.1 Atributos de qualidade](#21-atributos-de-qualidade)
   - [2.2 Métricas e procedimentos de mensuração](#22-métricas-e-procedimentos-de-mensuração)
@@ -146,21 +148,28 @@ flowchart LR
     CUST["[DOC/PEND] Data Custodian / TI<br/>Rodrigo Giorgetto / TI<br/>implementa infraestrutura,<br/>segurança, cargas, logs e backups"]:::baseline
     CENTRAL["[PROP] Central de Pesquisas<br/>opera o ciclo, valida indicadores<br/>e prepara resultados"]:::proposal
     AREAS["[PROP] Áreas técnicas<br/>revisam questionários,<br/>conteúdo e resultados"]:::proposal
-    LEGAL["[PEND] Agentes LGPD<br/>controlador, operadores, suboperadores<br/>e encarregado a designar"]:::pending
+    CONTROLLER["[PEND] Controlador<br/>decide finalidade jurídica,<br/>hipótese legal e instruções"]:::pending
+    PROCESSORS["[PEND] Operador e suboperadores<br/>executam o tratamento<br/>conforme instruções"]:::pending
+    DPO["[PEND] Encarregado<br/>atua como canal,<br/>orienta e apoia conformidade"]:::pending
     EXT["[COND] RentalHost<br/>custódia técnica sob contrato<br/>e conforme instruções"]:::external
 
     SIND -.->|homologação pendente| OWNER
     SIND -.->|homologação pendente| STEWARD
     SIND -.->|homologação pendente| CUST
-    SIND -.->|designa por tratamento| LEGAL
+    SIND -.->|designa por tratamento| CONTROLLER
+    SIND -.->|identifica por tratamento e contrato| PROCESSORS
+    SIND -.->|designa o canal| DPO
     CENTRAL -->|necessidade e validação operacional| STEWARD
     AREAS -->|validação temática| STEWARD
     STEWARD -->|regra, metadado e controle esperado| OWNER
     OWNER -->|decisão aprovada| CUST
     CUST -->|execução e evidência técnica| STEWARD
-    OWNER -.->|coordena decisão de negócio| LEGAL
-    LEGAL -.->|decisão jurídica própria por tratamento| CUST
-    LEGAL -.->|requisitos de privacidade| STEWARD
+    OWNER -.->|coordena uso de negócio| CONTROLLER
+    CONTROLLER -.->|instruções do tratamento| CUST
+    CONTROLLER -.->|instruções documentadas| PROCESSORS
+    PROCESSORS -.->|execução contratada| CUST
+    DPO -.->|orientação e canal| OWNER
+    DPO -.->|requisitos de privacidade| STEWARD
     CUST -.->|instrução técnica contratada| EXT
 
     classDef baseline fill:#E8F1FB,stroke:#2563EB,color:#0F172A,stroke-width:1.5px
@@ -174,7 +183,7 @@ flowchart LR
 | `[DOC]`, nó azul | Nome ou papel presente no baseline documental. |
 | `[DOC/PEND]`, nó azul | Nome presente no baseline, com designação e autoridade ainda sujeitas à homologação. |
 | `[PROP]`, nó verde | Função operacional proposta para a Central ou para as áreas técnicas. |
-| `[PEND]`, nó laranja tracejado | Agente legal pendente de designação por tratamento. |
+| `[PEND]`, nó laranja tracejado | Papel jurídico pendente; controlador, operador/suboperador e encarregado preservam funções distintas. |
 | `[COND]`, nó roxo tracejado | Participação externa condicionada a contrato e instruções. |
 | Seta contínua | Interface funcional proposta de definição, aprovação, execução ou verificação. |
 | Seta tracejada | Relação pendente ou condicional; não comprova subordinação ou vínculo jurídico. |
@@ -259,9 +268,9 @@ pendentes da Seção 1.4.
 | :--- | :--- | :--- | :--- | :--- |
 | Fonte operacional → `staging` | Central, área técnica ou integração autorizada | Data Custodian/TI; fornecedor somente sob contrato | Data Steward valida estrutura e classificação | Fonte, arquivo ou evento, data, responsável, hash ou identificador da carga, classificação e resultado da validação. |
 | `staging` → `trusted` | Data Steward fornece regras e pendências | Data Custodian/TI executa padronização, quarentena e reprocessamento | Data Steward valida qualidade; Data Owner decide exceção relevante | Versão da regra, contagens de entrada/saída, rejeições, reconciliações, execução e aprovador da exceção. |
-| `trusted` → `analytics` | Central define a necessidade analítica; Steward mantém semântica | Data Custodian/TI materializa fatos, dimensões e agregações | Data Steward valida cálculo e linhagem; Data Owner aprova o uso de negócio; agentes LGPD atuam conforme designação | Versão do modelo, grão, fontes, fórmula, teste de qualidade, classificação e data da atualização. |
-| `analytics` → publicação | Central ou área técnica prepara resultado | Data Custodian/TI ou custodiante externo disponibiliza | Data Owner aprova publicação; agentes LGPD atuam conforme designação | Versão, recorte, teste de agregação ou anonimização, aprovadores, destino, data e procedimento de retirada. |
-| Correção, incidente ou direito do titular | Central, titular, auditoria ou monitoramento registra a demanda | Custodian e fornecedores propagam a ação nos ambientes sob sua custódia | Steward comprova linhagem; agente LGPD designado decide e acompanha o aspecto legal | Protocolo, escopo, sistemas afetados, logs, prazo, resultado, exceções e encerramento aprovado. |
+| `trusted` → `analytics` | Central define a necessidade analítica; Steward mantém semântica | Data Custodian/TI materializa fatos, dimensões e agregações | Data Steward valida cálculo e linhagem; Data Owner aprova o uso de negócio; controlador decide a compatibilidade jurídica quando houver dado pessoal; encarregado orienta | Versão do modelo, grão, fontes, fórmula, teste de qualidade, classificação e data da atualização. |
+| `analytics` → publicação | Central ou área técnica prepara resultado | Data Custodian/TI ou custodiante externo disponibiliza; operador/suboperador atua somente conforme instrução | Data Owner aprova a publicação de negócio; controlador decide as condições jurídicas quando houver dado pessoal; encarregado orienta | Versão, recorte, teste de agregação ou anonimização, aprovadores, destino, data e procedimento de retirada. |
+| Correção, incidente ou direito do titular | Central, titular, auditoria ou monitoramento registra a demanda | Custodian, operador, suboperador e fornecedores propagam a ação nos ambientes sob sua custódia e conforme instruções | Steward comprova linhagem; controlador decide o aspecto legal; encarregado atua como canal e acompanha o atendimento | Protocolo, escopo, sistemas afetados, logs, prazo, resultado, exceções e encerramento aprovado. |
 
 ### 1.8.2 Confirmações externas pendentes
 
