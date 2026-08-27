@@ -149,7 +149,31 @@ Os KPIs consolidam as métricas (2.2) e suas metas (2.3) em indicadores acompanh
 
 ## 2.5 Fluxo de ações corretivas
 
-_conteúdo_
+Quando um KPI (2.4) cruza um limiar da seção 2.3, dispara-se um **procedimento operacional padrão (POP)** de correção. O fluxo é o mesmo independentemente do atributo violado; o que muda é a **severidade**, que determina prazo e nível de intervenção. O procedimento tem sete passos encadeados, do disparo à reavaliação:
+
+1. **Detecção** — a rotina de mensuração (2.2) identifica a métrica fora do limiar e registra o evento no histórico de qualidade.
+2. **Classificação** — o desvio recebe uma severidade (crítica / alta / média / baixa) conforme a tabela abaixo.
+3. **Contenção** — nos casos de limiar de bloqueio, o lote é retido e isolado antes de qualquer gravação no banco central.
+4. **Correção** — o dado é saneado na origem ou por regra de padronização documentada; nunca por edição manual não rastreada.
+5. **Re-ingestão** — o registro corrigido retorna ao início do pipeline e passa novamente pelas regras de validação (2.6).
+6. **Reavaliação** — o KPI é recalculado; se voltou à meta, o caso é encerrado no histórico.
+7. **Escalonamento** — se o desvio persistir após a correção, o caso sobe ao Data Owner para decisão (aceitar exceção documentada ou acionar a fonte).
+
+<div align="center">
+<sub>Tabela X - Fluxo de ações corretivas por severidade</sub><br>
+
+| Severidade | Gatilho (limiar da 2.3) | Ação | Prazo | Responsável (ver Seção 1) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Crítica** | Duplicidade > 0% ou chave órfã em campo obrigatório | Bloquear ingestão do lote, isolar registros e corrigir na origem | 1 dia útil | Data Steward + Data Custodian |
+| **Alta** | Completude de campo obrigatório abaixo do limiar de alerta | Sinalizar, completar na origem e reprocessar | 3 dias úteis | Data Steward |
+| **Média** | Conformidade de domínio/referencial abaixo do limiar | Padronizar valores e registrar regra de saneamento | 5 dias úteis | Data Steward |
+| **Baixa** | Defasagem de atualidade fora do esperado | Revisar rotina de atualização da fonte | Próximo ciclo | Data Owner |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+**Encerramento e trilha.** Toda ação corretiva — gatilho, severidade, responsável, data e resultado da reavaliação — é gravada no histórico de qualidade, compondo a trilha de auditoria consolidada na seção 2.7. A atribuição nominal/funcional dos responsáveis pelo disparo e pela execução de cada ação é detalhada em documento específico do projeto, e a aderência dos prazos à cadência operacional da Central de Pesquisas é revisada periodicamente para garantir que o fluxo seja executável, e não apenas formal.
 
 ## 2.6 Regras de validação na ingestão
 
