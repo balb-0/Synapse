@@ -311,6 +311,16 @@ class GovernanceDocumentTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "asset_id"):
             validate_document(document)
 
+    def test_common_catalog_field_cannot_have_empty_contract(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `asset_id` | Identificador estável")
+        )
+        document = self.document.replace(row, "| `asset_id` | | |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "metadados comuns"):
+            validate_document(document)
+
     def test_missing_catalog_asset_type_fails(self) -> None:
         document = self.document.replace("| **Medida** |", "| **Métrica** |", 1)
         with self.assertRaisesRegex(GovernanceValidationError, "Medida"):
@@ -333,6 +343,26 @@ class GovernanceDocumentTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "DIM_EXECUCAO_CARGA"):
             validate_document(document)
 
+    def test_catalog_example_value_cannot_be_empty(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `asset_id` | `dw.fact.fato_ciclo_pesquisa`")
+        )
+        document = self.document.replace(row, "| `asset_id` | |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "exemplo de catálogo"):
+            validate_document(document)
+
+    def test_catalog_dimension_contract_cannot_be_empty(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `DIM_AREA` |")
+        )
+        document = self.document.replace(row, "| `DIM_AREA` | | | |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "dimensões do exemplo"):
+            validate_document(document)
+
     def test_catalog_example_requires_measure_contract(self) -> None:
         row = next(
             line
@@ -350,6 +380,24 @@ class GovernanceDocumentTests(unittest.TestCase):
             if line.startswith("| **C04 — Questionários e Cobertura**")
         )
         document = self.document.replace(row, "", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "C04"):
+            validate_document(document)
+
+    def test_catalog_rejects_invalid_cube_prefix(self) -> None:
+        document = self.document.replace(
+            "| **C01 — Portfólio e Ciclo** |",
+            "| **C01_extra — Portfólio e Ciclo** |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "C01"):
+            validate_document(document)
+
+    def test_catalog_requires_canonical_cube_name(self) -> None:
+        document = self.document.replace(
+            "| **C04 — Resultados e Questionários** |",
+            "| **C04 — Questionários e Cobertura** |",
+            1,
+        )
         with self.assertRaisesRegex(GovernanceValidationError, "C04"):
             validate_document(document)
 
