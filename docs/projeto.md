@@ -2431,6 +2431,64 @@ regras aprovadas para edição, publicação e acesso. Cada critério de sucesso
 listado em §6.7.1 possui pelo menos um ponto de confirmação em §6.7.2 e aparece
 em uma ou mais etapas do fluxo principal da §6.7.3.
 
+### 6.7.6 Fluxo de interação do perfil secundário (área técnica)
+
+O perfil secundário é a **área técnica** que dá suporte especializado à Central
+de Pesquisas. Diferente da equipe interna — que opera o ciclo de ponta a ponta
+(§6.7.3) —, a área técnica não conduz a pesquisa: ela **entra no fluxo em três
+instantes pontuais, de alto impacto e alta responsabilidade técnica**. São eles a
+validação técnica do questionário (antes da divulgação), o acompanhamento da
+adesão sob a ótica de representatividade do setor farmacêutico, e a revisão de
+consistência dos resultados antes da tabulação ou publicação. Em todos, o papel é
+de **revisão e sinalização qualificada**: possui acesso de leitura qualificada,
+valida e devolve, mas não avança o ciclo nem publica por conta própria.
+
+Esse recorte importa porque é justamente nesses três pontos que o **modelo mental
+da área técnica tende a divergir** do ciclo de vida modelado pelo grupo. O caso
+mais frequente é presumir que um questionário "aprovado tecnicamente" já está
+pronto para publicar, quando o modelo ainda exige coleta, tabulação, autorização
+e vínculo de versão — divergência classificada na §6.7.12. Por atuar em pontos de
+controle, a área técnica é também quem primeiro **observa** os problemas de dado
+que a §4.0 já havia diagnosticado (chaves órfãs, participação sem denominador,
+respostas que não equivalem a respondentes), o que faz do seu fluxo o principal
+gerador de sinalizações de qualidade.
+
+O diagrama abaixo representa o trecho de interação do perfil secundário; os
+losangos são os pontos de decisão (S1–S3) e os retângulos, os estados resultantes
+no modelo. A notação de estados segue a §6.7.17.
+
+```mermaid
+flowchart TD
+    A([Pesquisa Planejada]) --> S1{S1 · Validar<br/>questionário}
+    S1 -->|inconsistência técnica| P1[Devolvida:<br/>pendente de ajuste]
+    S1 -->|instrumento coerente| V[Questionário validado]
+    P1 -.retrabalho.-> A
+    V --> COL([Em coleta])
+    COL --> S2{S2 · Acompanhar<br/>adesão}
+    S2 -->|sem denominador| L1[Adesão insuficiente<br/>lacuna §6.7.9]
+    S2 -->|base disponível| AD[Adesão disponível]
+    AD --> ENC([Coleta encerrada])
+    L1 --> ENC
+    ENC --> S3{S3 · Revisar<br/>resultados}
+    S3 -->|órfão / duplicidade| P2[Pendente de<br/>reconciliação]
+    S3 -->|consistente| REV[Revisável → tabulação]
+```
+
+A tabela restringe o escopo a esse trecho de divergência; não repete o fluxo
+principal, apenas os passos em que a área técnica age, e associa cada um às
+entidades do modelo e ao estado resultante.
+
+| Ordem | Etapa (área técnica) | Ação principal | Interface ou canal | Entidades tocadas | Resposta esperada da solução | Estado resultante | Checagem (§6.7.2) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| S1 | Validar tecnicamente o questionário | Revisar tipos de questão, alternativas, matrizes e coerência do instrumento antes da divulgação. | SurveyMonkey, documentos de apoio, sistema interno | `Questao`, `Pesquisa` | Registrar o questionário como validado ou pendente, preservando versão e vínculo com a pesquisa. | `Questionário validado` ou `Planejada` (com pendência) | Checagem 2 |
+| S2 | Acompanhar adesão e representatividade | Avaliar participação observada, empresas respondentes e risco de baixa representatividade. | Dashboard operacional, base de respondentes/empresas | `Respondente`, `Empresa`, `Pesquisa` | Exibir numerador e denominador quando existir; sinalizar limitação de cálculo e baixa cobertura. | Adesão `Disponível` ou `Insuficiente` | Checagem 3 |
+| S3 | Revisar consistência dos resultados | Conferir agregados, inconsistências, órfãos e duplicidades antes da tabulação/publicação. | Dashboard de qualidade e de resultados | `Resposta`, `Questao`, `Pesquisa` | Classificar resultado como consistente, pendente ou dependente de reconciliação; nunca liberar sem revisão. | `Revisável` ou `Pendente de reconciliação` | Checagem 3 e 4 |
+
+A área técnica atua como **revisora e validadora**, não como operadora do ciclo:
+seu acesso é de leitura qualificada e sinalização, e suas ações alimentam as
+decisões da equipe interna e do Data Owner, sem substituí-las.
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
