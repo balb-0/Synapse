@@ -478,6 +478,35 @@ Essas estruturas não devem ser adicionadas ao banco apenas para preencher o
 documento. Sua implementação depende de validação com o parceiro e de uma task
 de modelagem própria.
 
+## 4.10 Estado das afirmações e decisões
+
+| Item | Estado | Fonte ou condição |
+| :--- | :--- | :--- |
+| Controle de acesso por perfil no MVP | Confirmado pelo parceiro | TAPI, linhas de escopo e MVP; fonte externa identificada pelo hash desta seção. |
+| Proibição de publicar bases reais, contatos e respostas identificáveis | Confirmado pelo parceiro | TAPI, restrições e conteúdo restrito. |
+| Entidades, campos e riscos de combinação | Observado nos artefatos e dados | Arquitetura de Negócio, documentação quantitativa e mapa de fontes do projeto. |
+| Dados recebidos já são fictícios ou anonimizados | **Não confirmado** | O DMC contém essa afirmação, mas o TAPI não a comprova. As fontes brutas permanecem Confidenciais ou Sensíveis por padrão. |
+| Quatro classes, técnicas, matriz e limiar `k < 5` | Proposta da equipe | Precisa de teste, catálogo, aprovação e evidência de implementação. |
+| Controlador, operador, encarregado, hipóteses legais e retenções | Pendente de validação | Decisão jurídica e organizacional do Sindusfarma para cada fluxo. |
+
+As referências normativas usadas são a [Lei nº 13.709/2018 —
+LGPD](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm),
+as orientações da ANPD sobre [direitos dos
+titulares](https://www.gov.br/anpd/pt-br/assuntos/titular-de-dados-1/direito-dos-titulares)
+e o [Guia de Segurança da Informação para Agentes de Tratamento de Pequeno
+Porte](https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia-vf.pdf).
+Essas fontes sustentam os critérios legais e de segurança; não comprovam a
+implantação dos controles no parceiro.
+
+## 4.11 Critério de liberação de dados
+
+Uma entrega externa só é liberada quando possui finalidade e público definidos,
+versão inventariada, origem e transformações rastreáveis, classificação
+revisada, autorização registrada e teste de reidentificação considerando
+filtros, exports e dedução por diferença. Qualquer ausência bloqueia a
+publicação. GitLab e entregas acadêmicas recebem apenas documentação, código e
+dados sintéticos, anonimizados ou agregados aprovados.
+
 # 5. Segurança e Acesso
 
 Esta seção define o desenho de referência para autorização e segurança do Data
