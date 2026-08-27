@@ -2550,6 +2550,24 @@ que precisa valer para a transição ser legítima, verificada empiricamente na
 | S3. Revisar resultados | `Resposta`, `Pesquisa` | flag de consistência, `status` | `Coleta encerrada` → `Revisável`/`Pendente de reconciliação` | Toda `Resposta` liga a `Questao` (100%) e `Pesquisa` — exceto as chaves órfãs conhecidas. |
 
 
+### 6.7.9 Passos do fluxo sem correspondência no modelo de dados
+
+Confrontando os fluxos (§6.7.3 e §6.7.6) com o modelo relacional, alguns passos
+previstos na interface **não têm entidade ou atributo** que os persista. Cada um é
+uma **lacuna potencial de modelagem**: a ação existe na tela, mas o dado que ela
+produziria não tem onde morar hoje — e portanto se perde entre uma sessão e outra.
+
+| Passo de interface (fluxo) | O que a tela faz | Entidade/atributo faltante | Consequência se não modelado |
+| :--- | :--- | :--- | :--- |
+| Sinalizar duplicidade/conflito ao criar pesquisa (passo 1) | Marca suspeita de duplicata | `Pesquisa.flag_duplicidade` / entidade de conflito | Suspeita se perde; sem trilha da deduplicação. |
+| Registrar motivo de atraso/prorrogação (passo 2/5) | Explica o atraso | `Pesquisa.motivo_prorrogacao` | Prorrogação vira número sem causa; análise de gargalo fica cega. |
+| Preparar tarefas operacionais (passo 4) | Cria tarefas no Trello | Entidade `Tarefa` vinculada à `Pesquisa` | Trabalho operacional não é rastreável no DW. |
+| Exibir denominador de adesão (passo 6 / S2) | Calcula taxa de adesão | `Pesquisa.universo_convidado` (denominador) | Taxa de adesão incalculável ou estimada sem base. |
+| Capturar consentimento do respondente (coleta) | Registra consentimento LGPD | Entidade/atributo `Consentimento` | Base legal e direito do titular ficam sem rastro. |
+| Autorizar publicação com perfil/versão (passo 9/10) | Aprova e versiona a saída | `Pesquisa.autorizacao`, `versao_publicada` | Publicação sem controle de autorização/versão. |
+| Registrar parecer da validação técnica (S1) | Guarda o "aceito/devolvido" | Histórico de validação (revisor, data, parecer) | Decisão técnica não é auditável (§6.7.13). |
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
