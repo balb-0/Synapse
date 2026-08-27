@@ -1769,6 +1769,77 @@ e registros de linhagem já operam. As dependências declaradas nas Seções 2.7
 
 # 7. Avaliação de Maturidade
 
-_conteúdo_
+Esta seção avalia a maturidade da governança de dados da Central de Pesquisas do
+Sindusfarma, identifica as lacunas que separam o estado atual do estado desejado
+e propõe um plano de evolução. A avaliação é uma autoavaliação do grupo,
+construída a partir dos artefatos recebidos, dos dados perfilados na Sprint 1 e
+das próprias Seções 1 a 6. Ela não é auditoria, não foi validada pelo parceiro e
+não atribui conformidade: cada nível vem acompanhado da evidência que o sustenta
+e do limite dessa evidência.
 
-**Nota:** Diagnóstico do estágio atual de governança, lacunas identificadas e plano de evolução da maturidade.
+## 7.1 Modelo de referência adotado
+
+O projeto adota o **DAMA-DMBOK 2.0** como modelo de referência das dimensões de
+governança e uma **escala de cinco níveis no formato CMMI** para graduar cada
+dimensão.
+
+A escolha do DMBOK não começa aqui. A Seção 2 já declara que os cinco atributos
+de qualidade do projeto foram selecionados a partir das dimensões consagradas no
+DAMA-DMBOK 2.0. Adotá-lo também na avaliação mantém um vocabulário único entre a
+política de qualidade e o diagnóstico de maturidade, e permite avaliar
+exatamente aquilo que o documento já descreve: as áreas de conhecimento do DMBOK
+correspondem quase diretamente às Seções 1 a 6, o que torna cada nível atribuído
+verificável contra um texto existente em vez de contra uma impressão.
+
+O DCAM foi considerado e não adotado. Ele é mais orientado à pontuação formal de
+maturidade, o que seria uma vantagem, mas seus componentes não correspondem à
+estrutura já documentada; usá-lo exigiria reorganizar as Seções 1 a 6 para
+produzir a mesma conclusão, sem ganho de precisão no estágio em que o projeto
+está. A escala CMMI entra apenas como régua de níveis, porque o DMBOK descreve
+áreas de conhecimento e não fixa uma escala única de maturidade.
+
+## 7.2 Dimensões avaliadas
+
+| Área de conhecimento do DMBOK | Escopo avaliado neste projeto | Onde o documento a trata |
+| :--- | :--- | :--- |
+| **Governança de Dados** | Papéis, alçadas, matriz de responsabilidades e cadeia de custódia. | Seção 1 |
+| **Qualidade de Dados** | Atributos, métricas, limiares, ações corretivas e monitoramento. | Seção 2 |
+| **Metadados** | Catálogo, dicionário, metadados obrigatórios e versionamento. | Seção 3 |
+| **Segurança de Dados** | Perfis, matriz de acesso, camadas, autenticação e trilha de auditoria. | Seções 4 e 5 |
+| **Armazenamento e Operação** | Banco, camadas, backup, restauração e ambientes. | Seções 5.5 a 5.8 e 6.5 |
+| **Integração e Interoperabilidade** | Ingestão, conectores, idempotência e segurança das integrações. | Seções 2.6 e 5.10 |
+| **Arquitetura de Dados** | Fluxo de valor, camadas e visão alvo da solução analítica. | Documentação geral do projeto |
+| **Modelagem e Desenho de Dados** | Grão, fatos, dimensões e vocabulário canônico. | Documentação geral e Seção 3.6 |
+| **Data Warehousing e BI** | Cubos, indicadores e dashboards propostos. | Documentação geral |
+| **Dados Mestres e de Referência** | Identidade de empresa, cliente e pesquisa entre fontes. | Seções 2.8 e 6.8 |
+
+A área **Gestão de Documentos e Conteúdo** não é avaliada: o projeto não trata
+acervo documental não estruturado, e incluí-la produziria um nível sem objeto. A
+conformidade com a LGPD não aparece como área isolada porque o DMBOK a distribui
+entre Governança e Segurança; neste documento ela está concentrada na Seção 4 e
+é avaliada dentro dessas duas dimensões.
+
+## 7.3 Escala de níveis
+
+| Nível | Nome | Critério de atribuição | Equivalência no vocabulário do documento |
+| :--- | :--- | :--- | :--- |
+| **0** | Inexistente | Não há prática nem registro documental da dimensão. | Ausência de item no documento e nos artefatos. |
+| **1** | Inicial | A prática existe na operação, mas é informal, dependente de pessoas e não documentada. | `pendente_confirmacao`; prática observada nos dados sem contrato correspondente. |
+| **2** | Repetível | A prática está documentada e proposta, com responsável indicado, porém sem homologação do parceiro. | `estado_evidencia: documentado` ou `proposto`; `estado_ciclo: em_revisao`. |
+| **3** | Definido | A prática está homologada, com responsável designado, vigência registrada e evidência de aplicação. | `estado_ciclo: vigente`; homologação registrada. |
+| **4** | Gerenciado | A prática é medida por indicador com limiar aprovado, e o desvio dispara ação corretiva rastreável. | KPI com meta homologada e histórico de qualidade em operação. |
+| **5** | Otimizado | A medição alimenta um ciclo de melhoria que revisa a própria política com periodicidade definida. | Revisão programada com evidência de mudança decorrente da medição. |
+
+A escala converge com as taxonomias que o documento já usa. A distinção entre
+`documentado` e `vigente` da Seção 3.2 é exatamente a fronteira entre os níveis
+2 e 3; a distinção entre responsabilidade proposta e homologada da Seção 1.1 é a
+mesma fronteira aplicada aos papéis.
+
+Disso decorre uma consequência que condiciona todo o diagnóstico seguinte:
+**nenhuma dimensão pode ultrapassar o nível 2 nesta avaliação**. A passagem para
+o nível 3 exige homologação, e a Seção 1.4 registra que a designação dos papéis,
+a definição dos agentes de tratamento, o contrato de custódia externa e o
+procedimento de acesso excepcional continuam pendentes. Não se trata de uma
+avaliação severa por opção metodológica: é o limite que as próprias evidências
+impõem. Um nível 3 atribuído aqui seria uma afirmação que nenhuma fonte do
+projeto sustenta.
