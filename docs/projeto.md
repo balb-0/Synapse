@@ -2711,6 +2711,29 @@ legenda do artefato e para sinalizar o que precisa ser confirmado com o parceiro
 | Denominador obtível no futuro | O universo convidado poderá ser capturado na integração com o SurveyMonkey. | Se nunca existir, a taxa de adesão permanece estruturalmente insuficiente. |
 
 
+### 6.7.17 Validação da notação das transições de estado
+
+Checagem final de notação (tarefa de teste): confirma que as mudanças de estado
+das §6.7.7 e §6.7.8 usam **a mesma nomenclatura** de entidades e estados definida
+no modelo relacional, evitando divergência de nomes entre fluxo e banco.
+
+- **Entidades** grafadas de forma única, em maiúscula inicial e no singular:
+  `Pesquisa`, `Questao`, `Empresa`, `Cliente`, `Respondente`, `Resposta`.
+- **Estados de `Pesquisa`** padronizados na sequência do ciclo: `Solicitada` →
+  `Em triagem` → `Aprovada` → `Planejada` → `Questionário validado` → `Em coleta`
+  → `Coleta encerrada` → `Tabulada` → `Revisada` → `Publicada`; estados
+  transversais: `Bloqueada`, `Pendente de reconciliação`, `Não mapeada`.
+- **Convenção de nomes:** campos em `snake_case` (ex.: `data_aprov`, `id_cliente`)
+  e estados de negócio em linguagem natural — sem misturar as duas convenções na
+  mesma célula das tabelas de transição.
+- **Correção aplicada:** o rótulo genérico "concluída", antes usado de forma
+  ambígua, foi substituído pelo estado real correspondente (`Coleta encerrada`,
+  `Tabulada` ou `Publicada`, conforme o ponto), eliminando a ambiguidade apontada
+  na §6.7.12.
+
+Resultado: notação consistente entre as §6.7.6–6.7.8 e o modelo de dados; nenhuma
+divergência de nomenclatura de campo ou entidade remanescente.
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
