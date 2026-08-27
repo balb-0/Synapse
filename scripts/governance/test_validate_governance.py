@@ -598,15 +598,24 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
             validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
 
     def test_tapi_assignment_cannot_negate_role_on_same_line(self) -> None:
-        tapi = self.tapi.replace(
-            "LÍDER EXECUTIVO: Fabio Moreira – Gestor da Central de Pesquisas",
-            (
-                "LÍDER EXECUTIVO [Onboarding Executivo]: Fabio Moreira – Gestor "
-                "da Central de Pesquisas, mas não é líder executivo"
-            ),
-        )
-        with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
-            validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
+        for contradiction in (
+            "mas não é líder executivo",
+            "não corresponde ao líder executivo",
+        ):
+            with self.subTest(contradiction=contradiction):
+                tapi = self.tapi.replace(
+                    "LÍDER EXECUTIVO: Fabio Moreira – Gestor da Central de Pesquisas",
+                    (
+                        "LÍDER EXECUTIVO [Onboarding Executivo]: Fabio Moreira – "
+                        f"Gestor da Central de Pesquisas, {contradiction}"
+                    ),
+                )
+                with self.assertRaisesRegex(
+                    GovernanceValidationError, "líder executivo"
+                ):
+                    validate_role_consistency(
+                        self.document, tapi, self.dmc, self.architecture
+                    )
 
     def test_tapi_cannot_repeat_analyst_assignment(self) -> None:
         tapi = self.tapi + "\nLucas Andrade – Analista de Dados Jr.\n"

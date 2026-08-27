@@ -1063,11 +1063,7 @@ def validate_role_consistency(
             raise GovernanceValidationError(
                 f"o TAPI deve conter exatamente uma atribuição para {label}"
             )
-        if re.search(
-            r"\b(?:mas\s+)?não\s+(?:é|atua(?:\s+como)?|exerce|possui|ocupa)\b",
-            assignment_lines[0],
-            re.IGNORECASE,
-        ):
+        if re.search(r"\bnão\b", assignment_lines[0], re.IGNORECASE):
             raise GovernanceValidationError(
                 f"a atribuição do TAPI contém negação contraditória para {label}"
             )
