@@ -592,6 +592,11 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
             validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
 
+    def test_tapi_cannot_have_two_executive_leaders(self) -> None:
+        tapi = self.tapi + "\nLÍDER EXECUTIVO: Outra Pessoa\n"
+        with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
+            validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
+
     def test_dmc_owner_mismatch_fails(self) -> None:
         dmc = json.loads(json.dumps(self.dmc))
         dmc["governancaCorporativa"]["owner"] = "Pessoa não confirmada"
@@ -618,6 +623,11 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
             "Rodrigo Giorgetto e RentalHost não possuem papel na governança."
         )
         architecture = self.architecture.replace(source, replacement, 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "Arquitetura"):
+            validate_role_consistency(self.document, self.tapi, self.dmc, architecture)
+
+    def test_architecture_cannot_append_negated_owner_assignment(self) -> None:
+        architecture = self.architecture + "\nFabio Moreira não é Data Owner.\n"
         with self.assertRaisesRegex(GovernanceValidationError, "Arquitetura"):
             validate_role_consistency(self.document, self.tapi, self.dmc, architecture)
 
@@ -747,6 +757,18 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
         document = self.document.replace(
             "a equivalência com “Felipe Rojas” deve ser confirmada",
             "a equivalência com “Felipe Rojas” deve ser confirmada, mas já está confirmada",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "equivalência"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_pending_alias_cannot_claim_different_homologated_people(self) -> None:
+        document = self.document.replace(
+            "a equivalência com “Felipe Rojas” deve ser confirmada",
+            (
+                "a equivalência com “Felipe Rojas” deve ser confirmada, mas são "
+                "pessoas diferentes e Felipe Rojas está homologado"
+            ),
             1,
         )
         with self.assertRaisesRegex(GovernanceValidationError, "equivalência"):
