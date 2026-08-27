@@ -48,6 +48,7 @@
   - [3.2 Estratégia e fontes de verdade](#32-estratégia-e-fontes-de-verdade)
   - [3.3 Busca, reutilização, descoberta e rastreabilidade](#33-busca-reutilização-descoberta-e-rastreabilidade)
   - [3.4 Metadados obrigatórios](#34-metadados-obrigatórios)
+  - [3.5 Atualização e versionamento](#35-atualização-e-versionamento)
 - [4. Classificação e Proteção de Dados](#4-classificação-e-proteção-de-dados)
 - [5. Segurança e Acesso](#5-segurança-e-acesso)
 - [6. Ciclo de Vida dos Dados](#6-ciclo-de-vida-dos-dados)
@@ -671,8 +672,82 @@ equivalem a respondentes, repetição de participação não equivale
 automaticamente a duplicidade técnica e nenhuma taxa de adesão existe sem
 denominador documentado.
 
-As subseções seguintes especificam os campos obrigatórios, o versionamento e um
-exemplo aplicado a uma tabela proposta do DW.
+## 3.5 Atualização e versionamento
+
+Alteração de fonte, schema, chave, grão, fórmula, domínio, qualidade,
+classificação, acesso, finalidade, responsável ou consumidor abre uma mudança
+de metadados. Inclusão de fonte ou ativo, correção de definição e depreciação
+seguem o mesmo fluxo; edição direta sem histórico não é permitida no desenho de
+governança.
+
+### 3.5.1 Fluxo de mudança
+
+1. **Registrar:** o solicitante cria um `change_id` com motivo, evidência,
+   ativos afetados, urgência e resultado esperado. Mudança originada por erro
+   de dado referencia a ação corretiva da Seção 2.
+2. **Analisar impacto:** o Data Steward percorre fonte → transformação → modelo
+   → medida → cubo → visualização → PB/RF e registra compatibilidade, mudança de
+   significado, classificação, consumidores e necessidade de migração.
+3. **Propor:** o Steward atualiza definição, regra, linhagem,
+   `estado_evidencia`, `estado_ciclo`, vigência e versão candidata. Informação
+   ainda desconhecida permanece explícita.
+4. **Validar:** Data Custodian/TI executa validações de schema, tipo, domínio,
+   chave, grão, nulabilidade, segurança e reprocessamento; o Steward valida
+   fórmula, aditividade, qualidade, reconciliação e impacto analítico.
+5. **Decidir:** Data Owner aprova uso de negócio, publicação e exceções;
+   controlador e demais papéis LGPD atuam conforme designação quando a mudança
+   alterar tratamento pessoal. Custodian confirma viabilidade técnica, sem
+   substituir as aprovações de negócio ou jurídicas.
+6. **Revisar por MR:** a mudança é submetida a Merge Request com diff,
+   `change_id`, testes, impacto, plano de migração e rollback. A revisão por
+   pessoa diferente do autor aceita a versão do grupo, mas não equivale à
+   homologação do Sindusfarma.
+7. **Publicar:** após as aprovações exigidas, atualizar versão, vigência, autor,
+   aprovadores, artefatos relacionados e consumidores. Automação futura deve
+   publicar de forma idempotente e registrar a execução.
+8. **Monitorar:** a primeira carga ou uso da nova versão verifica contagens,
+   rejeições, KPIs, compatibilidade e acesso. Desvio reabre a mudança ou aciona
+   rollback.
+9. **Encerrar sem apagar:** registrar resultado, evidências e versão
+   substituída. Histórico anterior permanece imutável e consultável.
+
+### 3.5.2 Política de versões
+
+| Identificador | O que versiona | Regra proposta |
+| :--- | :--- | :--- |
+| `catalog_version` | Contrato semântico e técnico do catálogo | SemVer: **major** para quebra de grão, chave, fórmula, significado, classificação ou consumidor; **minor** para ativo/campo compatível novo; **patch** para correção editorial sem mudança semântica. |
+| `schema_version` | Estrutura física ou contrato de uma fonte/tabela | Incremento próprio ligado ao `change_id`; inclui compatibilidade, migração e versão anterior suportada. Não herda automaticamente a versão do catálogo. |
+| `load_id` | Uma execução de ingestão ou transformação | Identificador imutável com fonte, hash/versão recebida, início/fim, código/schema usado, contagens e resultado. Está planejado em `DIM_EXECUCAO_CARGA`, ainda não implantado. |
+| `data_version` | Snapshot ou lote de dados | Hash, versão da fonte ou marco temporal verificável. Data do documento não substitui data da carga. |
+| `scd_version` | Versão histórica de uma linha dimensional | Chave durável, início/fim de vigência e indicador atual. Só se aplica após estratégia SCD homologada e implementada. |
+
+Mudança incompatível não sobrescreve consumidores existentes: cria versão
+maior, identifica painéis e indicadores afetados, define janela de migração e
+mantém a versão anterior até o critério de retirada. Mudança de classificação
+para nível menos restritivo sempre exige reavaliação e aprovação, ainda que não
+altere o schema.
+
+### 3.5.3 Revisão, depreciação e rollback
+
+Como periodicidade **proposta e pendente de homologação**, o catálogo é revisto
+em cada mudança/MR, antes de cada release que altere dados e trimestralmente
+para conferir responsáveis, fontes, consumidores, classificação, acessos,
+qualidade e ativos sem uso. Incidente, nova fonte, mudança regulatória,
+alteração contratual, quebra de qualidade ou divergência de indicador dispara
+revisão extraordinária.
+
+Depreciação registra motivo, substituto, consumidores, data do aviso, fim de
+suporte e responsável pela retirada. O ativo fica `depreciado`, não é apagado,
+e seus links continuam resolvendo para o histórico.
+
+Rollback de metadado cria nova revisão que restaura a definição anterior e
+referencia a mudança falha; não reescreve o histórico do Git. Rollback técnico
+só ocorre com versão compatível de schema/código, backup ou lote preservado,
+teste de reconciliação e autorização aplicável. Se a reversão puder perder dado
+ou reabrir acesso indevido, a carga é bloqueada ou isolada e a decisão é
+escalada antes da execução.
+
+A subseção seguinte apresenta um exemplo aplicado a uma tabela proposta do DW.
 
 # 4. Classificação e Proteção de Dados
 
