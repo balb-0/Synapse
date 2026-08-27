@@ -504,8 +504,9 @@ Uma entrega externa só é liberada quando possui finalidade e público definido
 versão inventariada, origem e transformações rastreáveis, classificação
 revisada, autorização registrada e teste de reidentificação considerando
 filtros, exports e dedução por diferença. Qualquer ausência bloqueia a
-publicação. GitLab e entregas acadêmicas recebem apenas documentação, código e
-dados sintéticos, anonimizados ou agregados aprovados.
+publicação. GitLab, GitHub ou outro repositório público e as entregas acadêmicas
+recebem apenas documentação, código e dados sintéticos, anonimizados ou
+agregados aprovados.
 
 # 5. Segurança e Acesso
 
@@ -712,6 +713,14 @@ existir, tem rotação, detecção de reutilização e revogação no logout.
 Desligamento, mudança de função, retirada de escopo, revogação de consentimento
 aplicável ou incidente invalidam imediatamente sessão, refresh token, grants e
 caches de autorização. A alteração não espera a expiração natural.
+
+Como processo **proposto**, toda concessão deve ter solicitante, aprovador,
+perfil, escopo, finalidade e expiração registrados. Mudança de função exige
+nova análise, não a soma automática de permissões antigas; desligamento aciona
+revogação imediata. O Data Owner e o Data Steward recertificam periodicamente
+os acessos de negócio, enquanto o Data Custodian recertifica contas técnicas e
+privilégios administrativos. A periodicidade e os responsáveis nominais ainda
+dependem de aprovação do Sindusfarma.
 
 ## 5.13 Falhas, recuperação de conta e credenciais
 

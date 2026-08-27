@@ -40,6 +40,15 @@ class GovernanceDocumentTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "heading obrigatório"):
             validate_document(document)
 
+    def test_duplicate_section_heading_fails(self) -> None:
+        document = self.document.replace(
+            "# 5. Segurança e Acesso",
+            "# 5. Segurança e Acesso\n\n# 5. Segurança e Acesso",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "heading obrigatório"):
+            validate_document(document)
+
     def test_placeholder_in_section_four_fails(self) -> None:
         document = self.document.replace(
             "# 4. Classificação e Proteção de Dados",
@@ -60,6 +69,24 @@ class GovernanceDocumentTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "Público"):
             validate_document(document)
 
+    def test_duplicate_class_fails(self) -> None:
+        row = next(
+            line for line in self.document.splitlines() if line.startswith("| **Público**")
+        )
+        document = self.document.replace(row, f"{row}\n{row}", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "duplicadas"):
+            validate_document(document)
+
+    def test_truncated_asset_row_fails(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Pessoa/Cliente**")
+        )
+        document = self.document.replace(row, "| Pessoa/Cliente | campos | Confidencial |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "largura inválida"):
+            validate_document(document)
+
     def test_missing_source_fails(self) -> None:
         document = self.document.replace("clientes.csv", "fonte-de-clientes")
         with self.assertRaisesRegex(GovernanceValidationError, "clientes.csv"):
@@ -74,6 +101,35 @@ class GovernanceDocumentTests(unittest.TestCase):
         public_line = source_line.replace("| Confidencial |", "| Público |")
         document = self.document.replace(source_line, public_line, 1)
         with self.assertRaisesRegex(GovernanceValidationError, "identificável"):
+            validate_document(document)
+
+    def test_person_cannot_be_downgraded_to_internal(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Pessoa/Cliente**")
+        )
+        document = self.document.replace(
+            row, row.replace("| Confidencial |", "| Interno |"), 1
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "classe mínima"):
+            validate_document(document)
+
+    def test_company_cannot_be_classified_as_public(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Empresa**")
+        )
+        document = self.document.replace(
+            row, row.replace("| Confidencial |", "| Público |"), 1
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "classe mínima"):
+            validate_document(document)
+
+    def test_required_risk_field_must_be_in_asset_matrix(self) -> None:
+        document = self.document.replace("respondent_id", "identificador_resposta")
+        with self.assertRaisesRegex(GovernanceValidationError, "respondent_id"):
             validate_document(document)
 
     def test_placeholder_in_section_five_fails(self) -> None:
@@ -140,7 +196,75 @@ class GovernanceDocumentTests(unittest.TestCase):
             "A técnica; L | G da versão aprovada |",
             1,
         )
-        with self.assertRaisesRegex(GovernanceValidationError, "excepcional"):
+        with self.assertRaisesRegex(GovernanceValidationError, "política documentada"):
+            validate_document(document)
+
+    def test_central_cannot_access_staging(self) -> None:
+        source = "| Equipe da Central | — | L/G via aplicação | L | G de preparação |"
+        document = self.document.replace(
+            source,
+            "| Equipe da Central | L | L/G via aplicação | L | G de preparação |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "política documentada"):
+            validate_document(document)
+
+    def test_owner_cannot_read_person_identity(self) -> None:
+        source = "| Data Owner | L | L | — | — | L | A de aprovação | A de regra de negócio |"
+        document = self.document.replace(
+            source,
+            "| Data Owner | L | L | L | — | L | A de aprovação | A de regra de negócio |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "política documentada"):
+            validate_document(document)
+
+    def test_academic_profile_cannot_read_identity(self) -> None:
+        source = (
+            "| Equipe acadêmica | — | — | — | — | "
+            "L somente de agregado aprovado | L da versão pública | — |"
+        )
+        document = self.document.replace(
+            source,
+            "| Equipe acadêmica | — | — | L | — | "
+            "L somente de agregado aprovado | L da versão pública | — |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "política documentada"):
+            validate_document(document)
+
+    def test_custodian_cannot_gain_extra_layer_permission(self) -> None:
+        source = (
+            "| Data Custodian / TI | A técnica; L excepcional | "
+            "A técnica; L excepcional | A técnica; L excepcional | "
+            "G da versão aprovada |"
+        )
+        document = self.document.replace(
+            source,
+            "| Data Custodian / TI | A técnica; L/G excepcional | "
+            "A técnica; L excepcional | A técnica; L excepcional | "
+            "G da versão aprovada |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "política documentada"):
+            validate_document(document)
+
+    def test_ingestion_service_cannot_access_analytics(self) -> None:
+        source = "| Serviço de ingestão | G | G de promoção | — | — |"
+        document = self.document.replace(
+            source, "| Serviço de ingestão | G | G de promoção | L | — |", 1
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "política documentada"):
+            validate_document(document)
+
+    def test_duplicate_profile_fails(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Equipe da Central**")
+        )
+        document = self.document.replace(row, f"{row}\n{row}", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "duplicadas"):
             validate_document(document)
 
 
@@ -167,6 +291,27 @@ class TapiHashTests(unittest.TestCase):
             with self.assertRaisesRegex(GovernanceValidationError, "divergente"):
                 validate_tapi_hash(self.document, tapi)
 
+    def test_missing_tapi_hash_fails(self) -> None:
+        document = re.sub(r"[0-9a-f]{64}", "hash-ausente", self.document, count=1)
+        with tempfile.TemporaryDirectory() as directory:
+            tapi = Path(directory) / "tapi.txt"
+            tapi.write_bytes(b"conteudo")
+            with self.assertRaisesRegex(GovernanceValidationError, "exatamente um"):
+                validate_tapi_hash(document, tapi)
+
+    def test_multiple_tapi_hashes_fail(self) -> None:
+        digest = re.search(r"[0-9a-f]{64}", self.document).group(0)
+        document = self.document.replace(
+            "# 5. Segurança e Acesso",
+            f"SHA-256 adicional `{digest}`\n\n# 5. Segurança e Acesso",
+            1,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            tapi = Path(directory) / "tapi.txt"
+            tapi.write_bytes(b"conteudo")
+            with self.assertRaisesRegex(GovernanceValidationError, "exatamente um"):
+                validate_tapi_hash(document, tapi)
+
 
 class TrackedInputsTests(unittest.TestCase):
     def _repository(self, directory: str) -> Path:
@@ -188,6 +333,39 @@ class TrackedInputsTests(unittest.TestCase):
             (root / "clientes.csv").write_text("id\n1\n", encoding="utf-8")
             subprocess.run(["git", "-C", str(root), "add", "clientes.csv"], check=True)
             self.assertEqual(validate_tracked_inputs(root), ["clientes.csv"])
+
+    def test_tracked_source_alias_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self._repository(directory)
+            (root / "teste.csv").write_text("id\n1\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "teste.csv"], check=True)
+            self.assertEqual(validate_tracked_inputs(root), ["teste.csv"])
+
+    def test_renamed_csv_with_high_risk_header_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self._repository(directory)
+            (root / "export.csv").write_text(
+                "id_cliente,e-mail,valor\n1,pessoa@example.invalid,x\n",
+                encoding="utf-8",
+            )
+            subprocess.run(["git", "-C", str(root), "add", "export.csv"], check=True)
+            self.assertEqual(validate_tracked_inputs(root), ["export.csv"])
+
+    def test_synthetic_csv_without_project_schema_passes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self._repository(directory)
+            (root / "fixture.csv").write_text("cenario,total\na,1\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "fixture.csv"], check=True)
+            self.assertEqual(validate_tracked_inputs(root), [])
+
+    def test_renamed_csv_with_common_personal_header_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self._repository(directory)
+            (root / "contatos.csv").write_text(
+                "nome,telefone\nPessoa,000000000\n", encoding="utf-8"
+            )
+            subprocess.run(["git", "-C", str(root), "add", "contatos.csv"], check=True)
+            self.assertEqual(validate_tracked_inputs(root), ["contatos.csv"])
 
 
 if __name__ == "__main__":
