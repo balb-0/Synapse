@@ -728,6 +728,35 @@ validação do encarregado quando o controle afetar tratamento de dado pessoal.
 Até essa decisão, OIDC, MFA, protocolo, tempos e formato de sessão não devem ser
 descritos como mecanismos já existentes no Sindusfarma.
 
+## 5.14 Estado das decisões de segurança
+
+| Item | Estado | Condição de fechamento |
+| :--- | :--- | :--- |
+| Controle de acesso por perfil | Requisito confirmado no TAPI | Aprovar matriz, escopos por pesquisa/empresa/área e testes de permitido/negado. |
+| Banco relacional em nuvem | Escopo confirmado; provedor pendente | Registrar região, criptografia, administradores, logs, backup e contratos. |
+| staging, trusted, analytics e publicação | Proposta da equipe | Validar arquitetura, contas técnicas, gates e isolamento em ambiente de homologação. |
+| OIDC, OAuth2/PKCE, MFA e sessões | Proposta da equipe | Validar IdP, políticas corporativas, tempos e fluxos de revogação com TI. |
+| TLS, cofre de segredos, monitoramento e auditoria | Requisitos técnicos propostos | Comprovar configuração, alertas, rotação, proteção do log e testes negativos. |
+| Backup diário, 30 dias, RPO 24h e RTO 8h | Metas provisórias | Aprovar impacto de negócio e demonstrar restauração completa dentro das metas. |
+| Papel futuro do n8n e provedores | Pendente | Definir autenticação, segredos, idempotência, replay, responsabilidades e contratos. |
+
+## 5.15 Critérios de homologação
+
+A segurança só pode ser descrita como implantada quando houver, no ambiente
+correspondente:
+
+0. matriz aprovada e teste negativo para cada perfil, camada e ação crítica;
+0. isolamento comprovado entre ambientes, contas, bancos, secrets e backups;
+0. autenticação individual, MFA privilegiado, revogação e expiração testados;
+0. logs minimizados e pesquisáveis para acesso, exportação, permissão e publicação;
+0. restauração executada sem republicar dado bloqueado ou versão antiga;
+0. integração testada contra evento inválido, duplicado, fora de prazo e replay;
+0. varredura do repositório e da entrega sem credencial ou dado identificável;
+0. evidência, responsável, data e resultado anexados à decisão de homologação.
+
+Até esses critérios serem atendidos, a documentação representa o desenho de
+governança da solução, não uma declaração de conformidade produtiva.
+
 # 6. Ciclo de Vida dos Dados
 
 _conteúdo_

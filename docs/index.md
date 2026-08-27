@@ -5,13 +5,16 @@
 | Artefato | Papel |
 | :--- | :--- |
 | [`projeto.md`](projeto.md) | Documento canônico: contexto, arquitetura, modelagem dimensional, requisitos, governança e avaliação |
+| [`Governança-de-Dados-do-Projeto.md`](Governança-de-Dados-do-Projeto.md) | Artefato da Sprint 2: estrutura organizacional, qualidade, metadados, classificação, segurança, ciclo de vida e maturidade |
 | [`contexto_organizacional_+_requisitos_da_solução_analítica.md`](contexto_organizacional_+_requisitos_da_solução_analítica.md) | Entrada formal do Entregável A, apontando para as seções canônicas |
 | [`arquitetura-de-negocio.md`](arquitetura-de-negocio.md) | Cópia local da Arquitetura de Negócio usada como fonte primária de contexto |
 | [`dmc.json`](dmc.json) | Exportação do Data Model Canvas para importação na ferramenta oficial |
 | [`fontes-e-dependencias.md`](fontes-e-dependencias.md) | Mapa de fontes, limitações e dependências entre os três entregáveis da Sprint 1 |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 
-O conteúdo essencial permanece em `projeto.md`. Os arquivos auxiliares existem
+O conteúdo essencial permanece em `projeto.md`. O documento de governança é o
+artefato específico da Sprint 2 e detalha suas políticas sem transformar
+propostas em controles já implantados. Os demais arquivos auxiliares existem
 para tornar matrizes extensas auditáveis e reutilizáveis, não para substituir o
 documento principal.
 
