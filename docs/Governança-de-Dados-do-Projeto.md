@@ -480,9 +480,75 @@ de modelagem própria.
 
 # 5. Segurança e Acesso
 
-_conteúdo_
+Esta seção define o desenho de referência para autorização e segurança do Data
+App e do Data Warehouse. O TAPI confirma a necessidade de controle por perfil e
+os públicos principais, mas não confirma que os perfis, protocolos ou controles
+abaixo já estejam implantados. Até a homologação, eles são requisitos e
+propostas da equipe.
 
-**Nota:** Perfis de acesso (equipe interna, áreas técnicas, solicitantes externos), camadas de proteção, autenticação e práticas técnicas de segurança e auditoria de acesso.
+## 5.1 Modelo de autorização
+
+O acesso é negado por padrão. Uma decisão de autorização precisa combinar:
+
+`perfil × ação × recurso × classe × pesquisa × empresa × área × finalidade`.
+
+O perfil sozinho não concede acesso ao domínio inteiro. A aplicação e os
+serviços devem validar a política no servidor para cada leitura, gravação,
+exportação, alteração de permissão e publicação. Filtros de interface não são
+controle de segurança.
+
+Legenda usada nas matrizes:
+
+- **L** — leitura autorizada no escopo indicado;
+- **G** — gravação ou correção controlada;
+- **A** — administração de regra ou infraestrutura, sem implicar leitura do conteúdo;
+- **—** — negado por padrão.
+
+## 5.2 Perfis de acesso
+
+| Perfil | Necessidade de acesso | Limite obrigatório |
+| :--- | :--- | :--- |
+| **Equipe da Central** | Operar pesquisas, acompanhar fluxo, corrigir metadados autorizados e consultar indicadores internos. | Sem administração técnica, exportação bruta ou acesso automático a resposta sensível. |
+| **Áreas técnicas** | Validar questionário e interpretar indicadores das pesquisas da própria área. | Escopo por área e `id_pesq`; sem identidade, participação individual ou staging. |
+| **Data Owner** | Aprovar finalidade, acesso, exceção, indicador e publicação. | Administração de negócio não concede administração técnica nem acesso pessoal automático. |
+| **Data Steward** | Manter classificação, catálogo, qualidade, linhagem e correções governadas. | Detalhe pessoal somente quando indispensável, temporário e registrado. |
+| **Data Custodian / TI** | Administrar banco, integrações, credenciais, cópias, logs e disponibilidade. | Sem permissão permanente para usar o conteúdo; leitura excepcional por break-glass. |
+| **Solicitantes/participantes** | Consultar o resultado aprovado para a pesquisa e finalidade autorizadas. | Sem acesso às camadas internas, a terceiros ou a filtros que desfaçam a agregação. |
+| **Público externo** | Consultar o acervo expressamente publicado. | Somente visão Pública; sem login interno, export bruto, drill-down individual ou escrita. |
+| **Equipe acadêmica** | Trabalhar com código, documentação e evidências aprovadas. | Nenhum acesso produtivo; somente dado sintético, anonimizado ou agregado aprovado. |
+
+## 5.3 Matriz de permissões por objeto
+
+| Perfil | Pesquisa e metadados | Questionário | Pessoa/identidade | Participação e resposta | Resultado analítico | Publicação | Permissões e infraestrutura |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Equipe da Central | L/G | L/G | L no job autorizado | L restrita; G de correção registrada | L | G de preparação | — |
+| Áreas técnicas | L no escopo | L/G de validação | — | — | L no escopo | — | — |
+| Data Owner | L | L | — | — | L | A de aprovação | A de regra de negócio |
+| Data Steward | L/G | L/G de regra | L excepcional | L/G excepcional | L/G de qualidade | L de evidência | A de classificação e catálogo |
+| Data Custodian / TI | — por padrão | — por padrão | — por padrão | — por padrão | — por padrão | G da versão aprovada | A técnica |
+| Solicitantes/participantes | — | — | — | — | — | L da entrega autorizada | — |
+| Público externo | — | — | — | — | — | L da visão pública | — |
+| Equipe acadêmica | — | — | — | — | L somente de agregado aprovado | L da versão pública | — |
+
+Toda permissão é limitada à finalidade e ao menor escopo de pesquisa, empresa e
+área necessário. E-mail, `id_cliente`, `respondent_id`, mapa de identidade,
+horários, vínculo de participação, `market_share`, resposta individual e texto
+livre ainda não classificado exigem política por campo e mascaramento.
+
+Exports, APIs, caches, índices de busca, logs e backups herdam a classificação e
+o escopo da fonte. Se classe, finalidade, política ou escopo estiverem ausentes,
+a decisão é negar e registrar; dado novo permanece em quarentena como Sensível
+até classificação.
+
+## 5.4 Segregação de funções e acesso emergencial
+
+Uma mesma pessoa não prepara, revisa e publica sozinha um resultado. A Central
+prepara; o Data Steward revisa classificação, linhagem e reidentificação; o Data
+Owner aprova; e o Data Custodian disponibiliza a versão aprovada.
+
+O acesso emergencial do Data Custodian ao conteúdo exige motivo, prazo curto,
+segunda aprovação e revisão posterior. Ao término, a permissão temporária e as
+sessões associadas devem ser revogadas, preservando a trilha da ação.
 
 # 6. Ciclo de Vida dos Dados
 
