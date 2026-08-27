@@ -1843,3 +1843,104 @@ procedimento de acesso excepcional continuam pendentes. Não se trata de uma
 avaliação severa por opção metodológica: é o limite que as próprias evidências
 impõem. Um nível 3 atribuído aqui seria uma afirmação que nenhuma fonte do
 projeto sustenta.
+
+## 7.4 Diagnóstico técnico
+
+O diagnóstico técnico parte do que foi medido na Sprint 1 sobre as seis bases
+recebidas, não de impressão sobre a operação.
+
+| Achado | Evidência | Efeito sobre a maturidade |
+| :--- | :--- | :--- |
+| Não existe data warehouse, orquestração nem ambiente produtivo | O repositório contém contratos, scripts e agregados; as bases permanecem em armazenamento externo | Impede qualquer dimensão operacional de passar do desenho à prática. |
+| O snapshot não informa data de carga | Nenhum timestamp de extração, execução ou frescor foi recebido | Bloqueia os indicadores de frescor, cobertura de processamento e conformidade de acesso. |
+| Integridade referencial parcial | 55 participações com `id_pesq=304`, 43 de 231 questões e 3.592 de 20.607 elementos de resposta apontam para pesquisa ausente | Impede tratar a linhagem como observada de ponta a ponta. |
+| Identidade não canônica entre fontes | `id_cliente` é texto em `clientes.csv` e inteiro em `respondentes.csv`; 41 de 188 títulos divergem entre fontes | Mantém os dados mestres em estágio inicial, dependentes de reconciliação manual. |
+| Ausência de ponte entre participação e resposta | Não há chave ligando `respostas.respondent_id` a `respondentes.id_cliente` | Torna estruturalmente impossível fechar o caminho completo da linhagem nesta versão. |
+| Completude desigual em campos operacionais | `complexidade` com 24,6% de completude, `part_mercado` com 88% de ausência e `data_aprov` majoritariamente nula | Obriga segmentar metas de qualidade e impede automatizar parte dos indicadores. |
+| Resíduo de exportação | 11 das 33 colunas de `pesquisas.csv` estão vazias | Indica que a extração não passa por contrato de saída definido. |
+| As bases recebidas são acervo, não pipeline | 90,7% das pesquisas estão finalizadas; apenas 34 permanecem em andamento | O histórico sustenta análise retrospectiva, mas não demonstra operação corrente sobre dados vivos. |
+| Não há duplicidade nas bases isoladas | 0% de duplicidade de linha e de chave declarada nas seis fontes | Ponto positivo real; o risco de duplicidade se desloca para a integração futura. |
+| Existe instrumentação reprodutível versionada | Manifesto, perfilador, validadores de DMC, governança e rastreabilidade, com testes automatizados e hashes das fontes | É a evidência mais forte de maturidade técnica do projeto e sustenta o nível 2 em várias dimensões. |
+
+A leitura conjunta é direta: o projeto tem **contratos e instrumentação acima da
+sua infraestrutura**. Existem validadores executáveis e identidade reproduzível
+do snapshot antes de existir banco, pipeline ou ambiente. Isso é incomum e é uma
+vantagem, mas significa que a maturidade medida aqui é de desenho e verificação
+documental, não de operação de dados.
+
+## 7.5 Diagnóstico organizacional
+
+| Achado | Evidência | Efeito sobre a maturidade |
+| :--- | :--- | :--- |
+| Papéis nomeados, designação não formalizada | Data Owner, Data Stewards e Data Custodian constam do baseline documental; a Seção 1.4 registra a homologação como pendente | Trava todas as dimensões no nível 2, porque a homologação é a fronteira para o nível 3. |
+| Agentes de tratamento não definidos | Controlador, operador, suboperadores e encarregado não estão designados para cada fluxo | Impede afirmar conformidade e mantém as bases legais como roteiro de análise. |
+| Custódia externa sem contrato localizado | A participação da RentalHost aparece no baseline sem contrato, inventário ou instruções documentadas | Deixa a cadeia de custódia aberta em seu ponto mais externo. |
+| Decisões de plataforma em aberto | Provedor de nuvem não escolhido, papel futuro do n8n indefinido e alimentação do repositório público sem regra | Bloqueia armazenamento, integração e publicação no nível 1. |
+| Política de acesso não homologada | O TAPI confirma a necessidade de controle por perfil; a matriz da Seção 5.3 permanece proposta | Mantém segurança como desenho, sem teste de permitido e negado. |
+| Divergências no próprio baseline | Um nome aparece com grafia diferente entre TAPI e DMC, outro consta do DMC e da Arquitetura mas não do TAPI, e a afirmação de que os dados são fictícios não é comprovada pelo TAPI | Mostra que a camada documental ainda não passou por conciliação formal. |
+| Gestão de configuração em prática | Branches por tarefa, merge requests com revisor distinto do autor, commits padronizados e validadores executados antes da entrega | É a única prática do projeto que opera de fato, com evidência no histórico do repositório. |
+
+O padrão organizacional é consistente: **a estrutura de governança está desenhada
+e nominalmente atribuída, mas não investida**. Nenhum papel tem alçada formal,
+nenhuma decisão de plataforma foi tomada e nenhum contrato externo foi
+localizado. A exceção é a gestão de configuração do próprio grupo, que funciona
+com controle e revisão reais.
+
+## 7.6 Diagnóstico cultural
+
+Este é o eixo com a evidência mais fraca, e a fragilidade precisa ser declarada
+antes das conclusões. **Não houve entrevista, questionário de cultura nem
+observação direta da equipe da Central.** O que existe são preocupações
+levantadas na análise de stakeholders e divergências de expectativa mapeadas no
+fluxo — ambas produzidas pelo próprio grupo a partir dos documentos, e portanto
+inferências, não diagnóstico validado.
+
+Com esse limite explícito, três sinais são recorrentes nos artefatos:
+
+- **Receio de exposição.** A análise de stakeholders registra, para a equipe
+  interna, o receio de aumento de etapas de registro e de exposição de falhas
+  antes tratadas manualmente; para as áreas técnicas, resistência a indicadores
+  que revelem baixa adesão ou atraso. Uma governança que torna o desvio visível
+  encontra resistência previsível quando o desvio já existia e era absorvido.
+- **Desalinhamento conceitual sobre o dado.** O mapeamento do fluxo registra
+  expectativas como tratar cada linha de resposta como uma pessoa, considerar o
+  resultado pronto ao encerrar a coleta e considerar publicado o que foi
+  aprovado tecnicamente. São modelos mentais incompatíveis com o grão real dos
+  dados e com o ciclo descrito na Seção 6.
+- **Conhecimento concentrado.** O diagnóstico do problema aponta que a baixa
+  escalabilidade concentra conhecimento operacional em poucas pessoas, o que é
+  simultaneamente um risco de continuidade e um obstáculo à adoção de papéis
+  distribuídos.
+
+Nenhum desses sinais foi confirmado pelo parceiro. Eles indicam onde a conversa
+de adoção precisa acontecer, não o estágio cultural da organização.
+
+## 7.7 Nível atribuído por dimensão
+
+| Dimensão | Nível | Evidência que sustenta o nível | O que falta para o nível seguinte |
+| :--- | :---: | :--- | :--- |
+| Governança de Dados | 2 | Papéis, alçadas, matriz de responsabilidades e cadeia de custódia documentados na Seção 1. | Designação formal com escopo, autoridade, substitutos e data de vigência. |
+| Qualidade de Dados | 2 | Atributos, métricas, limiares, ações corretivas e linha de base medida nas Seções 2.1 a 2.8. | Homologação das metas provisórias e histórico de qualidade em operação. |
+| Metadados | 2 | Dicionário recebido, DMC e manifesto versionados, contrato de metadados obrigatórios na Seção 3.4. | Inventário com `asset_id`, coleta de schema e catálogo operante, não apenas documental. |
+| Segurança de Dados | 2 | Perfis, matriz de acesso, camadas, autenticação e trilha de auditoria desenhados nas Seções 4 e 5. | Ambiente onde a matriz possa ser aplicada e testada com caso permitido e negado. |
+| Arquitetura de Dados | 2 | Fluxo de valor AS-IS e TO-BE confirmado na Arquitetura de Negócio e camadas definidas. | Decisão de plataforma e implantação das zonas propostas. |
+| Modelagem e Desenho de Dados | 2 | Quatro cubos no DMC, grão canônico declarado e vocabulário validado por script. | Implantação física com tipos, chaves substitutas e SCD homologados. |
+| Armazenamento e Operação | 1 | Operação real em planilhas, formulários e repositório do site; arquitetura alvo apenas documentada. | Escolha da plataforma, criação das camadas e política de backup aprovada. |
+| Integração e Interoperabilidade | 1 | Um workflow pontual em n8n replica solicitações, sem integração estruturada ao longo do ciclo. | Definição do papel do n8n e conectores com validação, idempotência e log. |
+| Data Warehousing e BI | 1 | Protótipos de dashboard versionados; os painéis atuais dependem de atualização manual. | Banco central alimentando os painéis e indicadores com denominador aprovado. |
+| Dados Mestres e de Referência | 1 | Identidade divergente entre fontes, chaves órfãs e ausência de ponte participação–resposta. | Identidade canônica aprovada preservando o identificador de cada sistema de origem. |
+
+O perfil resultante é **1,6 em média**, com seis dimensões no nível 2 e quatro no
+nível 1. A média é apresentada como leitura de conjunto, não como índice
+homologado: somar níveis de dimensões com pesos diferentes produz um número
+conveniente, e nenhuma decisão deve depender apenas dele.
+
+A forma do perfil importa mais que a média. As dimensões documentais — governança,
+qualidade, metadados, segurança, arquitetura e modelagem — estão no nível 2,
+enquanto as dimensões operacionais — armazenamento, integração, BI e dados
+mestres — estão no nível 1. Isso confirma, com evidência por dimensão, a
+avaliação já registrada na entrada do Entregável A: a maturidade da Central é
+operacionalmente funcional, porém fragmentada do ponto de vista de dados. O
+projeto elevou a camada documental antes da camada operacional, o que é
+coerente com o escopo da Sprint 2, mas significa que a diferença entre o nível 2
+e o nível 3 não será vencida por mais documentação.
