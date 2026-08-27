@@ -41,9 +41,83 @@
 
 # 1. Estrutura Organizacional da Governança
 
-_conteúdo_
+Esta seção define os papéis que decidem, especificam e executam a governança de
+dados da Central de Pesquisas. Ela usa como baseline a
+[Arquitetura de Negócio](arquitetura-de-negocio.md#8-pilar-4--estrutura-organizacional),
+o [Data Model Canvas](dmc.json) e a
+[estrutura registrada na documentação geral](projeto.md#662-estrutura-de-governança-de-dados-da-central-de-pesquisas).
+Essas fontes confirmam documentalmente os nomes abaixo, mas não comprovam que o
+Sindusfarma já formalizou as designações ou implantou as responsabilidades.
 
-**Nota:** Papéis da governança de dados (Data Owner, Data Steward, Data Custodian), responsabilidades por metadados, qualidade, segurança e compliance, e o organograma funcional — incluindo o Sindusfarma e custódias externas.
+## 1.1 Estado das atribuições
+
+O documento distingue três estados para não transformar uma referência do
+projeto em política vigente:
+
+- **confirmado documentalmente:** nome ou papel registrado na Arquitetura de
+  Negócio e no baseline do Data Model Canvas;
+- **responsabilidade proposta:** atribuição definida pelo grupo para o desenho
+  de governança da solução;
+- **pendente de homologação:** designação, autoridade ou procedimento que o
+  parceiro ainda precisa aprovar antes da operação.
+
+Data Owner, Data Steward e Data Custodian são papéis organizacionais de
+governança. Eles não equivalem automaticamente a controlador, operador,
+suboperador ou encarregado da LGPD. O Sindusfarma deve identificar esses agentes
+legais de acordo com cada tratamento, contrato e fluxo de dados.
+
+## 1.2 Papéis fundamentais
+
+| Papel | Referência documental | Autoridade e responsabilidade propostas | Limites do papel |
+| :--- | :--- | :--- | :--- |
+| **Data Owner** | Fabio Moreira | Responder pelo domínio de negócio; aprovar finalidade, prioridade, indicadores, classificação, perfis de acesso, publicação, exceções e risco residual. | Não recebe acesso administrativo por ocupar o papel e não substitui automaticamente o controlador ou o encarregado da LGPD. |
+| **Data Steward** | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade | Definir significado, catálogo, dicionário, regras de qualidade, completude, reconciliação e linhagem; acompanhar inconformidades e propor correções. | Não aprova sozinho nova finalidade, exposição externa ou aceitação de risco estratégico; ele prepara a decisão do Data Owner. |
+| **Data Custodian / TI** | Rodrigo Giorgetto / TI | Administrar infraestrutura, ingestão, armazenamento, credenciais, backups, logs, disponibilidade e controles técnicos conforme as decisões aprovadas. | Não define finalidade, regra de negócio ou publicação e só acessa conteúdo protegido quando a atividade técnica exigir, com autorização e auditoria. |
+
+A RentalHost aparece no baseline como custodiante externo quando operar o
+sistema interno ou o repositório público. Essa participação depende do contrato
+e das instruções aprovadas. A empresa executa a custódia contratada, mas não
+decide por conta própria a finalidade do tratamento, a regra de qualidade ou a
+publicação de resultados.
+
+## 1.3 Encadeamento das decisões
+
+Os papéis se complementam sem concentrar decisão de negócio e execução técnica
+na mesma função. O fluxo proposto é:
+
+```text
+Central de Pesquisas ou área técnica identifica a necessidade
+    ↓
+Data Steward define significado, regra de qualidade e impacto nos dados
+    ↓
+Data Owner aprova finalidade, acesso, exceção ou publicação
+    ↓
+Data Custodian / TI implementa o controle e registra a execução
+    ↓
+Data Steward ou Data Owner verifica o resultado conforme a regra aplicável
+```
+
+O Data Custodian pode bloquear tecnicamente uma operação insegura ou fora da
+política, mas não pode autorizar uma nova finalidade. O Data Steward pode
+reprovar um dado que não atende à regra registrada, mas uma exceção com impacto
+de negócio ou publicação retorna ao Data Owner. A separação preserva a
+segregação de funções adotada nas políticas de qualidade, classificação e
+acesso das Seções 2, 4 e 5. No encerramento de uma ação corretiva, o validador
+segue a severidade definida na Seção 2.5; casos críticos e baixos cabem ao Data
+Owner, enquanto os demais seguem a matriz específica daquele fluxo.
+
+## 1.4 Homologações pendentes
+
+| Decisão a confirmar | Evidência atual | Condição para tratar como vigente |
+| :--- | :--- | :--- |
+| Designação nominal de Owner, Stewards e Custodian | Nomes registrados na Arquitetura de Negócio e no baseline do DMC | Aprovação formal do Sindusfarma com escopo, autoridade, substitutos e data de vigência. |
+| Controlador, operador, suboperadores e encarregado | Não definidos pelos papéis organizacionais | Inventário de cada tratamento e validação jurídica ou organizacional pelo parceiro. |
+| Participação da RentalHost | Custódia externa indicada no baseline | Contrato e inventário que identifiquem dados, ambiente, instruções, acesso, retenção, auditoria e descarte. |
+| Concessão de acesso excepcional aos dados protegidos | Matrizes propostas nas Seções 4 e 5 | Procedimento aprovado com solicitante, aprovador, finalidade, prazo, log e revisão posterior. |
+
+Até essas confirmações, a estrutura desta seção é o desenho de governança do
+projeto. Ela não comprova a implantação dos papéis ou dos controles no ambiente
+produtivo do Sindusfarma.
 
 # 2. Política de Qualidade de Dados
 
