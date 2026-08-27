@@ -1666,6 +1666,71 @@ homologação, como as da Seção 3.5.3. Uma rotina sem execução registrada n�
 comprova a política: para efeito desta seção, a ausência de evidência de expurgo
 equivale à ausência de expurgo.
 
+## 6.8 Linhagem da fonte ao data warehouse
+
+A linhagem responde a uma pergunta operacional: dado um resultado agregado, quais
+arquivos, registros, regras e execuções o produziram. O caminho proposto é
+fonte → pesquisa → participação → questão → elemento de resposta, e cada elo é
+apresentado separadamente, com sua própria chave e seu próprio estado. Nenhum
+elo é inferido a partir de outro.
+
+| Elo da linhagem | Chave disponível | Estado | Limite |
+| :--- | :--- | :--- | :--- |
+| Arquivo → registro | Nome do arquivo recebido e hash do snapshot | Observado | O sistema de origem não está registrado; usa-se o arquivo recebido como origem disponível e declara-se o sistema como indisponível. |
+| Pesquisa → participação | `respondentes.id_pesq` → `pesquisas.id` | Observado, com exceções | As 55 participações com `id_pesq=304` sem pesquisa correspondente permanecem em reconciliação. |
+| Pesquisa → questão | `questoes.pesquisa_id` → `pesquisas.id` | Observado, com exceções | 43 das 231 questões apontam para pesquisa ausente e permanecem em reconciliação. |
+| Pesquisa → elemento de resposta | `respostas.pesquisa_id` → `pesquisas.id` | Observado, com exceções | 3.592 dos 20.607 elementos de resposta apontam para pesquisa ausente; os `pesquisa_id` 424, 1116, 1139 e 1147 concentram os casos conhecidos. |
+| Questão → elemento de resposta | `respostas.(pesquisa_id, id_pergunta)` → `questoes` | Observado | Sem violação de integridade referencial medida nas fontes recebidas. |
+| Participação → elemento de resposta | Nenhuma chave disponível | Em reconciliação | Não há ponte explícita entre `respostas.respondent_id` e `respondentes.id_cliente`; este elo nunca compõe um caminho observado nesta versão. |
+| Registro → execução de carga | `sk_carga`, previsto em `DIM_EXECUCAO_CARGA` | Proposto | Depende de pipeline implantado; até lá o valor permanece `indisponivel`. |
+| Registro → sistema de origem | `sk_fonte`, previsto em `DIM_FONTE_DADO` | Proposto | O catálogo de sistemas de origem não existe; a ausência é declarada, não substituída por inferência. |
+
+**Medição da cobertura.** A cobertura da linhagem é a razão entre os elos
+observados com chave correspondente e os elos elegíveis do caminho selecionado,
+expressa em elos e em percentual. Chave nula ou órfã conta como elo em
+reconciliação, nunca como elo ausente do denominador; aresta repetida conta uma
+vez e é sinalizada. Como o caminho completo inclui um elo sem chave, a cobertura
+de um caminho que atravesse participação e resposta nunca atinge 100% nesta
+versão, e esse limite deve aparecer no resultado em vez de ser arredondado.
+
+**Costura e confiança.** Quando o vínculo não vem de chave direta, o metadado
+`metodo_costura` registra como ele foi obtido, com os valores `direto`,
+`fallback_por_titulo`, `nao_mapeado` ou `pendente_validacao`, acompanhado de
+`confianca_extracao` quando a origem for texto. Um `fallback_por_titulo` não se
+converte em chave canônica por repetição de uso: a promoção exige regra aprovada
+e registrada. Dos 188 títulos comparados, 41 divergem entre fontes, o que torna
+o título uma pista de reconciliação e não um identificador.
+
+**O que a linhagem não autoriza.** Percorrer a linhagem é navegar por evidência
+agregada. O percurso não concede leitura do dado subjacente, não reconstrói o
+vínculo entre uma pessoa e sua resposta e não é caminho alternativo de acesso: a
+autorização continua sendo decidida pelas Seções 4 e 5. Um agregado sem elo
+disponível, uma falha de consulta e um perfil sem permissão produzem respostas
+distintas, e nenhuma delas fabrica elo.
+
+## 6.9 Reuso seguro em novas pesquisas
+
+Reuso é usar em uma nova pesquisa dado coletado para outra. Ele é desejável —
+evita recoletar, preserva série histórica e reduz a carga sobre as associadas —
+mas não é automático: a finalidade original não se estende por conveniência.
+
+| Tipo de reuso | Condição proposta | Limite |
+| :--- | :--- | :--- |
+| **Série histórica agregada** | Compatibilidade de grão, período e definição do indicador, com a versão da regra que produziu cada ponto registrada. | Mudança de definição quebra a série; o ponto anterior não é recalculado retroativamente sem registro da mudança. |
+| **Cadastro de empresas e áreas** | Reuso direto, por ser dado organizacional e não pessoal. | Campo textual livre do cadastro é reavaliado antes do reuso, porque pode identificar pessoa. |
+| **Contatos e mapa de identidade** | Verificação da base legal e da elegibilidade da pessoa para a nova pesquisa, antes do convite. | Participação anterior não é consentimento para nova coleta; revogação registrada bloqueia o convite. |
+| **Instrumento e questionário** | Reuso da versão identificada, mantendo a referência à versão anterior e ao parecer de validação quando existir. | Reaproveitar enunciado sem a versão correspondente impede comparar respostas entre pesquisas. |
+| **Respostas brutas identificáveis** | Finalidade compatível com a original, autorização registrada e minimização aplicada ao mínimo necessário. | Na ausência de compatibilidade demonstrada, o reuso ocorre apenas sobre a camada pseudonimizada ou agregada. |
+| **Entrega a terceiro ou publicação externa** | Critério de liberação da Seção 4.11 integralmente atendido, incluindo teste de reidentificação. | Qualquer ausência bloqueia a entrega; o acervo público recebe apenas agregado autorizado. |
+
+Três diretrizes valem para todos os casos. O reuso herda a classificação mais
+restritiva entre a origem e o destino, nunca a mais permissiva. O dado reusado
+carrega sua linhagem: um indicador recomposto a partir de pesquisas diferentes
+precisa exibir de quais pesquisas veio e qual elo sustenta cada parte. E o
+resultado de um reuso é publicável apenas sob as mesmas regras de agregação e de
+limiar aplicáveis à coleta original — combinar duas pesquisas pequenas não torna
+público um recorte que nenhuma delas poderia publicar isoladamente.
+
 # 7. Avaliação de Maturidade
 
 _conteúdo_
