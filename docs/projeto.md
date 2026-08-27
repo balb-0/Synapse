@@ -2418,19 +2418,19 @@ visual nas próximas tarefas.
 | CS08 | JOP05 | Resultado só avança para entrega/publicação com decisão registrada. | O usuário vê estado de autorização, responsável, versão, data da decisão e restrição de acesso antes de publicar. |
 | CS09 | JOP05 | O acervo publicado permanece coerente com o dado interno autorizado. | O sistema mostra vínculo entre pesquisa, resultado, versão publicada e trilha de origem, ou explicita que a integração ainda está pendente. |
 
-### 6.7.4 Expectativas verificáveis no fluxo
+### 6.7.4 Expectativas verificáveis e pontos de checagem no fluxo
 
-Esta tabela converte os critérios de sucesso em quatro pontos de checagem do
-perfil operacional principal, respeitando o recorte de 2 a 4 momentos por
-perfil indicado para o artefato de fluxo anotado. A coluna "estado esperado do
-dado" deve orientar o mapeamento posterior contra o modelo de dados.
+Esta tabela seleciona quatro momentos do perfil operacional principal em que o
+usuário checa se o job está progredindo. Cada ponto registra a confirmação
+necessária, os dados que o sistema deve informar e o estado esperado do dado
+após a ação.
 
-| Momento do fluxo | Expectativa verificável do usuário | Confirmação esperada na interface | Estado esperado do dado | Requisito/pergunta relacionada |
-| :--- | :--- | :--- | :--- | :--- |
-| 1. Receber ou localizar uma solicitação de pesquisa | Saber se a demanda já virou uma pesquisa acompanhável, se não está duplicada e qual é seu status inicial. | Mensagem de pesquisa criada/localizada, ID da pesquisa, fonte de origem, status inicial e aviso de possível duplicidade. | `Pesquisa` existe como entidade operacional, com origem preservada e status inicial definido ou pendente. | RF01, RF02, PB01, PB02 |
-| 2. Acompanhar avanço do ciclo e carteira ativa | Saber se o ciclo avançou, quais marcos continuam incompletos e quais pesquisas exigem ação operacional. | Linha do tempo com marco atualizado, data usada, usuário/fonte, campos ausentes, atraso/prorrogação e motivo da classificação. | `Pesquisa` tem marcos de ciclo atualizados; datas ausentes permanecem nulas/pendentes; fato de ciclo fica calculável ou marcado como insuficiente. | RF02, RF03, PB02, PB03 |
-| 3. Monitorar participação e qualidade antes da tabulação | Entender se a adesão é suficiente, se o dado permite essa conclusão e se o conjunto pode sustentar indicadores. | Numerador observado, denominador quando existir, representatividade, completude, duplicidade, órfãos, regra aplicada e impacto no KPI. | Participações ficam ligadas a pesquisa/empresa/pessoa quando houver chave observada; ausência de denominador impede taxa; fontes e campos recebem estado de qualidade. | RF04, RF05, RF06, RF07, PB04, PB05, PB06, PB07 |
-| 4. Preparar entrega ou publicação | Saber se o resultado está autorizado para o público correto e se o acervo ficará coerente com o dado interno. | Estado de autorização/publicação, perfil permitido, versão, data, responsável, vínculo com a pesquisa e bloqueio quando faltar decisão. | Resultado agregado possui decisão de publicação ou fica bloqueado como pendente; acervo não é atualizado sem autorização. | RF08, RF09, PB08, PB09 |
+| Momento do fluxo | Job e critérios relacionados | Expectativa verificável do usuário | Confirmação necessária | Dados informados pelo sistema | Estado esperado do dado após a ação |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1. Receber ou localizar uma solicitação de pesquisa | JOP01; CS01, CS02 | Saber se a demanda já virou uma pesquisa acompanhável, se não está duplicada e qual é seu status inicial. | Confirmar criação ou localização da pesquisa e sinalizar conflito quando houver registro semelhante ou chave divergente. | ID da pesquisa, título, origem da solicitação, status inicial, data de solicitação, responsável quando disponível e alerta de duplicidade/conflito. | `Pesquisa` existe como entidade operacional, com origem preservada; status inicial fica definido ou marcado como pendente; possíveis duplicidades ficam sinalizadas para revisão. |
+| 2. Acompanhar avanço do ciclo e carteira ativa | JOP02; CS02, CS03 | Saber se o ciclo avançou, quais marcos continuam incompletos e quais pesquisas exigem ação operacional. | Confirmar atualização de marco e indicar se atraso, prorrogação ou prioridade são calculáveis com os dados existentes. | Etapa atual, datas de solicitação/aprovação/divulgação/limite/prorrogação/entrega, campos ausentes, regra de atraso/prioridade e motivo da classificação. | Marcos do ciclo ficam atualizados na pesquisa; datas ausentes permanecem nulas/pendentes; o fato de ciclo fica calculável ou marcado como insuficiente para cálculo. |
+| 3. Monitorar participação e qualidade antes da tabulação | JOP03, JOP04; CS04, CS05, CS06, CS07 | Entender se a adesão é suficiente, se o dado permite essa conclusão e se o conjunto pode sustentar indicadores. | Confirmar numeradores observados, explicitar denominadores disponíveis ou ausentes e apontar anomalias de qualidade que afetam KPIs. | Participações observadas, empresas/pessoas relacionadas, representatividade disponível, denominador quando existir, completude, duplicidade, órfãos, regra aplicada e impacto no indicador. | Participações ficam ligadas a pesquisa/empresa/pessoa quando houver chave observada; ausência de denominador impede taxa; fontes e campos recebem estado de qualidade como válido, pendente, órfão ou dependente de integração futura. |
+| 4. Preparar entrega ou publicação | JOP05; CS08, CS09 | Saber se o resultado está autorizado para o público correto e se o acervo ficará coerente com o dado interno. | Confirmar autorização ou bloqueio, perfil de acesso permitido e vínculo entre resultado, pesquisa e versão publicada. | Estado de autorização/publicação, versão, data, responsável, perfil autorizado, regra de agregação, vínculo com a pesquisa e pendências de integração com o acervo. | Resultado agregado possui decisão de publicação ou fica bloqueado como pendente; acervo não é atualizado sem autorização; a versão autorizada preserva linhagem e regra de acesso. |
 
 ### 6.7.5 Pontos de atenção para o fluxo visual
 
