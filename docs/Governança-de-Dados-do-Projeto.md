@@ -49,6 +49,7 @@
   - [3.3 Busca, reutilização, descoberta e rastreabilidade](#33-busca-reutilização-descoberta-e-rastreabilidade)
   - [3.4 Metadados obrigatórios](#34-metadados-obrigatórios)
   - [3.5 Atualização e versionamento](#35-atualização-e-versionamento)
+  - [3.6 Exemplo de catálogo: FATO_CICLO_PESQUISA](#36-exemplo-de-catálogo-fato_ciclo_pesquisa)
 - [4. Classificação e Proteção de Dados](#4-classificação-e-proteção-de-dados)
 - [5. Segurança e Acesso](#5-segurança-e-acesso)
 - [6. Ciclo de Vida dos Dados](#6-ciclo-de-vida-dos-dados)
@@ -764,7 +765,72 @@ teste de reconciliação e autorização aplicável. Se a reversão puder perder
 ou reabrir acesso indevido, a carga é bloqueada ou isolada e a decisão é
 escalada antes da execução.
 
-A subseção seguinte apresenta um exemplo aplicado a uma tabela proposta do DW.
+## 3.6 Exemplo de catálogo: `FATO_CICLO_PESQUISA`
+
+O exemplo aplica o contrato das Seções 3.4 e 3.5 ao C01 — Portfólio e
+Ciclo. `FATO_CICLO_PESQUISA` é um **nome físico proposto**; o snapshot recebido
+e o DMC sustentam o desenho, mas não comprovam DW, tabela ou pipeline
+implantados.
+
+| Metadado | Valor catalogado |
+| :--- | :--- |
+| `asset_id` | `dw.fact.fato_ciclo_pesquisa` — identificador planejado, ainda não incorporado ao inventário executável. |
+| Nome de negócio | Ciclo de vida das pesquisas. |
+| Nome técnico | `FATO_CICLO_PESQUISA` — nome físico proposto para o C01. |
+| Definição | Fato acumulador que representa os marcos de cada pesquisa, da solicitação à entrega, conforme disponibilidade dos campos de origem. |
+| Estado | `estado_evidencia: documentado`; `estado_ciclo: em_revisao`; implantação e homologação pendentes. |
+| Tipo e grão | Snapshot acumulado; uma linha por pesquisa, aproximadamente 366 linhas no snapshot documentado. |
+| Fonte principal | `pesquisas.csv`; chaves e valores da origem devem ser preservados. |
+| Dimensões relacionadas | `DIM_PESQUISA`, papéis da `DIM_TEMPO`, `DIM_AREA`, `DIM_STATUS_PESQUISA`, `DIM_TIPO_PESQUISA`, `DIM_PERFIL_PESQUISA`, `DIM_FAMILIA_PESQUISA`, `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA`. |
+| Periodicidade esperada | `pendente_confirmacao`: não há pipeline, frequência ou SLA aprovado. |
+| Frescor observado | `indisponivel`: a data do DMC identifica o artefato documental, não a última carga da tabela. |
+| Classificação e sensibilidade | Interno por padrão; sem dado pessoal direto no fato. Saída pública somente agregada e autorizada. Textos em dimensões relacionadas exigem reavaliação se identificarem pessoa. |
+| Responsáveis | Steward semântico: Felipe Rojas, Reinaldo Nobrega e Lucas Andrade; aprovação de negócio: Fabio Moreira; custódia técnica: Rodrigo Giorgetto/TI. Nomes são baseline documental, com homologação pendente. |
+| Qualidade | Preservar chave de origem; não imputar marcos ausentes; validar ordem temporal e domínios; valores dependentes de datas inválidas ficam `NULL`; família derivada do título depende de validação; fonte e carga devem ser registradas quando o pipeline existir. |
+| Retenção | Princípio documental: preservar marcos e chaves para auditoria e reconciliação; prazo e descarte permanecem pendentes da Seção 6. |
+| Versão | DMC `schemaVersion: 1`, versão documental `1.0`; `schema_version`, `load_id` e versão física não se aplicam enquanto a tabela não estiver implantada. |
+
+### 3.6.1 Dicionário de campos propostos
+
+Todos os campos abaixo herdam classificação **Interno** e não carregam dado
+pessoal direto no fato. “Tipo” indica papel e tipo lógico; o tipo físico final
+permanece `pendente_confirmacao` até a escolha do banco e do schema.
+
+| Campo técnico | Tipo e papel | Definição e origem | Qualidade, aditividade ou uso |
+| :--- | :--- | :--- | :--- |
+| `sk_pesquisa` | FK para dimensão | Chave da `DIM_PESQUISA`, derivada de `pesquisas.id`. | Preservar a chave de origem; órfãos apontam para “Não mapeado” até reconciliação, sem chave canônica inventada. |
+| `sk_data_solicitacao` | FK temporal | Papel da `DIM_TEMPO` para `pesquisas.data_solicitacao`. | `NULL` se o marco não estiver registrado ou não for válido. |
+| `sk_data_aprovacao` | FK temporal | Papel da `DIM_TEMPO` para `pesquisas.data_aprov`. | Ausência é frequente no histórico; não imputar. |
+| `sk_data_divulgacao` | FK temporal | Papel da `DIM_TEMPO` para `pesquisas.data_divulgacao`. | Não confundir divulgação operacional com autorização de publicação. |
+| `sk_data_limite_coleta` | FK temporal | Papel da `DIM_TEMPO` para `pesquisas.data_limite`. | Necessária para duração da coleta quando não houver prorrogação. |
+| `sk_data_prorrogacao` | FK temporal | Papel da `DIM_TEMPO` para `pesquisas.prorrogada_ate`. | `NULL` quando não houver prorrogação observada. |
+| `sk_data_entrega` | FK temporal | Papel da `DIM_TEMPO` para `pesquisas.data_entrega`. | Necessária para tabulação e ciclo total; validar ordem dos marcos. |
+| `sk_area` | FK para dimensão | Área de `pesquisas.area`. | Normalizar domínio sem perder o valor recebido. |
+| `sk_status` | FK para dimensão | Status atual de `pesquisas.status`. | Não representa histórico anterior; histórico depende de snapshots ou SCD implantado. |
+| `sk_tipo` | FK para dimensão | Tipo de `pesquisas.tipo`. | Preservar categoria da origem e registrar mapeamento. |
+| `sk_perfil` | FK para dimensão | Complexidade e tipo de resposta da pesquisa. | Ausência aparece como “Não informado”, sem inferência. |
+| `sk_familia` | FK para dimensão | Família derivada da normalização do título. | Derivação proposta, sujeita à validação do Sindusfarma. |
+| `sk_fonte` | FK de linhagem | Sistema ou arquivo que originou o registro. | Obrigatória para rastreabilidade quando a dimensão estiver implantada. |
+| `sk_carga` | FK de governança | Execução responsável pela materialização. | Obrigatória com pipeline; antes disso permanece `indisponivel`. |
+| `dias_uteis_validacao` | Medida inteira proposta | Diferença entre aprovação e solicitação em calendário útil aprovado. | `NULL` sem datas válidas. O DMC registra aditividade, mas a classificação e a cobertura precisam de validação; não reutilizar a cobertura de divulgação como cobertura de aprovação. |
+| `dias_uteis_coleta` | Medida inteira proposta | Diferença entre limite, ou prorrogação quando existir, e divulgação. | `NULL` sem datas válidas. Aditividade documentada no DMC, pendente de validação analítica. |
+| `dias_uteis_tabulacao` | Medida inteira proposta | Diferença entre entrega e fim efetivo da coleta. | `NULL` sem datas válidas. Aditividade documentada no DMC, pendente de validação analítica. |
+| `dias_uteis_ciclo_total` | Medida inteira proposta | Diferença entre entrega e solicitação. | Não aditiva; não somar com as fases. |
+| `qtd_empresas_na_pesquisa` | Medida inteira proposta | Valor de `pesquisas.participantes`. | Não aditiva; leitura somente no grão da pesquisa e sem tratar como respondentes únicos. |
+| `flag_prorrogada` | Indicador booleano proposto | `1` quando `prorrogada_ate` estiver preenchida; `0` caso contrário. | Usado como filtro ou contagem de pesquisas, não como medida somável fora do grão declarado. |
+
+### 3.6.2 Limitações do exemplo
+
+- O calendário de dias úteis, os tipos físicos, a periodicidade, o SLA, a
+  primeira carga e o frescor continuam pendentes.
+- A documentação apresenta números conflitantes para a cobertura de
+  `data_aprov`; como a fonte tem baixa completude observada, a cobertura de
+  `dias_uteis_validacao` fica `pendente_confirmacao` até correção do contrato.
+- `DIM_FAMILIA_PESQUISA`, SCD e dimensões de fonte/carga são propostas, não
+  componentes comprovadamente implantados.
+- O exemplo não contém amostras de respostas, contatos ou valores pessoais; a
+  classificação pode subir se o schema físico futuro incorporar texto ou
+  ligação identificável.
 
 # 4. Classificação e Proteção de Dados
 
