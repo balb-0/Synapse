@@ -488,6 +488,21 @@ def validate_section_one(section: str) -> dict[str, int]:
             raise GovernanceValidationError(
                 f"nó obrigatório ausente no mapa funcional: {label}"
             )
+    required_relations = (
+        ("CENTRAL", "STEWARD"),
+        ("STEWARD", "OWNER"),
+        ("OWNER", "CUST"),
+        ("CUST", "STEWARD"),
+    )
+    for source, target in required_relations:
+        if not re.search(
+            rf"^\s*{source}\s+-->[^\n]*\b{target}\b",
+            map_match.group("body"),
+            re.MULTILINE,
+        ):
+            raise GovernanceValidationError(
+                f"relação obrigatória ausente no mapa funcional: {source} → {target}"
+            )
 
     raci_rows = table_rows(
         section,
@@ -506,6 +521,13 @@ def validate_section_one(section: str) -> dict[str, int]:
     )
     _rows_by_first_column(raci_rows, label="matriz RACI", width=8)
     _require_nonempty_rows(raci_rows, label="matriz RACI")
+    for row in raci_rows:
+        assignments = " | ".join(row[1:])
+        codes = set(re.findall(r"(?<!\w)[ARCI](?!\w)", assignments))
+        if not {"A", "R"}.issubset(codes):
+            raise GovernanceValidationError(
+                f"atividade da matriz RACI deve identificar A e R: {row[0]}"
+            )
     raci_text = "\n".join(" | ".join(row) for row in raci_rows).lower()
     for topic in (
         "metadados",
@@ -537,6 +559,11 @@ def validate_section_one(section: str) -> dict[str, int]:
         custody_rows, label="interfaces de custódia", width=5
     )
     _require_nonempty_rows(custody_rows, label="interfaces de custódia")
+    for row in custody_rows:
+        if any(cell.strip() == "—" for cell in row[1:]):
+            raise GovernanceValidationError(
+                f"interface de custódia usa responsabilidade ou evidência genérica: {row[0]}"
+            )
     for prefix in (
         "Fonte operacional →",
         "staging` → `trusted",
@@ -676,15 +703,33 @@ def validate_section_three(section: str) -> dict[str, int]:
             "Mudança e auditoria",
         ),
     )
-    if "FATO_CICLO_PESQUISA" not in section or "C01" not in example_by_name["Nome técnico"][1]:
+    technical_name = example_by_name["Nome técnico"][1]
+    if "FATO_CICLO_PESQUISA" not in technical_name or "C01" not in technical_name:
         raise GovernanceValidationError(
             "exemplo FATO_CICLO_PESQUISA não está ligado ao C01"
+        )
+    example_semantics = {
+        "Tipo de ativo": ("fato", "snapshot acumulado"),
+        "Fonte principal": ("pesquisas.csv", "origem"),
+        "Tipo e grão": ("snapshot acumulado", "uma linha por pesquisa"),
+    }
+    for field, expected in example_semantics.items():
+        _require_terms(
+            example_by_name[field][1].lower(),
+            expected,
+            label=f"conteúdo semântico do exemplo em {field}",
         )
 
     field_rows = table_rows(section, "Campo técnico", "Tipo e papel")
     _rows_by_first_column(field_rows, label="dicionário do exemplo", width=4)
     _require_nonempty_rows(field_rows, label="dicionário do exemplo")
     _require_first_column(field_rows, REQUIRED_EXAMPLE_MEASURES)
+    for row in field_rows:
+        for cell in row[2:]:
+            if cell.strip().lower() in {"—", "observação livre", "indisponivel"}:
+                raise GovernanceValidationError(
+                    f"definição ou origem obrigatória ausente no campo: {row[0]}"
+                )
 
     dimension_rows = table_rows(section, "Dimensão", "Grão e chaves")
     _rows_by_first_column(
@@ -692,6 +737,14 @@ def validate_section_three(section: str) -> dict[str, int]:
     )
     _require_nonempty_rows(dimension_rows, label="dimensões do exemplo")
     _require_first_column(dimension_rows, REQUIRED_EXAMPLE_DIMENSIONS)
+    for row in dimension_rows:
+        grain_and_keys = row[1].lower()
+        if "linha por" not in grain_and_keys or not re.search(
+            r"\bsk_|\bchave", grain_and_keys
+        ):
+            raise GovernanceValidationError(
+                f"grão ou chave ausente na dimensão: {row[0]}"
+            )
 
     measure_rows = table_rows(section, "Medida", "Fórmula, unidade e janela")
     measure_by_name = _rows_by_first_column(
@@ -699,8 +752,21 @@ def validate_section_three(section: str) -> dict[str, int]:
     )
     _require_nonempty_rows(measure_rows, label="contrato das medidas")
     _require_first_column(measure_rows, REQUIRED_EXAMPLE_MEASURES)
+    measure_formula_terms = {
+        "dias_uteis_validacao": ("dias úteis", "janela", "menos"),
+        "dias_uteis_coleta": ("dias úteis", "prorrogação", "menos"),
+        "dias_uteis_tabulacao": ("dias úteis", "janela", "menos"),
+        "dias_uteis_ciclo_total": ("dias úteis", "janela", "menos"),
+        "qtd_empresas_na_pesquisa": ("unidade empresa", "grão"),
+        "flag_prorrogada": ("unidade booleana", "1"),
+    }
     for measure in REQUIRED_EXAMPLE_MEASURES:
         row_text = " | ".join(measure_by_name[measure][1:])
+        _require_terms(
+            measure_by_name[measure][1].lower(),
+            measure_formula_terms[measure],
+            label=f"fórmula, unidade e janela de {measure}",
+        )
         if not re.search(r"Aditiva|Não aditiva|Indicador/filtro", row_text):
             raise GovernanceValidationError(
                 f"aditividade ou uso ausente para a medida: {measure}"
@@ -715,11 +781,25 @@ def validate_section_three(section: str) -> dict[str, int]:
         cube_rows, label="escopo dos cubos", width=4
     )
     _require_nonempty_rows(cube_rows, label="escopo dos cubos")
+    cube_grain_source_patterns = {
+        "C01": r"uma linha por pesquisa[\s\S]*pesquisas\.csv",
+        "C02": r"uma linha por participação[\s\S]*respondentes\.csv",
+        "C03": r"mês × status × área × tipo × perfil[\s\S]*(?:C01|snapshots|log de mudança)",
+        "C04": r"uma pergunta por pesquisa[\s\S]*questoes\.csv",
+    }
     for cube, expected_name in REQUIRED_CUBE_NAMES.items():
         expected_label = f"{cube} — {expected_name}"
         if expected_label not in cube_by_name:
             raise GovernanceValidationError(
                 f"identificador ou nome canônico do cubo divergente: {cube}"
+            )
+        if not re.search(
+            cube_grain_source_patterns[cube],
+            cube_by_name[expected_label][1],
+            re.IGNORECASE,
+        ):
+            raise GovernanceValidationError(
+                f"grão ou fonte obrigatória ausente no cubo: {cube}"
             )
 
     plain = re.sub(r"[*`]", "", section)
