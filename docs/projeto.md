@@ -2534,6 +2534,22 @@ stateDiagram-v2
 | 10. Publicar resultado | `Pesquisa` | `status`, vínculo com acervo | `Revisada` → `Publicada` | Vínculo com o repositório externo não é modelado (§6.7.14). |
 
 
+### 6.7.8 Transições de estado do modelo — fluxo do perfil secundário
+
+Mesma associação da §6.7.7, agora para os passos da área técnica (§6.7.6). Como o
+perfil secundário **revisa e qualifica** em vez de avançar o ciclo, suas
+transições são de *qualificação de estado* (validar, sinalizar, liberar); por isso
+cada ação declara a **integridade relacional pressuposta** — a condição de dado
+que precisa valer para a transição ser legítima, verificada empiricamente na
+§6.7.15.
+
+| Passo (§6.7.6) | Entidade | Atributo alterado | Transição de estado | Integridade relacional pressuposta |
+| :--- | :--- | :--- | :--- | :--- |
+| S1. Validar questionário | `Questao`, `Pesquisa` | flag de validação técnica, `status` | `Planejada` → `Questionário validado` | Toda `Questao` referencia uma `Pesquisa` existente; matrizes têm alternativas coerentes. |
+| S2. Acompanhar adesão | `Respondente`, `Empresa` | estado de cálculo de adesão | `Em coleta` → adesão `Disponível`/`Insuficiente` | `id_empresa` íntegro (100%) e `id_cliente` conciliado; falta o denominador (universo convidado). |
+| S3. Revisar resultados | `Resposta`, `Pesquisa` | flag de consistência, `status` | `Coleta encerrada` → `Revisável`/`Pendente de reconciliação` | Toda `Resposta` liga a `Questao` (100%) e `Pesquisa` — exceto as chaves órfãs conhecidas. |
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
