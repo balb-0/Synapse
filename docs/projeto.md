@@ -2489,6 +2489,51 @@ seu acesso é de leitura qualificada e sinalização, e suas ações alimentam a
 decisões da equipe interna e do Data Owner, sem substituí-las.
 
 
+### 6.7.7 Transições de estado do modelo — fluxo principal
+
+Esta subseção associa **cada passo do fluxo principal (§6.7.3)** à transição de
+estado que ele provoca no modelo relacional, explicitando qual **entidade** é
+alterada, qual **atributo** muda e qual é o **novo estado**. O objetivo é permitir
+que o diagrama anotado mostre não apenas a ação de interface, mas o efeito
+persistente no dado — e servir de base para localizar, nas §6.7.9 e §6.7.10, onde
+fluxo e modelo deixam de se corresponder.
+
+O ciclo de vida do atributo `status` da entidade `Pesquisa` é a espinha dorsal
+dessas transições:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Solicitada
+    Solicitada --> EmTriagem: triar
+    EmTriagem --> Aprovada: aprovar
+    EmTriagem --> Recusada: recusar
+    Aprovada --> Planejada: planejar + questionário
+    Planejada --> QuestionarioValidado: validação técnica (S1)
+    QuestionarioValidado --> EmColeta: divulgar
+    EmColeta --> ColetaEncerrada: encerrar coleta
+    ColetaEncerrada --> Tabulada: tabular
+    Tabulada --> Revisada: revisar entrega
+    Revisada --> Publicada: publicar (autorização)
+    Revisada --> Bloqueada: bloquear
+    ColetaEncerrada --> PendenteReconciliacao: órfão / duplicidade
+    Recusada --> [*]
+    Publicada --> [*]
+```
+
+| Passo (§6.7.3) | Entidade | Atributo alterado | Transição de estado | Observação de integridade |
+| :--- | :--- | :--- | :--- | :--- |
+| 1. Receber demanda | `Pesquisa` | `status`, `data_solicitacao`, origem | `—` → `Solicitada` | Origem preservada; duplicidade apenas sinalizada — sem campo próprio (§6.7.9). |
+| 2. Triar e aprovar | `Pesquisa` | `status`, `data_aprov` | `Solicitada` → `Em triagem` → `Aprovada`/`Recusada` | `data_aprov` ausente em 94,5% do legado — mede validação sobre poucos casos (§4.0). |
+| 3. Planejar pesquisa e questionário | `Pesquisa`, `Questao` | `status`, vínculo `Questao`↔`Pesquisa` | `Aprovada` → `Planejada` | Versão do questionário não é persistida (lacuna §6.7.13). |
+| 4. Criar tarefas e preparar coleta | `Pesquisa` | `status` operacional | `Planejada` → `Preparada` | Tarefas de Trello não têm entidade no modelo (§6.7.9). |
+| 5. Divulgar pesquisa | `Pesquisa` | `data_divulgacao`, `data_limite`, `status` | `Preparada` → `Em coleta` | Marca o início da janela de coleta. |
+| 6. Monitorar participação | `Respondente` | cria vínculo `Empresa`/`Cliente`↔`Pesquisa` | cria `Participação` (`Em coleta`) | Denominador de adesão não é atributo do modelo (§6.7.9). |
+| 7. Encerrar coleta e validar | `Pesquisa`, `Resposta` | `status`, flags de qualidade | `Em coleta` → `Coleta encerrada` / `Pendente de reconciliação` | Órfãos e duplicidades classificados aqui. |
+| 8. Tabular e analisar | `Resposta`, `Questao` | agregação | `Coleta encerrada` → `Tabulada` | 1 linha de `Resposta` ≠ 1 respondente (matriz/checkbox — §6.7.11). |
+| 9. Revisar entrega | `Pesquisa` | `status`, autorização | `Tabulada` → `Revisada`/`Bloqueada` | Autorização e perfil não têm atributo próprio (§6.7.14). |
+| 10. Publicar resultado | `Pesquisa` | `status`, vínculo com acervo | `Revisada` → `Publicada` | Vínculo com o repositório externo não é modelado (§6.7.14). |
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
