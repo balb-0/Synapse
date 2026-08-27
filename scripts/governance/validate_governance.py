@@ -107,6 +107,12 @@ REQUIRED_EXAMPLE_MEASURES = (
     "flag_prorrogada",
 )
 REQUIRED_CUBES = ("C01", "C02", "C03", "C04")
+REQUIRED_CUBE_NAMES = {
+    "C01": "Portfólio e Ciclo",
+    "C02": "Participação e Representatividade",
+    "C03": "Pipeline Mensal",
+    "C04": "Resultados e Questionários",
+}
 
 REQUIRED_CLASSES = ("Público", "Interno", "Confidencial", "Sensível")
 REQUIRED_MARKERS = (
@@ -307,7 +313,11 @@ def _clean_cell(cell: str) -> str:
 
 
 def table_rows(
-    section: str, first_header: str, second_header: str | None = None
+    section: str,
+    first_header: str,
+    second_header: str | None = None,
+    *,
+    expected_headers: tuple[str, ...] | None = None,
 ) -> list[list[str]]:
     """Retorna somente o corpo da tabela identificada pela primeira coluna."""
     lines = section.splitlines()
@@ -325,6 +335,11 @@ def table_rows(
             )
         ):
             continue
+        if expected_headers is not None and tuple(header) != expected_headers:
+            raise GovernanceValidationError(
+                "cabeçalho divergente na tabela "
+                f"{first_header}: esperado " + " | ".join(expected_headers)
+            )
 
         rows: list[list[str]] = []
         for candidate in lines[index + 1 :]:
@@ -399,11 +414,34 @@ def _require_single_headings(section: str, headings: tuple[str, ...]) -> None:
             )
 
 
+def _require_nonempty_rows(rows: list[list[str]], *, label: str) -> None:
+    incomplete = [
+        row[0] if row and row[0] else "<vazia>"
+        for row in rows
+        if any(not cell.strip() for cell in row)
+    ]
+    if incomplete:
+        raise GovernanceValidationError(
+            f"linhas com campo obrigatório vazio em {label}: "
+            + ", ".join(incomplete)
+        )
+
+
 def validate_section_one(section: str) -> dict[str, int]:
     if "_conteúdo_" in section or re.search(r"\bTODO\b", section):
         raise GovernanceValidationError("a seção 1 contém placeholder")
 
-    role_rows = table_rows(section, "Papel", "Referência documental")
+    role_rows = table_rows(
+        section,
+        "Papel",
+        "Referência documental",
+        expected_headers=(
+            "Papel",
+            "Referência documental",
+            "Autoridade e responsabilidade propostas",
+            "Limites do papel",
+        ),
+    )
     role_by_name = _rows_by_first_column(
         role_rows, label="papéis de governança", width=4
     )
@@ -432,9 +470,42 @@ def validate_section_one(section: str) -> dict[str, int]:
         ),
         label="atores do mapa funcional",
     )
+    required_nodes = {
+        "OWNER": "Data Owner",
+        "STEWARD": "Data Stewards",
+        "CUST": "Data Custodian / TI",
+        "CONTROLLER": "Controlador",
+        "PROCESSORS": "Operador e suboperadores",
+        "DPO": "Encarregado",
+        "EXT": "RentalHost",
+    }
+    for node_id, label in required_nodes.items():
+        if not re.search(
+            rf"^\s*{node_id}\s*\[[^\n]*{re.escape(label)}",
+            map_match.group("body"),
+            re.MULTILINE,
+        ):
+            raise GovernanceValidationError(
+                f"nó obrigatório ausente no mapa funcional: {label}"
+            )
 
-    raci_rows = table_rows(section, "Atividade", "Data Owner")
+    raci_rows = table_rows(
+        section,
+        "Atividade",
+        "Data Owner",
+        expected_headers=(
+            "Atividade",
+            "Data Owner",
+            "Data Steward",
+            "Central de Pesquisas",
+            "Áreas técnicas",
+            "Data Custodian / TI",
+            "Papéis LGPD a designar, conforme o tratamento",
+            "Custódia externa",
+        ),
+    )
     _rows_by_first_column(raci_rows, label="matriz RACI", width=8)
+    _require_nonempty_rows(raci_rows, label="matriz RACI")
     raci_text = "\n".join(" | ".join(row) for row in raci_rows).lower()
     for topic in (
         "metadados",
@@ -450,10 +521,22 @@ def validate_section_one(section: str) -> dict[str, int]:
                 f"responsabilidade obrigatória ausente na matriz RACI: {topic}"
             )
 
-    custody_rows = table_rows(section, "Interface", "Quem entrega ou solicita")
+    custody_rows = table_rows(
+        section,
+        "Interface",
+        "Quem entrega ou solicita",
+        expected_headers=(
+            "Interface",
+            "Quem entrega ou solicita",
+            "Quem executa",
+            "Quem aprova ou valida",
+            "Evidência mínima exigida",
+        ),
+    )
     custody_by_name = _rows_by_first_column(
         custody_rows, label="interfaces de custódia", width=5
     )
+    _require_nonempty_rows(custody_rows, label="interfaces de custódia")
     for prefix in (
         "Fonte operacional →",
         "staging` → `trusted",
@@ -498,6 +581,7 @@ def validate_section_three(section: str) -> dict[str, int]:
 
     common_rows = table_rows(section, "Metadado", "Conteúdo obrigatório")
     _rows_by_first_column(common_rows, label="metadados comuns", width=3)
+    _require_nonempty_rows(common_rows, label="metadados comuns")
     common_names = "\n".join(row[0] for row in common_rows)
     _require_terms(
         common_names,
@@ -571,6 +655,7 @@ def validate_section_three(section: str) -> dict[str, int]:
     example_by_name = _rows_by_first_column(
         example_rows, label="exemplo de catálogo", width=2
     )
+    _require_nonempty_rows(example_rows, label="exemplo de catálogo")
     _require_first_column(
         example_rows,
         (
@@ -598,18 +683,21 @@ def validate_section_three(section: str) -> dict[str, int]:
 
     field_rows = table_rows(section, "Campo técnico", "Tipo e papel")
     _rows_by_first_column(field_rows, label="dicionário do exemplo", width=4)
+    _require_nonempty_rows(field_rows, label="dicionário do exemplo")
     _require_first_column(field_rows, REQUIRED_EXAMPLE_MEASURES)
 
     dimension_rows = table_rows(section, "Dimensão", "Grão e chaves")
     _rows_by_first_column(
         dimension_rows, label="dimensões do exemplo", width=4
     )
+    _require_nonempty_rows(dimension_rows, label="dimensões do exemplo")
     _require_first_column(dimension_rows, REQUIRED_EXAMPLE_DIMENSIONS)
 
     measure_rows = table_rows(section, "Medida", "Fórmula, unidade e janela")
     measure_by_name = _rows_by_first_column(
         measure_rows, label="contrato das medidas", width=4
     )
+    _require_nonempty_rows(measure_rows, label="contrato das medidas")
     _require_first_column(measure_rows, REQUIRED_EXAMPLE_MEASURES)
     for measure in REQUIRED_EXAMPLE_MEASURES:
         row_text = " | ".join(measure_by_name[measure][1:])
@@ -626,9 +714,13 @@ def validate_section_three(section: str) -> dict[str, int]:
     cube_by_name = _rows_by_first_column(
         cube_rows, label="escopo dos cubos", width=4
     )
-    for cube in REQUIRED_CUBES:
-        if not any(name.startswith(cube) for name in cube_by_name):
-            raise GovernanceValidationError(f"cubo obrigatório ausente: {cube}")
+    _require_nonempty_rows(cube_rows, label="escopo dos cubos")
+    for cube, expected_name in REQUIRED_CUBE_NAMES.items():
+        expected_label = f"{cube} — {expected_name}"
+        if expected_label not in cube_by_name:
+            raise GovernanceValidationError(
+                f"identificador ou nome canônico do cubo divergente: {cube}"
+            )
 
     plain = re.sub(r"[*`]", "", section)
     required_statements = {
