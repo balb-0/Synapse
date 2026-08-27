@@ -638,7 +638,7 @@ atendem ao contrato.
 | `tipo_ativo` | `fonte`, `campo`, `fato`, `dimensao`, `medida`, `regra` ou `relatorio` | Um ativo não acumula tipos incompatíveis para contornar requisitos específicos. |
 | `definicao` | Significado, evento ou conceito representado | Deve permitir distinguir o ativo de termos próximos e citar a decisão que sustenta seu uso. |
 | `dominio_negocio` e `finalidade_uso` | Domínio, pergunta, requisito, indicador ou processo atendido | Finalidade de negócio não substitui finalidade jurídica quando houver tratamento pessoal. |
-| `unidade_analise` e `grao` | O que uma linha ou valor representa | Obrigatório para fonte, fato e medida; deve ser uma frase verificável, como “uma linha por pesquisa”. |
+| `unidade_analise` e `grao` | O que uma linha ou valor representa | Obrigatório para fonte, fato, dimensão e medida; deve ser uma frase verificável, como “uma linha por pesquisa” ou “uma linha por versão vigente da empresa”. |
 | `fonte_origem` e `campos_origem` | Sistema, arquivo/tabela e colunas usadas | Origem desconhecida bloqueia promoção para uso analítico. Chaves recebidas são preservadas. |
 | `transformacao` e `linhagem` | Padronização, junção, derivação e ativos de entrada/saída | Informar método de costura e estado da reconciliação; fallback por título não vira chave canônica por inferência. |
 | `tipo_fisico` e `tipo_semantico` | Tipo no armazenamento e interpretação de negócio | Divergência, como identificador texto versus inteiro, deve ser registrada e tratada. |
@@ -658,9 +658,9 @@ atendem ao contrato.
 | Tipo | Metadados adicionais obrigatórios | Regra de completude |
 | :--- | :--- | :--- |
 | **Fato** | `tipo_fato` (transação, snapshot periódico, snapshot acumulado ou associação), evento, grão, chaves estrangeiras, dimensões conformadas, medidas, fonte, transformação e execução de carga | Exatamente um grão declarado. Mudança de grão cria nova versão e exige análise de impacto nos indicadores. |
-| **Dimensão** | Chave substituta proposta, chave de negócio ou origem, atributos, domínios, membro “Não mapeado”, estratégia SCD, início/fim de vigência e indicador de registro atual | SCD Tipo 2 só é marcado como `vigente` depois de regra aprovada e implementação comprovada; até lá permanece proposta. |
+| **Dimensão** | Grão da entidade ou versão, chave substituta proposta, chave de negócio ou origem, atributos, domínios, membro “Não mapeado”, estratégia SCD, início/fim de vigência e indicador de registro atual | A chave deve ser compatível com o grão. SCD Tipo 2 só é marcado como `vigente` depois de regra aprovada e implementação comprovada; até lá permanece proposta. |
 | **Medida** | Fórmula, unidade, numerador, denominador, aditividade, janela temporal, timezone, cobertura, comportamento com nulos/sentinelas, filtros válidos, regra de validação e estado de disponibilidade | Medida sem denominador conhecido não pode ser apresentada como taxa; medida sem marco temporal não recebe duração imputada. |
-| **Fonte ou campo de origem** | Formato, codificação, chave, nulabilidade, sentinelas, domínio observado, volume/perfil, hash ou versão recebida e responsável pelo fornecimento | Estrutura observada não é alterada para caber no DW; incompatibilidades geram transformação explícita ou quarentena. |
+| **Fonte ou campo de origem** | Formato, codificação, chave, nulabilidade, sentinelas, domínio observado, volume/perfil, hash ou versão recebida, responsável pelo fornecimento e, quando houver extração ou costura, `confianca_extracao`, `origem_evidencia` e `status_mapeamento` | Estrutura observada não é alterada para caber no DW; incompatibilidades geram transformação explícita ou quarentena. A confiança deve preservar o valor e o domínio observados; quando ausente, registrar `indisponivel` ou `pendente_confirmacao`, sem classificar por inferência. |
 
 Para os cubos atuais, o catálogo deve preservar: C01 como uma linha por
 pesquisa e snapshot acumulado; C02 como uma linha por participação e fato
