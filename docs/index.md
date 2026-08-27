@@ -24,6 +24,7 @@ documento principal.
 | :--- | :--- |
 | [`assets/prototipos-dashboards/`](assets/prototipos-dashboards/) | interface autocontida, agregado sem identificação, testes e capturas dos dashboards D01–D04 |
 | [`../scripts/data_quality/`](../scripts/data_quality/) | manifesto, perfilador, testes e contrato das saídas agregadas |
+| [`../scripts/governance/`](../scripts/governance/) | validação reproduzível da classificação, do TAPI e da matriz de acesso |
 | [`../scripts/traceability/`](../scripts/traceability/) | contrato executável PB–RF–indicador–cubo/dashboard e validação das extensões futuras de resposta conciliada |
 
 ## Documentos de gestão
@@ -60,9 +61,20 @@ jq empty docs/dmc.json
 python3 scripts/dmc/validate_dmc.py docs/dmc.json
 python3 -m unittest discover -s scripts/dmc -p 'test_*.py'
 python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'
+python3 -m unittest discover -s scripts/governance -p 'test_*.py'
 python3 scripts/traceability/validate_traceability.py
 python3 -m unittest discover -s scripts/traceability -p 'test_*.py'
 git diff --check
+```
+
+A validação completa de governança também confere o TAPI externo sem exibir seu
+conteúdo:
+
+```bash
+python3 scripts/governance/validate_governance.py \
+  --document docs/Governança-de-Dados-do-Projeto.md \
+  --tapi /caminho/seguro/Tapi-sinduspharma.txt \
+  --repository-root .
 ```
 
 Para conferir também a identidade e os trechos usados das duas fontes

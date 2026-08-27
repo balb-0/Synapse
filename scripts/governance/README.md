@@ -1,8 +1,8 @@
 # Validação do documento de governança
 
 O validador confere as seções 4 e 5 do artefato da Sprint 2 sem ler ou imprimir
-as bases do parceiro. A checagem cobre classificação, campos de risco, hash do
-TAPI e fontes brutas rastreadas pelo Git.
+as bases do parceiro. A checagem cobre classificação, campos de risco, perfis,
+matriz de acesso por camada, hash do TAPI e fontes brutas rastreadas pelo Git.
 
 ```bash
 python3 scripts/governance/validate_governance.py \

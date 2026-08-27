@@ -28,6 +28,8 @@ class GovernanceDocumentTests(unittest.TestCase):
         summary = validate_document(self.document)
         self.assertEqual(summary["classes"], 4)
         self.assertEqual(summary["sources"], 6)
+        self.assertEqual(summary["profiles"], 8)
+        self.assertEqual(summary["internal_layers"], 3)
 
     def test_missing_section_heading_fails(self) -> None:
         document = self.document.replace(
@@ -72,6 +74,73 @@ class GovernanceDocumentTests(unittest.TestCase):
         public_line = source_line.replace("| Confidencial |", "| Público |")
         document = self.document.replace(source_line, public_line, 1)
         with self.assertRaisesRegex(GovernanceValidationError, "identificável"):
+            validate_document(document)
+
+    def test_placeholder_in_section_five_fails(self) -> None:
+        document = self.document.replace(
+            "# 5. Segurança e Acesso",
+            "# 5. Segurança e Acesso\n\n_conteúdo_",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "seção 5"):
+            validate_document(document)
+
+    def test_public_cannot_access_staging(self) -> None:
+        source = "| Público externo | — | — | — | L da visão pública |"
+        document = self.document.replace(
+            source,
+            "| Público externo | L | — | — | L da visão pública |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "camada interna"):
+            validate_document(document)
+
+    def test_participant_cannot_access_analytics(self) -> None:
+        source = (
+            "| Solicitantes/participantes | — | — | — | "
+            "L da entrega autorizada |"
+        )
+        document = self.document.replace(
+            source,
+            "| Solicitantes/participantes | — | — | L | L da entrega autorizada |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "camada interna"):
+            validate_document(document)
+
+    def test_external_profile_cannot_write_publication(self) -> None:
+        source = "| Público externo | — | — | — | L da visão pública |"
+        document = self.document.replace(
+            source,
+            "| Público externo | — | — | — | G da visão pública |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "somente leitura"):
+            validate_document(document)
+
+    def test_public_cannot_read_internal_object(self) -> None:
+        source = "| Público externo | — | — | — | — | — | L da visão pública | — |"
+        document = self.document.replace(
+            source,
+            "| Público externo | L | — | — | — | — | L da visão pública | — |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "objeto interno"):
+            validate_document(document)
+
+    def test_custodian_content_reading_must_be_exceptional(self) -> None:
+        source = (
+            "| Data Custodian / TI | A técnica; L excepcional | "
+            "A técnica; L excepcional | A técnica; L excepcional | "
+            "G da versão aprovada |"
+        )
+        document = self.document.replace(
+            source,
+            "| Data Custodian / TI | A técnica; L | A técnica; L | "
+            "A técnica; L | G da versão aprovada |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "excepcional"):
             validate_document(document)
 
 

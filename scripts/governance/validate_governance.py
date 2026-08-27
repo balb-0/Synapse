@@ -45,6 +45,17 @@ REQUIRED_RISK_FIELDS = (
     "objetivo",
     "observações",
 )
+REQUIRED_ACCESS_PROFILES = (
+    "Equipe da Central",
+    "Áreas técnicas",
+    "Data Owner",
+    "Data Steward",
+    "Data Custodian / TI",
+    "Solicitantes/participantes",
+    "Público externo",
+    "Equipe acadêmica",
+)
+INTERNAL_LAYERS = ("staging", "trusted", "analytics")
 RESTRICTED_SOURCE_NAMES = {
     "clientes.csv",
     "empresas.csv",
@@ -81,7 +92,9 @@ def _clean_cell(cell: str) -> str:
     return re.sub(r"[*_`]", "", cell).strip()
 
 
-def table_rows(section: str, first_header: str) -> list[list[str]]:
+def table_rows(
+    section: str, first_header: str, second_header: str | None = None
+) -> list[list[str]]:
     """Retorna somente o corpo da tabela identificada pela primeira coluna."""
     lines = section.splitlines()
     for index, line in enumerate(lines):
@@ -89,7 +102,14 @@ def table_rows(section: str, first_header: str) -> list[list[str]]:
         if not (stripped.startswith("|") and stripped.endswith("|")):
             continue
         header = [_clean_cell(cell) for cell in stripped[1:-1].split("|")]
-        if not header or header[0] != first_header:
+        if (
+            not header
+            or header[0] != first_header
+            or (
+                second_header is not None
+                and (len(header) < 2 or header[1] != second_header)
+            )
+        ):
             continue
 
         rows: list[list[str]] = []
@@ -106,7 +126,8 @@ def table_rows(section: str, first_header: str) -> list[list[str]]:
         return rows
 
     raise GovernanceValidationError(
-        f"tabela obrigatória ausente: cabeçalho {first_header}"
+        "tabela obrigatória ausente: cabeçalho "
+        + " / ".join(value for value in (first_header, second_header) if value)
     )
 
 
@@ -171,10 +192,100 @@ def validate_section_four(section: str) -> dict[str, int]:
     }
 
 
+def _rows_by_first_column(rows: list[list[str]]) -> dict[str, list[str]]:
+    return {row[0]: row for row in rows if row}
+
+
+def validate_section_five(section: str) -> dict[str, int]:
+    if "_conteúdo_" in section or re.search(r"\bTODO\b", section):
+        raise GovernanceValidationError("a seção 5 contém placeholder")
+
+    profile_rows = table_rows(section, "Perfil", "Necessidade de acesso")
+    object_rows = table_rows(section, "Perfil", "Pesquisa e metadados")
+    layer_rows = table_rows(section, "Perfil ou serviço")
+    _require_first_column(profile_rows, REQUIRED_ACCESS_PROFILES)
+    _require_first_column(object_rows, REQUIRED_ACCESS_PROFILES)
+    _require_first_column(layer_rows, REQUIRED_ACCESS_PROFILES)
+
+    layer_by_profile = _rows_by_first_column(layer_rows)
+    for profile in (
+        "Solicitantes/participantes",
+        "Público externo",
+        "Equipe acadêmica",
+    ):
+        row = layer_by_profile[profile]
+        if len(row) != 5:
+            raise GovernanceValidationError(
+                f"matriz de camadas malformada para {profile}"
+            )
+        if any(cell != "—" for cell in row[1:4]):
+            raise GovernanceValidationError(
+                f"perfil externo não pode acessar camada interna: {profile}"
+            )
+        if not re.fullmatch(r"L(?: .*)?", row[4]):
+            raise GovernanceValidationError(
+                f"perfil externo deve ter somente leitura na publicação: {profile}"
+            )
+
+    object_by_profile = _rows_by_first_column(object_rows)
+    for profile in ("Solicitantes/participantes", "Público externo"):
+        row = object_by_profile[profile]
+        if len(row) != 8:
+            raise GovernanceValidationError(
+                f"matriz de objetos malformada para {profile}"
+            )
+        if any(cell != "—" for cell in row[1:6]) or row[7] != "—":
+            raise GovernanceValidationError(
+                f"perfil externo não pode acessar objeto interno: {profile}"
+            )
+        if not re.fullmatch(r"L(?: .*)?", row[6]):
+            raise GovernanceValidationError(
+                f"perfil externo deve ter somente leitura no objeto Publicação: {profile}"
+            )
+
+    custodian = layer_by_profile["Data Custodian / TI"]
+    if not all("A técnica" in cell for cell in custodian[1:4]):
+        raise GovernanceValidationError(
+            "Data Custodian precisa de administração técnica explícita por camada"
+        )
+    if not all("L excepcional" in cell for cell in custodian[1:4]):
+        raise GovernanceValidationError(
+            "leitura do Data Custodian deve permanecer excepcional"
+        )
+
+    plain = re.sub(r"[*_`]", "", section)
+    required_statements = {
+        "negação por padrão": r"acesso é negado por padrão",
+        "autorização no servidor": r"validar a política no servidor",
+        "escopo composto": (
+            r"perfil × ação × recurso × classe × pesquisa × empresa × área × finalidade"
+        ),
+        "acesso emergencial": r"break-glass",
+        "camadas internas": r"staging, trusted e analytics.{0,80}sempre internas",
+        "publicação separada": r"versão publicável separada",
+    }
+    for label, pattern in required_statements.items():
+        if not re.search(pattern, plain, re.IGNORECASE | re.DOTALL):
+            raise GovernanceValidationError(f"regra de acesso ausente: {label}")
+
+    for symbol in ("L", "G", "A", "—"):
+        if not re.search(
+            rf"^[-*] \*\*{re.escape(symbol)}\*\*", section, re.MULTILINE
+        ):
+            raise GovernanceValidationError(
+                f"legenda da matriz de acesso ausente: {symbol}"
+            )
+
+    return {
+        "profiles": len(REQUIRED_ACCESS_PROFILES),
+        "internal_layers": len(INTERNAL_LAYERS),
+    }
+
+
 def validate_document(markdown: str) -> dict[str, int]:
     section_four = extract_section(markdown, SECTION_FOUR)
-    extract_section(markdown, SECTION_FIVE)
-    return validate_section_four(section_four)
+    section_five = extract_section(markdown, SECTION_FIVE)
+    return validate_section_four(section_four) | validate_section_five(section_five)
 
 
 def validate_tapi_hash(document: str, tapi_path: Path) -> str:
@@ -250,7 +361,10 @@ def main(argv: list[str] | None = None) -> int:
         "Governança válida: "
         f"{summary['classes']} classes; "
         f"{summary['markers']} marcadores; "
-        f"{summary['sources']} fontes; TAPI conferido; sem fonte bruta rastreada"
+        f"{summary['sources']} fontes; "
+        f"{summary['profiles']} perfis; "
+        f"{summary['internal_layers']} camadas internas; "
+        "TAPI conferido; sem fonte bruta rastreada"
     )
     return 0
 
