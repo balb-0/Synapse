@@ -550,6 +550,49 @@ O acesso emergencial do Data Custodian ao conteúdo exige motivo, prazo curto,
 segunda aprovação e revisão posterior. Ao término, a permissão temporária e as
 sessões associadas devem ser revogadas, preservando a trilha da ação.
 
+## 5.5 Segregação por camadas
+
+| Camada | Conteúdo | Escrita permitida | Leitura permitida | Regra de saída |
+| :--- | :--- | :--- | :--- | :--- |
+| **staging** | Cópia recebida da fonte, schema original, identificadores e metadados da entrega. Tratar como Sensível até classificação. | Somente serviço de ingestão com credencial própria; Data Custodian em operação técnica controlada. | Data Steward apenas em quarentena ou investigação escopada; Data Custodian somente por necessidade técnica ou break-glass. | Promover lote completo e validado para trusted; nunca alimentar dashboard ou publicação diretamente. |
+| **trusted** | Dado tipado, validado, deduplicado, classificado, com identidade separada e regra de qualidade registrada. | Pipeline validado; Data Steward em correção governada; Central somente pela aplicação e no fluxo autorizado. | Central e Data Steward no escopo; áreas técnicas apenas para validação de questionário e metadados relacionados. | Promover para analytics com checkpoint de qualidade, linhagem e finalidade. |
+| **analytics** | Fatos, dimensões, métricas e agregações com grão e origem documentados. | Pipeline analítico; correção somente pela origem/trusted e reprocessamento. | Central, Data Owner, Data Steward e áreas técnicas nos recortes autorizados. | Gerar uma versão publicável separada; o cubo inteiro não se torna Público porque um agregado foi aprovado. |
+| **publicação** | Resultado imutável, versionado, aprovado, anonimizado ou agregado, acompanhado da decisão de publicação. | Data Custodian publica somente a versão aprovada; retirada/correção segue nova decisão. | Solicitantes/participantes conforme finalidade e público externo quando expressamente liberado. | Não permite retorno para camadas internas nem drill-down que revele dado protegido. |
+
+## 5.6 Matriz de acesso por camada
+
+| Perfil ou serviço | staging | trusted | analytics | publicação |
+| :--- | :---: | :---: | :---: | :---: |
+| Serviço de ingestão | G | G de promoção | — | — |
+| Equipe da Central | — | L/G via aplicação | L | G de preparação |
+| Áreas técnicas | — | L/G no questionário e escopo | L no escopo | L quando autorizada |
+| Data Owner | — | — | L | A de aprovação |
+| Data Steward | L de quarentena | L/G de qualidade | L/G de regra | L de evidência |
+| Data Custodian / TI | A técnica; L excepcional | A técnica; L excepcional | A técnica; L excepcional | G da versão aprovada |
+| Solicitantes/participantes | — | — | — | L da entrega autorizada |
+| Público externo | — | — | — | L da visão pública |
+| Equipe acadêmica | — | — | — | L da versão pública ou agregado acadêmico aprovado |
+
+As permissões de `staging`, `trusted` e `analytics` são sempre internas. Um
+usuário externo não recebe acesso direto a essas camadas, mesmo que um campo ou
+indicador isolado tenha classificação Pública.
+
+## 5.7 Promoção, falha segura e reprocessamento
+
+Cada promoção registra origem, hash ou versão da entrada, execução, schema,
+regras aplicadas, contagens, rejeições, responsável e destino. A mudança deve
+ser atômica: lote incompleto ou inválido permanece em quarentena e a versão
+anterior continua servindo o consumo autorizado.
+
+Falha de autenticação, política, classificação, qualidade, anonimização,
+assinatura da fonte ou decisão de publicação bloqueia a ação. O sistema não
+retorna parte do dado nem usa `staging` como fallback. Reprocessamento parte da
+entrada inventariada, produz nova execução e não sobrescreve a trilha anterior.
+
+Restauração de backup ocorre em ambiente isolado. Antes de voltar ao serviço,
+deve reaplicar bloqueios, revogações e eliminações registradas após o ponto da
+cópia e nunca republicar automaticamente uma versão antiga.
+
 # 6. Ciclo de Vida dos Dados
 
 _conteúdo_
