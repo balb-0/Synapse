@@ -128,14 +128,17 @@ controlador ou encarregado só passa a valer após a designação pelo Sindusfar
 
 | Atividade | Data Owner | Data Steward | Central / áreas técnicas | Data Custodian / TI | Agentes LGPD a designar | Custódia externa |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| Definir significado, criticidade e finalidade dos metadados | A | R | C | C | C | I |
-| Manter catálogo, dicionário, regras e linhagem | A | R | C | C/R nos metadados técnicos de carga | I | C na fonte sob contrato |
-| Definir e acompanhar regras de qualidade | A | R | C/R na correção da origem | R na validação, quarentena e reingestão | C | C/R na fonte sob contrato |
+| Definir significado, criticidade e uso de negócio dos metadados | A | R | C | C | C quanto ao tratamento pessoal | I |
+| Definir finalidade e hipótese legal do tratamento pessoal | C | R na documentação e evidência | C | I | A/R após a designação | I |
+| Manter catálogo semântico, dicionário, regras e linhagem | A | R | C | C | I | I |
+| Manter metadados técnicos de origem, carga, versão e armazenamento | I | A quanto à coerência com o catálogo | I | R | I | R técnico sob contrato |
+| Definir e acompanhar regras de qualidade | A | R | C | C | C | C na fonte sob contrato |
+| Corrigir origem, validar, colocar em quarentena e reingerir | A somente para exceção ou impacto relevante | A pela regra e pelo encerramento aplicável | R na correção da origem | R na execução técnica | C | R técnico sob contrato |
 | Classificar dados e revisar risco de reidentificação | A quanto ao uso e à exposição | R | C | R na aplicação técnica | A/C conforme a atribuição legal | C |
 | Administrar perfis, autenticação, camadas, logs e backups | A quanto à política e às exceções | C | I | R | C | R na infraestrutura contratada |
-| Tratar desvios, exceções e risco residual | A | R | C | R técnico | C/A quando houver decisão legal | C/R se a causa estiver no serviço contratado |
-| Aprovar e disponibilizar resultados | A | R na classificação, linhagem e proteção | C sobre o sentido do resultado | R na disponibilização | C/A quando houver decisão legal | R somente na publicação sob contrato |
-| Auditar conformidade e atender direitos dos titulares | C | R na evidência, inventário e rastreabilidade | C | R na propagação, nos logs e na retenção técnica | A/R conforme a atribuição legal | C/R conforme o contrato |
+| Tratar desvios, exceções e risco residual | A | R | C | R técnico | C/A quando houver decisão legal | R técnico se a causa estiver no serviço contratado |
+| Aprovar e disponibilizar resultados | A | R na classificação, linhagem e proteção | C sobre o sentido do resultado | R na disponibilização | C/A quando houver decisão legal | R técnico somente na publicação sob contrato |
+| Auditar conformidade e atender direitos dos titulares | C | R na evidência, inventário e rastreabilidade | C | R na propagação, nos logs e na retenção técnica | A/R conforme a atribuição legal | R técnico conforme instrução e contrato |
 
 ## 1.6 Regras de aplicação da matriz
 
@@ -155,7 +158,8 @@ controlador ou encarregado só passa a valer após a designação pelo Sindusfar
   seção recebe responsabilidade jurídica por inferência.
 - **Custódia externa:** fornecedor executa somente o que contrato e instruções
   autorizarem. Escopo de acesso, retenção, auditoria, devolução e descarte devem
-  constar do inventário antes da operação.
+  constar do inventário antes da operação. O fornecedor não aprova finalidade,
+  hipótese legal, classificação, exceção, publicação ou resposta ao titular.
 - **Proteção do catálogo:** metadados não são públicos por definição. Objetivos,
   enunciados, contatos, chaves de relacionamento e informações de origem herdam
   a classificação e a restrição do dado que descrevem.
