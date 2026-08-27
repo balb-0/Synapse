@@ -50,6 +50,8 @@
   - [3.4 Metadados obrigatórios](#34-metadados-obrigatórios)
   - [3.5 Atualização e versionamento](#35-atualização-e-versionamento)
   - [3.6 Exemplo de catálogo: FATO_CICLO_PESQUISA](#36-exemplo-de-catálogo-fato_ciclo_pesquisa)
+  - [3.7 Escopo dos cubos e limitações do catálogo](#37-escopo-dos-cubos-e-limitações-do-catálogo)
+  - [3.8 Integração com qualidade, proteção e acesso](#38-integração-com-qualidade-proteção-e-acesso)
 - [4. Classificação e Proteção de Dados](#4-classificação-e-proteção-de-dados)
 - [5. Segurança e Acesso](#5-segurança-e-acesso)
 - [6. Ciclo de Vida dos Dados](#6-ciclo-de-vida-dos-dados)
@@ -560,7 +562,7 @@ reutilizar seu identificador para outro significado.
 
 | Metadado | Fonte canônica nesta Sprint | Regra de precedência e reconciliação |
 | :--- | :--- | :--- |
-| Termo de negócio, definição, grão, fatos, dimensões e medidas | Seção 3 e DMC versionado como baseline, com homologação pendente | Divergência bloqueia a publicação; o Steward abre uma mudança e mantém o ativo como `em revisão` até haver uma versão homologada. |
+| Termo de negócio, definição, grão, fatos, dimensões e medidas | Seção 3 e DMC versionado como baseline, com homologação pendente | Divergência bloqueia a publicação; o Steward abre uma mudança e mantém o ativo como `em_revisao` até haver uma versão homologada. |
 | Contrato da fonte, formato, chave, domínio, sentinela e nulabilidade | Manifesto de qualidade, perfil observado e dicionário recebido | A estrutura observada sustenta o diagnóstico; mudança proposta só vira contrato após teste e revisão. Não se altera a definição de negócio para esconder erro da fonte. |
 | Responsável e alçada | Seção 1 | Nomes permanecem baseline documental até homologação; o catálogo referencia o papel mesmo quando a pessoa ainda está pendente. |
 | Regra e resultado de qualidade | Seção 2 e relatórios versionados | Regra deve indicar fórmula, limiar e aplicabilidade; medição não sobrescreve a regra que a produziu. |
@@ -640,6 +642,7 @@ atendem ao contrato.
 | `tipo_ativo` | `fonte`, `campo`, `fato`, `dimensao`, `medida`, `regra` ou `relatorio` | Um ativo não acumula tipos incompatíveis para contornar requisitos específicos. |
 | `definicao` | Significado, evento ou conceito representado | Deve permitir distinguir o ativo de termos próximos e citar a decisão que sustenta seu uso. |
 | `dominio_negocio` e `finalidade_uso` | Domínio, pergunta, requisito, indicador ou processo atendido | Finalidade de negócio não substitui finalidade jurídica quando houver tratamento pessoal. |
+| `pergunta_ids`, `requisito_ids`, `indicador_ids`, `visualizacao_ids` e `consumidor_ids` | Identificadores explícitos dos contratos e consumidores ligados ao ativo | Obrigatórios quando existirem; permitem análise de impacto bidirecional. A ausência deve ser `indisponivel`, não substituída por descrição genérica. |
 | `unidade_analise` e `grao` | O que uma linha ou valor representa | Obrigatório para fonte, fato, dimensão e medida; deve ser uma frase verificável, como “uma linha por pesquisa” ou “uma linha por versão vigente da empresa”. |
 | `fonte_origem` e `campos_origem` | Sistema, arquivo/tabela e colunas usadas | Origem desconhecida bloqueia promoção para uso analítico. Chaves recebidas são preservadas. |
 | `transformacao` e `linhagem` | Padronização, junção, derivação e ativos de entrada/saída | Informar método de costura e estado da reconciliação; fallback por título não vira chave canônica por inferência. |
@@ -780,6 +783,9 @@ implantados.
 | Tipo de ativo | `fato`; snapshot acumulado proposto. |
 | Definição | Fato acumulador que representa os marcos de cada pesquisa, da solicitação à entrega, conforme disponibilidade dos campos de origem. |
 | Domínio e finalidade de uso | Central de Pesquisas; acompanhar portfólio, duração das etapas, prorrogações e gargalos das pesquisas. Novo tratamento pessoal exige decisão jurídica separada. |
+| Perguntas e requisitos | `PB01`, `PB02`, `PB03`; `RF01`, `RF02`, `RF03`. |
+| Indicadores | `I01`, `I02`, `I03`, `I04`, `I05`, `I06`, respeitando o estado de disponibilidade de cada contrato. |
+| Visualizações e consumidores | `D01 — Operação`; documentação analítica e matriz de rastreabilidade do projeto. Consumidor técnico executável ainda `indisponivel`. |
 | Estado | `estado_evidencia: documentado`; `estado_ciclo: em_revisao`; implantação e homologação pendentes. |
 | Tipo e grão | Snapshot acumulado; uma linha por pesquisa, aproximadamente 366 linhas no snapshot documentado. |
 | Fonte principal | `pesquisas.csv`; chaves e valores da origem devem ser preservados. |
@@ -863,6 +869,53 @@ seus tipos físicos, vigência operacional e implementação permanecem pendente
 - O exemplo não contém amostras de respostas, contatos ou valores pessoais; a
   classificação pode subir se o schema físico futuro incorporar texto ou
   ligação identificável.
+
+## 3.7 Escopo dos cubos e limitações do catálogo
+
+| Cubo | Grão e fontes | Medidas principais | Limitação que o catálogo deve exibir |
+| :--- | :--- | :--- | :--- |
+| **C01 — Portfólio e Ciclo** | Uma linha por pesquisa; `pesquisas.csv`. | Durações das etapas e do ciclo, empresas declaradas e flag de prorrogação. | `data_aprov` tem baixa completude observada e documentação conflitante de cobertura; calendários, aditividade e periodicidade ainda exigem validação. |
+| **C02 — Participação e Representatividade** | Uma linha por participação; `respondentes.csv`, com atributos conciliados de pesquisas, clientes e empresas. | Quantidade de participação, sequência de ocorrência, minutos de preenchimento e participação de mercado. | Repetições da mesma pessoa/pesquisa não são automaticamente duplicidade técnica; `seq_ocorrencia` permite recortes. Ponte pessoa–resposta, denominadores e identidade canônica não estão comprovados; tempo de preenchimento tem baixa cobertura. |
+| **C03 — Pipeline Mensal** | Mês × status × área × tipo × perfil. O C01 fornece apenas o estado inicial; entradas e saídas exigem snapshots mensais persistidos ou log de mudança de status após o go-live. | Estoque, entradas, saídas e transições mensais propostas. | A fonte atual não permite calcular movimentos históricos. Não reconstrói período anterior ao primeiro snapshot/evento; timestamp de carga, periodicidade e SLA ainda não existem. |
+| **C04 — Questionários e Cobertura** | Uma pergunta por pesquisa; `questoes.csv`, com ligação a pesquisa quando comprovada. | Quantidade de pergunta e alternativas; características de tipo/matriz. | Cobre 10 de aproximadamente 366 pesquisas e não contém respostas individuais. Não suporta distribuição de respostas antes de futuro `FATO_RESPOSTA`. |
+
+Para ligações de pesquisa, o catálogo registra `metodo_costura` e
+`status_mapeamento`. Valores previstos incluem `direto`, `fallback_por_titulo`,
+`nao_mapeado` e `pendente_validacao`, além da `confianca_extracao` observada.
+Quando a correspondência exata por título é encontrada, a linha recebe
+`metodo_costura: fallback_por_titulo` e permanece com chave canônica
+`pendente_validacao`; ela não é contabilizada como “Não mapeado”. Somente a
+linha sem correspondência recebe `status_mapeamento: nao_mapeado`. Em ambos os
+casos, a chave de origem e a evidência são preservadas, e o fallback não se
+torna chave canônica homologada por inferência.
+
+A ausência de duplicidade de chave ou linha nas fontes não elimina repetições
+de evento no modelo analítico. Em C02, múltiplas participações podem representar
+reenvio, correção ou evento legítimo e só recebem tratamento após regra de
+negócio. Em C04, linha de pergunta não representa resposta, e linha de
+`respostas.csv` não representa automaticamente pessoa única.
+
+## 3.8 Integração com qualidade, proteção e acesso
+
+- **Responsabilidade:** Owner, Steward, Custodian, Central, áreas técnicas e
+  papéis jurídicos seguem as alçadas e pendências da Seção 1.
+- **Qualidade:** fórmula, limiar, aplicabilidade, cobertura, exceção e ação
+  corretiva referenciam a Seção 2. Um conflito documental mantém o ativo
+  `em_revisao`; o catálogo não escolhe o número mais conveniente.
+- **Classificação e LGPD:** metadados recebem classe e marcador da Seção 4. O
+  catálogo não expõe amostras, contatos, enunciados restritos ou chaves de
+  reidentificação para facilitar descoberta.
+- **Acesso:** visibilidade e edição seguem perfis e camadas da Seção 5. Busca
+  por metadado não concede leitura do dado, e toda exportação ou publicação
+  continua sujeita à autorização aplicável.
+- **Ciclo de vida:** retenção, arquivo e descarte apontam para a Seção 6. Como
+  ela ainda depende de consolidação e homologação, o catálogo registra a
+  pendência e não cria prazos substitutos.
+
+Com essas dependências, a Seção 3 constitui o contrato documental do catálogo
+na Sprint 2. Inventário com `asset_id`, coleta automática de schema, portal de
+busca, linhagem de execução e atualização por pipeline permanecem capacidades
+planejadas, não implantadas.
 
 # 4. Classificação e Proteção de Dados
 
