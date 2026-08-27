@@ -24,6 +24,16 @@
 # Sumário
 
 - [1. Estrutura Organizacional da Governança](#1-estrutura-organizacional-da-governança)
+  - [1.1 Estado das atribuições](#11-estado-das-atribuições)
+  - [1.2 Papéis fundamentais](#12-papéis-fundamentais)
+  - [1.3 Encadeamento das decisões](#13-encadeamento-das-decisões)
+  - [1.4 Homologações pendentes](#14-homologações-pendentes)
+  - [1.5 Mapa funcional da governança de dados](#15-mapa-funcional-da-governança-de-dados)
+  - [1.6 Matriz de responsabilidades por domínio](#16-matriz-de-responsabilidades-por-domínio)
+  - [1.7 Regras de aplicação da matriz](#17-regras-de-aplicação-da-matriz)
+  - [1.8 Atribuições internas, externas e cadeia de custódia](#18-atribuições-internas-externas-e-cadeia-de-custódia)
+    - [1.8.1 Interfaces de responsabilidade na custódia](#181-interfaces-de-responsabilidade-na-custódia)
+    - [1.8.2 Confirmações externas pendentes](#182-confirmações-externas-pendentes)
 - [2. Política de Qualidade de Dados](#2-política-de-qualidade-de-dados)
   - [2.1 Atributos de qualidade](#21-atributos-de-qualidade)
   - [2.2 Métricas e procedimentos de mensuração](#22-métricas-e-procedimentos-de-mensuração)
@@ -70,9 +80,9 @@ legais de acordo com cada tratamento, contrato e fluxo de dados.
 
 | Papel | Referência documental | Autoridade e responsabilidade propostas | Limites do papel |
 | :--- | :--- | :--- | :--- |
-| **Data Owner** | Fabio Moreira | Responder pelo domínio de negócio; aprovar finalidade, prioridade, indicadores, classificação, perfis de acesso, publicação, exceções e risco residual. | Não recebe acesso administrativo por ocupar o papel e não substitui automaticamente o controlador ou o encarregado da LGPD. |
-| **Data Steward** | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade | Definir significado, catálogo, dicionário, regras de qualidade, completude, reconciliação e linhagem; acompanhar inconformidades e propor correções. | Não aprova sozinho nova finalidade, exposição externa ou aceitação de risco estratégico; ele prepara a decisão do Data Owner. |
-| **Data Custodian / TI** | Rodrigo Giorgetto / TI | Administrar infraestrutura, ingestão, armazenamento, credenciais, backups, logs, disponibilidade e controles técnicos conforme as decisões aprovadas. | Não define finalidade, regra de negócio ou publicação e só acessa conteúdo protegido quando a atividade técnica exigir, com autorização e auditoria. |
+| **Data Owner** | Fabio Moreira | Responder pelo domínio de negócio; aprovar finalidade de negócio, uso pretendido, prioridade, indicadores, classificação, perfis de acesso, publicação, exceções e risco residual. | Não recebe acesso administrativo por ocupar o papel e não substitui automaticamente o controlador ou o encarregado da LGPD. |
+| **Data Steward** | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade | Definir significado, catálogo, dicionário, regras de qualidade, completude, reconciliação e linhagem; acompanhar inconformidades e propor correções. | Não aprova sozinho novo uso de negócio, finalidade jurídica, exposição externa ou aceitação de risco estratégico; ele prepara a decisão organizacional e a evidência para o papel legal aplicável. |
+| **Data Custodian / TI** | Rodrigo Giorgetto / TI | Administrar infraestrutura, ingestão, armazenamento, credenciais, backups, logs, disponibilidade e controles técnicos conforme as decisões aprovadas. | Não define uso de negócio, finalidade jurídica, regra de negócio ou publicação e só acessa conteúdo protegido quando a atividade técnica exigir, com autorização e auditoria. |
 
 A RentalHost aparece no baseline como custodiante externo quando operar o
 sistema interno ou o repositório público. Essa participação depende do contrato
@@ -90,7 +100,7 @@ Central de Pesquisas ou área técnica identifica a necessidade
     ↓
 Data Steward define significado, regra de qualidade e impacto nos dados
     ↓
-Data Owner aprova finalidade, acesso, exceção ou publicação
+Data Owner aprova uso de negócio, acesso, exceção ou publicação
     ↓
 Data Custodian / TI implementa o controle e registra a execução
     ↓
@@ -98,13 +108,15 @@ Data Steward ou Data Owner verifica o resultado conforme a regra aplicável
 ```
 
 O Data Custodian pode bloquear tecnicamente uma operação insegura ou fora da
-política, mas não pode autorizar uma nova finalidade. O Data Steward pode
+política, mas não pode autorizar um novo uso de negócio ou tratamento. O Data Steward pode
 reprovar um dado que não atende à regra registrada, mas uma exceção com impacto
 de negócio ou publicação retorna ao Data Owner. A separação preserva a
 segregação de funções adotada nas políticas de qualidade, classificação e
 acesso das Seções 2, 4 e 5. No encerramento de uma ação corretiva, o validador
-segue a severidade definida na Seção 2.5; casos críticos e baixos cabem ao Data
-Owner, enquanto os demais seguem a matriz específica daquele fluxo.
+segue a severidade definida na Seção 2.5. Na validação do encerramento ou em
+exceções, casos críticos e baixos envolvem o Data Owner; a execução permanece
+com Steward, Custodian ou responsável pela origem conforme a matriz daquele
+fluxo.
 
 ## 1.4 Homologações pendentes
 
@@ -124,32 +136,40 @@ produtivo do Sindusfarma.
 O diagrama representa **relações funcionais de decisão e execução; não
 representa organograma empregatício** nem designação jurídica. Os nomes nos
 nós azuis vêm do baseline documental; as atribuições e relações são propostas
-do projeto. A matriz RACI da Seção 1.6 é a fonte detalhada de autoridade quando
-uma relação resumida no desenho envolver mais de um responsável.
+do projeto. A matriz RACI da Seção 1.6 detalha a distribuição proposta de
+responsabilidades quando uma relação resumida no desenho envolver mais de um
+papel.
 
 ```mermaid
 flowchart LR
-    SIND["[DOC] Sindusfarma<br/>homologa papéis, alçadas e vigência"]:::baseline
-    OWNER["[DOC/PEND] Data Owner<br/>Fabio Moreira<br/>aprova finalidade, acesso,<br/>publicação e exceções"]:::baseline
+    SIND["[DOC/PEND] Sindusfarma<br/>homologação de papéis,<br/>alçadas e vigência pendente"]:::baseline
+    OWNER["[DOC/PEND] Data Owner<br/>Fabio Moreira<br/>aprova uso de negócio, acesso,<br/>publicação e exceções"]:::baseline
     STEWARD["[DOC/PEND] Data Stewards<br/>Felipe Rojas, Reinaldo Nobrega<br/>e Lucas Andrade<br/>definem semântica, catálogo,<br/>qualidade e linhagem"]:::baseline
     CUST["[DOC/PEND] Data Custodian / TI<br/>Rodrigo Giorgetto / TI<br/>implementa infraestrutura,<br/>segurança, cargas, logs e backups"]:::baseline
     CENTRAL["[PROP] Central de Pesquisas<br/>opera o ciclo, valida indicadores<br/>e prepara resultados"]:::proposal
     AREAS["[PROP] Áreas técnicas<br/>revisam questionários,<br/>conteúdo e resultados"]:::proposal
-    LEGAL["[PEND] Agentes LGPD<br/>controlador, operadores, suboperadores<br/>e encarregado a designar"]:::pending
+    CONTROLLER["[PEND] Controlador<br/>decide finalidade jurídica,<br/>hipótese legal e instruções"]:::pending
+    PROCESSORS["[PEND] Operador e suboperadores<br/>executam o tratamento<br/>conforme instruções"]:::pending
+    DPO["[PEND] Encarregado<br/>atua como canal,<br/>orienta e apoia conformidade"]:::pending
     EXT["[COND] RentalHost<br/>custódia técnica sob contrato<br/>e conforme instruções"]:::external
 
     SIND -.->|homologação pendente| OWNER
     SIND -.->|homologação pendente| STEWARD
     SIND -.->|homologação pendente| CUST
-    SIND -.->|designa por tratamento| LEGAL
+    SIND -.->|designa por tratamento| CONTROLLER
+    SIND -.->|identifica por tratamento e contrato| PROCESSORS
+    SIND -.->|designa o canal| DPO
     CENTRAL -->|necessidade e validação operacional| STEWARD
     AREAS -->|validação temática| STEWARD
     STEWARD -->|regra, metadado e controle esperado| OWNER
     OWNER -->|decisão aprovada| CUST
     CUST -->|execução e evidência técnica| STEWARD
-    OWNER -.->|coordena decisão de negócio| LEGAL
-    LEGAL -.->|decisão jurídica própria por tratamento| CUST
-    LEGAL -.->|requisitos de privacidade| STEWARD
+    OWNER -.->|coordena uso de negócio| CONTROLLER
+    CONTROLLER -.->|instruções do tratamento| CUST
+    CONTROLLER -.->|instruções documentadas| PROCESSORS
+    PROCESSORS -.->|execução contratada| CUST
+    DPO -.->|orientação e canal| OWNER
+    DPO -.->|requisitos de privacidade| STEWARD
     CUST -.->|instrução técnica contratada| EXT
 
     classDef baseline fill:#E8F1FB,stroke:#2563EB,color:#0F172A,stroke-width:1.5px
@@ -163,7 +183,7 @@ flowchart LR
 | `[DOC]`, nó azul | Nome ou papel presente no baseline documental. |
 | `[DOC/PEND]`, nó azul | Nome presente no baseline, com designação e autoridade ainda sujeitas à homologação. |
 | `[PROP]`, nó verde | Função operacional proposta para a Central ou para as áreas técnicas. |
-| `[PEND]`, nó laranja tracejado | Agente legal pendente de designação por tratamento. |
+| `[PEND]`, nó laranja tracejado | Papel jurídico pendente; controlador, operador/suboperador e encarregado preservam funções distintas. |
 | `[COND]`, nó roxo tracejado | Participação externa condicionada a contrato e instruções. |
 | Seta contínua | Interface funcional proposta de definição, aprovação, execução ou verificação. |
 | Seta tracejada | Relação pendente ou condicional; não comprova subordinação ou vínculo jurídico. |
@@ -171,30 +191,32 @@ flowchart LR
 ## 1.6 Matriz de responsabilidades por domínio
 
 A matriz usa a notação RACI: **A** responde pela decisão final, **R** executa,
-**C** é consultado antes da decisão e **I** recebe a informação. Quando uma
-atividade envolve dado pessoal, a responsabilidade jurídica indicada para
-controlador ou encarregado só passa a valer após a designação pelo Sindusfarma.
+**C** é consultado antes da decisão e **I** recebe a informação. A coluna LGPD
+nomeia o papel aplicável para não reunir responsabilidades jurídicas distintas.
+Essas responsabilidades só passam a valer depois da designação pelo
+Sindusfarma para cada tratamento.
 
-| Atividade | Data Owner | Data Steward | Central / áreas técnicas | Data Custodian / TI | Agentes LGPD a designar | Custódia externa |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| Definir significado, criticidade e uso de negócio dos metadados | A | R | C | C | C quanto ao tratamento pessoal | I |
-| Definir finalidade e hipótese legal do tratamento pessoal | C | R na documentação e evidência | C | I | A/R após a designação | I |
-| Manter catálogo semântico, dicionário, regras e linhagem | A | R | C | C | I | I |
-| Manter metadados técnicos de origem, carga, versão e armazenamento | I | A quanto à coerência com o catálogo | I | R | I | R técnico sob contrato |
-| Definir e acompanhar regras de qualidade | A | R | C | C | C | C na fonte sob contrato |
-| Corrigir origem, validar, colocar em quarentena e reingerir | A somente para exceção ou impacto relevante | A pela regra e pelo encerramento aplicável | R na correção da origem | R na execução técnica | C | R técnico sob contrato |
-| Classificar dados e revisar risco de reidentificação | A quanto ao uso e à exposição | R | C | R na aplicação técnica | A/C conforme a atribuição legal | C |
-| Administrar perfis, autenticação, camadas, logs e backups | A quanto à política e às exceções | C | I | R | C | R na infraestrutura contratada |
-| Tratar desvios, exceções e risco residual | A | R | C | R técnico | C/A quando houver decisão legal | R técnico se a causa estiver no serviço contratado |
-| Aprovar e disponibilizar resultados | A | R na classificação, linhagem e proteção | C sobre o sentido do resultado | R na disponibilização | C/A quando houver decisão legal | R técnico somente na publicação sob contrato |
-| Auditar conformidade e atender direitos dos titulares | C | R na evidência, inventário e rastreabilidade | C | R na propagação, nos logs e na retenção técnica | A/R conforme a atribuição legal | R técnico conforme instrução e contrato |
+| Atividade | Data Owner | Data Steward | Central de Pesquisas | Áreas técnicas | Data Custodian / TI | Papéis LGPD a designar, conforme o tratamento | Custódia externa |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Definir significado, criticidade e uso de negócio dos metadados | A | R | C | C | C | Encarregado: C quando houver risco jurídico | I |
+| Definir finalidade jurídica e hipótese legal do tratamento pessoal | C quanto ao uso de negócio | R na documentação e evidência | C | C | I | Controlador: A/R na decisão; operador/suboperador: R conforme instrução; encarregado: C/I | I |
+| Manter catálogo semântico, dicionário, regras e linhagem | A | R | C | C | C | Encarregado: I | I |
+| Manter metadados técnicos de origem, carga, versão e armazenamento | I | A quanto à coerência com o catálogo | I | I | R | Operador/suboperador: R técnico conforme instrução | R técnico sob contrato |
+| Definir e acompanhar regras de qualidade | A | R | C | C | C | Controlador ou encarregado: C quando o desvio afetar o tratamento | C na fonte sob contrato |
+| Corrigir origem, validar, colocar em quarentena e reingerir | A somente para exceção ou impacto relevante | A pela regra e pelo encerramento aplicável | R quando controlar a fonte | R quando controlar a fonte | R na execução técnica | Operador/suboperador: R conforme instrução; encarregado: C | R técnico sob contrato |
+| Classificar dados e revisar risco de reidentificação | A quanto ao uso de negócio e à exposição | R | C | C | R na aplicação técnica | Controlador: A quanto ao tratamento; encarregado: C; operador/suboperador: R técnico | C |
+| Administrar perfis, autenticação, camadas, logs e backups | A quanto à política e às exceções | C | I | I | R | Controlador: A quanto ao tratamento; operador/suboperador: R; encarregado: C | R na infraestrutura contratada |
+| Tratar desvios, exceções e risco residual | A quanto ao negócio | R | C | C | R técnico | Controlador: A na decisão legal; operador/suboperador: R conforme instrução; encarregado: C | R técnico se a causa estiver no serviço contratado |
+| Aprovar e disponibilizar resultados | A quanto ao uso de negócio e à publicação | R na classificação, linhagem e proteção | C sobre o sentido do resultado | C na validação temática | R na disponibilização | Controlador: A quando houver decisão legal; encarregado: C; operador/suboperador: R técnico | R técnico somente na publicação sob contrato |
+| Auditar conformidade e atender direitos dos titulares | C | R na evidência, inventário e rastreabilidade | C | C | R na propagação, nos logs e na retenção técnica | Controlador: A; encarregado: R como canal; operador/suboperador: R conforme instrução | R técnico conforme instrução e contrato |
 
 ## 1.7 Regras de aplicação da matriz
 
 - **Metadados semânticos e técnicos:** o Data Steward mantém significado,
   domínio, criticidade, regra de qualidade e linhagem. O Data Custodian mantém
   origem técnica, execução da carga, armazenamento, versão e logs. Mudança que
-  altere uso, finalidade ou indicador retorna ao Data Owner.
+  altere uso de negócio ou indicador retorna ao Data Owner; mudança no
+  tratamento pessoal também exige a decisão do controlador designado.
 - **Qualidade:** detecção, correção, validação e escalonamento seguem a matriz de
   severidade da Seção 2.5. A marca `A` desta matriz não transforma o Data Owner
   em executor das correções rotineiras.
@@ -203,8 +225,11 @@ controlador ou encarregado só passa a valer após a designação pelo Sindusfar
   backup e auditoria. Acesso emergencial exige prazo, justificativa, log e
   revisão posterior.
 - **Compliance e LGPD:** controlador, operador, suboperador e encarregado
-  continuam pendentes de designação. Até essa definição, nenhum nome desta
-  seção recebe responsabilidade jurídica por inferência.
+  continuam pendentes de designação. O controlador decide a finalidade
+  jurídica e emite instruções; operador e suboperador executam o tratamento
+  dentro dessas instruções; o encarregado atua como canal, orienta e apoia a
+  conformidade. Até essa definição, nenhum nome desta seção recebe
+  responsabilidade jurídica por inferência.
 - **Custódia externa:** fornecedor executa somente o que contrato e instruções
   autorizarem. Escopo de acesso, retenção, auditoria, devolução e descarte devem
   constar do inventário antes da operação. O fornecedor não aprova finalidade,
@@ -227,15 +252,15 @@ pendentes da Seção 1.4.
 | Ator ou grupo | Dados, sistemas ou etapa | Responsabilidade no desenho | Limite e estado da evidência |
 | :--- | :--- | :--- | :--- |
 | **Central de Pesquisas** | Solicitações, pesquisas, questionários, indicadores e resultados | Operar o ciclo, registrar necessidades, validar indicadores, solicitar correções e preparar resultados para aprovação. | Atuação confirmada no TAPI e na Arquitetura de Negócio; não aprova sozinha exposição externa, exceção de acesso ou risco residual. |
-| **Fabio Moreira / Data Owner** | Finalidade, prioridades, perfis, indicadores e publicação | Aprovar o uso de negócio, os perfis, a publicação e as exceções sob sua alçada. | Nome no baseline documental; autoridade formal ainda depende de homologação. Não administra infraestrutura nem recebe papel LGPD por inferência. |
-| **Felipe Rojas, Reinaldo Nobrega e Lucas Andrade / Data Stewards** | Catálogo, dicionário, qualidade, linhagem e significado | Definir regras, documentar metadados, acompanhar inconformidades e validar a coerência do dado. | Papéis derivados do DMC e da Arquitetura; não autorizam sozinhos nova finalidade ou exposição externa. O TAPI registra o nome completo **Felipe Fernandes Rojas**; a equivalência com “Felipe Rojas” deve ser confirmada. |
+| **Fabio Moreira / Data Owner** | Uso de negócio, prioridades, perfis, indicadores e publicação | Aprovar o uso de negócio, os perfis, a publicação e as exceções sob sua alçada. | Nome no baseline documental; autoridade formal ainda depende de homologação. Não administra infraestrutura nem recebe papel LGPD por inferência. |
+| **Felipe Rojas, Reinaldo Nobrega e Lucas Andrade / Data Stewards** | Catálogo, dicionário, qualidade, linhagem e significado | Definir regras, documentar metadados, acompanhar inconformidades e validar a coerência do dado. | Papéis derivados do DMC e da Arquitetura; não autorizam sozinhos novo uso de negócio, finalidade jurídica ou exposição externa. O TAPI registra o nome completo **Felipe Fernandes Rojas**; a equivalência com “Felipe Rojas” deve ser confirmada. |
 | **Rodrigo Giorgetto / TI / Data Custodian** | Banco, integrações, credenciais, camadas, backups e logs | Executar ingestões e controles técnicos; manter disponibilidade, trilha de execução, recuperação e descarte autorizado. | Nome presente no DMC e na Arquitetura, não localizado no TAPI; escopo por ambiente e suplência precisam ser homologados. Não decide finalidade ou publicação. |
 | **Áreas técnicas** | Questionários, conteúdo temático e resultados agregados | Revisar conteúdo, regras temáticas e interpretação dos resultados quando consultadas. | Participação documentada; não implica custódia técnica nem acesso a identidade sem necessidade e autorização. |
 | **Empresas e respondentes** | Dados cadastrais, participação e respostas | Fornecer dados e receber resultados compatíveis com autorização e perfil. | Respondentes podem ser titulares de dados pessoais; empresas são fontes ou consumidoras conforme o fluxo. Nenhum deles se torna custodiante ou responsável técnico por participar da pesquisa. |
 | **RentalHost** | Sistema interno ou repositório hospedado, se contratados | Executar custódia técnica, disponibilidade, logs, backup, devolução e descarte conforme instruções documentadas. | Participação condicional, citada no DMC e na Arquitetura; contrato e escopo não foram localizados. Não decide finalidade, hipótese legal, classificação ou publicação. |
 | **SurveyMonkey, Trello, Outlook, n8n e provedor de nuvem** | Coleta, tarefas, comunicação, automação e hospedagem, conforme o serviço | Executar somente a função configurada e contratada; fornecer evidência técnica e apoiar exportação, correção ou eliminação quando aplicável. | Ferramentas confirmadas no TAPI, mas dados efetivamente tratados, região, retenção, subcontratação e papéis LGPD ainda dependem de inventário e contrato. O provedor de nuvem ainda não foi escolhido. |
 | **Provedor de LLM a definir** | Otimização ou análise futura que venha a usar modelo externo | Processar apenas o conteúdo mínimo autorizado, com registro de finalidade, versão do serviço e evidência de envio. | O TAPI prevê uso de LLM, mas não identifica provedor, conteúdo enviado, região, retenção ou contrato; nenhum envio de dado pessoal é pressuposto. |
-| **Controlador, operadores, suboperadores e encarregado** | Cada tratamento que envolva dados pessoais | Definir ou executar, conforme o papel legal designado, finalidade, hipótese legal, instruções, direitos dos titulares e resposta a incidentes. | Papéis pendentes de designação pelo Sindusfarma; não equivalem automaticamente a Owner, Steward, Custodian ou fornecedor. |
+| **Controlador, operadores, suboperadores e encarregado** | Cada tratamento que envolva dados pessoais | Controlador decide finalidade jurídica, hipótese legal e instruções; operadores e suboperadores executam o tratamento conforme instruções; encarregado atua como canal e apoia orientação, direitos dos titulares e incidentes. | Papéis pendentes de designação pelo Sindusfarma; não equivalem automaticamente a Owner, Steward, Custodian ou fornecedor. |
 
 ### 1.8.1 Interfaces de responsabilidade na custódia
 
@@ -243,9 +268,9 @@ pendentes da Seção 1.4.
 | :--- | :--- | :--- | :--- | :--- |
 | Fonte operacional → `staging` | Central, área técnica ou integração autorizada | Data Custodian/TI; fornecedor somente sob contrato | Data Steward valida estrutura e classificação | Fonte, arquivo ou evento, data, responsável, hash ou identificador da carga, classificação e resultado da validação. |
 | `staging` → `trusted` | Data Steward fornece regras e pendências | Data Custodian/TI executa padronização, quarentena e reprocessamento | Data Steward valida qualidade; Data Owner decide exceção relevante | Versão da regra, contagens de entrada/saída, rejeições, reconciliações, execução e aprovador da exceção. |
-| `trusted` → `analytics` | Central define a necessidade analítica; Steward mantém semântica | Data Custodian/TI materializa fatos, dimensões e agregações | Data Steward valida cálculo e linhagem; Data Owner aprova o uso de negócio; agentes LGPD atuam conforme designação | Versão do modelo, grão, fontes, fórmula, teste de qualidade, classificação e data da atualização. |
-| `analytics` → publicação | Central ou área técnica prepara resultado | Data Custodian/TI ou custodiante externo disponibiliza | Data Owner aprova publicação; agentes LGPD atuam conforme designação | Versão, recorte, teste de agregação ou anonimização, aprovadores, destino, data e procedimento de retirada. |
-| Correção, incidente ou direito do titular | Central, titular, auditoria ou monitoramento registra a demanda | Custodian e fornecedores propagam a ação nos ambientes sob sua custódia | Steward comprova linhagem; agente LGPD designado decide e acompanha o aspecto legal | Protocolo, escopo, sistemas afetados, logs, prazo, resultado, exceções e encerramento aprovado. |
+| `trusted` → `analytics` | Central define a necessidade analítica; Steward mantém semântica | Data Custodian/TI materializa fatos, dimensões e agregações | Data Steward valida cálculo e linhagem; Data Owner aprova o uso de negócio; controlador decide a compatibilidade jurídica quando houver dado pessoal; encarregado orienta | Versão do modelo, grão, fontes, fórmula, teste de qualidade, classificação e data da atualização. |
+| `analytics` → publicação | Central ou área técnica prepara resultado | Data Custodian/TI ou custodiante externo disponibiliza; operador/suboperador atua somente conforme instrução | Data Owner aprova a publicação de negócio; controlador decide as condições jurídicas quando houver dado pessoal; encarregado orienta | Versão, recorte, teste de agregação ou anonimização, aprovadores, destino, data e procedimento de retirada. |
+| Correção, incidente ou direito do titular | Central, titular, auditoria ou monitoramento registra a demanda | Custodian, operador, suboperador e fornecedores propagam a ação nos ambientes sob sua custódia e conforme instruções | Steward comprova linhagem; controlador decide o aspecto legal; encarregado atua como canal e acompanha o atendimento | Protocolo, escopo, sistemas afetados, logs, prazo, resultado, exceções e encerramento aprovado. |
 
 ### 1.8.2 Confirmações externas pendentes
 
@@ -623,9 +648,11 @@ instrução documentada e análise do tratamento efetivamente realizado.
 ## 4.7 Finalidade, hipótese legal e consentimento
 
 Consentimento não é uma autorização genérica nem a hipótese automática para
-toda pesquisa. O controlador e o encarregado devem avaliar, para cada finalidade
-e categoria de dado, a hipótese prevista nos arts. 7º ou 11 da
+toda pesquisa. O controlador deve decidir, para cada finalidade e categoria de
+dado, a hipótese prevista nos arts. 7º ou 11 da
 [LGPD](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm).
+O encarregado orienta e atua como canal de comunicação, sem assumir
+automaticamente a decisão do controlador.
 A decisão precisa existir antes da coleta ou do novo uso e permanecer ligada à
 versão do aviso apresentado ao titular.
 
@@ -753,7 +780,7 @@ Legenda usada nas matrizes:
 | :--- | :--- | :--- |
 | **Equipe da Central** | Operar pesquisas, acompanhar fluxo, corrigir metadados autorizados e consultar indicadores internos. | Sem administração técnica, exportação bruta ou acesso automático a resposta sensível. |
 | **Áreas técnicas** | Validar questionário e interpretar indicadores das pesquisas da própria área. | Escopo por área e `id_pesq`; sem identidade, participação individual ou staging. |
-| **Data Owner** | Aprovar finalidade, acesso, exceção, indicador e publicação. | Administração de negócio não concede administração técnica nem acesso pessoal automático. |
+| **Data Owner** | Aprovar uso de negócio, acesso, exceção, indicador e publicação. | Administração de negócio não concede administração técnica nem acesso pessoal automático. |
 | **Data Steward** | Manter classificação, catálogo, qualidade, linhagem e correções governadas. | Detalhe pessoal somente quando indispensável, temporário e registrado. |
 | **Data Custodian / TI** | Administrar banco, integrações, credenciais, cópias, logs e disponibilidade. | Sem permissão permanente para usar o conteúdo; leitura excepcional por break-glass. |
 | **Solicitantes/participantes** | Consultar o resultado aprovado para a pesquisa e finalidade autorizadas. | Sem acesso às camadas internas, a terceiros ou a filtros que desfaçam a agregação. |
