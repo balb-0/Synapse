@@ -407,6 +407,77 @@ formal de controlador, operador ou encarregado. Também não se presume que a
 RentalHost ou outro fornecedor ocupe determinado papel jurídico sem contrato,
 instrução documentada e análise do tratamento efetivamente realizado.
 
+## 4.7 Finalidade, hipótese legal e consentimento
+
+Consentimento não é uma autorização genérica nem a hipótese automática para
+toda pesquisa. O controlador e o encarregado devem avaliar, para cada finalidade
+e categoria de dado, a hipótese prevista nos arts. 7º ou 11 da
+[LGPD](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm).
+A decisão precisa existir antes da coleta ou do novo uso e permanecer ligada à
+versão do aviso apresentado ao titular.
+
+| Finalidade do projeto | Dados minimizados | Decisão que precisa ser registrada |
+| :--- | :--- | :--- |
+| Operar convite, participação e acompanhamento da pesquisa | Contato, vínculo com empresa, pesquisa e estado da participação | Hipótese legal, canal de informação, prazo e responsáveis pelo atendimento. |
+| Produzir indicadores e resultados | Respostas e participação pseudonimizadas, dimensões necessárias e métricas agregadas | Compatibilidade com a finalidade original, necessidade do detalhe e proteção contra reidentificação. |
+| Publicar resultado no acervo | Versão aprovada, agregada ou efetivamente anonimizada | Autorização, teste de reidentificação, público, filtros permitidos e mecanismo de retirada/correção. |
+| Manter segurança e prestação de contas | Logs minimizados, decisões, incidentes e evidências de atendimento | Prazo, acesso, integridade e justificativa de conservação. |
+
+Quando o consentimento for a hipótese escolhida, a captura deve ser livre,
+informada, inequívoca e vinculada a finalidade determinada. O registro mínimo
+proposto contém:
+
+- identificador do registro e do titular em forma pseudonimizada;
+- finalidade e hipótese legal associada;
+- versão do aviso e texto consentido;
+- data/hora, canal e evidência da manifestação;
+- estado (`vigente`, `revogado` ou `substituído`) e data da mudança;
+- destinatários ou compartilhamentos informados;
+- responsável pela captura e trilha das alterações.
+
+O fluxo proposto é: apresentar aviso → permitir escolha específica → registrar
+a evidência → confirmar ao titular → aplicar a decisão nas fontes e acessos →
+facilitar revogação gratuita → interromper novos tratamentos baseados naquele
+consentimento → avaliar eliminação ou conservação permitida → propagar a decisão
+a operadores e registrar o encerramento. A revogação não apaga automaticamente
+tratamentos anteriores válidos nem evidências cuja conservação tenha outra
+justificativa documentada.
+
+## 4.8 Atendimento dos direitos dos titulares
+
+O canal, o encarregado e a implementação ainda precisam ser confirmados pelo
+Sindusfarma. O fluxo documental proposto segue os [direitos dos titulares
+descritos pela ANPD](https://www.gov.br/anpd/pt-br/assuntos/titular-de-dados-1/direito-dos-titulares):
+
+0. receber o pedido e registrar protocolo, data, pedido e canal;
+0. autenticar o solicitante de forma proporcional, sem coletar dados excessivos;
+0. localizar a pessoa no mapa de identidade e levantar fontes, participações, respostas, exports, publicações, backups e operadores relacionados;
+0. classificar o pedido e verificar hipótese legal, direitos de terceiros, segredo comercial e necessidade de conservação;
+0. executar acesso, correção, anonimização, bloqueio, eliminação, portabilidade, informação ou revogação, ou registrar a justificativa da negativa;
+0. propagar a decisão às fontes, camadas, caches, destinatários e operadores aplicáveis;
+0. responder em linguagem clara e manter evidência da decisão, revisão e encerramento.
+
+Confirmação e acesso devem ser disponibilizados em formato simplificado
+imediatamente ou por declaração completa, clara e segura em até 15 dias, nos
+termos do art. 19 da LGPD. Os demais pedidos seguem o prazo legal ou regulatório
+aplicável, sem criar um prazo interno não confirmado.
+
+## 4.9 Lacunas de rastreabilidade identificadas
+
+O modelo atual não comprova estruturas próprias para consentimento, pedidos de
+titular e decisão de publicação. Para evitar que a documentação simule uma
+capacidade inexistente, ficam registradas como **propostas pendentes**:
+
+| Estrutura proposta | Finalidade | Estado |
+| :--- | :--- | :--- |
+| `registro_consentimento` | Versionar manifestação, finalidade, aviso, estado e revogação quando consentimento for aplicável. | Pendente de validação jurídica e modelagem. |
+| `solicitacao_titular` | Rastrear protocolo, autenticação, escopo, decisão, propagação e encerramento. | Pendente de definição do canal e responsável. |
+| `decisao_publicacao` | Ligar resultado, versão, proteção aplicada, aprovação, publicação, retirada e correção. | Pendente de integração com o acervo público. |
+
+Essas estruturas não devem ser adicionadas ao banco apenas para preencher o
+documento. Sua implementação depende de validação com o parceiro e de uma task
+de modelagem própria.
+
 # 5. Segurança e Acesso
 
 _conteúdo_
