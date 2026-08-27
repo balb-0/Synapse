@@ -597,6 +597,17 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
             validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
 
+    def test_tapi_assignment_cannot_negate_role_on_same_line(self) -> None:
+        tapi = self.tapi.replace(
+            "LÍDER EXECUTIVO: Fabio Moreira – Gestor da Central de Pesquisas",
+            (
+                "LÍDER EXECUTIVO [Onboarding Executivo]: Fabio Moreira – Gestor "
+                "da Central de Pesquisas, mas não é líder executivo"
+            ),
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
+            validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
+
     def test_dmc_owner_mismatch_fails(self) -> None:
         dmc = json.loads(json.dumps(self.dmc))
         dmc["governancaCorporativa"]["owner"] = "Pessoa não confirmada"
