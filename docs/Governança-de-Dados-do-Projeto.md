@@ -1944,3 +1944,57 @@ operacionalmente funcional, porém fragmentada do ponto de vista de dados. O
 projeto elevou a camada documental antes da camada operacional, o que é
 coerente com o escopo da Sprint 2, mas significa que a diferença entre o nível 2
 e o nível 3 não será vencida por mais documentação.
+
+## 7.8 Lacunas, riscos e oportunidades
+
+As lacunas abaixo são as que separam o nível atribuído do nível seguinte. Cada
+uma é relacionada à dor correspondente do TAPI, para que a evolução da
+maturidade permaneça ligada ao problema que originou o projeto, e não a um
+ideal genérico de governança.
+
+**Lacunas estruturais** — dependem de construir algo que não existe.
+
+| Lacuna | Dor do TAPI a que se relaciona | Risco se não tratada |
+| :--- | :--- | :--- |
+| Ausência de banco central, pipeline e ambiente produtivo | Fragmentação das fontes; dependência de planilhas e cruzamentos manuais | A solução permanece um desenho, e o esforço de consolidação manual continua integral. |
+| Ausência de identidade canônica entre fontes | Fragmentação das fontes; baixa rastreabilidade ponta a ponta | Indicadores divergentes para a mesma pesquisa, sem critério para decidir qual valor prevalece. |
+| Ausência de ponte entre participação e elemento de resposta | Baixa rastreabilidade ponta a ponta | A rastreabilidade individual permanece estruturalmente impossível; prometê-la seria fabricar vínculo. |
+| Ausência de metadados de execução: timestamp de carga, `load_id` e versão da fonte | Baixa rastreabilidade; qualidade inconsistente | Frescor, cobertura de processamento e conformidade de acesso não podem ser medidos nem auditados. |
+| Ausência de metadados de validação e de publicação | Baixa rastreabilidade ponta a ponta | A publicação continua manual e sem vínculo entre resultado, versão, autorização e responsável. |
+| Ausência do universo convidado por pesquisa | Qualidade inconsistente dos dados | A adesão fica sem denominador válido e admite leituras muito distintas do mesmo fato. |
+
+**Lacunas operacionais** — dependem de decidir e formalizar o que já foi
+desenhado.
+
+| Lacuna | Dor do TAPI a que se relaciona | Risco se não tratada |
+| :--- | :--- | :--- |
+| Designação formal de Data Owner, Stewards e Custodian | Baixa escalabilidade operacional | Decisões de acesso, qualidade e publicação seguem sem alçada, concentradas em quem tem o conhecimento. |
+| Definição dos agentes de tratamento e das hipóteses legais | Necessidade de tratar dados pessoais conforme a LGPD | Nenhuma afirmação de conformidade é sustentável, e a responsabilidade permanece indefinida. |
+| Contrato e inventário da custódia externa | Fragmentação das fontes | A cadeia de custódia fica aberta no ponto menos controlado pela Central. |
+| Escolha da plataforma de nuvem e do papel do n8n | Dependência de planilhas e ausência de pipeline | Credenciais, logs, reprocessamento, idempotência e linhagem das integrações continuam sem dono técnico. |
+| Homologação da política de acesso por perfil | Necessidade de controle por perfil, confirmada no TAPI | O único requisito de segurança confirmado pelo parceiro permanece sem teste de permitido e negado. |
+| Aprovação dos prazos de retenção e do procedimento de expurgo | Necessidade de tratar dados pessoais conforme a LGPD | Dado pessoal guardado por prazo indeterminado, sem critério de eliminação nem evidência de expurgo. |
+
+**Inconsistências que o próprio TAPI deixa em aberto.** Quatro pontos merecem
+tratamento explícito porque o TAPI é a fonte confirmada pelo parceiro e, ainda
+assim, não sustenta afirmações que circulam nos demais artefatos. O TAPI
+registra atualização em tempo real como benefício esperado, mas o snapshot
+recebido não possui timestamp de carga que comprove integração contínua. O DMC
+afirma que os dados recebidos são fictícios ou anonimizados, e o TAPI não
+comprova essa afirmação, razão pela qual as fontes permanecem Confidenciais ou
+Sensíveis por padrão. O TAPI prevê o uso de um modelo de linguagem sem
+identificar provedor, conteúdo enviado, região, retenção ou contrato. E o TAPI
+descreve quatro bases principais, enquanto o conjunto efetivamente recebido é
+maior. Nenhuma dessas divergências é erro de leitura: são lacunas de
+alinhamento entre documentos que precisam ser fechadas com o parceiro antes de
+qualquer afirmação de conformidade.
+
+**Oportunidades** — o que já existe e pode ser aproveitado.
+
+| Oportunidade | Base já disponível | Ganho esperado |
+| :--- | :--- | :--- |
+| Transformar a instrumentação em gate de operação | Manifesto, perfilador e validadores de DMC, governança e rastreabilidade, com testes automatizados | A verificação que hoje protege a documentação passa a proteger a carga, sem reconstruir método. |
+| Promover o dicionário a catálogo integrado | Dicionário recebido, `dmc.json` e manifesto versionados | O catálogo deixa de descrever uma fonte e passa a cobrir o conjunto, tornando-se ativo formal de governança. |
+| Aproveitar a série histórica já recebida | Cobertura temporal de 2022 a 2027, com anos completos em 2023, 2024 e 2025 | Análise de tendência e sazonalidade viável antes mesmo do pipeline, com as ressalvas de denominador. |
+| Partir de um MVP estreito | Escopo do TAPI: banco central, um pipeline e um dashboard | Sobe o nível das dimensões operacionais com um recorte verificável, em vez de esperar a integração completa. |
+| Usar a gestão de configuração como modelo | Branches por tarefa, revisor distinto do autor e validação antes da entrega, já em prática | A prática madura do grupo serve de referência para a rotina de mudança da própria governança. |
