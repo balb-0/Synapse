@@ -2415,12 +2415,21 @@ principal.
 
 ### 6.7.4 Divergências, atritos e suporte ao usuário
 
-Esta subseção será detalhada no confronto com o perfil secundário e com o
-modelo de dados. Para o fluxo principal, os pontos que já devem permanecer
-visíveis no diagrama são: expectativa de atualização automática sem SLA
-comprovado, cálculo de adesão sem denominador, vínculo incompleto entre
-participação e resposta individual, e publicação dependente de autorização e
-metadados ainda não observados no snapshot.
+Nesta etapa, o solicitante é tratado como o perfil que demanda uma pesquisa ou
+consulta seu resultado, esperando resposta útil no menor tempo possível. A
+equipe interna, por sua vez, precisa manter o ciclo rastreável, validar dados e
+evitar publicação sem autorização. Os conflitos abaixo indicam pontos do fluxo
+em que os dois perfis esperam comportamentos diferentes sobre o mesmo objeto; a
+classificação final como acomodação, ruptura deliberada ou lacuna deve ser feita
+no diagrama anotado.
+
+| Ponto do fluxo | Objeto em disputa | Expectativa da equipe interna | Expectativa do solicitante | Razão do conflito em relação ao negócio e ao JTBD |
+| :--- | :--- | :--- | :--- | :--- |
+| Etapas 1-2: recebimento e triagem | Demanda/pesquisa | Confirmar se a solicitação gera uma nova pesquisa, se já existe demanda equivalente ou se faltam dados para seguir. | Considerar que a demanda enviada já virou uma pesquisa em andamento. | O objetivo de rastreabilidade exige evitar duplicidade e preservar decisão de triagem; o JTBD da equipe interna depende de origem e status confiáveis antes de acelerar o fluxo. |
+| Etapas 2-5: planejamento e divulgação | Status e prazo | Exibir status apenas quando marcos, responsáveis e datas mínimas estiverem definidos ou marcados como pendentes. | Receber previsão rápida de prazo e acompanhamento contínuo, mesmo antes de o plano estar fechado. | O negócio busca reduzir tempo de entrega, mas sem linha de base e sem campos completos a solução não deve transformar expectativa em SLA não comprovado. |
+| Etapas 3-4: questionário e preparação da coleta | Escopo da pesquisa | Preservar versão do questionário, validação técnica e vínculo com a pesquisa antes da coleta. | Ver suas perguntas incorporadas com pouca mediação, mantendo o foco da demanda original. | A qualidade e a comparabilidade dos dados dependem de instrumento validado; o JTBD operacional prioriza confiança e redução de retrabalho, não apenas rapidez de criação. |
+| Etapa 6: monitoramento da participação | Adesão/engajamento | Mostrar participação observada e bloquear taxa quando o universo elegível ou denominador não estiver disponível. | Acompanhar uma taxa simples de adesão para saber se a pesquisa está indo bem. | Aumentar adesão é objetivo de negócio, mas o indicador só é confiável quando numerador e denominador têm grão compatível; estimar sem base compromete decisão. |
+| Etapas 8-10: entrega e publicação | Resultado publicado | Disponibilizar apenas resultado agregado, autorizado, versionado e compatível com o perfil de acesso. | Acessar o resultado completo ou publicável assim que a tabulação termina. | O objetivo de tornar a Central referência em dados exige consistência entre sistema interno e acervo; o JTBD da equipe interna só se cumpre se publicação, autorização e linhagem forem verificáveis. |
 
 ### 6.7.5 Premissas e validação de consistência
 
