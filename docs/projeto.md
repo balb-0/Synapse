@@ -2615,6 +2615,25 @@ publicação indevida.
 | "Prorroguei, então o prazo não conta" | `Em coleta` com `prorrogada_ate` | Registro de motivo e recálculo de dias úteis | Indicador de tempo distorcido sem a causa da prorrogação. |
 
 
+### 6.7.13 Lacunas no modelo de dados — validação de pesquisas
+
+Documenta o que o banco **precisaria conter** para persistir os históricos de
+validação técnica, hoje ausentes. Sem isso, a validação da área técnica (S1)
+acontece, mas não deixa rastro consultável nem auditável.
+
+- **O que falta:** entidade/atributos de validação técnica — `Questao.validada`,
+  `Pesquisa.versao_questionario` e um registro de *quem validou, quando e com qual
+  parecer*.
+- **O que o modelo precisaria conter:** um histórico de validação (data, revisor,
+  resultado, versão do instrumento) ligado à `Pesquisa`, permitindo auditar por
+  que um questionário foi aceito ou devolvido.
+- **Evidência da lacuna:** o snapshot não possui nenhuma coluna de parecer ou
+  versão de questionário nas 231 linhas de `questoes`; a decisão técnica existe no
+  processo, não no dado.
+- **Status de implementação:** **pendente** — sinalizado como lacuna; a estrutura
+  de versionamento do questionário ainda não existe.
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
