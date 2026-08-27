@@ -26,6 +26,12 @@ class GovernanceDocumentTests(unittest.TestCase):
 
     def test_current_document_is_valid(self) -> None:
         summary = validate_document(self.document)
+        self.assertEqual(summary["governance_roles"], 3)
+        self.assertEqual(summary["catalog_common_fields"], 43)
+        self.assertEqual(summary["catalog_asset_types"], 4)
+        self.assertEqual(summary["catalog_dimensions"], 9)
+        self.assertEqual(summary["catalog_measures"], 6)
+        self.assertEqual(summary["catalog_cubes"], 4)
         self.assertEqual(summary["classes"], 4)
         self.assertEqual(summary["sources"], 6)
         self.assertEqual(summary["profiles"], 8)
@@ -265,6 +271,286 @@ class GovernanceDocumentTests(unittest.TestCase):
         )
         document = self.document.replace(row, f"{row}\n{row}", 1)
         with self.assertRaisesRegex(GovernanceValidationError, "duplicadas"):
+            validate_document(document)
+
+    def test_missing_governance_role_fails(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Data Steward**")
+        )
+        document = self.document.replace(row, "", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "Data Steward"):
+            validate_document(document)
+
+    def test_governance_map_is_required(self) -> None:
+        document = self.document.replace("```mermaid\nflowchart LR", "```text\nfluxo", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "mapa funcional"):
+            validate_document(document)
+
+    def test_governance_map_requires_actor_nodes(self) -> None:
+        start = self.document.index("```mermaid\nflowchart LR")
+        end = self.document.index("```", start + 3) + 3
+        replacement = (
+            "```mermaid\nflowchart LR\n"
+            "%% Data Owner Data Stewards Data Custodian / TI Controlador "
+            "Operador e suboperadores Encarregado RentalHost\n```"
+        )
+        document = self.document[:start] + replacement + self.document[end:]
+        with self.assertRaisesRegex(GovernanceValidationError, "nó obrigatório"):
+            validate_document(document)
+
+    def test_governance_map_requires_decision_and_execution_relations(self) -> None:
+        start = self.document.index("```mermaid\nflowchart LR")
+        end = self.document.index("```", start + 3)
+        block = self.document[start:end]
+        without_relations = "\n".join(
+            line for line in block.splitlines() if "-->" not in line
+        )
+        document = self.document[:start] + without_relations + self.document[end:]
+        with self.assertRaisesRegex(GovernanceValidationError, "relação obrigatória"):
+            validate_document(document)
+
+    def test_governance_raci_is_required(self) -> None:
+        document = self.document.replace(
+            "| Atividade | Data Owner | Data Steward | Central de Pesquisas |",
+            "| Processo | Data Owner | Data Steward | Central de Pesquisas |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "Atividade"):
+            validate_document(document)
+
+    def test_governance_raci_cannot_have_empty_assignment(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Definir significado, criticidade")
+        )
+        document = self.document.replace(
+            row,
+            "| Definir significado, criticidade e uso de negócio dos metadados "
+            "| | | | | | | |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "matriz RACI"):
+            validate_document(document)
+
+    def test_governance_raci_requires_accountable_and_responsible_roles(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Definir significado, criticidade")
+        )
+        document = self.document.replace(
+            row,
+            "| Definir significado, criticidade e uso de negócio dos metadados "
+            "| — | — | — | — | — | — | — |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "A e R"):
+            validate_document(document)
+
+    def test_custody_interface_cannot_have_empty_evidence(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Fonte operacional → `staging`")
+        )
+        cells = row.rsplit("|", 2)
+        document = self.document.replace(row, f"{cells[0]}| |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "interfaces de custódia"):
+            validate_document(document)
+
+    def test_custody_interface_cannot_use_only_placeholders(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Fonte operacional → `staging`")
+        )
+        document = self.document.replace(
+            row, "| Fonte operacional → `staging` | — | — | — | — |", 1
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "custódia"):
+            validate_document(document)
+
+    def test_placeholder_in_section_three_fails(self) -> None:
+        document = self.document.replace(
+            "# 3. Gestão de Metadados e Catálogo",
+            "# 3. Gestão de Metadados e Catálogo\n\n_conteúdo_",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "seção 3"):
+            validate_document(document)
+
+    def test_missing_common_catalog_field_fails(self) -> None:
+        document = self.document.replace("`asset_id`", "identificador do ativo")
+        with self.assertRaisesRegex(GovernanceValidationError, "asset_id"):
+            validate_document(document)
+
+    def test_common_catalog_field_cannot_have_empty_contract(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `asset_id` | Identificador estável")
+        )
+        document = self.document.replace(row, "| `asset_id` | | |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "metadados comuns"):
+            validate_document(document)
+
+    def test_missing_catalog_asset_type_fails(self) -> None:
+        document = self.document.replace("| **Medida** |", "| **Métrica** |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "Medida"):
+            validate_document(document)
+
+    def test_source_mapping_evidence_is_required(self) -> None:
+        document = self.document.replace(
+            "`confianca_extracao`", "confiança da extração"
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "confianca_extracao"):
+            validate_document(document)
+
+    def test_catalog_example_requires_dimension(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `DIM_EXECUCAO_CARGA` |")
+        )
+        document = self.document.replace(row, "", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "DIM_EXECUCAO_CARGA"):
+            validate_document(document)
+
+    def test_catalog_example_value_cannot_be_empty(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `asset_id` | `dw.fact.fato_ciclo_pesquisa`")
+        )
+        document = self.document.replace(row, "| `asset_id` | |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "exemplo de catálogo"):
+            validate_document(document)
+
+    def test_catalog_example_requires_semantic_type_and_source(self) -> None:
+        document = self.document.replace(
+            "| Tipo de ativo | `fato`; snapshot acumulado proposto. |",
+            "| Tipo de ativo | observação livre |",
+            1,
+        ).replace(
+            "| Fonte principal | `pesquisas.csv`; chaves e valores da origem devem ser preservados. |",
+            "| Fonte principal | observação livre |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "exemplo"):
+            validate_document(document)
+
+    def test_catalog_example_requires_fact_name(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Nome técnico | `FATO_CICLO_PESQUISA`")
+        )
+        document = self.document.replace(row, "| Nome técnico | C01 |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "FATO_CICLO_PESQUISA"):
+            validate_document(document)
+
+    def test_catalog_dimension_contract_cannot_be_empty(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `DIM_AREA` |")
+        )
+        document = self.document.replace(row, "| `DIM_AREA` | | | |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "dimensões do exemplo"):
+            validate_document(document)
+
+    def test_catalog_dimension_requires_grain_and_keys(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `DIM_AREA` |")
+        )
+        cells = row.split("|")
+        cells[2] = " chaves pendentes "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "DIM_AREA"):
+            validate_document(document)
+
+    def test_catalog_field_requires_definition_and_origin(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `sk_area` |")
+        )
+        cells = row.split("|")
+        cells[3] = " — "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "sk_area"):
+            validate_document(document)
+
+    def test_catalog_example_requires_measure_contract(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `dias_uteis_ciclo_total` | Medida inteira")
+        )
+        document = self.document.replace(row, "", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "dias_uteis_ciclo_total"):
+            validate_document(document)
+
+    def test_catalog_measure_requires_formula_unit_and_window(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `dias_uteis_coleta` | Fim efetivo")
+        )
+        cells = row.split("|")
+        cells[2] = " observação livre "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "dias_uteis_coleta"):
+            validate_document(document)
+
+    def test_catalog_requires_all_four_cubes(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **C04 — Resultados e Questionários**")
+        )
+        document = self.document.replace(row, "", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "C04"):
+            validate_document(document)
+
+    def test_catalog_rejects_invalid_cube_prefix(self) -> None:
+        document = self.document.replace(
+            "| **C01 — Portfólio e Ciclo** |",
+            "| **C01_extra — Portfólio e Ciclo** |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "C01"):
+            validate_document(document)
+
+    def test_catalog_cube_requires_grain_and_source(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **C02 — Participação e Representatividade**")
+        )
+        cells = row.split("|")
+        cells[2] = " observação livre "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "C02"):
+            validate_document(document)
+
+    def test_catalog_requires_canonical_cube_name(self) -> None:
+        document = self.document.replace(
+            "| **C04 — Resultados e Questionários** |",
+            "| **C04 — Questionários e Cobertura** |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "C04"):
+            validate_document(document)
+
+    def test_catalog_must_distinguish_fallback_from_unmapped(self) -> None:
+        document = self.document.replace("fallback_por_titulo", "nao_mapeado")
+        with self.assertRaisesRegex(GovernanceValidationError, "fallback_por_titulo"):
             validate_document(document)
 
 
