@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import json
 import re
 import subprocess
 import sys
@@ -1008,6 +1009,257 @@ def validate_document(markdown: str) -> dict[str, int]:
     )
 
 
+def validate_role_consistency(
+    document: str, tapi: str, dmc: dict[str, object], architecture: str
+) -> dict[str, int]:
+    """Confronta os papéis documentados com as quatro fontes de evidência."""
+    section = extract_section(document, SECTION_ONE)
+    role_rows = table_rows(section, "Papel", "Referência documental")
+    role_by_name = _rows_by_first_column(
+        role_rows, label="papéis de governança", width=4
+    )
+
+    tapi_assignments = {
+        "líder do projeto": (
+            r"^[ \t]*(?:●[ \t]*)?LÍDER DO PROJETO:[ \t]*Felipe Fernandes Rojas\b",
+            "Felipe Fernandes Rojas",
+        ),
+        "ponto focal backup": (
+            r"^[ \t]*(?:●[ \t]*)?PONTO FOCAL BACKUP:[ \t]*Reinaldo Nobrega\b",
+            "Reinaldo Nobrega",
+        ),
+        "analista de dados": (
+            r"^[ \t]*Lucas Andrade[ \t]*[–-][ \t]*Analista de Dados Jr\.",
+            "Lucas Andrade",
+        ),
+        "líder executivo": (
+            r"^[ \t]*(?:●[ \t]*)?LÍDER EXECUTIVO(?: \[Onboarding Executivo\])?:[ \t]*Fabio Moreira\b",
+            "Fabio Moreira",
+        ),
+    }
+    for label, (pattern, expected_name) in tapi_assignments.items():
+        if not re.search(pattern, tapi, re.MULTILINE):
+            raise GovernanceValidationError(
+                f"atribuição obrigatória ausente no TAPI: {label} — {expected_name}"
+            )
+    tapi_unique_assignments = {
+        "líder do projeto": r"(?:●[ \t]*)?LÍDER DO PROJETO[ \t]*:[^\n]*",
+        "ponto focal backup": r"(?:●[ \t]*)?PONTO FOCAL BACKUP[ \t]*:[^\n]*",
+        "analista de dados": (
+            r"Lucas Andrade[ \t]*[–-][ \t]*Analista de Dados Jr\.[^\n]*"
+        ),
+        "líder executivo": (
+            r"(?:●[ \t]*)?LÍDER EXECUTIVO(?: \[Onboarding Executivo\])?"
+            r"[ \t]*:[^\n]*"
+        ),
+    }
+    for label, assignment_pattern in tapi_unique_assignments.items():
+        assignment_lines = re.findall(
+            rf"^[ \t]*{assignment_pattern}",
+            tapi,
+            re.MULTILINE | re.IGNORECASE,
+        )
+        if len(assignment_lines) != 1:
+            raise GovernanceValidationError(
+                f"o TAPI deve conter exatamente uma atribuição para {label}"
+            )
+        if re.search(r"\bnão\b", assignment_lines[0], re.IGNORECASE):
+            raise GovernanceValidationError(
+                f"a atribuição do TAPI contém negação contraditória para {label}"
+            )
+    _require_terms(tapi, ("Trello", "Outlook"), label="ferramentas do TAPI")
+
+    governance = dmc.get("governancaCorporativa")
+    if not isinstance(governance, dict):
+        raise GovernanceValidationError(
+            "governancaCorporativa ausente ou inválida no DMC"
+        )
+    dmc_requirements = {
+        "owner": "Fabio Moreira.",
+        "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
+        "custodian": (
+            "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados "
+            "na rede interna ou na nuvem do Sindusfarma + empresa RentalHost "
+            "(fornecedora do sistema interno) para custódia dos dados hospedados "
+            "no repositório público."
+        ),
+    }
+    for field, expected in dmc_requirements.items():
+        value = governance.get(field)
+        if not isinstance(value, str):
+            raise GovernanceValidationError(
+                f"campo obrigatório de governança ausente no DMC: {field}"
+            )
+        if value.strip() != expected:
+            raise GovernanceValidationError(
+                f"atribuição canônica divergente para {field} no DMC; esperado {expected}"
+            )
+
+    architecture_pattern = (
+        r"Data Model Canvas identifica Fabio Moreira como Data Owner;\s*"
+        r"Felipe Rojas, Reinaldo Nobrega e Lucas Andrade como Data Stewards"
+        r"[\s\S]{0,120}Rodrigo Giorgetto/TI como Data Custodian"
+        r"[\s\S]{0,120}RentalHost na custódia externa"
+    )
+    if not re.search(architecture_pattern, architecture):
+        raise GovernanceValidationError(
+            "atribuições canônicas ausentes na Arquitetura de Negócio"
+        )
+    architecture_role_pairs = (
+        (r"Fabio Moreira", r"Data Owner"),
+        (r"(?:Felipe Rojas|Reinaldo Nobrega|Lucas Andrade)", r"Data Stewards?"),
+        (r"Rodrigo Giorgetto(?:/TI)?", r"Data Custodian"),
+    )
+    for actor_pattern, role_pattern in architecture_role_pairs:
+        if re.search(
+            rf"\b(?:{actor_pattern})\b[^.\n]{{0,80}}"
+            rf"\bnão\s+(?:é|atua(?:\s+como)?|exerce|possui)\b"
+            rf"[^.\n]{{0,80}}\b(?:{role_pattern})\b",
+            architecture,
+            re.IGNORECASE,
+        ):
+            raise GovernanceValidationError(
+                "a Arquitetura de Negócio contém atribuição de papel contraditória"
+            )
+
+    document_roles = {
+        "Data Owner": "Fabio Moreira",
+        "Data Steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade",
+        "Data Custodian / TI": "Rodrigo Giorgetto / TI",
+    }
+    for role, expected in document_roles.items():
+        if role_by_name[role][1] != expected:
+            raise GovernanceValidationError(
+                f"referência documental canônica divergente para {role}; esperado {expected}"
+            )
+    role_table_text = "\n".join(" | ".join(row) for row in role_rows)
+    for tool in ("Trello", "Outlook", "RentalHost"):
+        if tool in role_table_text:
+            raise GovernanceValidationError(
+                f"ferramenta ou fornecedor não pode ocupar papel de governança: {tool}"
+            )
+
+    actor_rows = table_rows(section, "Ator ou grupo", "Dados, sistemas ou etapa")
+    actor_by_name = _rows_by_first_column(
+        actor_rows, label="atribuições internas e externas", width=4
+    )
+    owner_actor = actor_by_name.get("Fabio Moreira / Data Owner")
+    steward_actor = actor_by_name.get(
+        "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade / Data Stewards"
+    )
+    custodian_actor = actor_by_name.get("Rodrigo Giorgetto / TI / Data Custodian")
+    rentalhost_actor = actor_by_name.get("RentalHost")
+    tools_actor = actor_by_name.get(
+        "SurveyMonkey, Trello, Outlook, n8n e provedor de nuvem"
+    )
+    required_actors = {
+        "Fabio Moreira": owner_actor,
+        "Stewards": steward_actor,
+        "Rodrigo Giorgetto": custodian_actor,
+        "RentalHost": rentalhost_actor,
+        "Trello e Outlook": tools_actor,
+    }
+    missing_actors = [name for name, row in required_actors.items() if row is None]
+    if missing_actors:
+        raise GovernanceValidationError(
+            "atores obrigatórios ausentes na cadeia de custódia: "
+            + ", ".join(missing_actors)
+        )
+
+    assert owner_actor and steward_actor and custodian_actor
+    assert rentalhost_actor and tools_actor
+    if "autoridade formal ainda depende de homologação" not in owner_actor[3]:
+        raise GovernanceValidationError(
+            "autoridade do Data Owner deve permanecer pendente de homologação"
+        )
+    if not re.search(
+        r"Felipe Fernandes Rojas[\s\S]{0,180}equivalência[\s\S]{0,100}deve ser confirmada",
+        steward_actor[3],
+    ):
+        raise GovernanceValidationError(
+            "equivalência entre Felipe Fernandes Rojas e Felipe Rojas deve permanecer pendente"
+        )
+    if "não localizado no TAPI" not in custodian_actor[3]:
+        raise GovernanceValidationError(
+            "Rodrigo Giorgetto não pode ser atribuído ao TAPI sem evidência"
+        )
+    if not re.search(r"Executar custódia técnica", rentalhost_actor[2]):
+        raise GovernanceValidationError(
+            "RentalHost deve permanecer limitada à custódia técnica"
+        )
+    if not re.search(
+        r"Participação condicional[\s\S]{0,180}Não decide finalidade",
+        rentalhost_actor[3],
+    ):
+        raise GovernanceValidationError(
+            "RentalHost não pode receber autoridade de negócio"
+        )
+    if re.search(
+        r"\b(?:decidir|decide|aprovar|aprova|definir)\b[\s\S]{0,80}"
+        r"(?:finalidade|classificação|publicação)",
+        rentalhost_actor[2],
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "RentalHost não pode receber autoridade de negócio"
+        )
+    if not all(tool in tools_actor[0] for tool in ("Trello", "Outlook")) or not re.search(
+        r"dependem de inventário e contrato", tools_actor[3]
+    ):
+        raise GovernanceValidationError(
+            "Trello e Outlook devem permanecer ferramentas com escopo pendente"
+        )
+    if re.search(
+        r"Data Owner|Data Steward|Data Custodian|\b(?:aprovar|aprova|decidir|decide)\b",
+        tools_actor[2],
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "Trello e Outlook não podem receber papel ou autoridade de governança"
+        )
+
+    legal_actor = actor_by_name.get(
+        "Controlador, operadores, suboperadores e encarregado"
+    )
+    if legal_actor is None or re.search(
+        r"\bEquivalem?\s+(?:ao|aos)\s+(?:Data )?(?:Owner|Steward|Custodian)",
+        " | ".join(legal_actor[1:]),
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "papéis jurídicos não podem ser equiparados aos papéis organizacionais"
+        )
+
+    if re.search(r"já (?:está )?homologad", owner_actor[3], re.IGNORECASE):
+        raise GovernanceValidationError(
+            "autoridade do Data Owner contém homologação contraditória"
+        )
+    if len(re.findall(r"confirmad", steward_actor[3], re.IGNORECASE)) != 1 or re.search(
+        r"não (?:corresponde|é a mesma)|já está confirmada|"
+        r"\bpessoas?\s+(?:diferentes?|distintas?)\b|\bhomologad\w*\b",
+        steward_actor[3],
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "equivalência entre os nomes de Felipe contém estado contraditório"
+        )
+
+    plain = re.sub(r"[*`]", "", section)
+    if not re.search(
+        r"não equivalem automaticamente a controlador, operador,[\s\S]{0,80}encarregado",
+        plain,
+        re.IGNORECASE,
+    ):
+        raise GovernanceValidationError(
+            "papéis jurídicos não podem ser equiparados aos papéis organizacionais"
+        )
+
+    return {
+        "role_evidence_sources": 4,
+        "consistent_governance_roles": len(REQUIRED_GOVERNANCE_ROLES),
+    }
+
+
 def validate_tapi_hash(document: str, tapi_path: Path) -> str:
     section_four = extract_section(document, SECTION_FOUR)
     matches = re.findall(r"SHA-256[\s\S]{0,160}?([0-9a-fA-F]{64})", section_four)
@@ -1080,15 +1332,46 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--document", type=Path, required=True)
     parser.add_argument("--tapi", type=Path, required=True)
     parser.add_argument("--repository-root", type=Path, default=Path("."))
+    parser.add_argument("--dmc", type=Path, default=Path("docs/dmc.json"))
+    parser.add_argument(
+        "--architecture",
+        type=Path,
+        default=Path("docs/arquitetura-de-negocio.md"),
+    )
     return parser
+
+
+def _resolve_repository_path(path: Path, repository_root: Path) -> Path:
+    return path if path.is_absolute() else repository_root / path
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        document = load_document(args.document)
+        document_path = _resolve_repository_path(args.document, args.repository_root)
+        document = load_document(document_path)
         summary = validate_document(document)
         validate_tapi_hash(document, args.tapi)
+        tapi = load_document(args.tapi)
+        architecture_path = _resolve_repository_path(
+            args.architecture, args.repository_root
+        )
+        try:
+            architecture = load_document(architecture_path)
+        except GovernanceValidationError as error:
+            raise GovernanceValidationError(
+                f"não foi possível ler a Arquitetura de Negócio: {architecture_path}"
+            ) from error
+        dmc_path = _resolve_repository_path(args.dmc, args.repository_root)
+        try:
+            dmc = json.loads(dmc_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            raise GovernanceValidationError(
+                f"não foi possível ler o DMC: {dmc_path}"
+            ) from error
+        if not isinstance(dmc, dict):
+            raise GovernanceValidationError("a raiz do DMC deve ser um objeto JSON")
+        summary |= validate_role_consistency(document, tapi, dmc, architecture)
         forbidden = validate_tracked_inputs(args.repository_root)
         if forbidden:
             raise GovernanceValidationError(
@@ -1106,6 +1389,8 @@ def main(argv: list[str] | None = None) -> int:
         f"{summary['catalog_dimensions']} dimensões e "
         f"{summary['catalog_measures']} medidas no exemplo; "
         f"{summary['catalog_cubes']} cubos; "
+        f"{summary['consistent_governance_roles']} papéis consistentes em "
+        f"{summary['role_evidence_sources']} fontes de evidência; "
         f"{summary['classes']} classes; "
         f"{summary['markers']} marcadores; "
         f"{summary['sources']} fontes; "

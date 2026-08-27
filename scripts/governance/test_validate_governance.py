@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import subprocess
 import tempfile
@@ -10,6 +11,7 @@ from pathlib import Path
 from validate_governance import (
     GovernanceValidationError,
     validate_document,
+    validate_role_consistency,
     validate_tapi_hash,
     validate_tracked_inputs,
 )
@@ -552,6 +554,250 @@ class GovernanceDocumentTests(unittest.TestCase):
         document = self.document.replace("fallback_por_titulo", "nao_mapeado")
         with self.assertRaisesRegex(GovernanceValidationError, "fallback_por_titulo"):
             validate_document(document)
+
+
+class GovernanceRoleConsistencyTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.document = DOCUMENT_PATH.read_text(encoding="utf-8")
+        cls.dmc = json.loads((REPOSITORY_ROOT / "docs" / "dmc.json").read_text())
+        cls.architecture = (
+            REPOSITORY_ROOT / "docs" / "arquitetura-de-negocio.md"
+        ).read_text(encoding="utf-8")
+        cls.tapi = """
+        LÍDER DO PROJETO: Felipe Fernandes Rojas – Analista de Dados Sr.
+        PONTO FOCAL BACKUP: Reinaldo Nobrega – Coordenador de Dados
+        Lucas Andrade – Analista de Dados Jr.
+        LÍDER EXECUTIVO: Fabio Moreira – Gestor da Central de Pesquisas
+        ferramentas consolidadas: Excel, SurveyMonkey, Trello e Outlook
+        """
+
+    def test_current_roles_are_consistent_with_sources(self) -> None:
+        summary = validate_role_consistency(
+            self.document, self.tapi, self.dmc, self.architecture
+        )
+        self.assertEqual(summary["role_evidence_sources"], 4)
+        self.assertEqual(summary["consistent_governance_roles"], 3)
+
+    def test_missing_full_steward_name_in_tapi_fails(self) -> None:
+        tapi = self.tapi.replace("Felipe Fernandes Rojas", "Felipe Rojas")
+        with self.assertRaisesRegex(GovernanceValidationError, "Felipe Fernandes Rojas"):
+            validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
+
+    def test_tapi_name_in_negative_sentence_does_not_count_as_assignment(self) -> None:
+        tapi = self.tapi.replace(
+            "LÍDER EXECUTIVO: Fabio Moreira – Gestor da Central de Pesquisas",
+            "LÍDER EXECUTIVO: Outra Pessoa\nFabio Moreira não é líder executivo",
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
+            validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
+
+    def test_tapi_cannot_have_two_executive_leaders(self) -> None:
+        tapi = self.tapi + "\nLÍDER EXECUTIVO: Outra Pessoa\n"
+        with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
+            validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
+
+    def test_tapi_assignment_cannot_negate_role_on_same_line(self) -> None:
+        for contradiction in (
+            "mas não é líder executivo",
+            "não corresponde ao líder executivo",
+        ):
+            with self.subTest(contradiction=contradiction):
+                tapi = self.tapi.replace(
+                    "LÍDER EXECUTIVO: Fabio Moreira – Gestor da Central de Pesquisas",
+                    (
+                        "LÍDER EXECUTIVO [Onboarding Executivo]: Fabio Moreira – "
+                        f"Gestor da Central de Pesquisas, {contradiction}"
+                    ),
+                )
+                with self.assertRaisesRegex(
+                    GovernanceValidationError, "líder executivo"
+                ):
+                    validate_role_consistency(
+                        self.document, tapi, self.dmc, self.architecture
+                    )
+
+    def test_tapi_cannot_repeat_analyst_assignment(self) -> None:
+        tapi = self.tapi + "\nLucas Andrade – Analista de Dados Jr.\n"
+        with self.assertRaisesRegex(GovernanceValidationError, "analista de dados"):
+            validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
+
+    def test_dmc_owner_mismatch_fails(self) -> None:
+        dmc = json.loads(json.dumps(self.dmc))
+        dmc["governancaCorporativa"]["owner"] = "Pessoa não confirmada"
+        with self.assertRaisesRegex(GovernanceValidationError, "Fabio Moreira"):
+            validate_role_consistency(self.document, self.tapi, dmc, self.architecture)
+
+    def test_dmc_negated_owner_assignment_fails(self) -> None:
+        dmc = json.loads(json.dumps(self.dmc))
+        dmc["governancaCorporativa"]["owner"] = (
+            "Fabio Moreira não é Owner; Maria é Owner."
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "owner"):
+            validate_role_consistency(self.document, self.tapi, dmc, self.architecture)
+
+    def test_architecture_names_in_negative_sentence_do_not_count(self) -> None:
+        source = (
+            "O Data Model Canvas identifica Fabio Moreira como Data Owner; "
+            "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade como Data Stewards "
+            "e responsáveis técnicos; e Rodrigo Giorgetto/TI como Data Custodian, "
+            "além da participação da RentalHost na custódia externa."
+        )
+        replacement = (
+            "Fabio Moreira, Felipe Rojas, Reinaldo Nobrega, Lucas Andrade, "
+            "Rodrigo Giorgetto e RentalHost não possuem papel na governança."
+        )
+        architecture = self.architecture.replace(source, replacement, 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "Arquitetura"):
+            validate_role_consistency(self.document, self.tapi, self.dmc, architecture)
+
+    def test_architecture_cannot_append_negated_owner_assignment(self) -> None:
+        architecture = self.architecture + "\nFabio Moreira não é Data Owner.\n"
+        with self.assertRaisesRegex(GovernanceValidationError, "Arquitetura"):
+            validate_role_consistency(self.document, self.tapi, self.dmc, architecture)
+
+    def test_document_must_preserve_steward_name_pending_confirmation(self) -> None:
+        document = self.document.replace(
+            "a equivalência com “Felipe Rojas” deve ser confirmada",
+            "a equivalência com “Felipe Rojas” está confirmada",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "equivalência"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_rodrigo_cannot_be_attributed_to_tapi(self) -> None:
+        document = self.document.replace(
+            "não localizado no TAPI",
+            "confirmado no TAPI",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "Rodrigo"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_rentalhost_cannot_gain_business_authority(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **RentalHost** |")
+        )
+        cells = row.split("|")
+        cells[3] = " Decide finalidade, classificação e publicação. "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "RentalHost"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_trello_and_outlook_cannot_become_governance_roles(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Data Custodian / TI**")
+        )
+        document = self.document.replace(
+            row, row.replace("Rodrigo Giorgetto / TI", "Trello e Outlook"), 1
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "Rodrigo Giorgetto"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_extra_person_cannot_be_added_to_role_assignment(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Data Owner** |")
+        )
+        document = self.document.replace(
+            row, row.replace("Fabio Moreira", "Fabio Moreira e Maria"), 1
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "Data Owner"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_rentalhost_cannot_keep_custody_text_and_add_authority(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **RentalHost** |")
+        )
+        document = self.document.replace(
+            row,
+            row.replace(
+                "Executar custódia técnica,",
+                "Executar custódia técnica e decidir finalidade, classificação e publicação,",
+            ),
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "RentalHost"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_tools_cannot_keep_scope_text_and_become_owner(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **SurveyMonkey, Trello, Outlook")
+        )
+        cells = row.split("|")
+        cells[3] = " Atuam como Data Owner e aprovam a publicação. "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "Trello e Outlook"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_legal_roles_cannot_be_equated_to_organizational_roles(self) -> None:
+        document = self.document.replace(
+            "Eles não equivalem automaticamente a controlador, operador,",
+            "Eles equivalem automaticamente a controlador, operador,",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "papéis jurídicos"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_legal_actor_row_cannot_contradict_general_rule(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Controlador, operadores, suboperadores")
+        )
+        document = self.document.replace(
+            row, row.replace("Papéis pendentes", "Equivalem ao Data Owner. Papéis pendentes"), 1
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "papéis jurídicos"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_roles_cannot_be_declared_formally_implemented(self) -> None:
+        document = self.document.replace(
+            "autoridade formal ainda depende de homologação",
+            "autoridade formal já está homologada",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "homologação"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_pending_authority_cannot_also_be_declared_homologated(self) -> None:
+        document = self.document.replace(
+            "autoridade formal ainda depende de homologação",
+            "autoridade formal ainda depende de homologação, porém já está homologada",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "homologação"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_pending_alias_cannot_also_be_declared_confirmed(self) -> None:
+        document = self.document.replace(
+            "a equivalência com “Felipe Rojas” deve ser confirmada",
+            "a equivalência com “Felipe Rojas” deve ser confirmada, mas já está confirmada",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "equivalência"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_pending_alias_cannot_claim_different_homologated_people(self) -> None:
+        document = self.document.replace(
+            "a equivalência com “Felipe Rojas” deve ser confirmada",
+            (
+                "a equivalência com “Felipe Rojas” deve ser confirmada, mas são "
+                "pessoas diferentes e Felipe Rojas está homologado"
+            ),
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "equivalência"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
 
 
 class TapiHashTests(unittest.TestCase):
