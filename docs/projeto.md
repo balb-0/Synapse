@@ -2568,6 +2568,22 @@ produziria não tem onde morar hoje — e portanto se perde entre uma sessão e 
 | Registrar parecer da validação técnica (S1) | Guarda o "aceito/devolvido" | Histórico de validação (revisor, data, parecer) | Decisão técnica não é auditável (§6.7.13). |
 
 
+### 6.7.10 Estados do modelo não produzidos por nenhum passo do fluxo
+
+O inverso da §6.7.9: estados ou marcações que o **modelo prevê (ou precisará
+prever)**, mas que **nenhuma ação do fluxo de interação alcança**. São estados
+isolados — entram por regra de qualidade/governança ou por processo de carga, não
+por interação do usuário — e por isso exigem rotina automática ou decisão fora do
+fluxo operacional.
+
+| Estado/marcação do modelo | Como surge | Por que nenhum passo do fluxo o produz | Encaminhamento |
+| :--- | :--- | :--- | :--- |
+| `Pesquisa = Não mapeada` (chave órfã) | Reconciliação dos `pesquisa_id` órfãos 424, 1116, 1139, 1147 (e `id_pesq` 304 em respondentes) | Nenhuma tela cria ou resolve o órfão; é decisão de governança com o parceiro | Rotina de qualidade + conciliação (política §2.8 do doc de Governança). |
+| `Registro em quarentena` | Bloqueio na ingestão por desvio crítico | O fluxo opera dados já ingeridos; a quarentena é anterior ao usuário | Fluxo de ações corretivas (governança), não o fluxo de interação. |
+| Histórico de mudança (SCD Tipo 2) | Versionamento de dimensão (ex.: `Empresa`) | O usuário não versiona dimensão pela tela | Processo de carga/ETL; evolução prevista no blueprint dimensional. |
+| `Adesão = Insuficiente (sem denominador)` | Ausência estrutural do universo convidado | Depende de dado inexistente (§6.7.9), não de ação de usuário | Só se resolve quando o denominador for modelado. |
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
