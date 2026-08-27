@@ -2651,6 +2651,43 @@ automatizado entre o DW e o repositório público** do site.
   TO-BE (§2.1).
 
 
+### 6.7.15 Verificação de alinhamento entre o modelo (DER) e os passos do fluxo
+
+Verificação de consistência (tarefa de teste) que confronta cada **relacionamento
+do DER** com os passos dos fluxos §6.7.3 e §6.7.6, para garantir que a
+correspondência fluxo↔banco esteja mapeada e que toda chave estrangeira usada nas
+transições de estado (§6.7.7 e §6.7.8) se sustente nos dados reais. A checagem é
+**reproduzível** pelo script `scripts/data_quality/valida_integridade_referencial.py`,
+executado sobre o snapshot do parceiro; os resultados abaixo são a sua saída.
+
+<div align="center">
+<sub>Tabela X - Integridade referencial medida nas bases reais (evidência do alinhamento)</sub><br>
+
+| Relacionamento do DER | Chaves distintas | Órfãs | Cobertura | Leitura |
+| :--- | ---: | ---: | ---: | :--- |
+| `questoes.pesquisa_id` → `pesquisas.id` | 10 | 4 | 60,0% | Órfãos documentados (424, 1116, 1139, 1147). |
+| `respostas.pesquisa_id` → `pesquisas.id` | 10 | 4 | 60,0% | Mesmos órfãos; só 10 pesquisas têm questionário. |
+| `respostas.id_pergunta` → `questoes.id_pergunta` | 231 | 0 | 100% | Íntegro. |
+| `respostas.id_empresa` → `empresas.ID` | 131 | 0 | 100% | Íntegro. |
+| `respondentes.id_pesq` → `pesquisas.id` | 327 | 1 | 99,7% | Órfão novo `304` (reter e reconciliar). |
+| `respondentes.id_empresa` → `empresas.ID` | 419 | 0 | 100% | Íntegro. |
+| `respondentes.id_cliente` → `clientes.id_cliente` | 5.430 | 0 | 100% | Íntegro (reconcilia como texto; há sentinela `s/i`). |
+| `clientes.id_empresa` → `empresas.ID` | 410 | 0 | 100% | Íntegro. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Resultado: das oito relações do DER, **seis estão 100% íntegras**; as duas
+exceções são as **chaves órfãs de pesquisa** — as quatro já conhecidas (424, 1116,
+1139, 1147) e a nova `304` encontrada em `respondentes`, todas encaminhadas para
+retenção e reconciliação com o parceiro (§6.7.10 e §2.8 do documento de
+Governança). Nenhuma ação do fluxo fica sem correspondência não analisada; as
+lacunas residuais (denominador de adesão, consentimento e versão de questionário)
+estão registradas nas §6.7.9, §6.7.13 e §6.7.14 como itens de modelagem, não como
+inconsistência de dado.
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
