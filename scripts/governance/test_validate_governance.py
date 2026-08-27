@@ -584,11 +584,42 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "Felipe Fernandes Rojas"):
             validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
 
+    def test_tapi_name_in_negative_sentence_does_not_count_as_assignment(self) -> None:
+        tapi = self.tapi.replace(
+            "LÍDER EXECUTIVO: Fabio Moreira – Gestor da Central de Pesquisas",
+            "LÍDER EXECUTIVO: Outra Pessoa\nFabio Moreira não é líder executivo",
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
+            validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
+
     def test_dmc_owner_mismatch_fails(self) -> None:
         dmc = json.loads(json.dumps(self.dmc))
         dmc["governancaCorporativa"]["owner"] = "Pessoa não confirmada"
         with self.assertRaisesRegex(GovernanceValidationError, "Fabio Moreira"):
             validate_role_consistency(self.document, self.tapi, dmc, self.architecture)
+
+    def test_dmc_negated_owner_assignment_fails(self) -> None:
+        dmc = json.loads(json.dumps(self.dmc))
+        dmc["governancaCorporativa"]["owner"] = (
+            "Fabio Moreira não é Owner; Maria é Owner."
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "owner"):
+            validate_role_consistency(self.document, self.tapi, dmc, self.architecture)
+
+    def test_architecture_names_in_negative_sentence_do_not_count(self) -> None:
+        source = (
+            "O Data Model Canvas identifica Fabio Moreira como Data Owner; "
+            "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade como Data Stewards "
+            "e responsáveis técnicos; e Rodrigo Giorgetto/TI como Data Custodian, "
+            "além da participação da RentalHost na custódia externa."
+        )
+        replacement = (
+            "Fabio Moreira, Felipe Rojas, Reinaldo Nobrega, Lucas Andrade, "
+            "Rodrigo Giorgetto e RentalHost não possuem papel na governança."
+        )
+        architecture = self.architecture.replace(source, replacement, 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "Arquitetura"):
+            validate_role_consistency(self.document, self.tapi, self.dmc, architecture)
 
     def test_document_must_preserve_steward_name_pending_confirmation(self) -> None:
         document = self.document.replace(
@@ -632,11 +663,64 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "Rodrigo Giorgetto"):
             validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
 
+    def test_extra_person_cannot_be_added_to_role_assignment(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Data Owner** |")
+        )
+        document = self.document.replace(
+            row, row.replace("Fabio Moreira", "Fabio Moreira e Maria"), 1
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "Data Owner"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_rentalhost_cannot_keep_custody_text_and_add_authority(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **RentalHost** |")
+        )
+        document = self.document.replace(
+            row,
+            row.replace(
+                "Executar custódia técnica,",
+                "Executar custódia técnica e decidir finalidade, classificação e publicação,",
+            ),
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "RentalHost"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_tools_cannot_keep_scope_text_and_become_owner(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **SurveyMonkey, Trello, Outlook")
+        )
+        cells = row.split("|")
+        cells[3] = " Atuam como Data Owner e aprovam a publicação. "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "Trello e Outlook"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
     def test_legal_roles_cannot_be_equated_to_organizational_roles(self) -> None:
         document = self.document.replace(
             "Eles não equivalem automaticamente a controlador, operador,",
             "Eles equivalem automaticamente a controlador, operador,",
             1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "papéis jurídicos"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_legal_actor_row_cannot_contradict_general_rule(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **Controlador, operadores, suboperadores")
+        )
+        document = self.document.replace(
+            row, row.replace("Papéis pendentes", "Equivalem ao Data Owner. Papéis pendentes"), 1
         )
         with self.assertRaisesRegex(GovernanceValidationError, "papéis jurídicos"):
             validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
@@ -648,6 +732,24 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
             1,
         )
         with self.assertRaisesRegex(GovernanceValidationError, "homologação"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_pending_authority_cannot_also_be_declared_homologated(self) -> None:
+        document = self.document.replace(
+            "autoridade formal ainda depende de homologação",
+            "autoridade formal ainda depende de homologação, porém já está homologada",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "homologação"):
+            validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
+
+    def test_pending_alias_cannot_also_be_declared_confirmed(self) -> None:
+        document = self.document.replace(
+            "a equivalência com “Felipe Rojas” deve ser confirmada",
+            "a equivalência com “Felipe Rojas” deve ser confirmada, mas já está confirmada",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "equivalência"):
             validate_role_consistency(document, self.tapi, self.dmc, self.architecture)
 
 
