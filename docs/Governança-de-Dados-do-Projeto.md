@@ -647,6 +647,58 @@ provedor não oferecer assinatura confiável, a preferência é coleta autentica
 ou entrada isolada com credencial própria e reconciliação posterior. O papel
 futuro do n8n e os provedores finais continuam como decisões pendentes.
 
+## 5.11 Autenticação e federação
+
+A tecnologia não foi confirmada pelo parceiro. Como baseline **proposto**, o
+Data App integra-se ao provedor corporativo de identidade por OpenID Connect
+(OIDC), usando OAuth 2.0 Authorization Code com PKCE. MFA é obrigatório para
+perfis internos e privilegiados. Exportação Sensível, publicação, alteração de
+permissão e acesso emergencial exigem reautenticação ou MFA adicional.
+
+JWT é formato de token, não protocolo de login. Se adotado, o serviço valida
+assinatura, emissor, audiência, expiração e identificador; usa validade curta e
+não aceita algoritmo ou chave informados pelo cliente. Tokens e refresh tokens
+não ficam em `localStorage`. Para a aplicação web, a preferência é sessão
+servidor-side ou cookie `Secure`, `HttpOnly` e `SameSite`, acompanhado de
+proteção CSRF.
+
+Contas são individuais. Conta compartilhada, credencial padrão e autenticação
+local paralela ao IdP ficam proibidas, salvo conta de emergência formalmente
+controlada. Serviços usam identidades não interativas, separadas por integração
+e ambiente, sem reaproveitar credencial humana.
+
+## 5.12 Política de sessões
+
+| Contexto | Inatividade proposta | Duração absoluta proposta | Reautenticação |
+| :--- | :---: | :---: | :--- |
+| Administração, permissão e break-glass | 15 minutos | 8 horas | Antes de ação crítica e ao elevar privilégio. |
+| Equipe interna e áreas técnicas | 30 minutos | 8 horas | Antes de exportar dado protegido ou aprovar publicação. |
+| Solicitante/participante autenticado | 30 minutos | 8 horas | Antes de novo download protegido ou mudança de finalidade. |
+| Público externo | Sem sessão interna | Não aplicável | Acesso somente à visão Pública. |
+
+Os tempos são parâmetros iniciais sujeitos à validação de risco e à capacidade
+do IdP. Renovar atividade não ultrapassa a duração absoluta. Refresh token, se
+existir, tem rotação, detecção de reutilização e revogação no logout.
+
+Desligamento, mudança de função, retirada de escopo, revogação de consentimento
+aplicável ou incidente invalidam imediatamente sessão, refresh token, grants e
+caches de autorização. A alteração não espera a expiração natural.
+
+## 5.13 Falhas, recuperação de conta e credenciais
+
+Falha do IdP, do mecanismo de MFA ou da política de autorização bloqueia o
+acesso protegido. A aplicação não mantém um modo degradado com dados internos.
+
+Recuperação de conta usa canal corporativo verificado, autenticação proporcional
+e registro do evento. Suporte não solicita nem recebe senha, token ou código de
+MFA. Após recuperação ou suspeita de comprometimento, sessões e credenciais
+anteriores são revogadas e as ações recentes ficam disponíveis para auditoria.
+
+A aprovação destas propostas cabe ao Data Owner e à TI/Data Custodian, com
+validação do encarregado quando o controle afetar tratamento de dado pessoal.
+Até essa decisão, OIDC, MFA, protocolo, tempos e formato de sessão não devem ser
+descritos como mecanismos já existentes no Sindusfarma.
+
 # 6. Ciclo de Vida dos Dados
 
 _conteúdo_
