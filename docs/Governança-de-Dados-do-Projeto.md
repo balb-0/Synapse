@@ -119,6 +119,24 @@ Até essas confirmações, a estrutura desta seção é o desenho de governança
 projeto. Ela não comprova a implantação dos papéis ou dos controles no ambiente
 produtivo do Sindusfarma.
 
+## 1.5 Matriz de responsabilidades por domínio
+
+A matriz usa a notação RACI: **A** responde pela decisão final, **R** executa,
+**C** é consultado antes da decisão e **I** recebe a informação. Quando uma
+atividade envolve dado pessoal, a responsabilidade jurídica indicada para
+controlador ou encarregado só passa a valer após a designação pelo Sindusfarma.
+
+| Atividade | Data Owner | Data Steward | Central / áreas técnicas | Data Custodian / TI | Agentes LGPD a designar | Custódia externa |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| Definir significado, criticidade e finalidade dos metadados | A | R | C | C | C | I |
+| Manter catálogo, dicionário, regras e linhagem | A | R | C | C/R nos metadados técnicos de carga | I | C na fonte sob contrato |
+| Definir e acompanhar regras de qualidade | A | R | C/R na correção da origem | R na validação, quarentena e reingestão | C | C/R na fonte sob contrato |
+| Classificar dados e revisar risco de reidentificação | A quanto ao uso e à exposição | R | C | R na aplicação técnica | A/C conforme a atribuição legal | C |
+| Administrar perfis, autenticação, camadas, logs e backups | A quanto à política e às exceções | C | I | R | C | R na infraestrutura contratada |
+| Tratar desvios, exceções e risco residual | A | R | C | R técnico | C/A quando houver decisão legal | C/R se a causa estiver no serviço contratado |
+| Aprovar e disponibilizar resultados | A | R na classificação, linhagem e proteção | C sobre o sentido do resultado | R na disponibilização | C/A quando houver decisão legal | R somente na publicação sob contrato |
+| Auditar conformidade e atender direitos dos titulares | C | R na evidência, inventário e rastreabilidade | C | R na propagação, nos logs e na retenção técnica | A/R conforme a atribuição legal | C/R conforme o contrato |
+
 # 2. Política de Qualidade de Dados
 
 A Política de Qualidade de Dados define quais atributos de qualidade são monitorados no acervo de pesquisas e no banco de dados relacional, como cada um é medido, quais metas e indicadores (KPIs) acompanham a saúde do dado, e como a equipe reage quando a qualidade sai do aceitável. As definições partem do diagnóstico realizado na Sprint 1 sobre as bases disponibilizadas (completude e duplicidade medidas por base e variável) e seguem as dimensões de qualidade consagradas no DAMA-DMBOK 2.0.
