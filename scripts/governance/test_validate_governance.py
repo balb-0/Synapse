@@ -300,6 +300,17 @@ class GovernanceDocumentTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "nó obrigatório"):
             validate_document(document)
 
+    def test_governance_map_requires_decision_and_execution_relations(self) -> None:
+        start = self.document.index("```mermaid\nflowchart LR")
+        end = self.document.index("```", start + 3)
+        block = self.document[start:end]
+        without_relations = "\n".join(
+            line for line in block.splitlines() if "-->" not in line
+        )
+        document = self.document[:start] + without_relations + self.document[end:]
+        with self.assertRaisesRegex(GovernanceValidationError, "relação obrigatória"):
+            validate_document(document)
+
     def test_governance_raci_is_required(self) -> None:
         document = self.document.replace(
             "| Atividade | Data Owner | Data Steward | Central de Pesquisas |",
@@ -324,6 +335,21 @@ class GovernanceDocumentTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "matriz RACI"):
             validate_document(document)
 
+    def test_governance_raci_requires_accountable_and_responsible_roles(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Definir significado, criticidade")
+        )
+        document = self.document.replace(
+            row,
+            "| Definir significado, criticidade e uso de negócio dos metadados "
+            "| — | — | — | — | — | — | — |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "A e R"):
+            validate_document(document)
+
     def test_custody_interface_cannot_have_empty_evidence(self) -> None:
         row = next(
             line
@@ -333,6 +359,18 @@ class GovernanceDocumentTests(unittest.TestCase):
         cells = row.rsplit("|", 2)
         document = self.document.replace(row, f"{cells[0]}| |", 1)
         with self.assertRaisesRegex(GovernanceValidationError, "interfaces de custódia"):
+            validate_document(document)
+
+    def test_custody_interface_cannot_use_only_placeholders(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Fonte operacional → `staging`")
+        )
+        document = self.document.replace(
+            row, "| Fonte operacional → `staging` | — | — | — | — |", 1
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "custódia"):
             validate_document(document)
 
     def test_placeholder_in_section_three_fails(self) -> None:
@@ -391,6 +429,29 @@ class GovernanceDocumentTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "exemplo de catálogo"):
             validate_document(document)
 
+    def test_catalog_example_requires_semantic_type_and_source(self) -> None:
+        document = self.document.replace(
+            "| Tipo de ativo | `fato`; snapshot acumulado proposto. |",
+            "| Tipo de ativo | observação livre |",
+            1,
+        ).replace(
+            "| Fonte principal | `pesquisas.csv`; chaves e valores da origem devem ser preservados. |",
+            "| Fonte principal | observação livre |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "exemplo"):
+            validate_document(document)
+
+    def test_catalog_example_requires_fact_name(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Nome técnico | `FATO_CICLO_PESQUISA`")
+        )
+        document = self.document.replace(row, "| Nome técnico | C01 |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "FATO_CICLO_PESQUISA"):
+            validate_document(document)
+
     def test_catalog_dimension_contract_cannot_be_empty(self) -> None:
         row = next(
             line
@@ -401,6 +462,30 @@ class GovernanceDocumentTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "dimensões do exemplo"):
             validate_document(document)
 
+    def test_catalog_dimension_requires_grain_and_keys(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `DIM_AREA` |")
+        )
+        cells = row.split("|")
+        cells[2] = " chaves pendentes "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "DIM_AREA"):
+            validate_document(document)
+
+    def test_catalog_field_requires_definition_and_origin(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `sk_area` |")
+        )
+        cells = row.split("|")
+        cells[3] = " — "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "sk_area"):
+            validate_document(document)
+
     def test_catalog_example_requires_measure_contract(self) -> None:
         row = next(
             line
@@ -409,6 +494,18 @@ class GovernanceDocumentTests(unittest.TestCase):
         )
         document = self.document.replace(row, "", 1)
         with self.assertRaisesRegex(GovernanceValidationError, "dias_uteis_ciclo_total"):
+            validate_document(document)
+
+    def test_catalog_measure_requires_formula_unit_and_window(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| `dias_uteis_coleta` | Fim efetivo")
+        )
+        cells = row.split("|")
+        cells[2] = " observação livre "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "dias_uteis_coleta"):
             validate_document(document)
 
     def test_catalog_requires_all_four_cubes(self) -> None:
@@ -428,6 +525,18 @@ class GovernanceDocumentTests(unittest.TestCase):
             1,
         )
         with self.assertRaisesRegex(GovernanceValidationError, "C01"):
+            validate_document(document)
+
+    def test_catalog_cube_requires_grain_and_source(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| **C02 — Participação e Representatividade**")
+        )
+        cells = row.split("|")
+        cells[2] = " observação livre "
+        document = self.document.replace(row, "|".join(cells), 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "C02"):
             validate_document(document)
 
     def test_catalog_requires_canonical_cube_name(self) -> None:
