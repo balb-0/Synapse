@@ -1577,6 +1577,95 @@ Seção 2.8, e chave órfã é preservada como “Não mapeado” até a reconci
 expurgo previsto nesta seção se aplica ao vencimento do critério de retenção e
 ao pedido de titular deferido, não ao tratamento de inconformidade de qualidade.
 
+## 6.5 Arquivamento em camadas de menor custo
+
+Arquivar é mover para armazenamento mais barato o dado que não tem uso corrente,
+preservando classe, linhagem e capacidade de recuperação. Arquivar não reduz a
+proteção, não encerra a retenção e não substitui backup: a cópia de segurança
+existe para recuperar uma falha, o arquivo existe para guardar o que ainda deve
+ser mantido mas não precisa estar disponível de imediato.
+
+| Camada de guarda | Conteúdo proposto | Tempo de recuperação aceito | Controles herdados |
+| :--- | :--- | :--- | :--- |
+| **Ativa** | Pesquisas em execução, conciliação ou contestação, e séries usadas nos painéis correntes. | Imediato | Classe, perfis e trilha das Seções 4 e 5, sem exceção. |
+| **Arquivo** | Pesquisas encerradas e publicadas cujo uso analítico se tornou eventual, com o critério de retenção ainda vigente. | Diferido, mediante solicitação registrada | Mesma classe da origem; leitura exige autorização e gera evento de auditoria. |
+| **Retenção obrigatória** | Registros mantidos por obrigação legal, investigação ou exercício regular de direitos, inclusive sob suspensão de descarte. | Diferido, restrito ao propósito da obrigação | Acesso restrito ao propósito declarado; expurgo bloqueado até a reavaliação. |
+
+O tempo de recuperação de cada camada, o custo por volume e o mecanismo de
+transição permanecem `pendente_confirmacao`. Esta subseção não nomeia serviço,
+classe de armazenamento ou provedor porque a plataforma de nuvem ainda não foi
+escolhida, conforme a Seção 5.14; qualquer nome citado antes dessa decisão seria
+proposta apresentada como configuração existente.
+
+Três regras se aplicam a qualquer implementação escolhida. O dado arquivado
+continua sujeito a pedido de titular, e o atendimento não pode ser recusado por
+estar em camada fria. A recuperação de um lote arquivado é um acesso: exige
+perfil autorizado, finalidade registrada e evento na trilha. E o arquivamento
+preserva a linhagem: um lote sem `sk_fonte` e `sk_carga` conhecidos não é
+arquivado, porque deixaria de ser auditável exatamente quando o custo de
+reconstituí-lo é maior.
+
+## 6.6 Versionamento histórico
+
+O versionamento do ciclo de vida reutiliza os cinco identificadores já definidos
+na Seção 3.5.2, sem criar vocabulário paralelo. A tabela registra o que cada um
+versiona quando o eixo é o dado, e não o metadado.
+
+| Identificador | O que versiona | Aplicação no ciclo de vida do dado |
+| :--- | :--- | :--- |
+| `catalog_version` | Contrato documental do ativo | Muda quando grão, chave, fórmula, significado ou classificação do ativo mudam; não muda a cada carga. |
+| `schema_version` | Estrutura física da tabela | Condiciona a promoção entre camadas e o rollback: reverter exige versão compatível. |
+| `load_id` | Uma execução de ingestão ou transformação | Identifica a execução que materializou cada linha; base da conciliação e do reprocessamento idempotente. |
+| `data_version` | Snapshot ou lote recebido | Identifica a fotografia da fonte por hash, versão ou marco temporal verificável; a data do documento não substitui a data da carga. |
+| `scd_version` | Versão histórica de uma linha dimensional | Preserva o valor vigente em cada período; aplicável somente após regra de SCD aprovada e implementada. |
+
+**O histórico substituído permanece consultável.** Correção, reprocessamento e
+mudança de regra produzem uma nova versão e uma nova execução; nenhuma delas
+sobrescreve a anterior. Um resultado publicado referencia a versão que o
+produziu, e a regra de qualidade aplicada referencia sua própria versão, de modo
+que uma medição antiga continua explicável mesmo depois de a regra mudar.
+
+**Retenção da versão e retenção do dado são decisões distintas.** Manter todas as
+versões indefinidamente recria, no histórico, o volume que a Seção 6.3 procura
+limitar. A política de guarda de versões antigas segue os mesmos critérios da
+tabela de temporalidade e permanece `pendente_confirmacao` até a homologação;
+até lá, nenhuma versão é eliminada.
+
+Enquanto `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA` permanecerem em `rascunho` e o
+pipeline não registrar origem, versão e execução, `load_id` e `data_version`
+continuam sendo capacidades planejadas. O que existe hoje são os hashes dos
+arquivos recebidos, que cumprem a função de identidade reproduzível do snapshot
+sem constituir registro de carga.
+
+## 6.7 Auditoria do ciclo de vida
+
+Esta subseção não redefine a trilha de auditoria nem a auditoria de qualidade. O
+contrato de eventos, campos obrigatórios e conteúdo proibido permanece na Seção
+5.9, e a vigilância sobre métricas e ações corretivas permanece na Seção 2.7. O
+que se acrescenta aqui é a comprovação de que as rotinas de ciclo de vida foram
+efetivamente executadas — e não apenas descritas.
+
+Os eventos de ciclo de vida ampliam a lista da Seção 5.9 com a execução de
+expurgo, o arquivamento e a recuperação de lote arquivado, a suspensão de
+descarte, a alteração de prazo de retenção e a retirada de publicação. Cada um
+segue o mesmo contrato: identificador do evento, timestamp UTC, ator
+pseudonimizado, ação, recurso, versão da política aplicada, resultado e
+correlação com a execução relacionada. O log não replica o conteúdo eliminado;
+registra que a eliminação ocorreu, em que escopo e sob qual critério.
+
+| Rotina | Periodicidade proposta | Saída | Destinatário |
+| :--- | :--- | :--- | :--- |
+| Revisão da tabela de temporalidade | A cada mudança de finalidade e, na ausência dela, anual | Tabela revisada, com prazos homologados e pendências atualizadas | Data Owner |
+| Execução do expurgo dos itens vencidos | A cada ciclo aprovado, após o gate G7 | Registro de expurgo com escopo, critério, contagens e confirmação nas cópias | Data Custodian |
+| Conferência do inventário de arquivo | Semestral | Lotes arquivados com classe, critério de retenção e data da próxima revisão | Data Steward |
+| Teste de restauração com reaplicação de bloqueios | Mensal, junto ao teste de restauração da Seção 5.8 | Evidência de que nenhum registro eliminado, bloqueado ou revogado retornou ativo | Data Custodian e Data Owner |
+| Auditoria de linhagem | Mensal, junto à auditoria de conformidade da Seção 2.7 | Cobertura da linhagem por caminho e relação dos elos em reconciliação | Data Steward |
+
+As periodicidades acima são propostas do grupo e permanecem pendentes de
+homologação, como as da Seção 3.5.3. Uma rotina sem execução registrada não
+comprova a política: para efeito desta seção, a ausência de evidência de expurgo
+equivale à ausência de expurgo.
+
 # 7. Avaliação de Maturidade
 
 _conteúdo_
