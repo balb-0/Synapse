@@ -47,6 +47,7 @@
   - [3.1 Estado e objetivo do catálogo](#31-estado-e-objetivo-do-catálogo)
   - [3.2 Estratégia e fontes de verdade](#32-estratégia-e-fontes-de-verdade)
   - [3.3 Busca, reutilização, descoberta e rastreabilidade](#33-busca-reutilização-descoberta-e-rastreabilidade)
+  - [3.4 Metadados obrigatórios](#34-metadados-obrigatórios)
 - [4. Classificação e Proteção de Dados](#4-classificação-e-proteção-de-dados)
 - [5. Segurança e Acesso](#5-segurança-e-acesso)
 - [6. Ciclo de Vida dos Dados](#6-ciclo-de-vida-dos-dados)
@@ -618,6 +619,57 @@ Até existir portal de catálogo, a descoberta ocorre pelos arquivos versionados
 e pelo sumário da documentação. A coleta automática de schema, a busca
 federada, a linhagem de execução e alertas de impacto são capacidades futuras,
 não resultados já entregues.
+
+## 3.4 Metadados obrigatórios
+
+Um campo obrigatório não precisa fingir que a informação já existe. Quando o
+projeto ainda não conhece periodicidade, tipo físico, responsável homologado ou
+regra de retenção, o catálogo deve registrar `indisponivel` ou
+`pendente_confirmacao`, a fonte consultada e a condição que permitirá completar
+o campo. Valor vazio, “a definir” sem responsável ou inferência silenciosa não
+atendem ao contrato.
+
+### 3.4.1 Campos comuns a todo ativo
+
+| Metadado | Conteúdo obrigatório | Aplicação e regra |
+| :--- | :--- | :--- |
+| `asset_id` | Identificador estável no padrão da Seção 3.2 | Obrigatório quando o inventário for materializado. Enquanto não implantado, usar o caminho e a âncora do artefato como referência documental e marcar `asset_id_status: planejado`. |
+| `nome_negocio` e `nome_tecnico` | Termo legível e nome usado no schema ou artefato | Nome físico proposto deve trazer essa condição; sinônimos não criam novo ativo. |
+| `tipo_ativo` | `fonte`, `campo`, `fato`, `dimensao`, `medida`, `regra` ou `relatorio` | Um ativo não acumula tipos incompatíveis para contornar requisitos específicos. |
+| `definicao` | Significado, evento ou conceito representado | Deve permitir distinguir o ativo de termos próximos e citar a decisão que sustenta seu uso. |
+| `dominio_negocio` e `finalidade_uso` | Domínio, pergunta, requisito, indicador ou processo atendido | Finalidade de negócio não substitui finalidade jurídica quando houver tratamento pessoal. |
+| `unidade_analise` e `grao` | O que uma linha ou valor representa | Obrigatório para fonte, fato, dimensão e medida; deve ser uma frase verificável, como “uma linha por pesquisa” ou “uma linha por versão vigente da empresa”. |
+| `fonte_origem` e `campos_origem` | Sistema, arquivo/tabela e colunas usadas | Origem desconhecida bloqueia promoção para uso analítico. Chaves recebidas são preservadas. |
+| `transformacao` e `linhagem` | Padronização, junção, derivação e ativos de entrada/saída | Informar método de costura e estado da reconciliação; fallback por título não vira chave canônica por inferência. |
+| `tipo_fisico` e `tipo_semantico` | Tipo no armazenamento e interpretação de negócio | Divergência, como identificador texto versus inteiro, deve ser registrada e tratada. |
+| `dominio_valores` | Valores válidos, referência, faixa e sentinelas | `7`, `s/i`, `NA` e `-` não são nulos automaticamente; sua semântica depende do campo e do manifesto. |
+| `nulabilidade` | Se aceita nulo e em qual condição | Distinguir ausência estrutural, indisponibilidade histórica e defeito de qualidade. |
+| `periodicidade_esperada` e `frescor_observado` | Frequência aprovada e último marco verificável | Não usar a data do documento como timestamp de carga. Sem pipeline ou SLA, registrar `indisponivel`. |
+| `owner`, `steward` e `custodian` | Papéis responsáveis e, quando homologados, pessoas | Nomes do baseline mantêm `estado_evidencia: documentado` e `estado_ciclo: em_revisao` até homologação. |
+| `classificacao`, `marcador_lgpd` e `acesso` | Classe, presença de dado pessoal/sensível e perfis autorizados | Aplicar as Seções 4 e 5 e herdar a proteção mais restritiva dos dados descritos. |
+| `regra_qualidade` e `limiar` | Validação, fórmula, aplicabilidade, meta e tratamento do desvio | Regra sem limiar precisa justificar controle qualitativo; resultado medido referencia a versão da regra. |
+| `retencao` e `descarte` | Regra aprovada ou estado pendente | Até a Seção 6 ser homologada, registrar dependência; não inventar prazo. |
+| `estado_evidencia` e `estado_ciclo` | Dois eixos definidos na Seção 3.2 | `documentado` não significa `vigente`; promoção exige aprovação registrada. |
+| `versao`, `vigencia_inicio`, `vigencia_fim` e `change_id` | Versão do contrato, período de validade e mudança de origem | A versão do catálogo não é a versão da carga ou dos dados. O histórico substituído permanece consultável. |
+| `atualizado_em`, `atualizado_por` e `aprovado_por` | Data, autor e aprovador da revisão | Aprovação do grupo e homologação do parceiro devem aparecer como eventos distintos. |
+
+### 3.4.2 Requisitos específicos por tipo de ativo
+
+| Tipo | Metadados adicionais obrigatórios | Regra de completude |
+| :--- | :--- | :--- |
+| **Fato** | `tipo_fato` (transação, snapshot periódico, snapshot acumulado ou associação), evento, grão, chaves estrangeiras, dimensões conformadas, medidas, fonte, transformação e execução de carga | Exatamente um grão declarado. Mudança de grão cria nova versão e exige análise de impacto nos indicadores. |
+| **Dimensão** | Grão da entidade ou versão, chave substituta proposta, chave de negócio ou origem, atributos, domínios, membro “Não mapeado”, estratégia SCD, início/fim de vigência e indicador de registro atual | A chave deve ser compatível com o grão. SCD Tipo 2 só é marcado como `vigente` depois de regra aprovada e implementação comprovada; até lá permanece proposta. |
+| **Medida** | Fórmula, unidade, numerador, denominador, aditividade, janela temporal, timezone, cobertura, comportamento com nulos/sentinelas, filtros válidos, regra de validação e estado de disponibilidade | Medida sem denominador conhecido não pode ser apresentada como taxa; medida sem marco temporal não recebe duração imputada. |
+| **Fonte ou campo de origem** | Formato, codificação, chave, nulabilidade, sentinelas, domínio observado, volume/perfil, hash ou versão recebida, responsável pelo fornecimento e, quando houver extração ou costura, `confianca_extracao`, `origem_evidencia` e `status_mapeamento` | Estrutura observada não é alterada para caber no DW; incompatibilidades geram transformação explícita ou quarentena. A confiança deve preservar o valor e o domínio observados; quando ausente, registrar `indisponivel` ou `pendente_confirmacao`, sem classificar por inferência. |
+
+Para os cubos atuais, o catálogo deve preservar: C01 como uma linha por
+pesquisa e snapshot acumulado; C02 como uma linha por participação e fato
+transacional; C03 como combinação mês, status, área, tipo e perfil, sem
+reconstrução histórica anterior ao início dos snapshots; e C04 como uma linha
+por pergunta em pesquisa, com cobertura parcial. Linhas de `respostas.csv` não
+equivalem a respondentes, repetição de participação não equivale
+automaticamente a duplicidade técnica e nenhuma taxa de adesão existe sem
+denominador documentado.
 
 As subseções seguintes especificam os campos obrigatórios, o versionamento e um
 exemplo aplicado a uma tabela proposta do DW.
