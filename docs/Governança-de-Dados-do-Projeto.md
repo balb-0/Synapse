@@ -1731,6 +1731,42 @@ resultado de um reuso é publicável apenas sob as mesmas regras de agregação 
 limiar aplicáveis à coleta original — combinar duas pesquisas pequenas não torna
 público um recorte que nenhuma delas poderia publicar isoladamente.
 
+## 6.10 Estado das decisões do ciclo de vida
+
+| Item | Estado | Condição de fechamento |
+| :--- | :--- | :--- |
+| Fases, camadas e gates do ciclo | Proposta da equipe | Validar as transições contra o pipeline implantado e testar cada gate com caso permitido e caso negado. |
+| Critérios de retenção por classe de dado | Proposta da equipe | Aprovar com o Data Owner e a assessoria jurídica a base legal e o critério de cada classe. |
+| Guarda mínima de cinco anos do registro de incidente | Requisito normativo | Comprovar armazenamento protegido, inventário dos registros e acesso restrito ao propósito. |
+| Prazos das demais classes | Pendente de decisão do parceiro | Substituir `pendente_confirmacao` por prazo aprovado, com responsável e data de vigência. |
+| Camadas de arquivamento e tempo de recuperação | Pendente | Escolher a plataforma, registrar custo, tempo de recuperação e mecanismo de transição entre camadas. |
+| Propagação do expurgo a cópias e backups | Proposta da equipe | Demonstrar expurgo propagado, expiração verificada e bloqueio de restauração indevida. |
+| `load_id`, `data_version` e versionamento SCD | Capacidades planejadas | Implantar pipeline que registre origem, versão e execução e promover `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA`. |
+| Elo participação ↔ elemento de resposta | Em reconciliação | Obter do parceiro o metadado ou a chave de ligação; não inferir vínculo a partir das fontes atuais. |
+| Periodicidades de revisão, expurgo e conferência | Propostas do grupo | Homologar a cadência com Data Owner, Data Steward e Data Custodian. |
+| Retenção do histórico de qualidade | Pendente de decisão do parceiro | Aprovar a janela exigida pela auditoria mensal e fechar a dependência registrada na Seção 2.7. |
+
+## 6.11 Critérios de homologação
+
+O ciclo de vida só pode ser descrito como implantado quando houver, no ambiente
+correspondente:
+
+0. inventário de ativos com classe, critério e prazo de retenção aprovados;
+0. tabela de temporalidade sem `pendente_confirmacao` nas classes que contenham dado pessoal;
+0. rotina de expurgo executada, com escopo, critério, contagens e responsável registrados;
+0. propagação do descarte comprovada em cópias, backups, índices, caches e exports;
+0. restauração testada sem reintroduzir registro eliminado, bloqueado ou revogado;
+0. lote arquivado recuperado dentro do tempo acordado e com evento de auditoria correspondente;
+0. execução de carga registrando origem, versão, regras aplicadas, contagens e resultado;
+0. linhagem exibindo cada elo com seu estado, sem fabricar vínculo ausente;
+0. evidência, responsável, data e resultado anexados à decisão de homologação.
+
+Até esses critérios serem atendidos, esta seção permanece como desenho do ciclo
+de vida da solução, não como comprovação de que prazos, expurgos, arquivamentos
+e registros de linhagem já operam. As dependências declaradas nas Seções 2.7,
+3.4, 3.6 e 3.8 continuam abertas e devem seguir registrando
+`pendente_confirmacao` em vez de adotar prazo substituto.
+
 # 7. Avaliação de Maturidade
 
 _conteúdo_
