@@ -128,26 +128,27 @@ do projeto. A matriz RACI da Seção 1.6 é a fonte detalhada de autoridade quan
 uma relação resumida no desenho envolver mais de um responsável.
 
 ```mermaid
-flowchart TB
+flowchart LR
     SIND["[DOC] Sindusfarma<br/>homologa papéis, alçadas e vigência"]:::baseline
-    OWNER["[DOC] Data Owner<br/>Fabio Moreira<br/>aprova finalidade, acesso,<br/>publicação e exceções"]:::baseline
-    STEWARD["[DOC] Data Stewards<br/>Felipe Rojas, Reinaldo Nobrega<br/>e Lucas Andrade<br/>definem semântica, catálogo,<br/>qualidade e linhagem"]:::baseline
-    CUST["[DOC] Data Custodian / TI<br/>Rodrigo Giorgetto / TI<br/>implementa infraestrutura,<br/>segurança, cargas, logs e backups"]:::baseline
+    OWNER["[DOC/PEND] Data Owner<br/>Fabio Moreira<br/>aprova finalidade, acesso,<br/>publicação e exceções"]:::baseline
+    STEWARD["[DOC/PEND] Data Stewards<br/>Felipe Rojas, Reinaldo Nobrega<br/>e Lucas Andrade<br/>definem semântica, catálogo,<br/>qualidade e linhagem"]:::baseline
+    CUST["[DOC/PEND] Data Custodian / TI<br/>Rodrigo Giorgetto / TI<br/>implementa infraestrutura,<br/>segurança, cargas, logs e backups"]:::baseline
     CENTRAL["[PROP] Central de Pesquisas<br/>opera o ciclo, valida indicadores<br/>e prepara resultados"]:::proposal
     AREAS["[PROP] Áreas técnicas<br/>revisam questionários,<br/>conteúdo e resultados"]:::proposal
     LEGAL["[PEND] Agentes LGPD<br/>controlador, operadores, suboperadores<br/>e encarregado a designar"]:::pending
     EXT["[COND] RentalHost<br/>custódia técnica sob contrato<br/>e conforme instruções"]:::external
 
-    SIND -->|homologa função| OWNER
-    SIND -->|homologa função| STEWARD
-    SIND -->|homologa função| CUST
+    SIND -.->|homologação pendente| OWNER
+    SIND -.->|homologação pendente| STEWARD
+    SIND -.->|homologação pendente| CUST
     SIND -.->|designa por tratamento| LEGAL
     CENTRAL -->|necessidade e validação operacional| STEWARD
     AREAS -->|validação temática| STEWARD
     STEWARD -->|regra, metadado e controle esperado| OWNER
     OWNER -->|decisão aprovada| CUST
     CUST -->|execução e evidência técnica| STEWARD
-    LEGAL -.->|orientação jurídica após designação| OWNER
+    OWNER -.->|coordena decisão de negócio| LEGAL
+    LEGAL -.->|decisão jurídica própria por tratamento| CUST
     LEGAL -.->|requisitos de privacidade| STEWARD
     CUST -.->|instrução técnica contratada| EXT
 
@@ -159,7 +160,8 @@ flowchart TB
 
 | Elemento visual | Leitura |
 | :--- | :--- |
-| `[DOC]`, nó azul | Nome ou papel presente no baseline documental; atribuição ainda sujeita à homologação. |
+| `[DOC]`, nó azul | Nome ou papel presente no baseline documental. |
+| `[DOC/PEND]`, nó azul | Nome presente no baseline, com designação e autoridade ainda sujeitas à homologação. |
 | `[PROP]`, nó verde | Função operacional proposta para a Central ou para as áreas técnicas. |
 | `[PEND]`, nó laranja tracejado | Agente legal pendente de designação por tratamento. |
 | `[COND]`, nó roxo tracejado | Participação externa condicionada a contrato e instruções. |
