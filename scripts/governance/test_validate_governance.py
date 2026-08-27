@@ -288,6 +288,18 @@ class GovernanceDocumentTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceValidationError, "mapa funcional"):
             validate_document(document)
 
+    def test_governance_map_requires_actor_nodes(self) -> None:
+        start = self.document.index("```mermaid\nflowchart LR")
+        end = self.document.index("```", start + 3) + 3
+        replacement = (
+            "```mermaid\nflowchart LR\n"
+            "%% Data Owner Data Stewards Data Custodian / TI Controlador "
+            "Operador e suboperadores Encarregado RentalHost\n```"
+        )
+        document = self.document[:start] + replacement + self.document[end:]
+        with self.assertRaisesRegex(GovernanceValidationError, "nó obrigatório"):
+            validate_document(document)
+
     def test_governance_raci_is_required(self) -> None:
         document = self.document.replace(
             "| Atividade | Data Owner | Data Steward | Central de Pesquisas |",
@@ -295,6 +307,32 @@ class GovernanceDocumentTests(unittest.TestCase):
             1,
         )
         with self.assertRaisesRegex(GovernanceValidationError, "Atividade"):
+            validate_document(document)
+
+    def test_governance_raci_cannot_have_empty_assignment(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Definir significado, criticidade")
+        )
+        document = self.document.replace(
+            row,
+            "| Definir significado, criticidade e uso de negócio dos metadados "
+            "| | | | | | | |",
+            1,
+        )
+        with self.assertRaisesRegex(GovernanceValidationError, "matriz RACI"):
+            validate_document(document)
+
+    def test_custody_interface_cannot_have_empty_evidence(self) -> None:
+        row = next(
+            line
+            for line in self.document.splitlines()
+            if line.startswith("| Fonte operacional → `staging`")
+        )
+        cells = row.rsplit("|", 2)
+        document = self.document.replace(row, f"{cells[0]}| |", 1)
+        with self.assertRaisesRegex(GovernanceValidationError, "interfaces de custódia"):
             validate_document(document)
 
     def test_placeholder_in_section_three_fails(self) -> None:
@@ -377,7 +415,7 @@ class GovernanceDocumentTests(unittest.TestCase):
         row = next(
             line
             for line in self.document.splitlines()
-            if line.startswith("| **C04 — Questionários e Cobertura**")
+            if line.startswith("| **C04 — Resultados e Questionários**")
         )
         document = self.document.replace(row, "", 1)
         with self.assertRaisesRegex(GovernanceValidationError, "C04"):
