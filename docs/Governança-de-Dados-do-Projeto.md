@@ -2052,3 +2052,41 @@ dimensões e fecham as quatro dependências que a Seção 6 mantém abertas. Enq
 a Onda 1 não avançar, qualquer investimento nas ondas seguintes produz
 capacidade técnica sem alçada para operá-la — que é exatamente o desequilíbrio
 diagnosticado na Seção 7.7.
+
+## 7.10 Estado das decisões da avaliação
+
+| Item | Estado | Condição de fechamento |
+| :--- | :--- | :--- |
+| Adoção do DAMA-DMBOK 2.0 e da escala em cinco níveis | Proposta da equipe | Validar o modelo com a orientação acadêmica e com o Data Owner. |
+| Recorte das dimensões avaliadas | Proposta da equipe | Confirmar com o parceiro que a área excluída não integra o escopo da solução. |
+| Níveis atribuídos por dimensão | Autoavaliação documental do grupo | Revisão pelo Data Owner com evidência independente; esta seção não é auditoria. |
+| Diagnóstico técnico | Observado nos dados e nos artefatos | Reexecutar o perfilamento sobre a primeira carga real, no ambiente escolhido. |
+| Diagnóstico organizacional | Documentado, com pendências | Concluir as homologações registradas na Seção 1.4. |
+| Diagnóstico cultural | **Inferência da equipe** | Substituir por entrevista, questionário ou observação junto à equipe da Central. |
+| Média de 1,6 entre as dimensões | Leitura de conjunto | Não utilizar como índice isolado de decisão; nenhum peso por dimensão foi acordado. |
+| Ondas e sequenciamento do roadmap | Proposta da equipe | Aprovar prioridade, responsável e capacidade com o Sindusfarma. |
+| Ausência de datas no roadmap | Limitação declarada | Fornecer linha de base de equipe, capacidade operacional e custo em fonte auditável. |
+| Relação entre lacunas e dores do TAPI | Derivada dos artefatos | Confirmar com o parceiro que a leitura das dores permanece atual. |
+
+## 7.11 Critérios de reavaliação
+
+A avaliação descreve o estado em 27/08/2026 e perde validade à medida que as
+decisões pendentes forem tomadas. A maturidade deve ser remedida quando:
+
+0. qualquer homologação da Seção 1.4 for concluída;
+0. a plataforma de nuvem for escolhida ou o papel do n8n for definido;
+0. a primeira carga real for executada no ambiente escolhido;
+0. os prazos da Seção 6.3 deixarem de ser `pendente_confirmacao`;
+0. um indicador de qualidade passar a operar com limiar homologado;
+0. o diagnóstico cultural for substituído por evidência colhida junto à equipe;
+0. na ausência desses gatilhos, ao final de cada ciclo de planejamento.
+
+Cada reavaliação registra data, fontes utilizadas, nível anterior e nível novo
+por dimensão, de modo que a evolução seja verificável e não dependa da memória
+de quem avaliou. Uma dimensão pode regredir: perder o responsável designado ou
+descontinuar uma medição reduz o nível, e essa queda deve aparecer com a mesma
+clareza que uma subida.
+
+Até que uma reavaliação com evidência do parceiro seja realizada, os níveis desta
+seção representam a leitura do grupo sobre os artefatos recebidos, não a
+maturidade certificada da Central de Pesquisas do Sindusfarma.
