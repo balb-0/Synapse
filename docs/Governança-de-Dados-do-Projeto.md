@@ -105,6 +105,10 @@
   - [7.10 Estado das decisões da avaliação](#710-estado-das-decisões-da-avaliação)
   - [7.11 Critérios de reavaliação](#711-critérios-de-reavaliação)
 
+## Objetivo do documento
+
+Este documento define a abordagem de governança de dados adotada no projeto da Central de Pesquisas do Sindusfarma, com o objetivo de assegurar a qualidade, integridade, segurança, rastreabilidade e uso ético dos dados ao longo de todo o seu ciclo de vida. A proposta alinha-se a frameworks reconhecidos de mercado — em especial o **DAMA-DMBOK 2.0** e o **DCAM** — e trata os dados como ativos estratégicos. As sete seções a seguir cobrem a estrutura organizacional da governança, a política de qualidade, a gestão de metadados e catálogo, a classificação e proteção de dados, a segurança e o acesso, o ciclo de vida dos dados e a avaliação de maturidade.
+
 # 1. Estrutura Organizacional da Governança
 
 Esta seção define os papéis que decidem, especificam e executam a governança de
@@ -134,11 +138,18 @@ legais de acordo com cada tratamento, contrato e fluxo de dados.
 
 ## 1.2 Papéis fundamentais
 
+<div align="center">
+<sub>Tabela 1 - Papéis fundamentais da governança de dados</sub><br>
+
 | Papel | Referência documental | Autoridade e responsabilidade propostas | Limites do papel |
 | :--- | :--- | :--- | :--- |
 | **Data Owner** | Fabio Moreira | Responder pelo domínio de negócio; aprovar finalidade de negócio, uso pretendido, prioridade, indicadores, classificação, perfis de acesso, publicação, exceções e risco residual. | Não recebe acesso administrativo por ocupar o papel e não substitui automaticamente o controlador ou o encarregado da LGPD. |
 | **Data Steward** | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade | Definir significado, catálogo, dicionário, regras de qualidade, completude, reconciliação e linhagem; acompanhar inconformidades e propor correções. | Não aprova sozinho novo uso de negócio, finalidade jurídica, exposição externa ou aceitação de risco estratégico; ele prepara a decisão organizacional e a evidência para o papel legal aplicável. |
 | **Data Custodian / TI** | Rodrigo Giorgetto / TI | Administrar infraestrutura, ingestão, armazenamento, credenciais, backups, logs, disponibilidade e controles técnicos conforme as decisões aprovadas. | Não define uso de negócio, finalidade jurídica, regra de negócio ou publicação e só acessa conteúdo protegido quando a atividade técnica exigir, com autorização e auditoria. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 A RentalHost aparece no baseline como custodiante externo quando operar o
 sistema interno ou o repositório público. Essa participação depende do contrato
@@ -176,12 +187,19 @@ fluxo.
 
 ## 1.4 Homologações pendentes
 
+<div align="center">
+<sub>Tabela 2 - Homologações pendentes da estrutura de governança</sub><br>
+
 | Decisão a confirmar | Evidência atual | Condição para tratar como vigente |
 | :--- | :--- | :--- |
 | Designação nominal de Owner, Stewards e Custodian | Nomes registrados na Arquitetura de Negócio e no baseline do DMC | Aprovação formal do Sindusfarma com escopo, autoridade, substitutos e data de vigência. |
 | Controlador, operador, suboperadores e encarregado | Não definidos pelos papéis organizacionais | Inventário de cada tratamento e validação jurídica ou organizacional pelo parceiro. |
 | Participação da RentalHost | Custódia externa indicada no baseline | Contrato e inventário que identifiquem dados, ambiente, instruções, acesso, retenção, auditoria e descarte. |
 | Concessão de acesso excepcional aos dados protegidos | Matrizes propostas nas Seções 4 e 5 | Procedimento aprovado com solicitante, aprovador, finalidade, prazo, log e revisão posterior. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Até essas confirmações, a estrutura desta seção é o desenho de governança do
 projeto. Ela não comprova a implantação dos papéis ou dos controles no ambiente
@@ -234,6 +252,11 @@ flowchart LR
     classDef external fill:#F5F3FF,stroke:#7C3AED,color:#4C1D95,stroke-width:1.5px,stroke-dasharray:5 3
 ```
 
+<div align="center"><sub>Figura 1 - Mapa funcional da governança de dados</sub><br><sup>Material produzido pelos autores (2026)</sup></div>
+
+<div align="center">
+<sub>Tabela 3 - Legenda do mapa funcional da governança de dados</sub><br>
+
 | Elemento visual | Leitura |
 | :--- | :--- |
 | `[DOC]`, nó azul | Nome ou papel presente no baseline documental. |
@@ -244,6 +267,10 @@ flowchart LR
 | Seta contínua | Interface funcional proposta de definição, aprovação, execução ou verificação. |
 | Seta tracejada | Relação pendente ou condicional; não comprova subordinação ou vínculo jurídico. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ## 1.6 Matriz de responsabilidades por domínio
 
 A matriz usa a notação RACI: **A** responde pela decisão final, **R** executa,
@@ -251,6 +278,9 @@ A matriz usa a notação RACI: **A** responde pela decisão final, **R** executa
 nomeia o papel aplicável para não reunir responsabilidades jurídicas distintas.
 Essas responsabilidades só passam a valer depois da designação pelo
 Sindusfarma para cada tratamento.
+
+<div align="center">
+<sub>Tabela 4 - Matriz RACI de responsabilidades por domínio</sub><br>
 
 | Atividade | Data Owner | Data Steward | Central de Pesquisas | Áreas técnicas | Data Custodian / TI | Papéis LGPD a designar, conforme o tratamento | Custódia externa |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -265,6 +295,10 @@ Sindusfarma para cada tratamento.
 | Tratar desvios, exceções e risco residual | A quanto ao negócio | R | C | C | R técnico | Controlador: A na decisão legal; operador/suboperador: R conforme instrução; encarregado: C | R técnico se a causa estiver no serviço contratado |
 | Aprovar e disponibilizar resultados | A quanto ao uso de negócio e à publicação | R na classificação, linhagem e proteção | C sobre o sentido do resultado | C na validação temática | R na disponibilização | Controlador: A quando houver decisão legal; encarregado: C; operador/suboperador: R técnico | R técnico somente na publicação sob contrato |
 | Auditar conformidade e atender direitos dos titulares | C | R na evidência, inventário e rastreabilidade | C | C | R na propagação, nos logs e na retenção técnica | Controlador: A; encarregado: R como canal; operador/suboperador: R conforme instrução | R técnico conforme instrução e contrato |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 ## 1.7 Regras de aplicação da matriz
 
@@ -305,6 +339,9 @@ não converte presença em uma ferramenta ou contrato em responsabilidade
 jurídica: a atribuição legal depende do tratamento realizado e das designações
 pendentes da Seção 1.4.
 
+<div align="center">
+<sub>Tabela 5 - Atribuições internas, externas e cadeia de custódia</sub><br>
+
 | Ator ou grupo | Dados, sistemas ou etapa | Responsabilidade no desenho | Limite e estado da evidência |
 | :--- | :--- | :--- | :--- |
 | **Central de Pesquisas** | Solicitações, pesquisas, questionários, indicadores e resultados | Operar o ciclo, registrar necessidades, validar indicadores, solicitar correções e preparar resultados para aprovação. | Atuação confirmada no TAPI e na Arquitetura de Negócio; não aprova sozinha exposição externa, exceção de acesso ou risco residual. |
@@ -318,7 +355,14 @@ pendentes da Seção 1.4.
 | **Provedor de LLM a definir** | Otimização ou análise futura que venha a usar modelo externo | Processar apenas o conteúdo mínimo autorizado, com registro de finalidade, versão do serviço e evidência de envio. | O TAPI prevê uso de LLM, mas não identifica provedor, conteúdo enviado, região, retenção ou contrato; nenhum envio de dado pessoal é pressuposto. |
 | **Controlador, operadores, suboperadores e encarregado** | Cada tratamento que envolva dados pessoais | Controlador decide finalidade jurídica, hipótese legal e instruções; operadores e suboperadores executam o tratamento conforme instruções; encarregado atua como canal e apoia orientação, direitos dos titulares e incidentes. | Papéis pendentes de designação pelo Sindusfarma; não equivalem automaticamente a Owner, Steward, Custodian ou fornecedor. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ### 1.8.1 Interfaces de responsabilidade na custódia
+
+<div align="center">
+<sub>Tabela 6 - Interfaces de responsabilidade na cadeia de custódia</sub><br>
 
 | Interface | Quem entrega ou solicita | Quem executa | Quem aprova ou valida | Evidência mínima exigida |
 | :--- | :--- | :--- | :--- | :--- |
@@ -327,6 +371,10 @@ pendentes da Seção 1.4.
 | `trusted` → `analytics` | Central define a necessidade analítica; Steward mantém semântica | Data Custodian/TI materializa fatos, dimensões e agregações | Data Steward valida cálculo e linhagem; Data Owner aprova o uso de negócio; controlador decide a compatibilidade jurídica quando houver dado pessoal; encarregado orienta | Versão do modelo, grão, fontes, fórmula, teste de qualidade, classificação e data da atualização. |
 | `analytics` → publicação | Central ou área técnica prepara resultado | Data Custodian/TI ou custodiante externo disponibiliza; operador/suboperador atua somente conforme instrução | Data Owner aprova a publicação de negócio; controlador decide as condições jurídicas quando houver dado pessoal; encarregado orienta | Versão, recorte, teste de agregação ou anonimização, aprovadores, destino, data e procedimento de retirada. |
 | Correção, incidente ou direito do titular | Central, titular, auditoria ou monitoramento registra a demanda | Custodian, operador, suboperador e fornecedores propagam a ação nos ambientes sob sua custódia e conforme instruções | Steward comprova linhagem; controlador decide o aspecto legal; encarregado atua como canal e acompanha o atendimento | Protocolo, escopo, sistemas afetados, logs, prazo, resultado, exceções e encerramento aprovado. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 ### 1.8.2 Confirmações externas pendentes
 
@@ -350,7 +398,7 @@ A seção está organizada da definição à operação: primeiro **o que** se m
 Atributo de qualidade é a dimensão sob a qual a confiabilidade de um dado é avaliada. O projeto adota cinco atributos, selecionados a partir das dimensões do DAMA-DMBOK 2.0 e priorizados pelo que o diagnóstico da Sprint 1 mostrou ser crítico para o acervo de pesquisas: cada um responde por um tipo distinto de risco sobre os indicadores que a solução vai calcular (adesão, tempos de ciclo, representatividade). Um mesmo registro pode estar completo mas impreciso, ou único mas desatualizado — por isso os atributos são monitorados de forma independente.
 
 <div align="center">
-<sub>Tabela 1 — Atributos de qualidade monitorados no projeto</sub><br>
+<sub>Tabela 7 - Atributos de qualidade monitorados no projeto</sub><br>
 
 | Atributo | Definição | Relevância para o acervo de pesquisas | Bases/variáveis mais sensíveis |
 | :--- | :--- | :--- | :--- |
@@ -371,7 +419,7 @@ Atributo de qualidade é a dimensão sob a qual a confiabilidade de um dado é a
 Cada atributo definido em 2.1 é traduzido em uma métrica calculável sobre as bases de pesquisas, clientes, empresas, respondentes, questões e respostas. Uma métrica só é útil se tiver **fórmula, unidade e granularidade** explícitas — por isso cada uma é especificada com o denominador de referência (o universo esperado) e o nível em que é apurada (por campo, por base ou por relacionamento entre bases).
 
 <div align="center">
-<sub>Tabela 2 — Métricas de mensuração da qualidade por atributo</sub><br>
+<sub>Tabela 8 - Métricas de mensuração da qualidade por atributo</sub><br>
 
 | Atributo | Métrica | Fórmula | Unidade | Granularidade |
 | :--- | :--- | :--- | :--- | :--- |
@@ -387,7 +435,7 @@ Cada atributo definido em 2.1 é traduzido em uma métrica calculável sobre as 
 
 **Convenção do denominador (registros esperados).** Para a completude, o denominador não é o total de linhas da base, e sim o total de linhas em que o campo é **obrigatório para aquele tipo de registro** — coerente com a distinção condicional × problemática da seção 2.1. Assim, um atributo que só se aplica a questões do tipo matriz não penaliza a métrica das demais.
 
-**Rotina de extração.** As métricas são apuradas sobre a **camada tratada** do pipeline (dados já tipados e padronizados), nunca sobre a camada bruta — que contém chaves órfãs, nulos e tipos inconsistentes que distorceriam a medição. A rotina roda a cada carga (ingestão incremental) e, adicionalmente, em varredura completa programada (ver periodicidade em 2.7), gravando o resultado num histórico de qualidade que alimenta os KPIs da seção 2.4 e serve de trilha de auditoria.
+**Rotina de extração.** As métricas são apuradas sobre a **camada tratada** do pipeline (dados já tipados e padronizados — equivalente à camada `trusted` da arquitetura de camadas definida na seção 5.5), nunca sobre a camada bruta (equivalente a `staging`), que contém chaves órfãs, nulos e tipos inconsistentes que distorceriam a medição. A rotina roda a cada carga (ingestão incremental) e, adicionalmente, em varredura completa programada (ver periodicidade em 2.7), gravando o resultado num histórico de qualidade que alimenta os KPIs da seção 2.4 e serve de trilha de auditoria.
 
 **Exemplo aplicado (linha de base da Sprint 1).** A completude de `data_aprov` em `pesquisas.csv` mediu ~5,5% (94,5% nula); a taxa de duplicidade das seis bases mediu 0%. Esses dois números são a linha de base concreta que calibra as metas da seção 2.3.
 
@@ -396,7 +444,7 @@ Cada atributo definido em 2.1 é traduzido em uma métrica calculável sobre as 
 Uma métrica sem meta não governa nada: é preciso dizer **a partir de qual valor o dado é aceitável** e **em que ponto a equipe é acionada ou a ingestão é barrada**. Esta seção fixa, para cada métrica da 2.2, três referências — a meta mínima (nível desejado), o limiar de alerta (dispara a ação corretiva da seção 2.5) e o limiar de bloqueio (barra a gravação na ingestão, seção 2.6). As metas são **provisórias**: foram calibradas pela linha de base medida na Sprint 1 e serão renegociadas com o parceiro à medida que o histórico de qualidade amadurecer.
 
 <div align="center">
-<sub>Tabela 3 — Metas mínimas e limiares de tolerância por métrica</sub><br>
+<sub>Tabela 9 - Metas mínimas e limiares de tolerância por métrica</sub><br>
 
 | Métrica | Meta mínima | Limiar de alerta | Limiar de bloqueio | Justificativa da calibragem |
 | :--- | :--- | :--- | :--- | :--- |
@@ -419,7 +467,7 @@ Uma métrica sem meta não governa nada: é preciso dizer **a partir de qual val
 Os KPIs consolidam as métricas (2.2) e suas metas (2.3) em indicadores acompanhados nos dashboards analíticos. Separam-se em **operacionais** — acompanhados a cada carga pela equipe de dados, orientados à ação imediata — e **estratégicos** — agregados por período, voltados à leitura de tendência pela gestão. Cada KPI declara fórmula, meta de referência, forma de apresentação e o público que o consome.
 
 <div align="center">
-<sub>Tabela 4 — KPIs de qualidade de dados</sub><br>
+<sub>Tabela 10 - KPIs de qualidade de dados</sub><br>
 
 | KPI | Tipo | Fórmula | Meta (ref. 2.3) | Apresentação no dashboard |
 | :--- | :--- | :--- | :--- | :--- |
@@ -454,7 +502,7 @@ Quando um KPI (2.4) cruza um limiar da seção 2.3, dispara-se um **procedimento
 7. **Escalonamento** — se o desvio persistir após a correção, **ou** se o prazo máximo da severidade estourar sem resolução, o caso sobe ao Data Owner para decisão (aceitar exceção documentada ou acionar a fonte). Um caso crítico cuja correção **depende do parceiro** (ex.: reconciliação de chave órfã) não permanece bloqueando a ingestão: os registros afetados vão para **quarentena** (retidos e isolados, sem entrar no banco central) e a decisão é escalada, evitando que uma dependência externa trave o pipeline por tempo indeterminado.
 
 <div align="center">
-<sub>Tabela 5 — Fluxo de ações corretivas por severidade</sub><br>
+<sub>Tabela 11 - Fluxo de ações corretivas por severidade</sub><br>
 
 | Severidade | Gatilho (limiar da 2.3) | Ação | Prazo | Responsável (ver Seção 1) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -472,7 +520,7 @@ Quando um KPI (2.4) cruza um limiar da seção 2.3, dispara-se um **procedimento
 **Matriz de responsáveis pelo disparo e execução.** Para que o fluxo não fique sem dono, cada severidade tem responsáveis explícitos em três momentos — **disparo** (quem detecta e classifica), **execução** (quem corrige e reingere) e **validação do encerramento** (quem confirma que o KPI voltou à meta) — com um prazo máximo de resposta. As funções remetem aos papéis da Seção 1 (Estrutura Organizacional).
 
 <div align="center">
-<sub>Tabela 6 — Responsáveis pelo disparo e execução das ações corretivas</sub><br>
+<sub>Tabela 12 - Responsáveis pelo disparo e execução das ações corretivas</sub><br>
 
 | Severidade | Disparo (detecção/classificação) | Execução (correção/re-ingestão) | Validação do encerramento | Prazo máximo |
 | :--- | :--- | :--- | :--- | :--- |
@@ -495,7 +543,7 @@ As regras de validação são a primeira linha de defesa da qualidade: rodam nos
 - **Validação semântica** — verifica *significado*: domínio válido, integridade referencial entre fontes e regras de negócio. Só roda sobre registros que passaram na sintática, pois depende de valores já bem formados.
 
 <div align="center">
-<sub>Tabela 7 — Regras de validação aplicadas na ingestão</sub><br>
+<sub>Tabela 13 - Regras de validação aplicadas na ingestão</sub><br>
 
 | Regra | Tipo | Aplicação | Ação em caso de falha |
 | :--- | :--- | :--- | :--- |
@@ -520,7 +568,7 @@ As regras de validação são a primeira linha de defesa da qualidade: rodam nos
 Qualidade não é um estado que se atinge uma vez: é uma condição que se mantém por vigilância. Esta seção define **com que frequência** as checagens rodam, **o que é registrado** para auditoria posterior e **como a equipe é avisada** antes que um desvio vire um problema de negócio. Distinguem-se dois regimes complementares: o **monitoramento contínuo** (automático, orientado a alerta imediato) e a **auditoria periódica** (programada, orientada a evidência e conformidade).
 
 <div align="center">
-<sub>Tabela 8 — Checagens de qualidade por periodicidade</sub><br>
+<sub>Tabela 14 - Checagens de qualidade por periodicidade</sub><br>
 
 | Checagem | Periodicidade | Escopo | Saída | Destinatário |
 | :--- | :--- | :--- | :--- | :--- |
@@ -546,7 +594,7 @@ O diagnóstico da Sprint 1 mediu **0% de duplicidade** nas seis bases isoladas �
 **Identificação (matching).** A detecção de duplicatas usa a chave natural de cada base; quando a chave não é confiável, aplica-se correspondência aproximada (*fuzzy*) sobre atributos identificadores, sempre com revisão antes da mesclagem definitiva.
 
 <div align="center">
-<sub>Tabela 9 — Política de deduplicação por base</sub><br>
+<sub>Tabela 15 - Política de deduplicação por base</sub><br>
 
 | Base | Chave de deduplicação | Critério de match | Regra de mesclagem (survivorship) |
 | :--- | :--- | :--- | :--- |
@@ -564,7 +612,7 @@ O diagnóstico da Sprint 1 mediu **0% de duplicidade** nas seis bases isoladas �
 
 **Inconformidades conhecidas (não são duplicidade).** Dois casos mapeados na Sprint 1 exigem tratamento distinto, pois são falhas de integridade, não duplicatas:
 
-- **Chaves órfãs** — `pesquisa_id` 424, 1116, 1139 e 1147 aparecem em `questoes`/`respostas` mas não em `pesquisas.csv`. Política: **preservar a chave de origem** e apontá-la para um registro **"Não mapeado"**, adiando a chave canônica até a reconciliação com o parceiro — nunca descartar o dado.
+- **Chaves órfãs** — `pesquisa_id` 424, 1116, 1139 e 1147 aparecem em `questoes`/`respostas`, e `id_pesq` 304 aparece em `respondentes` (55 participações), sem correspondência em `pesquisas.csv`. Política: **preservar a chave de origem** e apontá-la para um registro **"Não mapeado"**, adiando a chave canônica até a reconciliação com o parceiro — nunca descartar o dado.
 - **Identidade inconsistente** — `id_cliente` é texto em `clientes.csv` e inteiro em `respondentes.csv`. Política: normalizar o tipo na camada tratada e conciliar por chave composta (id + e-mail) antes de qualquer contagem de respondentes únicos.
 
 Esses tratamentos alimentam a regra de não duplicidade e de integridade referencial da seção 2.6 e, quando o desvio é bloqueante, o fluxo de ação corretiva crítica da seção 2.5.
@@ -580,6 +628,9 @@ catálogo não a torna pública.
 
 ## 3.1 Estado e objetivo do catálogo
 
+<div align="center">
+<sub>Tabela 16 - Estado e objetivo do catálogo de metadados</sub><br>
+
 | Componente | Estado em 27/08/2026 | Uso nesta Sprint | Limite |
 | :--- | :--- | :--- | :--- |
 | Dicionário recebido | **Observado, parcial** | Documenta nove campos de `respostas.csv`. | Não cobre todas as fontes nem os objetos do DW. |
@@ -588,6 +639,10 @@ catálogo não a torna pública.
 | Este documento e documentação relacionada | **Confirmado como artefato do projeto** | Mantém definições legíveis, responsabilidades, classificação, acesso e referências de linhagem. | A vigência operacional depende de homologação e implantação. |
 | Git e Merge Requests | **Estratégia transitória adotada pelo grupo** | Preservam autoria, revisão, diff, versão e histórico auditável dos metadados. | Não oferecem, sozinhos, busca federada, coleta automática de schema, classificação automática ou portal de descoberta. |
 | Catálogo dedicado, banco, orquestrador e SLA | **Pendentes de decisão do parceiro** | Possível evolução para coleta e descoberta automatizadas. | Nenhuma ferramenta específica é declarada como escolhida ou operante. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 O catálogo desta Sprint é, portanto, **documental e versionado**, não um serviço
 produtivo. A adoção futura de DataHub, OpenMetadata ou solução equivalente só
@@ -608,6 +663,9 @@ incorporados ao DMC e ao manifesto; sua implantação começa quando o inventár
 da Seção 3 for materializado. Depois disso, renomear o ativo não permitirá
 reutilizar seu identificador para outro significado.
 
+<div align="center">
+<sub>Tabela 17 - Fontes de verdade e regras de precedência dos metadados</sub><br>
+
 | Metadado | Fonte canônica nesta Sprint | Regra de precedência e reconciliação |
 | :--- | :--- | :--- |
 | Termo de negócio, definição, grão, fatos, dimensões e medidas | Seção 3 e DMC versionado como baseline, com homologação pendente | Divergência bloqueia a publicação; o Steward abre uma mudança e mantém o ativo como `em_revisao` até haver uma versão homologada. |
@@ -616,6 +674,10 @@ reutilizar seu identificador para outro significado.
 | Regra e resultado de qualidade | Seção 2 e relatórios versionados | Regra deve indicar fórmula, limiar e aplicabilidade; medição não sobrescreve a regra que a produziu. |
 | Classificação, marcador LGPD e perfil de acesso | Seções 4 e 5 | Em conflito ou ausência, vale a proteção mais restritiva até decisão registrada. |
 | Linhagem dimensional e execução da carga | DMC, `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA` propostas | Linhagem operacional só será confirmada quando o pipeline registrar origem, versão e execução; até lá permanece documental. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 O Git guarda cada revisão aceita pelo grupo e distingue essa revisão da
 homologação pelo parceiro; não é usado como repositório de dados brutos,
@@ -683,6 +745,9 @@ atendem ao contrato.
 
 ### 3.4.1 Campos comuns a todo ativo
 
+<div align="center">
+<sub>Tabela 18 - Metadados obrigatórios comuns a todo ativo</sub><br>
+
 | Metadado | Conteúdo obrigatório | Aplicação e regra |
 | :--- | :--- | :--- |
 | `asset_id` | Identificador estável no padrão da Seção 3.2 | Obrigatório quando o inventário for materializado. Enquanto não implantado, usar o caminho e a âncora do artefato como referência documental e marcar `asset_id_status: planejado`. |
@@ -706,7 +771,14 @@ atendem ao contrato.
 | `versao`, `vigencia_inicio`, `vigencia_fim` e `change_id` | Versão do contrato, período de validade e mudança de origem | A versão do catálogo não é a versão da carga ou dos dados. O histórico substituído permanece consultável. |
 | `atualizado_em`, `atualizado_por` e `aprovado_por` | Data, autor e aprovador da revisão | Aprovação do grupo e homologação do parceiro devem aparecer como eventos distintos. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ### 3.4.2 Requisitos específicos por tipo de ativo
+
+<div align="center">
+<sub>Tabela 19 - Metadados obrigatórios específicos por tipo de ativo</sub><br>
 
 | Tipo | Metadados adicionais obrigatórios | Regra de completude |
 | :--- | :--- | :--- |
@@ -714,6 +786,10 @@ atendem ao contrato.
 | **Dimensão** | Grão da entidade ou versão, chave substituta proposta, chave de negócio ou origem, atributos, domínios, membro “Não mapeado”, estratégia SCD, início/fim de vigência e indicador de registro atual | A chave deve ser compatível com o grão. SCD Tipo 2 só é marcado como `vigente` depois de regra aprovada e implementação comprovada; até lá permanece proposta. |
 | **Medida** | Fórmula, unidade, numerador, denominador, aditividade, janela temporal, timezone, cobertura, comportamento com nulos/sentinelas, filtros válidos, regra de validação e estado de disponibilidade | Medida sem denominador conhecido não pode ser apresentada como taxa; medida sem marco temporal não recebe duração imputada. |
 | **Fonte ou campo de origem** | Formato, codificação, chave, nulabilidade, sentinelas, domínio observado, volume/perfil, hash ou versão recebida, responsável pelo fornecimento e, quando houver extração ou costura, `confianca_extracao`, `origem_evidencia` e `status_mapeamento` | Estrutura observada não é alterada para caber no DW; incompatibilidades geram transformação explícita ou quarentena. A confiança deve preservar o valor e o domínio observados; quando ausente, registrar `indisponivel` ou `pendente_confirmacao`, sem classificar por inferência. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Para os cubos atuais, o catálogo deve preservar: C01 como uma linha por
 pesquisa e snapshot acumulado; C02 como uma linha por participação e fato
@@ -782,6 +858,9 @@ dados, a chave deve combinar fonte, versão ou hash recebido, destino e
 
 ### 3.5.2 Política de versões
 
+<div align="center">
+<sub>Tabela 20 - Política de versões dos metadados</sub><br>
+
 | Identificador | O que versiona | Regra proposta |
 | :--- | :--- | :--- |
 | `catalog_version` | Contrato semântico e técnico do catálogo | SemVer: **major** para quebra de grão, chave, fórmula, significado, classificação ou consumidor; **minor** para ativo/campo compatível novo; **patch** para correção editorial sem mudança semântica. |
@@ -789,6 +868,10 @@ dados, a chave deve combinar fonte, versão ou hash recebido, destino e
 | `load_id` | Uma execução de ingestão ou transformação | Identificador imutável com fonte, hash/versão recebida, início/fim, código/schema usado, contagens e resultado. Está planejado em `DIM_EXECUCAO_CARGA`, ainda não implantado. |
 | `data_version` | Snapshot ou lote de dados | Hash, versão da fonte ou marco temporal verificável. Data do documento não substitui data da carga. |
 | `scd_version` | Versão histórica de uma linha dimensional | Chave durável, início/fim de vigência e indicador atual. Só se aplica após estratégia SCD homologada e implementada. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Mudança incompatível não sobrescreve consumidores existentes: cria versão
 maior, identifica painéis e indicadores afetados, define janela de migração e
@@ -823,6 +906,9 @@ Ciclo. `FATO_CICLO_PESQUISA` é um **nome físico proposto**; o snapshot recebid
 e o DMC sustentam o desenho, mas não comprovam DW, tabela ou pipeline
 implantados.
 
+<div align="center">
+<sub>Tabela 21 - Exemplo de catálogo do fato FATO_CICLO_PESQUISA</sub><br>
+
 | Metadado | Valor catalogado |
 | :--- | :--- |
 | `asset_id` | `dw.fact.fato_ciclo_pesquisa` — identificador planejado, ainda não incorporado ao inventário executável. |
@@ -848,11 +934,18 @@ implantados.
 | Versão e vigência | DMC `schemaVersion: 1`, versão documental `1.0`; `schema_version`, `load_id` e versão física não se aplicam enquanto a tabela não estiver implantada. `vigencia_inicio: pendente_homologacao`; `vigencia_fim: nao_aplicavel`. |
 | Mudança e auditoria | `change_id: issue-95`; atualizado em 27/08/2026 pelo Grupo Synapse no branch da tarefa; revisão por pessoa diferente do autor e homologação do parceiro permanecem pendentes. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ### 3.6.1 Dicionário de campos propostos
 
 Todos os campos abaixo herdam classificação **Interno** e não carregam dado
 pessoal direto no fato. “Tipo” indica papel e tipo lógico; o tipo físico final
 permanece `pendente_confirmacao` até a escolha do banco e do schema.
+
+<div align="center">
+<sub>Tabela 22 - Dicionário de campos propostos do FATO_CICLO_PESQUISA</sub><br>
 
 | Campo técnico | Tipo e papel | Definição e origem | Qualidade, aditividade ou uso |
 | :--- | :--- | :--- | :--- |
@@ -877,10 +970,17 @@ permanece `pendente_confirmacao` até a escolha do banco e do schema.
 | `qtd_empresas_na_pesquisa` | Medida inteira proposta | Valor de `pesquisas.participantes`. | Não aditiva; leitura somente no grão da pesquisa e sem tratar como respondentes únicos. |
 | `flag_prorrogada` | Indicador booleano proposto | `1` quando `prorrogada_ate` estiver preenchida; `0` caso contrário. | Usado como filtro ou contagem de pesquisas, não como medida somável fora do grão declarado. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ### 3.6.2 Catálogo das dimensões relacionadas
 
 As chaves substitutas e políticas SCD abaixo pertencem ao desenho conceitual;
 seus tipos físicos, vigência operacional e implementação permanecem pendentes.
+
+<div align="center">
+<sub>Tabela 23 - Catálogo das dimensões relacionadas ao FATO_CICLO_PESQUISA</sub><br>
 
 | Dimensão | Grão e chaves | Atributos e domínio | Histórico, membro desconhecido e estado |
 | :--- | :--- | :--- | :--- |
@@ -894,7 +994,14 @@ seus tipos físicos, vigência operacional e implementação permanecem pendente
 | `DIM_FONTE_DADO` | Uma linha por sistema, arquivo ou fonte versionada. `sk_fonte` proposta; chave de negócio fonte + versão/hash, pendente de regra final. | Nome, tipo, versão/hash, origem, classificação e responsável. | SCD Tipo 2 e vigência propostos para mudança de atributos; membro “Fonte desconhecida” não autoriza publicação e exige reconciliação. `rascunho`. |
 | `DIM_EXECUCAO_CARGA` | Uma linha por execução efetivamente aplicada. `sk_carga` e chave durável `load_id` planejadas. | Fonte, hash, schema/código, início/fim, contagens, resultado e chave de idempotência. | Registros são imutáveis; SCD não aplicável. Tratamento de carga legada sem `load_id` e eventual membro “Carga desconhecida” estão `pendente_confirmacao`. `rascunho`. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ### 3.6.3 Contrato das medidas
+
+<div align="center">
+<sub>Tabela 24 - Contrato das medidas do FATO_CICLO_PESQUISA</sub><br>
 
 | Medida | Fórmula, unidade e janela | Aditividade e filtros válidos | Nulos, cobertura, validação e disponibilidade |
 | :--- | :--- | :--- | :--- |
@@ -904,6 +1011,10 @@ seus tipos físicos, vigência operacional e implementação permanecem pendente
 | `dias_uteis_ciclo_total` | Entrega menos solicitação; dias úteis; janela completa da pesquisa. | Não aditiva; usar distribuição, média, mediana ou percentil aprovados, sem somar pesquisas ou fases. | `NULL` sem marcos válidos; cobertura `indisponivel`; validar ordem e coerência com fases disponíveis. Estado `proposto`. |
 | `qtd_empresas_na_pesquisa` | Valor de `pesquisas.participantes`; unidade empresa declarada; grão da pesquisa. | Não aditiva; consultar no nível da pesquisa. Não usar como respondentes únicos nem denominador sem validação. | Nulo/sentinela permanecem indisponíveis; cobertura e domínio devem ser perfilados. Validar inteiro não negativo. Estado `proposto`. |
 | `flag_prorrogada` | `1` se `prorrogada_ate` válida; caso contrário `0`; unidade booleana. | Indicador/filtro; soma só representa contagem de pesquisas no mesmo grão e após regra aprovada. | Data inválida não vira `1`; cobertura deriva do campo de prorrogação. Validar domínio `{0,1}`. Estado `proposto`. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 ### 3.6.4 Limitações do exemplo
 
@@ -920,12 +1031,19 @@ seus tipos físicos, vigência operacional e implementação permanecem pendente
 
 ## 3.7 Escopo dos cubos e limitações do catálogo
 
+<div align="center">
+<sub>Tabela 25 - Escopo dos cubos e limitações do catálogo</sub><br>
+
 | Cubo | Grão e fontes | Medidas principais | Limitação que o catálogo deve exibir |
 | :--- | :--- | :--- | :--- |
 | **C01 — Portfólio e Ciclo** | Uma linha por pesquisa; `pesquisas.csv`. | Durações das etapas e do ciclo, empresas declaradas e flag de prorrogação. | `data_aprov` tem baixa completude observada e documentação conflitante de cobertura; calendários, aditividade e periodicidade ainda exigem validação. |
 | **C02 — Participação e Representatividade** | Uma linha por participação; `respondentes.csv`, com atributos conciliados de pesquisas, clientes e empresas. | Quantidade de participação, sequência de ocorrência, minutos de preenchimento e participação de mercado. | Repetições da mesma pessoa/pesquisa não são automaticamente duplicidade técnica; `seq_ocorrencia` permite recortes. Ponte pessoa–resposta, denominadores e identidade canônica não estão comprovados; tempo de preenchimento tem baixa cobertura. |
 | **C03 — Pipeline Mensal** | Mês × status × área × tipo × perfil. O C01 fornece apenas o estado inicial; entradas e saídas exigem snapshots mensais persistidos ou log de mudança de status após o go-live. | Estoque, entradas, saídas e transições mensais propostas. | A fonte atual não permite calcular movimentos históricos. Não reconstrói período anterior ao primeiro snapshot/evento; timestamp de carga, periodicidade e SLA ainda não existem. |
 | **C04 — Resultados e Questionários** | Uma pergunta por pesquisa; `questoes.csv`, com ligação a pesquisa quando comprovada. | Quantidade de pergunta e alternativas; características de tipo/matriz. | Cobre 10 de aproximadamente 366 pesquisas e não contém respostas individuais. Não suporta distribuição de respostas antes de futuro `FATO_RESPOSTA`. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Para ligações de pesquisa, o catálogo registra `metodo_costura` e
 `status_mapeamento`. Valores previstos incluem `direto`, `fallback_por_titulo`,
@@ -987,12 +1105,19 @@ proteção de dados. Essa separação evita tratar informação comercial restri
 como dado pessoal sensível ou concluir que um dado deixou de ser pessoal apenas
 porque foi pseudonimizado.
 
+<div align="center">
+<sub>Tabela 26 - Plano de classificação da informação</sub><br>
+
 | Classe de informação | Critério | Uso permitido | Regra de divulgação |
 | :--- | :--- | :--- | :--- |
 | **Público** | Conteúdo aprovado para divulgação, sem segredo de negócio e sem risco razoável de identificar pessoa ou participação. | Acervo público, comunicação externa e entrega acadêmica. | Publicação somente após autorização, agregação ou anonimização e revisão de reidentificação. |
 | **Interno** | Informação operacional necessária ao trabalho da Central e das áreas técnicas, sem conteúdo individual de alta criticidade. | Operação, qualidade, acompanhamento e análise interna conforme o perfil. | Não publicar por padrão; uma versão pode se tornar pública após revisão e aprovação. |
 | **Confidencial** | Dado pessoal, contato, vínculo profissional, informação comercial ou resultado cuja exposição possa afetar titular, empresa ou pesquisa. | Somente pessoas autorizadas, pela finalidade registrada e com trilha de acesso. | Proibida divulgação aberta; usar recorte minimizado, mascarado ou agregado quando necessário. |
 | **Sensível** | Resposta identificável, vínculo pessoa–empresa–pesquisa, credencial, segredo, dado pessoal sensível nos termos da LGPD ou combinação com alto risco de reidentificação. | Acesso excepcional, mínimo, justificado e auditado. | Nunca publicar na forma identificável; a liberação exige anonimização efetiva ou agregação suficiente e aprovação expressa. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Neste documento, **Sensível** é a classe organizacional mais restritiva. Ela
 inclui, mas não se limita, ao conceito jurídico de dado pessoal sensível do art.
@@ -1001,6 +1126,9 @@ próprio, sem ser inferido apenas pelo nome de uma coluna ou tabela.
 
 ## 4.2 Marcadores de proteção de dados
 
+<div align="center">
+<sub>Tabela 27 - Marcadores de proteção de dados</sub><br>
+
 | Marcador | Significado para o projeto |
 | :--- | :--- |
 | **Não pessoal** | Não se refere a pessoa natural identificada ou identificável; ainda pode ser Confidencial por motivo comercial. |
@@ -1008,6 +1136,10 @@ próprio, sem ser inferido apenas pelo nome de uma coluna ou tabela.
 | **Pessoal sensível** | Enquadra-se nas categorias do art. 5º, II, da LGPD; exige hipótese e salvaguardas compatíveis. |
 | **Pseudonimizado** | O vínculo foi separado, mas pode ser recomposto com informação adicional; continua sujeito à LGPD. |
 | **Anonimizado ou agregado** | A identificação não é razoavelmente possível no contexto e os filtros não desfazem a proteção; o risco deve ser reavaliado a cada publicação. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Uma classificação pode aumentar quando a finalidade, o conteúdo ou a combinação
 de campos elevar o risco. A redução de classe só ocorre com evidência da
@@ -1021,6 +1153,9 @@ Empresa, Pessoa/Cliente, Participação em Pesquisa, Questão, Resposta e
 Resultado/Publicação. `respondentes.csv` representa a participação de uma
 pessoa em uma pesquisa; não é sinônimo do cadastro de Pessoa/Cliente mantido em
 `clientes.csv`.
+
+<div align="center">
+<sub>Tabela 28 - Matriz de classificação dos ativos de dados</sub><br>
 
 | Ativo | Dados e campos observados ou previstos | Classe padrão | Marcador de proteção | Regra de tratamento e divulgação |
 | :--- | :--- | :--- | :--- | :--- |
@@ -1036,12 +1171,19 @@ pessoa em uma pesquisa; não é sinônimo do cadastro de Pessoa/Cliente mantido 
 | **Credenciais, segredos e chaves de reidentificação** | Senhas, tokens, chaves criptográficas, secrets de integração e mapa de identidade | Sensível | Pessoal quando associado a usuário | Armazenar fora de código, planilhas e logs comuns; acesso técnico temporário, individual e auditado. |
 | **Logs de acesso e auditoria** | Usuário, data/hora, ação, recurso, origem, resultado, exportação e publicação | Confidencial | Pessoal quando identificar o usuário | Proteger contra alteração e limitar a investigação autorizada; nunca registrar senha, token ou resposta bruta. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 Campos de texto livre, filtros de baixa frequência e combinações entre empresa,
 cargo, departamento, período, questão e resposta recebem a maior classe
 aplicável ao conjunto. A matriz descreve a classificação padrão; o catálogo
 deve registrar as exceções por campo, finalidade e ambiente.
 
 ## 4.4 Controles por classe
+
+<div align="center">
+<sub>Tabela 29 - Controles mínimos por classe de informação</sub><br>
 
 | Classe | Controles mínimos antes do uso | Aprovação e evidência |
 | :--- | :--- | :--- |
@@ -1050,12 +1192,19 @@ deve registrar as exceções por campo, finalidade e ambiente.
 | **Confidencial** | Menor privilégio, mascaramento em tela, exportação restrita, criptografia, retenção definida e compartilhamento mínimo. | Justificativa de acesso, aprovação do responsável, destinatário, prazo e revisão de exceções. |
 | **Sensível** | Separação entre identidade e conteúdo, pseudonimização quando o vínculo ainda for necessário, bloqueio de download por padrão, acesso excepcional e monitorado e anonimização ou agregação antes de qualquer divulgação. | Hipótese legal e finalidade registradas, risco avaliado, aprovação expressa, teste da proteção e trilha de todos os acessos administrativos. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 A classe mais alta de qualquer elemento prevalece durante transporte,
 armazenamento, processamento, exportação e backup. Uma cópia não perde a classe
 da origem. Logs, caches, arquivos temporários e amostras de teste seguem a mesma
 regra do dado que reproduzem.
 
 ## 4.5 Técnicas de proteção e limites
+
+<div align="center">
+<sub>Tabela 30 - Técnicas de proteção de dados e seus limites</sub><br>
 
 | Técnica | Aplicação no projeto | Limite que precisa ser observado |
 | :--- | :--- | :--- |
@@ -1065,6 +1214,10 @@ regra do dado que reproduzem.
 | **Anonimização** | Remover ou generalizar identificadores e combinações quando a identificação deixar de ser razoavelmente possível no contexto. | Hash simples, retirada do nome ou exclusão de uma coluna não comprovam anonimização. |
 | **Agregação** | Publicar contagens, taxas e estatísticas por pesquisa, período ou grupo autorizado. | Filtros, drill-downs e dedução por diferença podem reidentificar células pequenas. |
 | **Supressão** | Ocultar célula, corte ou resultado com frequência insuficiente ou conteúdo de alto risco. | O limiar inicial `k < 5` é proposta da equipe, não controle confirmado; deve ser testado e aprovado para cada publicação. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Antes de liberar um resultado, o Data Steward propõe a classificação e testa a
 proteção; a Central confirma o sentido do resultado; o Data Owner decide a
@@ -1102,12 +1255,19 @@ automaticamente a decisão do controlador.
 A decisão precisa existir antes da coleta ou do novo uso e permanecer ligada à
 versão do aviso apresentado ao titular.
 
+<div align="center">
+<sub>Tabela 31 - Finalidades do projeto, dados minimizados e decisões a registrar</sub><br>
+
 | Finalidade do projeto | Dados minimizados | Decisão que precisa ser registrada |
 | :--- | :--- | :--- |
 | Operar convite, participação e acompanhamento da pesquisa | Contato, vínculo com empresa, pesquisa e estado da participação | Hipótese legal, canal de informação, prazo e responsáveis pelo atendimento. |
 | Produzir indicadores e resultados | Respostas e participação pseudonimizadas, dimensões necessárias e métricas agregadas | Compatibilidade com a finalidade original, necessidade do detalhe e proteção contra reidentificação. |
 | Publicar resultado no acervo | Versão aprovada, agregada ou efetivamente anonimizada | Autorização, teste de reidentificação, público, filtros permitidos e mecanismo de retirada/correção. |
 | Manter segurança e prestação de contas | Logs minimizados, decisões, incidentes e evidências de atendimento | Prazo, acesso, integridade e justificativa de conservação. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Quando o consentimento for a hipótese escolhida, a captura deve ser livre,
 informada, inequívoca e vinculada a finalidade determinada. O registro mínimo
@@ -1154,17 +1314,27 @@ O modelo atual não comprova estruturas próprias para consentimento, pedidos de
 titular e decisão de publicação. Para evitar que a documentação simule uma
 capacidade inexistente, ficam registradas como **propostas pendentes**:
 
+<div align="center">
+<sub>Tabela 32 - Lacunas de rastreabilidade e estruturas propostas</sub><br>
+
 | Estrutura proposta | Finalidade | Estado |
 | :--- | :--- | :--- |
 | `registro_consentimento` | Versionar manifestação, finalidade, aviso, estado e revogação quando consentimento for aplicável. | Pendente de validação jurídica e modelagem. |
 | `solicitacao_titular` | Rastrear protocolo, autenticação, escopo, decisão, propagação e encerramento. | Pendente de definição do canal e responsável. |
 | `decisao_publicacao` | Ligar resultado, versão, proteção aplicada, aprovação, publicação, retirada e correção. | Pendente de integração com o acervo público. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 Essas estruturas não devem ser adicionadas ao banco apenas para preencher o
 documento. Sua implementação depende de validação com o parceiro e de uma task
 de modelagem própria.
 
 ## 4.10 Estado das afirmações e decisões
+
+<div align="center">
+<sub>Tabela 33 - Estado das afirmações e decisões de classificação e proteção</sub><br>
 
 | Item | Estado | Fonte ou condição |
 | :--- | :--- | :--- |
@@ -1174,6 +1344,10 @@ de modelagem própria.
 | Dados recebidos já são fictícios ou anonimizados | **Não confirmado** | O DMC contém essa afirmação, mas o TAPI não a comprova. As fontes brutas permanecem Confidenciais ou Sensíveis por padrão. |
 | Quatro classes, técnicas, matriz e limiar `k < 5` | Proposta da equipe | Precisa de teste, catálogo, aprovação e evidência de implementação. |
 | Controlador, operador, encarregado, hipóteses legais e retenções | Pendente de validação | Decisão jurídica e organizacional do Sindusfarma para cada fluxo. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 As referências normativas usadas são a [Lei nº 13.709/2018 —
 LGPD](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm),
@@ -1222,6 +1396,9 @@ Legenda usada nas matrizes:
 
 ## 5.2 Perfis de acesso
 
+<div align="center">
+<sub>Tabela 34 - Perfis de acesso e limites obrigatórios</sub><br>
+
 | Perfil | Necessidade de acesso | Limite obrigatório |
 | :--- | :--- | :--- |
 | **Equipe da Central** | Operar pesquisas, acompanhar fluxo, corrigir metadados autorizados e consultar indicadores internos. | Sem administração técnica, exportação bruta ou acesso automático a resposta sensível. |
@@ -1233,7 +1410,14 @@ Legenda usada nas matrizes:
 | **Público externo** | Consultar o acervo expressamente publicado. | Somente visão Pública; sem login interno, export bruto, drill-down individual ou escrita. |
 | **Equipe acadêmica** | Trabalhar com código, documentação e evidências aprovadas. | Nenhum acesso produtivo; somente dado sintético, anonimizado ou agregado aprovado. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ## 5.3 Matriz de permissões por objeto
+
+<div align="center">
+<sub>Tabela 35 - Matriz de permissões por objeto</sub><br>
 
 | Perfil | Pesquisa e metadados | Questionário | Pessoa/identidade | Participação e resposta | Resultado analítico | Publicação | Permissões e infraestrutura |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -1245,6 +1429,10 @@ Legenda usada nas matrizes:
 | Solicitantes/participantes | — | — | — | — | — | L da entrega autorizada | — |
 | Público externo | — | — | — | — | — | L da visão pública | — |
 | Equipe acadêmica | — | — | — | — | L somente de agregado aprovado | L da versão pública | — |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Toda permissão é limitada à finalidade e ao menor escopo de pesquisa, empresa e
 área necessário. E-mail, `id_cliente`, `respondent_id`, mapa de identidade,
@@ -1268,6 +1456,9 @@ sessões associadas devem ser revogadas, preservando a trilha da ação.
 
 ## 5.5 Segregação por camadas
 
+<div align="center">
+<sub>Tabela 36 - Segregação de dados por camadas</sub><br>
+
 | Camada | Conteúdo | Escrita permitida | Leitura permitida | Regra de saída |
 | :--- | :--- | :--- | :--- | :--- |
 | **staging** | Cópia recebida da fonte, schema original, identificadores e metadados da entrega. Tratar como Sensível até classificação. | Somente serviço de ingestão com credencial própria; Data Custodian em operação técnica controlada. | Data Steward apenas em quarentena ou investigação escopada; Data Custodian somente por necessidade técnica ou break-glass. | Promover lote completo e validado para trusted; nunca alimentar dashboard ou publicação diretamente. |
@@ -1275,7 +1466,14 @@ sessões associadas devem ser revogadas, preservando a trilha da ação.
 | **analytics** | Fatos, dimensões, métricas e agregações com grão e origem documentados. | Pipeline analítico; correção somente pela origem/trusted e reprocessamento. | Central, Data Owner, Data Steward e áreas técnicas nos recortes autorizados. | Gerar uma versão publicável separada; o cubo inteiro não se torna Público porque um agregado foi aprovado. |
 | **publicação** | Resultado imutável, versionado, aprovado, anonimizado ou agregado, acompanhado da decisão de publicação. | Data Custodian publica somente a versão aprovada; retirada/correção segue nova decisão. | Solicitantes/participantes conforme finalidade e público externo quando expressamente liberado. | Não permite retorno para camadas internas nem drill-down que revele dado protegido. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ## 5.6 Matriz de acesso por camada
+
+<div align="center">
+<sub>Tabela 37 - Matriz de acesso por camada</sub><br>
 
 | Perfil ou serviço | staging | trusted | analytics | publicação |
 | :--- | :---: | :---: | :---: | :---: |
@@ -1288,6 +1486,10 @@ sessões associadas devem ser revogadas, preservando a trilha da ação.
 | Solicitantes/participantes | — | — | — | L da entrega autorizada |
 | Público externo | — | — | — | L da visão pública |
 | Equipe acadêmica | — | — | — | L da versão pública ou agregado acadêmico aprovado |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 As permissões de `staging`, `trusted` e `analytics` são sempre internas. Um
 usuário externo não recebe acesso direto a essas camadas, mesmo que um campo ou
@@ -1315,6 +1517,9 @@ Os controles desta subseção são o baseline técnico **proposto** para a solu�
 Eles ainda dependem da plataforma escolhida, da política do Sindusfarma e de
 evidência de configuração e teste antes da produção.
 
+<div align="center">
+<sub>Tabela 38 - Práticas e controles de segurança da informação</sub><br>
+
 | Controle | Baseline proposto | Evidência para homologação |
 | :--- | :--- | :--- |
 | Criptografia em trânsito | TLS 1.2 ou superior em Data App, APIs, banco, integrações, cópias e administração; rejeitar conexão insegura. | Configuração efetiva, teste de protocolo e inventário de certificados. |
@@ -1325,6 +1530,10 @@ evidência de configuração e teste antes da produção.
 | Monitoramento | Alertar falha de autorização, comportamento incomum, exportação sensível, erro de integração, replay, mudança de permissão e publicação. | Regra, destinatário, severidade, teste do alerta e registro do tratamento. |
 | Backup e recuperação | Meta inicial: backup diário criptografado, janela operacional de 30 dias, RPO de 24 horas, RTO de 8 horas e teste mensal de restauração. | Aprovação do Data Owner e Data Custodian, cópia isolada/imutável, resultado do teste e expiração verificada. |
 | Incidentes | Registro único da detecção ao encerramento, com contenção, preservação de evidência, análise de risco, decisão e comunicação aplicável. | Responsáveis, playbook testado, tempos medidos e vínculo com o RIPD quando cabível. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Os números de backup, RPO e RTO são metas provisórias, não compromissos
 confirmados pelo parceiro. Retenção do dado e rotação da cópia são decisões
@@ -1385,12 +1594,19 @@ e ambiente, sem reaproveitar credencial humana.
 
 ## 5.12 Política de sessões
 
+<div align="center">
+<sub>Tabela 39 - Política de sessões por contexto de acesso</sub><br>
+
 | Contexto | Inatividade proposta | Duração absoluta proposta | Reautenticação |
 | :--- | :---: | :---: | :--- |
 | Administração, permissão e break-glass | 15 minutos | 8 horas | Antes de ação crítica e ao elevar privilégio. |
 | Equipe interna e áreas técnicas | 30 minutos | 8 horas | Antes de exportar dado protegido ou aprovar publicação. |
 | Solicitante/participante autenticado | 30 minutos | 8 horas | Antes de novo download protegido ou mudança de finalidade. |
 | Público externo | Sem sessão interna | Não aplicável | Acesso somente à visão Pública. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Os tempos são parâmetros iniciais sujeitos à validação de risco e à capacidade
 do IdP. Renovar atividade não ultrapassa a duração absoluta. Refresh token, se
@@ -1425,6 +1641,9 @@ descritos como mecanismos já existentes no Sindusfarma.
 
 ## 5.14 Estado das decisões de segurança
 
+<div align="center">
+<sub>Tabela 40 - Estado das decisões de segurança e acesso</sub><br>
+
 | Item | Estado | Condição de fechamento |
 | :--- | :--- | :--- |
 | Controle de acesso por perfil | Requisito confirmado no TAPI | Aprovar matriz, escopos por pesquisa/empresa/área e testes de permitido/negado. |
@@ -1434,6 +1653,10 @@ descritos como mecanismos já existentes no Sindusfarma.
 | TLS, cofre de segredos, monitoramento e auditoria | Requisitos técnicos propostos | Comprovar configuração, alertas, rotação, proteção do log e testes negativos. |
 | Backup diário, 30 dias, RPO 24h e RTO 8h | Metas provisórias | Aprovar impacto de negócio e demonstrar restauração completa dentro das metas. |
 | Papel futuro do n8n e provedores | Pendente | Definir autenticação, segredos, idempotência, replay, responsabilidades e contratos. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 ## 5.15 Critérios de homologação
 
@@ -1476,6 +1699,9 @@ percorre as dez etapas de solicitação a publicação descritas na documentaç�
 geral; o dado percorre seis fases que atravessam essas etapas e se apoiam nas
 quatro camadas da Seção 5.5.
 
+<div align="center">
+<sub>Tabela 41 - Fases do ciclo de vida dos dados e camadas correspondentes</sub><br>
+
 | Fase do ciclo do dado | Etapas da pesquisa que a alimentam | Camada | Evidência mínima da transição | Limite |
 | :--- | :--- | :--- | :--- | :--- |
 | **Ingestão** | Solicitação, triagem, divulgação, coleta e registro de respostas | `staging` | Fonte, arquivo ou evento, data, responsável, hash ou identificador da carga, classificação e resultado da validação. | A cópia recebida permanece Sensível até a classificação e nunca alimenta painel diretamente. |
@@ -1484,6 +1710,10 @@ quatro camadas da Seção 5.5.
 | **Uso** | Análise, entrega, consulta autorizada e publicação | `analytics` e publicação | Finalidade, perfil, decisão de acesso, versão consultada e evento na trilha da Seção 5.9. | Busca por metadado não concede leitura do dado, e navegação por agregado não autoriza consulta individual. |
 | **Arquivamento** | Encerramento da pesquisa e fim do uso corrente | Camada de arquivo proposta na Seção 6.5 | Inventário do lote arquivado, classe e linhagem preservadas, motivo, responsável e data da próxima revisão. | Arquivar não é descartar: o dado arquivado continua sujeito a acesso autorizado, auditoria e direitos do titular. |
 | **Descarte** | Vencimento do critério de retenção, revogação de autorização ou pedido de titular deferido | Todas, inclusive cópias e backups | Registro de expurgo com escopo, critério aplicado, responsável, data, resultado e confirmação nas cópias alcançadas. | A eliminação lógica na base primária não basta enquanto a cópia continuar acessível. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 As fases não formam um percurso de mão única. Correção, reprocessamento e
 atendimento a direitos do titular retornam do uso para o processamento, e a
@@ -1528,6 +1758,11 @@ flowchart LR
     classDef pending fill:#FFF7ED,stroke:#EA580C,color:#7C2D12,stroke-width:1.5px,stroke-dasharray:5 3
 ```
 
+<div align="center"><sub>Figura 2 - Transições e gates do ciclo de vida dos dados</sub><br><sup>Material produzido pelos autores (2026)</sup></div>
+
+<div align="center">
+<sub>Tabela 42 - Legenda das transições e gates do ciclo de vida</sub><br>
+
 | Elemento visual | Leitura |
 | :--- | :--- |
 | `[DOC]`, nó azul | Fonte confirmada no TAPI como existente na operação atual. |
@@ -1535,6 +1770,13 @@ flowchart LR
 | `[PEND]`, nó laranja tracejado | Fase dependente de decisão do parceiro sobre plataforma, contrato ou prazo. |
 | Seta contínua | Transição do percurso principal, condicionada ao gate indicado. |
 | Seta tracejada | Retorno, exceção ou operação sobre cópia; não integra o percurso principal. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+<div align="center">
+<sub>Tabela 43 - Gates do ciclo de vida dos dados</sub><br>
 
 | Gate | Condição de passagem | Efeito quando a condição falha |
 | :--- | :--- | :--- |
@@ -1545,6 +1787,10 @@ flowchart LR
 | **G5 — Restauração** | Bloqueios, revogações e eliminações posteriores ao ponto da cópia reaplicados em ambiente isolado. | Retorno ao serviço bloqueado; nenhuma versão antiga é republicada automaticamente. |
 | **G6 — Arquivamento** | Uso corrente encerrado, classe e linhagem preservadas e data de revisão definida. | O dado permanece em armazenamento ativo; arquivamento sem inventário não é executado. |
 | **G7 — Descarte** | Critério de retenção da Seção 6.3 vencido, ausência de obrigação legal concorrente e autorização registrada. | Expurgo suspenso e o item permanece retido com a justificativa e o novo prazo registrados. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Os gates G1 a G4 apoiam-se em controles já descritos nas Seções 2, 4 e 5 e
 herdam o estado dessas seções. Os gates G5 a G7 dependem de decisões que ainda
@@ -1561,6 +1807,9 @@ de direitos ou a prestação de contas, conforme o art. 16 da LGPD. A tabela
 registra, para cada classe de dado, o critério, o prazo proposto, a ação no
 vencimento e a condição para o prazo ser tratado como vigente.
 
+<div align="center">
+<sub>Tabela 44 - Tabela de temporalidade por classe de dado</sub><br>
+
 | Classe de dado | Critério de retenção | Prazo proposto | Ação no vencimento | Condição para tratar como vigente |
 | :--- | :--- | :--- | :--- | :--- |
 | **Contatos e mapa de identidade** | Manter enquanto a pessoa for elegível a participar e enquanto a identidade for necessária para reconciliar participações. | 24 meses após a última participação registrada | Eliminar contato e chave de identidade, preservando a participação já pseudonimizada. | Confirmar o critério de elegibilidade e a base legal com o Sindusfarma. |
@@ -1572,6 +1821,10 @@ vencimento e a condição para o prazo ser tratado como vigente.
 | **Registro de incidente com dados pessoais** | Manter para prestação de contas perante a ANPD, inclusive quando o incidente não for comunicado. | **No mínimo 5 anos** contados da data do registro | Reavaliar; eliminar somente após o prazo e sem investigação pendente. | Prazo com âncora normativa; resta comprovar armazenamento protegido e inventário. |
 | **Trilha de atendimento a direitos do titular** | Manter como comprovação do atendimento, sem constituir novo repositório de respostas. | 5 anos | Eliminar a trilha, preservando o registro estatístico do atendimento. | Definir canal, responsável e formato da evidência do atendimento. |
 | **Artefatos acadêmicos e documentação do projeto** | Manter conforme a exigência do curso, sem dado pessoal, base bruta ou credencial. | Até 12 meses após o encerramento do módulo | Arquivar o repositório; nenhum dado do parceiro é retido nesta classe. | Confirmar a exigência institucional de guarda com a coordenação. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 **Prazos com âncora normativa.** Quatro prazos não decorrem de escolha do
 projeto. A guarda mínima de cinco anos do registro de incidente vem da Resolução
@@ -1600,6 +1853,9 @@ O descarte é um procedimento com evidência, não a ausência do dado. Cada
 execução registra escopo, critério aplicado, responsável, data, resultado e
 confirmação nas cópias alcançadas, e gera evento na trilha da Seção 5.9.
 
+<div align="center">
+<sub>Tabela 45 - Procedimentos de descarte seguro e expurgo</sub><br>
+
 | Procedimento | Aplicação proposta | Evidência exigida |
 | :--- | :--- | :--- |
 | **Eliminação lógica** | Bloqueio imediato de leitura, exportação e publicação no banco primário, quando o expurgo físico depender de janela técnica. | Registro do bloqueio, alcance verificado e data prevista da eliminação física. |
@@ -1608,6 +1864,10 @@ confirmação nas cópias alcançadas, e gera evento na trilha da Seção 5.9.
 | **Expurgo em cópias e backups** | Propagação do descarte às cópias que ainda contenham o registro eliminado. | Lista das cópias alcançadas, confirmação de expiração ou sobrescrita e bloqueio de restauração indevida. |
 | **Retirada de publicação** | Remoção do acervo quando a autorização deixar de ser válida ou a proteção for comprometida. | Decisão registrada, versão retirada, responsável e comunicação ao público quando aplicável. |
 | **Suspensão de descarte** | Retenção prolongada por obrigação legal, investigação de incidente ou exercício regular de direitos. | Justificativa, responsável, prazo revisado e data de reavaliação da suspensão. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 **Pseudonimização não é descarte.** Remover a chave de reidentificação reduz o
 risco, mas o registro continua existindo e continua sujeito às regras desta
@@ -1636,11 +1896,18 @@ proteção, não encerra a retenção e não substitui backup: a cópia de segur
 existe para recuperar uma falha, o arquivo existe para guardar o que ainda deve
 ser mantido mas não precisa estar disponível de imediato.
 
+<div align="center">
+<sub>Tabela 46 - Camadas de arquivamento e controles herdados</sub><br>
+
 | Camada de guarda | Conteúdo proposto | Tempo de recuperação aceito | Controles herdados |
 | :--- | :--- | :--- | :--- |
 | **Ativa** | Pesquisas em execução, conciliação ou contestação, e séries usadas nos painéis correntes. | Imediato | Classe, perfis e trilha das Seções 4 e 5, sem exceção. |
 | **Arquivo** | Pesquisas encerradas e publicadas cujo uso analítico se tornou eventual, com o critério de retenção ainda vigente. | Diferido, mediante solicitação registrada | Mesma classe da origem; leitura exige autorização e gera evento de auditoria. |
 | **Retenção obrigatória** | Registros mantidos por obrigação legal, investigação ou exercício regular de direitos, inclusive sob suspensão de descarte. | Diferido, restrito ao propósito da obrigação | Acesso restrito ao propósito declarado; expurgo bloqueado até a reavaliação. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 O tempo de recuperação de cada camada, o custo por volume e o mecanismo de
 transição permanecem `pendente_confirmacao`. Esta subseção não nomeia serviço,
@@ -1662,6 +1929,9 @@ O versionamento do ciclo de vida reutiliza os cinco identificadores já definido
 na Seção 3.5.2, sem criar vocabulário paralelo. A tabela registra o que cada um
 versiona quando o eixo é o dado, e não o metadado.
 
+<div align="center">
+<sub>Tabela 47 - Versionamento histórico no ciclo de vida do dado</sub><br>
+
 | Identificador | O que versiona | Aplicação no ciclo de vida do dado |
 | :--- | :--- | :--- |
 | `catalog_version` | Contrato documental do ativo | Muda quando grão, chave, fórmula, significado ou classificação do ativo mudam; não muda a cada carga. |
@@ -1669,6 +1939,10 @@ versiona quando o eixo é o dado, e não o metadado.
 | `load_id` | Uma execução de ingestão ou transformação | Identifica a execução que materializou cada linha; base da conciliação e do reprocessamento idempotente. |
 | `data_version` | Snapshot ou lote recebido | Identifica a fotografia da fonte por hash, versão ou marco temporal verificável; a data do documento não substitui a data da carga. |
 | `scd_version` | Versão histórica de uma linha dimensional | Preserva o valor vigente em cada período; aplicável somente após regra de SCD aprovada e implementada. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 **O histórico substituído permanece consultável.** Correção, reprocessamento e
 mudança de regra produzem uma nova versão e uma nova execução; nenhuma delas
@@ -1704,6 +1978,9 @@ pseudonimizado, ação, recurso, versão da política aplicada, resultado e
 correlação com a execução relacionada. O log não replica o conteúdo eliminado;
 registra que a eliminação ocorreu, em que escopo e sob qual critério.
 
+<div align="center">
+<sub>Tabela 48 - Rotinas de auditoria do ciclo de vida</sub><br>
+
 | Rotina | Periodicidade proposta | Saída | Destinatário |
 | :--- | :--- | :--- | :--- |
 | Revisão da tabela de temporalidade | A cada mudança de finalidade e, na ausência dela, anual | Tabela revisada, com prazos homologados e pendências atualizadas | Data Owner |
@@ -1711,6 +1988,10 @@ registra que a eliminação ocorreu, em que escopo e sob qual critério.
 | Conferência do inventário de arquivo | Semestral | Lotes arquivados com classe, critério de retenção e data da próxima revisão | Data Steward |
 | Teste de restauração com reaplicação de bloqueios | Mensal, junto ao teste de restauração da Seção 5.8 | Evidência de que nenhum registro eliminado, bloqueado ou revogado retornou ativo | Data Custodian e Data Owner |
 | Auditoria de linhagem | Mensal, junto à auditoria de conformidade da Seção 2.7 | Cobertura da linhagem por caminho e relação dos elos em reconciliação | Data Steward |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 As periodicidades acima são propostas do grupo e permanecem pendentes de
 homologação, como as da Seção 3.5.3. Uma rotina sem execução registrada não
@@ -1725,6 +2006,9 @@ fonte → pesquisa → participação → questão → elemento de resposta, e c
 apresentado separadamente, com sua própria chave e seu próprio estado. Nenhum
 elo é inferido a partir de outro.
 
+<div align="center">
+<sub>Tabela 49 - Elos de linhagem da fonte ao data warehouse</sub><br>
+
 | Elo da linhagem | Chave disponível | Estado | Limite |
 | :--- | :--- | :--- | :--- |
 | Arquivo → registro | Nome do arquivo recebido e hash do snapshot | Observado | O sistema de origem não está registrado; usa-se o arquivo recebido como origem disponível e declara-se o sistema como indisponível. |
@@ -1735,6 +2019,10 @@ elo é inferido a partir de outro.
 | Participação → elemento de resposta | Nenhuma chave disponível | Em reconciliação | Não há ponte explícita entre `respostas.respondent_id` e `respondentes.id_cliente`; este elo nunca compõe um caminho observado nesta versão. |
 | Registro → execução de carga | `sk_carga`, previsto em `DIM_EXECUCAO_CARGA` | Proposto | Depende de pipeline implantado; até lá o valor permanece `indisponivel`. |
 | Registro → sistema de origem | `sk_fonte`, previsto em `DIM_FONTE_DADO` | Proposto | O catálogo de sistemas de origem não existe; a ausência é declarada, não substituída por inferência. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 **Medição da cobertura.** A cobertura da linhagem é a razão entre os elos
 observados com chave correspondente e os elos elegíveis do caminho selecionado,
@@ -1765,6 +2053,9 @@ Reuso é usar em uma nova pesquisa dado coletado para outra. Ele é desejável �
 evita recoletar, preserva série histórica e reduz a carga sobre as associadas —
 mas não é automático: a finalidade original não se estende por conveniência.
 
+<div align="center">
+<sub>Tabela 50 - Tipos de reuso seguro em novas pesquisas</sub><br>
+
 | Tipo de reuso | Condição proposta | Limite |
 | :--- | :--- | :--- |
 | **Série histórica agregada** | Compatibilidade de grão, período e definição do indicador, com a versão da regra que produziu cada ponto registrada. | Mudança de definição quebra a série; o ponto anterior não é recalculado retroativamente sem registro da mudança. |
@@ -1773,6 +2064,10 @@ mas não é automático: a finalidade original não se estende por conveniência
 | **Instrumento e questionário** | Reuso da versão identificada, mantendo a referência à versão anterior e ao parecer de validação quando existir. | Reaproveitar enunciado sem a versão correspondente impede comparar respostas entre pesquisas. |
 | **Respostas brutas identificáveis** | Finalidade compatível com a original, autorização registrada e minimização aplicada ao mínimo necessário. | Na ausência de compatibilidade demonstrada, o reuso ocorre apenas sobre a camada pseudonimizada ou agregada. |
 | **Entrega a terceiro ou publicação externa** | Critério de liberação da Seção 4.11 integralmente atendido, incluindo teste de reidentificação. | Qualquer ausência bloqueia a entrega; o acervo público recebe apenas agregado autorizado. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 Três diretrizes valem para todos os casos. O reuso herda a classificação mais
 restritiva entre a origem e o destino, nunca a mais permissiva. O dado reusado
@@ -1783,6 +2078,9 @@ limiar aplicáveis à coleta original — combinar duas pesquisas pequenas não 
 público um recorte que nenhuma delas poderia publicar isoladamente.
 
 ## 6.10 Estado das decisões do ciclo de vida
+
+<div align="center">
+<sub>Tabela 51 - Estado das decisões do ciclo de vida dos dados</sub><br>
 
 | Item | Estado | Condição de fechamento |
 | :--- | :--- | :--- |
@@ -1796,6 +2094,10 @@ público um recorte que nenhuma delas poderia publicar isoladamente.
 | Elo participação ↔ elemento de resposta | Em reconciliação | Obter do parceiro o metadado ou a chave de ligação; não inferir vínculo a partir das fontes atuais. |
 | Periodicidades de revisão, expurgo e conferência | Propostas do grupo | Homologar a cadência com Data Owner, Data Steward e Data Custodian. |
 | Retenção do histórico de qualidade | Pendente de decisão do parceiro | Aprovar a janela exigida pela auditoria mensal e fechar a dependência registrada na Seção 2.7. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 ## 6.11 Critérios de homologação
 
@@ -1851,6 +2153,9 @@ está. A escala CMMI entra apenas como régua de níveis, porque o DMBOK descrev
 
 ## 7.2 Dimensões avaliadas
 
+<div align="center">
+<sub>Tabela 52 - Dimensões de governança avaliadas</sub><br>
+
 | Área de conhecimento do DMBOK | Escopo avaliado neste projeto | Onde o documento a trata |
 | :--- | :--- | :--- |
 | **Governança de Dados** | Papéis, alçadas, matriz de responsabilidades e cadeia de custódia. | Seção 1 |
@@ -1864,6 +2169,10 @@ está. A escala CMMI entra apenas como régua de níveis, porque o DMBOK descrev
 | **Data Warehousing e BI** | Cubos, indicadores e dashboards propostos. | Documentação geral |
 | **Dados Mestres e de Referência** | Identidade de empresa, cliente e pesquisa entre fontes. | Seções 2.8 e 6.8 |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 A área **Gestão de Documentos e Conteúdo** não é avaliada: o projeto não trata
 acervo documental não estruturado, e incluí-la produziria um nível sem objeto. A
 conformidade com a LGPD não aparece como área isolada porque o DMBOK a distribui
@@ -1871,6 +2180,9 @@ entre Governança e Segurança; neste documento ela está concentrada na Seção
 é avaliada dentro dessas duas dimensões.
 
 ## 7.3 Escala de níveis
+
+<div align="center">
+<sub>Tabela 53 - Escala de níveis de maturidade</sub><br>
 
 | Nível | Nome | Critério de atribuição | Equivalência no vocabulário do documento |
 | :--- | :--- | :--- | :--- |
@@ -1880,6 +2192,10 @@ entre Governança e Segurança; neste documento ela está concentrada na Seção
 | **3** | Definido | A prática está homologada, com responsável designado, vigência registrada e evidência de aplicação. | `estado_ciclo: vigente`; homologação registrada. |
 | **4** | Gerenciado | A prática é medida por indicador com limiar aprovado, e o desvio dispara ação corretiva rastreável. | KPI com meta homologada e histórico de qualidade em operação. |
 | **5** | Otimizado | A medição alimenta um ciclo de melhoria que revisa a própria política com periodicidade definida. | Revisão programada com evidência de mudança decorrente da medição. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 A escala converge com as taxonomias que o documento já usa. A distinção entre
 `documentado` e `vigente` da Seção 3.2 é exatamente a fronteira entre os níveis
@@ -1900,6 +2216,9 @@ projeto sustenta.
 O diagnóstico técnico parte do que foi medido na Sprint 1 sobre as seis bases
 recebidas, não de impressão sobre a operação.
 
+<div align="center">
+<sub>Tabela 54 - Diagnóstico técnico da maturidade</sub><br>
+
 | Achado | Evidência | Efeito sobre a maturidade |
 | :--- | :--- | :--- |
 | Não existe data warehouse, orquestração nem ambiente produtivo | O repositório contém contratos, scripts e agregados; as bases permanecem em armazenamento externo | Impede qualquer dimensão operacional de passar do desenho à prática. |
@@ -1913,6 +2232,10 @@ recebidas, não de impressão sobre a operação.
 | Não há duplicidade nas bases isoladas | 0% de duplicidade de linha e de chave declarada nas seis fontes | Ponto positivo real; o risco de duplicidade se desloca para a integração futura. |
 | Existe instrumentação reprodutível versionada | Manifesto, perfilador, validadores de DMC, governança e rastreabilidade, com testes automatizados e hashes das fontes | É a evidência mais forte de maturidade técnica do projeto e sustenta o nível 2 em várias dimensões. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 A leitura conjunta é direta: o projeto tem **contratos e instrumentação acima da
 sua infraestrutura**. Existem validadores executáveis e identidade reproduzível
 do snapshot antes de existir banco, pipeline ou ambiente. Isso é incomum e é uma
@@ -1920,6 +2243,9 @@ vantagem, mas significa que a maturidade medida aqui é de desenho e verificaç�
 documental, não de operação de dados.
 
 ## 7.5 Diagnóstico organizacional
+
+<div align="center">
+<sub>Tabela 55 - Diagnóstico organizacional da maturidade</sub><br>
 
 | Achado | Evidência | Efeito sobre a maturidade |
 | :--- | :--- | :--- |
@@ -1930,6 +2256,10 @@ documental, não de operação de dados.
 | Política de acesso não homologada | O TAPI confirma a necessidade de controle por perfil; a matriz da Seção 5.3 permanece proposta | Mantém segurança como desenho, sem teste de permitido e negado. |
 | Divergências no próprio baseline | Um nome aparece com grafia diferente entre TAPI e DMC, outro consta do DMC e da Arquitetura mas não do TAPI, e a afirmação de que os dados são fictícios não é comprovada pelo TAPI | Mostra que a camada documental ainda não passou por conciliação formal. |
 | Gestão de configuração em prática | Branches por tarefa, merge requests com revisor distinto do autor, commits padronizados e validadores executados antes da entrega | É a única prática do projeto que opera de fato, com evidência no histórico do repositório. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 O padrão organizacional é consistente: **a estrutura de governança está desenhada
 e nominalmente atribuída, mas não investida**. Nenhum papel tem alçada formal,
@@ -1968,6 +2298,9 @@ de adoção precisa acontecer, não o estágio cultural da organização.
 
 ## 7.7 Nível atribuído por dimensão
 
+<div align="center">
+<sub>Tabela 56 - Nível de maturidade atribuído por dimensão</sub><br>
+
 | Dimensão | Nível | Evidência que sustenta o nível | O que falta para o nível seguinte |
 | :--- | :---: | :--- | :--- |
 | Governança de Dados | 2 | Papéis, alçadas, matriz de responsabilidades e cadeia de custódia documentados na Seção 1. | Designação formal com escopo, autoridade, substitutos e data de vigência. |
@@ -1980,6 +2313,10 @@ de adoção precisa acontecer, não o estágio cultural da organização.
 | Integração e Interoperabilidade | 1 | Um workflow pontual em n8n replica solicitações, sem integração estruturada ao longo do ciclo. | Definição do papel do n8n e conectores com validação, idempotência e log. |
 | Data Warehousing e BI | 1 | Protótipos de dashboard versionados; os painéis atuais dependem de atualização manual. | Banco central alimentando os painéis e indicadores com denominador aprovado. |
 | Dados Mestres e de Referência | 1 | Identidade divergente entre fontes, chaves órfãs e ausência de ponte participação–resposta. | Identidade canônica aprovada preservando o identificador de cada sistema de origem. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 O perfil resultante é **1,6 em média**, com seis dimensões no nível 2 e quatro no
 nível 1. A média é apresentada como leitura de conjunto, não como índice
@@ -2005,6 +2342,9 @@ ideal genérico de governança.
 
 **Lacunas estruturais** — dependem de construir algo que não existe.
 
+<div align="center">
+<sub>Tabela 57 - Lacunas estruturais de maturidade</sub><br>
+
 | Lacuna | Dor do TAPI a que se relaciona | Risco se não tratada |
 | :--- | :--- | :--- |
 | Ausência de banco central, pipeline e ambiente produtivo | Fragmentação das fontes; dependência de planilhas e cruzamentos manuais | A solução permanece um desenho, e o esforço de consolidação manual continua integral. |
@@ -2014,8 +2354,15 @@ ideal genérico de governança.
 | Ausência de metadados de validação e de publicação | Baixa rastreabilidade ponta a ponta | A publicação continua manual e sem vínculo entre resultado, versão, autorização e responsável. |
 | Ausência do universo convidado por pesquisa | Qualidade inconsistente dos dados | A adesão fica sem denominador válido e admite leituras muito distintas do mesmo fato. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 **Lacunas operacionais** — dependem de decidir e formalizar o que já foi
 desenhado.
+
+<div align="center">
+<sub>Tabela 58 - Lacunas operacionais de maturidade</sub><br>
 
 | Lacuna | Dor do TAPI a que se relaciona | Risco se não tratada |
 | :--- | :--- | :--- |
@@ -2025,6 +2372,10 @@ desenhado.
 | Escolha da plataforma de nuvem e do papel do n8n | Dependência de planilhas e ausência de pipeline | Credenciais, logs, reprocessamento, idempotência e linhagem das integrações continuam sem dono técnico. |
 | Homologação da política de acesso por perfil | Necessidade de controle por perfil, confirmada no TAPI | O único requisito de segurança confirmado pelo parceiro permanece sem teste de permitido e negado. |
 | Aprovação dos prazos de retenção e do procedimento de expurgo | Necessidade de tratar dados pessoais conforme a LGPD | Dado pessoal guardado por prazo indeterminado, sem critério de eliminação nem evidência de expurgo. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 **Inconsistências que o próprio TAPI deixa em aberto.** Quatro pontos merecem
 tratamento explícito porque o TAPI é a fonte confirmada pelo parceiro e, ainda
@@ -2042,6 +2393,9 @@ qualquer afirmação de conformidade.
 
 **Oportunidades** — o que já existe e pode ser aproveitado.
 
+<div align="center">
+<sub>Tabela 59 - Oportunidades de evolução da maturidade</sub><br>
+
 | Oportunidade | Base já disponível | Ganho esperado |
 | :--- | :--- | :--- |
 | Transformar a instrumentação em gate de operação | Manifesto, perfilador e validadores de DMC, governança e rastreabilidade, com testes automatizados | A verificação que hoje protege a documentação passa a proteger a carga, sem reconstruir método. |
@@ -2049,6 +2403,10 @@ qualquer afirmação de conformidade.
 | Aproveitar a série histórica já recebida | Cobertura temporal de 2022 a 2027, com anos completos em 2023, 2024 e 2025 | Análise de tendência e sazonalidade viável antes mesmo do pipeline, com as ressalvas de denominador. |
 | Partir de um MVP estreito | Escopo do TAPI: banco central, um pipeline e um dashboard | Sobe o nível das dimensões operacionais com um recorte verificável, em vez de esperar a integração completa. |
 | Usar a gestão de configuração como modelo | Branches por tarefa, revisor distinto do autor e validação antes da entrega, já em prática | A prática madura do grupo serve de referência para a rotina de mudança da própria governança. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 ## 7.9 Plano de ação e roadmap
 
@@ -2063,6 +2421,9 @@ bloqueia todas as dimensões operacionais.
 **Onda 1 — Formalização.** Não depende de infraestrutura e pode começar
 imediatamente.
 
+<div align="center">
+<sub>Tabela 60 - Roadmap de evolução, Onda 1: Formalização</sub><br>
+
 | Iniciativa | Dimensão afetada | Meta | Evidência de conclusão |
 | :--- | :--- | :---: | :--- |
 | Homologar a designação de Data Owner, Stewards e Custodian | Governança de Dados | 2 → 3 | Ato formal com escopo, autoridade, substitutos e data de vigência. |
@@ -2073,9 +2434,16 @@ imediatamente.
 | Contratar e inventariar a custódia externa | Governança de Dados | 2 → 3 | Contrato identificando dados, ambiente, instruções, acesso, retenção, auditoria e descarte. |
 | Conciliar as divergências do baseline e as afirmações do TAPI | Governança de Dados | 2 → 3 | Registro da grafia correta dos nomes, do papel não localizado e da natureza real das bases recebidas. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 **Onda 2 — MVP operacional.** Depende da plataforma escolhida na Onda 1 e
 implementa o recorte já previsto no TAPI: banco central, um pipeline e um
 dashboard.
+
+<div align="center">
+<sub>Tabela 61 - Roadmap de evolução, Onda 2: MVP operacional</sub><br>
 
 | Iniciativa | Dimensão afetada | Meta | Evidência de conclusão |
 | :--- | :--- | :---: | :--- |
@@ -2085,8 +2453,15 @@ dashboard.
 | Aplicar as regras de validação da Seção 2.6 como gate de ingestão | Qualidade de Dados | 2 → 3 | Lote inválido efetivamente rejeitado ou sinalizado, com registro do resultado. |
 | Migrar um dashboard para o banco central | Data Warehousing e BI | 1 → 2 | Painel alimentado pela carga, sem atualização manual, com indicador de frescor exibido. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 **Onda 3 — Medição e melhoria.** Depende do MVP em operação e é o que leva as
 dimensões documentais acima do nível 3.
+
+<div align="center">
+<sub>Tabela 62 - Roadmap de evolução, Onda 3: Medição e melhoria</sub><br>
 
 | Iniciativa | Dimensão afetada | Meta | Evidência de conclusão |
 | :--- | :--- | :---: | :--- |
@@ -2095,6 +2470,10 @@ dimensões documentais acima do nível 3.
 | Executar o primeiro ciclo de expurgo e o teste de restauração | Ciclo de vida | 3 → 4 | Expurgo propagado às cópias e restauração sem reintroduzir registro eliminado. |
 | Obter o universo convidado por pesquisa | Data Warehousing e BI | 2 → 3 | Denominador aprovado, encerrando a ambiguidade atual do cálculo de adesão. |
 | Estabelecer a revisão periódica da política de governança | Todas | 4 → 5 | Evidência de mudança de política decorrente de uma medição, e não de uma opinião. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 **Sequenciamento e primeira medida.** As três iniciativas de maior efeito estão
 na Onda 1 e não custam infraestrutura: homologar os papéis, escolher a
@@ -2105,6 +2484,9 @@ capacidade técnica sem alçada para operá-la — que é exatamente o desequil�
 diagnosticado na Seção 7.7.
 
 ## 7.10 Estado das decisões da avaliação
+
+<div align="center">
+<sub>Tabela 63 - Estado das decisões da avaliação de maturidade</sub><br>
 
 | Item | Estado | Condição de fechamento |
 | :--- | :--- | :--- |
@@ -2118,6 +2500,10 @@ diagnosticado na Seção 7.7.
 | Ondas e sequenciamento do roadmap | Proposta da equipe | Aprovar prioridade, responsável e capacidade com o Sindusfarma. |
 | Ausência de datas no roadmap | Limitação declarada | Fornecer linha de base de equipe, capacidade operacional e custo em fonte auditável. |
 | Relação entre lacunas e dores do TAPI | Derivada dos artefatos | Confirmar com o parceiro que a leitura das dores permanece atual. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 ## 7.11 Critérios de reavaliação
 
