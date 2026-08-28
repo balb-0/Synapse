@@ -48,6 +48,7 @@
   - [6.4 Indicadores e Métricas de Negócio](#64-indicadores-e-métricas-de-negócio)
   - [6.5 Dashboards Analíticos](#65-dashboards-analíticos)
   - [6.6 Governança, Segurança da Informação e LGPD](#66-governança-segurança-da-informação-e-lgpd)
+  - [6.7 Fluxo de Interação Anotado](#67-fluxo-de-interação-anotado)
 - [7. Referências](#7-referências)
 - [8. Avaliação dos Resultados](#8-avaliação-dos-resultados)
   - [8.1 Resultados Quantitativos](#81-resultados-quantitativos)
@@ -2348,6 +2349,936 @@ Se um fornecedor, suporte ou infraestrutura permitir acesso a dados pessoais a p
 
 Assim, a governança proposta atende ao ciclo completo — coleta, integração, análise, publicação, atendimento e descarte — sem afirmar que os controles já existem. A passagem para produção deve ser condicionada ao fechamento do inventário, à validação das bases legais e papéis, à revisão do RIPD, ao teste de acesso e de reidentificação, à confirmação de retenção/backups e à aprovação da publicação pelo parceiro.
 
+## 6.7 Fluxo de Interação Anotado
+
+Esta seção organiza a base do Fluxo de Interação Anotado da Sprint 2 para o
+perfil operacional principal: a equipe interna da Central de Pesquisas. O texto
+parte do JTBD definido em discussão do grupo, da Arquitetura de Negócio
+[<sup>[2]</sup>](#ref-2), do fluxo de valor da §2.1, dos requisitos funcionais da §6.1 e
+das perguntas de negócio da §6.3. O objetivo é manter um apoio textual curto
+para o diagrama, sem substituir a representação visual exigida pelo artefato.
+
+### 6.7.1 Perfil, JTBD e critérios de sucesso
+
+O perfil operacional principal opera o ciclo das pesquisas desde a solicitação
+até a entrega/publicação, acompanhando status, prazos, participantes, resultados
+e qualidade em um processo hoje distribuído entre planilhas, SurveyMonkey,
+Trello, sistema interno e acervo publicado.
+
+O JTBD usado como base é:
+
+> Quando preciso acompanhar uma pesquisa desde a solicitação até a publicação,
+> quero acessar em um único ambiente dados integrados e atualizados sobre
+> status, prazos, adesão e resultados, para reduzir o trabalho manual,
+> identificar gargalos e tomar decisões com mais agilidade e confiança.
+
+<div align="center">
+<sub>Tabela 6.7.1 - Jobs operacionais e critérios de sucesso do perfil principal</sub><br>
+
+| ID | Job operacional | Critério de sucesso associado | Evidência na documentação |
+| :--- | :--- | :--- | :--- |
+| JOP01 | Registrar e iniciar uma pesquisa com identidade rastreável. | A pesquisa foi criada ou localizada sem duplicidade aparente, com origem e status inicial explícitos. | Fluxo de valor (§2.1, etapas 1 e 2), requisitos RF01/RF02 (§6.1) e PB01 (§6.3). |
+| JOP02 | Acompanhar status, prazos e marcos do ciclo. | O usuário vê etapa atual, próximos marcos, prazos, pendências e motivo de atraso/prorrogação quando aplicável. | Fluxo de valor (§2.1, etapas 2 a 6), C01 (§5.2.1) e D01 (§6.5). |
+| JOP03 | Monitorar participação e risco de baixa adesão. | A participação é exibida com numerador, denominador quando existir e limitação quando o cálculo de adesão não for possível. | Fluxo de valor (§2.1, etapa 6), C02 (§5.2.2) e requisitos RF04/RF05 (§6.1). |
+| JOP04 | Validar qualidade antes de tabular ou publicar. | Inconsistências, órfãos, duplicidades e ausências críticas aparecem com impacto no indicador e ação esperada. | Fluxo de valor (§2.1, etapa 8), requisitos RF06/RF07 (§6.1) e D04 (§6.5). |
+| JOP05 | Entregar e publicar resultado autorizado. | O resultado só avança com autorização, versão, perfil permitido e vínculo com a pesquisa interna. | Fluxo de valor (§2.1, etapas 9 e 10), requisito RF09 (§6.1), PB09 (§6.3) e governança de publicação (§6.6). |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+### 6.7.2 Pontos de checagem do fluxo
+
+Os pontos abaixo selecionam quatro momentos em que o usuário operacional checa
+se o trabalho está progredindo. Eles servem como âncoras do fluxo visual.
+
+<div align="center">
+<sub>Tabela 6.7.2 - Pontos de checagem do fluxo do perfil operacional</sub><br>
+
+| Momento | Confirmação necessária | Dados informados pelo sistema | Estado esperado do dado após a ação |
+| :--- | :--- | :--- | :--- |
+| 1. Receber ou localizar solicitação | Confirmar criação ou localização da pesquisa e sinalizar duplicidade/conflito. | ID, título, origem, status inicial, data de solicitação e responsável quando disponível. | `Pesquisa` existe como entidade operacional, com origem preservada e pendências marcadas. |
+| 2. Acompanhar ciclo e carteira ativa | Confirmar atualização de marco e indicar se atraso, prorrogação ou prioridade são calculáveis. | Etapa atual, datas do ciclo, campos ausentes, regra aplicada e motivo da classificação. | Marcos ficam atualizados; ausências permanecem pendentes; cálculo fica disponível ou marcado como insuficiente. |
+| 3. Monitorar participação e qualidade | Confirmar numeradores, denominadores disponíveis e anomalias que afetam KPIs. | Participações, empresas/pessoas relacionadas, representatividade, completude, duplicidade, órfãos e impacto no indicador. | Participações são ligadas quando há chave observada; ausência de denominador bloqueia taxa; campos recebem estado de qualidade. |
+| 4. Preparar entrega ou publicação | Confirmar autorização ou bloqueio, perfil permitido e vínculo com a versão publicada. | Estado de autorização/publicação, versão, data, responsável, regra de agregação e pendências do acervo. | Resultado agregado fica autorizado ou bloqueado como pendente; acervo não é atualizado sem decisão registrada. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+### 6.7.3 Fluxo principal de ponta a ponta
+
+A sequência abaixo representa o fluxo previsto para a equipe interna da Central
+de Pesquisas, do recebimento da demanda até a entrega ou publicação do
+resultado. A tabela não descreve todas as regras de tela; ela identifica os
+atores, passos sequenciais e interfaces que devem aparecer no diagrama do perfil
+principal.
+
+O diagrama abaixo resume o fluxo de ponta a ponta do perfil operacional
+principal. Os nós de checagem correspondem aos momentos definidos na §6.7.2 e
+servem como pontos de anotação para conflitos, alertas e mudanças de estado.
+
+```mermaid
+flowchart TD
+    A([Solicitação recebida]) --> C1{Checagem 1<br/>pesquisa criada ou localizada?}
+    C1 -->|duplicidade ou campos ausentes| P1[Pendente de informação<br/>ou revisão]
+    C1 -->|origem preservada| B[Triagem e aprovação]
+    P1 -.complementação.-> A
+    B --> C2{Checagem 2<br/>marcos e responsáveis definidos?}
+    C2 -->|não| P2[Planejamento pendente]
+    C2 -->|sim| D[Planejar questionário<br/>e preparar coleta]
+    P2 -.ajuste.-> B
+    D --> E[Divulgar pesquisa]
+    E --> F[Monitorar participação]
+    F --> C3{Checagem 3<br/>dados e adesão confiáveis?}
+    C3 -->|sem denominador<br/>ou anomalia| P3[Pendente de qualidade<br/>ou reconciliação]
+    C3 -->|dados utilizáveis| G[Encerrar coleta<br/>e tabular resultados]
+    P3 -.correção.-> F
+    G --> H[Revisar entrega]
+    H --> C4{Checagem 4<br/>resultado autorizado?}
+    C4 -->|não| P4[Publicação bloqueada<br/>ou pendente]
+    C4 -->|sim| I([Resultado publicado<br/>ou disponibilizado])
+```
+
+<div align="center"><sub>Figura 6.7.1 - Fluxo principal de ponta a ponta do perfil operacional</sub><br><sup>Material produzido pelos autores (2026)</sup></div>
+
+<div align="center">
+<sub>Tabela 6.7.3 - Passos do fluxo principal de ponta a ponta</sub><br>
+
+| Ordem | Etapa do fluxo | Atores envolvidos | Interface ou canal | Ação principal | Resposta esperada da solução | Ponto de checagem |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Receber demanda de pesquisa | Solicitante, equipe da Central | Outlook, n8n, sistema interno | Receber solicitação e registrar necessidade, objetivo e contexto. | Criar ou localizar uma pesquisa com origem preservada e status inicial. | Checagem 1 |
+| 2 | Triar e aprovar continuidade | Equipe da Central, coordenação/Data Owner, área técnica quando necessário | Sistema interno ou fila operacional | Validar se a demanda deve seguir, ser ajustada ou ser recusada. | Atualizar status de triagem, registrar decisão e marcar pendências de informação. | Checagem 2 |
+| 3 | Planejar pesquisa e questionário | Equipe da Central, área técnica | Sistema interno, SurveyMonkey, documentos de apoio | Definir cronograma, público, perguntas, alternativas e responsáveis. | Associar plano e questionário à pesquisa; preservar versão ou indicar que metadados ainda estão pendentes. | Checagem 2 |
+| 4 | Criar tarefas e preparar coleta | Equipe da Central | Trello, SurveyMonkey, Outlook | Criar tarefas operacionais, configurar formulário e preparar comunicação aos participantes. | Confirmar tarefas vinculadas, instrumento preparado e pendências antes da divulgação. | Checagem 2 |
+| 5 | Divulgar pesquisa | Equipe da Central, empresas/participantes | Outlook, SurveyMonkey | Enviar convite e abrir coleta. | Registrar data de divulgação, prazo de coleta e estado da pesquisa como em andamento. | Checagem 2 |
+| 6 | Monitorar participação | Equipe da Central, empresas/participantes | Dashboard operacional, SurveyMonkey, base de respondentes | Acompanhar respostas, empresas participantes e sinais de baixa adesão. | Exibir participação observada, limitações de denominador, representatividade disponível e alertas. | Checagem 3 |
+| 7 | Encerrar coleta e validar dados | Equipe da Central, Data Steward | Dashboard de qualidade, bases CSV, regras de validação | Encerrar coleta, verificar completude, duplicidade, chaves órfãs e consistência. | Classificar dados como válidos, pendentes, órfãos ou dependentes de integração futura. | Checagem 3 |
+| 8 | Tabular e analisar resultados | Equipe da Central, área técnica | Dashboard de resultados, planilha de apoio quando necessária | Consolidar respostas e interpretar agregados por pesquisa, pergunta e recorte permitido. | Exibir resultados agregados com `n`, `N`, filtros permitidos e limitações de cálculo. | Checagem 3 |
+| 9 | Revisar entrega | Equipe da Central, área técnica, coordenação/Data Owner | Sistema interno, dashboard, documento de resultado | Revisar consistência, autorização, versão e público de destino. | Registrar aprovação, bloqueio ou pendência antes de qualquer disponibilização externa. | Checagem 4 |
+| 10 | Publicar ou disponibilizar resultado | Equipe da Central, Data Owner, Data Custodian/RentalHost, solicitante ou público autorizado | Acervo do site, dashboard ou relatório autorizado | Disponibilizar apenas o resultado aprovado para o perfil correto. | Atualizar acervo ou manter bloqueado; preservar vínculo entre pesquisa, resultado, versão e autorização. | Checagem 4 |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+### 6.7.4 Divergências, atritos e suporte ao usuário
+
+Nesta etapa, o solicitante é tratado como o perfil que demanda uma pesquisa ou
+consulta seu resultado, esperando resposta útil no menor tempo possível. A
+equipe interna, por sua vez, precisa manter o ciclo rastreável, validar dados e
+evitar publicação sem autorização. Os conflitos abaixo indicam pontos do fluxo
+em que os dois perfis esperam comportamentos diferentes sobre o mesmo objeto; a
+classificação final como acomodação, ruptura deliberada ou lacuna deve ser feita
+no diagrama anotado.
+
+<div align="center">
+<sub>Tabela 6.7.4 - Divergências de expectativa entre equipe interna e solicitante</sub><br>
+
+| Ponto do fluxo | Objeto em disputa | Expectativa da equipe interna | Expectativa do solicitante | Razão do conflito em relação ao negócio e ao JTBD |
+| :--- | :--- | :--- | :--- | :--- |
+| Etapas 1-2: recebimento e triagem | Demanda/pesquisa | Confirmar se a solicitação gera uma nova pesquisa, se já existe demanda equivalente ou se faltam dados para seguir. | Considerar que a demanda enviada já virou uma pesquisa em andamento. | O objetivo de rastreabilidade exige evitar duplicidade e preservar decisão de triagem; o JTBD da equipe interna depende de origem e status confiáveis antes de acelerar o fluxo. |
+| Etapas 2-5: planejamento e divulgação | Status e prazo | Exibir status apenas quando marcos, responsáveis e datas mínimas estiverem definidos ou marcados como pendentes. | Receber previsão rápida de prazo e acompanhamento contínuo, mesmo antes de o plano estar fechado. | O negócio busca reduzir tempo de entrega, mas sem linha de base e sem campos completos a solução não deve transformar expectativa em SLA não comprovado. |
+| Etapas 3-4: questionário e preparação da coleta | Escopo da pesquisa | Preservar versão do questionário, validação técnica e vínculo com a pesquisa antes da coleta. | Ver suas perguntas incorporadas com pouca mediação, mantendo o foco da demanda original. | A qualidade e a comparabilidade dos dados dependem de instrumento validado; o JTBD operacional prioriza confiança e redução de retrabalho, não apenas rapidez de criação. |
+| Etapa 6: monitoramento da participação | Adesão/engajamento | Mostrar participação observada e bloquear taxa quando o universo elegível ou denominador não estiver disponível. | Acompanhar uma taxa simples de adesão para saber se a pesquisa está indo bem. | Aumentar adesão é objetivo de negócio, mas o indicador só é confiável quando numerador e denominador têm grão compatível; estimar sem base compromete decisão. |
+| Etapas 8-10: entrega e publicação | Resultado publicado | Disponibilizar apenas resultado agregado, autorizado, versionado e compatível com o perfil de acesso. | Acessar o resultado completo ou publicável assim que a tabulação termina. | O objetivo de tornar a Central referência em dados exige consistência entre sistema interno e acervo; o JTBD da equipe interna só se cumpre se publicação, autorização e linhagem forem verificáveis. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+As marcações abaixo identificam pontos críticos de atrito do perfil principal
+para o rascunho visual. Elas não adicionam novas etapas ao fluxo; apenas indicam
+onde o operador tende a gastar mais esforço cognitivo, depender de conferência
+manual ou acionar suporte antes de seguir.
+
+<div align="center">
+<sub>Tabela 6.7.5 - Pontos críticos de atrito do perfil principal</sub><br>
+
+| ID | Passo crítico no fluxo | Tipo de atrito | Por que exige mais esforço | Marcação preliminar no diagrama |
+| :--- | :--- | :--- | :--- | :--- |
+| AT01 | Etapas 1-2: receber e triar demanda | Decisão de identidade | O operador precisa distinguir nova pesquisa, solicitação incompleta e possível duplicidade sem perder a origem da demanda. | Marcar como `atenção: duplicidade/pendência`. |
+| AT02 | Etapas 3-4: planejar questionário e criar tarefas | Intervenção manual entre ferramentas | Trello, SurveyMonkey, documentos de apoio e sistema interno precisam permanecer vinculados mesmo sem integração plena. | Marcar como `manual assistido`. |
+| AT03 | Etapa 5: divulgar pesquisa | Dependência de confirmação externa | A coleta só deve avançar se envio, prazo e instrumento estiverem confirmados; falha de envio não pode parecer coleta ativa. | Marcar como `confirmação obrigatória`. |
+| AT04 | Etapa 6: monitorar participação | Interpretação de indicador | A leitura de adesão depende de numerador, denominador e recorte compatível; sem isso, o operador precisa interpretar indisponibilidade. | Marcar como `indicador condicionado`. |
+| AT05 | Etapas 7-8: validar e tabular dados | Reconciliação de qualidade | Órfãos, duplicidades, campos ausentes e diferenças de grão exigem decisão antes de consolidar resultados. | Marcar como `reconciliação`. |
+| AT06 | Etapas 9-10: revisar e publicar | Governança e autorização | O operador precisa separar resultado tabulado, resultado revisado e resultado autorizado para evitar publicação indevida. | Marcar como `bloqueio/autorização`. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Para manter percepção de progresso, cada transição relevante do fluxo principal
+(§6.7.3) deve devolver uma confirmação imediata ao operador. Os textos abaixo
+representam o comportamento esperado da solução e servem como insumo para a
+anotação visual; não são cópia final de interface.
+
+<div align="center">
+<sub>Tabela 6.7.6 - Confirmações e alertas esperados por transição do fluxo</sub><br>
+
+| ID | Transição no fluxo | Mensagem de sistema esperada | Alerta quando houver exceção | Indicador visual exigido | Checagem relacionada |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| CP01 | Etapa 1: solicitação recebida ou localizada | Pesquisa registrada/localizada, com ID, origem e status inicial. | Possível duplicidade, chave divergente ou campos mínimos ausentes. | Selo `nova`, `em triagem` ou `pendente de informação`. | Checagem 1 (§6.7.2) |
+| CP02 | Etapa 2: triagem concluída | Decisão registrada e próxima etapa indicada. | Demanda recusada, ajuste solicitado ou ausência de responsável/data crítica. | Linha do tempo com marco de triagem marcado e próxima ação destacada. | Checagem 2 (§6.7.2) |
+| CP03 | Etapas 3-4: planejamento, questionário e tarefas preparados | Questionário, tarefas e comunicação vinculados à pesquisa. | Questionário sem versão, tarefa sem vínculo ou instrumento ainda não validado. | Checklist de preparação com itens concluídos, pendentes e bloqueados. | Checagem 2 (§6.7.2) |
+| CP04 | Etapa 5: pesquisa divulgada | Coleta aberta, data de divulgação e prazo visíveis. | Prazo ausente, envio não confirmado ou integração com SurveyMonkey/Trello pendente. | Barra de ciclo movida para `em coleta` e contador de dias de coleta. | Checagem 2 (§6.7.2) |
+| CP05 | Etapa 6: participação monitorada | Participação observada exibida com numerador, denominador disponível e recorte permitido. | Denominador inexistente, baixa adesão, representatividade indisponível ou relação órfã. | Cartão de adesão com estado `calculável`, `indisponível` ou `atenção`. | Checagem 3 (§6.7.2) |
+| CP06 | Etapa 7: coleta encerrada e dados validados | Dados classificados como válidos, pendentes, órfãos ou dependentes de integração futura. | Duplicidade, ausência crítica, quebra de chave ou campo com impacto no indicador. | Painel de qualidade com contagem por severidade e fonte afetada. | Checagem 3 (§6.7.2) |
+| CP07 | Etapas 9-10: resultado revisado para entrega/publicação | Resultado aprovado, bloqueado ou pendente, com versão e perfil autorizado. | Falta de autorização, risco de reidentificação, regra de agregação ausente ou acervo sem vínculo. | Selo `autorizado`, `bloqueado` ou `pendente`, ligado à versão do resultado. | Checagem 4 (§6.7.2) |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Na abertura da pesquisa, a expectativa de agilidade só é atendida quando a
+automação preserva origem, vínculo e pendências. O operador não precisa que
+Outlook, Trello, SurveyMonkey e sistema interno sejam substituídos; precisa que
+a solicitação deixe de circular como informação solta e passe a ser acompanhada
+por uma identidade comum.
+
+<div align="center">
+<sub>Tabela 6.7.7 - Expectativas do operador na abertura da pesquisa</sub><br>
+
+| ID | Passo de abertura | Interface ou canal | Entidade/registro esperado | Expectativa do operador | Validação da expectativa | Checagem |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| AP01 | Receber solicitação | Outlook, n8n ou entrada manual no sistema interno | `Pesquisa` solicitada, com origem, data, título e solicitante quando disponível. | Identificar rapidamente se há uma nova demanda acompanhável. | Atendida se o sistema cria ou localiza a pesquisa e explicita campos mínimos ausentes; parcial se a origem ficar apenas no e-mail. | Checagem 1 (§6.7.2) |
+| AP02 | Registrar pesquisa inicial | Sistema interno e dashboard operacional | `Pesquisa` com ID, status inicial, responsável e pendências de triagem. | Evitar duplicidade e começar o acompanhamento sem cruzamento manual. | Atendida se houver ID comum e alerta de demanda semelhante; não atendida se o registro depender de planilha paralela. | Checagem 1 (§6.7.2) |
+| AP03 | Criar tarefa operacional | Trello vinculado ao sistema interno | Tarefa associada ao ID da pesquisa, etapa, responsável e prazo operacional. | Acompanhar responsabilidades sem abrir múltiplas ferramentas para descobrir o estado do trabalho. | Atendida parcialmente enquanto a integração Trello-sistema não for automática; o vínculo pendente deve aparecer como alerta. | Checagem 2 (§6.7.2) |
+| AP04 | Preparar formulário de coleta | SurveyMonkey, documentos de apoio e sistema interno | Questionário associado à pesquisa, com versão ou pendência de versão, status de preparação e responsável. | Saber se o instrumento já pode seguir para divulgação. | Atendida se o fluxo confirma formulário preparado ou bloqueia a divulgação quando faltar validação, versão ou vínculo com a pesquisa. | Checagem 2 (§6.7.2) |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Na tabulação e publicação, a expectativa de entrega só é atendida quando o
+resultado deixa claro de quais respostas veio, quais validações foram aplicadas
+e em que estado de autorização está. Para o operador, dado publicado deve
+significar dado agregado, rastreável e disponível ao perfil correto; quando
+autorização, versão ou vínculo com o acervo não existirem, a solução deve mostrar
+indisponibilidade ou bloqueio, não conclusão automática.
+
+<div align="center">
+<sub>Tabela 6.7.8 - Expectativas do operador na tabulação e publicação</sub><br>
+
+| ID | Passo de tabulação/publicação | Interface ou canal | Entidade/registro esperado | Expectativa do operador | Validação da expectativa | Checagem |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| TP01 | Consolidar respostas encerradas | SurveyMonkey, bases CSV e dashboard de qualidade | `Resposta`, `Questao` e `Pesquisa` vinculadas, com órfãos e duplicidades classificados. | Iniciar a tabulação a partir de um conjunto de respostas confiável. | Atendida se a consolidação informa registros válidos, pendentes e em reconciliação; não atendida se respostas sem vínculo forem somadas sem alerta. | Checagem 3 (§6.7.2) |
+| TP02 | Validar agregados e indicadores | Dashboard de resultados e regras analíticas | Resultado agregado por pesquisa, pergunta e recorte permitido, com `n`, `N` disponível e limitação declarada. | Confiar que o indicador exibido corresponde ao dado coletado e ao grão correto. | Atendida se numerador, denominador e filtros ficam explícitos; parcial quando o denominador não existe e o sistema bloqueia taxa ou marca como indisponível. | Checagem 3 (§6.7.2) |
+| TP03 | Revisar entrega antes da publicação | Sistema interno, dashboard e documento de resultado | Resultado revisado, com versão, responsável, público de destino e decisão pendente/aprovada/bloqueada. | Saber se o resultado já pode ser entregue ou se ainda depende de autorização. | Atendida se a revisão separa `tabulado`, `revisado` e `autorizado`; não atendida se tabulação for tratada como publicação. | Checagem 4 (§6.7.2) |
+| TP04 | Publicar ou disponibilizar no acervo | Acervo do site, dashboard ou relatório autorizado | Resultado publicado ou bloqueado, vinculado à pesquisa interna, versão e decisão do Data Owner. | Supor que o dado disponível no acervo é confiável, atual e permitido para aquele perfil. | Atendida se o acervo preserva vínculo, versão, data e perfil autorizado; enquanto esses metadados forem futuros, a disponibilidade deve aparecer como proposta ou pendente. | Checagem 4 (§6.7.2) |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+### 6.7.5 Premissas e validação de consistência
+
+A equipe interna é tratada como perfil com autonomia operacional para acompanhar
+o ciclo das pesquisas, mas não como administradora irrestrita dos dados. As
+premissas abaixo delimitam o que o fluxo assume sobre treinamento, permissões e
+capacidade técnica; se elas não se confirmarem, a adoção da solução pode exigir
+mais mediação, suporte ou revisão de papéis.
+
+<div align="center">
+<sub>Tabela 6.7.9 - Premissas de autonomia do perfil operacional principal</sub><br>
+
+| ID | Premissa de autonomia | Descrição | Impacto se não se confirmar |
+| :--- | :--- | :--- | :--- |
+| PA01 | Treinamento básico no fluxo | A equipe interna reconhece etapas, status, pendências e checagens do ciclo de pesquisa descrito na §6.7.3. | O operador pode interpretar alertas como erro do sistema, manter controles paralelos e reduzir a confiança no acompanhamento integrado. |
+| PA02 | Permissão de consulta operacional | O perfil principal pode visualizar pesquisas, marcos, participação, qualidade e estado de publicação necessários ao trabalho diário. | A solução perde valor como ambiente único; a equipe volta a depender de SurveyMonkey, Trello, planilhas e acervo separados para confirmar progresso. |
+| PA03 | Permissão controlada de edição | A equipe pode registrar ou corrigir metadados operacionais, como responsável, status, prazo, pendência e vínculo de tarefa/questionário, dentro de regras aprovadas. | Se a edição depender sempre de outro perfil, aumenta o tempo de atualização e a percepção de automação fica parcial; se for ampla demais, cresce o risco de inconsistência e falta de auditoria. |
+| PA04 | Capacidade de interpretar qualidade do dado | O operador compreende estados como `válido`, `pendente`, `em reconciliação`, `indisponível` e `bloqueado`. | Indicadores podem ser usados fora do contexto, especialmente adesão sem denominador, resultados órfãos ou publicações sem autorização. |
+| PA05 | Suporte técnico disponível quando houver exceção | Casos de chave órfã, integração pendente, falha de carga, versão ausente ou publicação bloqueada têm encaminhamento para área técnica, Data Steward ou Data Owner. | Pendências críticas podem ficar sem dono, gerando frustração, atraso e retorno ao processo manual. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Cada critério de sucesso listado em §6.7.1 possui pelo menos um ponto de
+confirmação em §6.7.2 e aparece em uma ou mais etapas do fluxo principal da
+§6.7.3. A tabela acima deve ser levada para a legenda do artefato visual como
+premissas do perfil operacional principal.
+
+Como texto de apoio ao diagrama, as expectativas do perfil operacional devem ser
+lidas em quatro blocos: abertura rastreável, acompanhamento do ciclo,
+confiabilidade dos dados e publicação autorizada. Esses blocos sintetizam a
+Etapa 1 do artefato e justificam as anotações visuais sem substituir os nós,
+setas e estados do fluxo.
+
+<div align="center">
+<sub>Tabela 6.7.10 - Textos de apoio para anotação do diagrama</sub><br>
+
+| ID | Ponto anotado no diagrama | Texto de apoio para a justificativa | Referência interna |
+| :--- | :--- | :--- | :--- |
+| TA01 | Solicitação recebida e pesquisa criada/localizada | O avanço começa quando a solicitação deixa de ser uma mensagem isolada e passa a ter identidade operacional, origem preservada e pendências explícitas. | JOP01 (§6.7.1), Checagem 1 (§6.7.2), AP01-AP02 (§6.7.4) |
+| TA02 | Planejamento, tarefas e coleta preparados | A agilidade esperada pelo operador depende de vínculos entre sistema interno, Trello e SurveyMonkey; quando a integração ainda for parcial, o fluxo deve mostrar pendência, não esconder trabalho manual. | JOP02 (§6.7.1), Checagem 2 (§6.7.2), AP03-AP04 (§6.7.4) |
+| TA03 | Participação monitorada e dados validados | A percepção de progresso não vem apenas da quantidade de respostas, mas da confiança sobre denominadores, vínculos, órfãos, duplicidades e limitações do indicador. | JOP03-JOP04 (§6.7.1), Checagem 3 (§6.7.2), TP01-TP02 (§6.7.4) |
+| TA04 | Resultado revisado e publicação decidida | A entrega só deve aparecer como concluída quando resultado, versão, autorização, perfil de acesso e vínculo com o acervo estiverem registrados; sem isso, o estado correto é pendente, bloqueado ou proposto. | JOP05 (§6.7.1), Checagem 4 (§6.7.2), TP03-TP04 (§6.7.4) |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Validação de consistência da Etapa 1: cada critério do JTBD foi confrontado com
+o fluxo principal para verificar se existe pelo menos um passo em que o operador
+recebe confirmação de progresso. Não foram identificadas omissões que exijam
+ajuste antes do confronto com o modelo de dados.
+
+<div align="center">
+<sub>Tabela 6.7.11 - Validação de consistência dos critérios do JTBD</sub><br>
+
+| Critério do JTBD | Passo de confirmação no fluxo principal | Evidência de suporte | Resultado da validação |
+| :--- | :--- | :--- | :--- |
+| JOP01 — identidade rastreável da pesquisa | Etapas 1-2: receber demanda, criar/localizar pesquisa e registrar triagem. | Checagem 1 (§6.7.2), CP01 (§6.7.4), AP01-AP02 (§6.7.4), TA01 (§6.7.5). | Coberto, sem ajuste necessário. |
+| JOP02 — status, prazos e marcos acompanháveis | Etapas 2-5: triar, planejar, criar tarefas e divulgar a coleta. | Checagem 2 (§6.7.2), CP02-CP04 (§6.7.4), AP03-AP04 (§6.7.4), TA02 (§6.7.5). | Coberto, sem ajuste necessário. |
+| JOP03 — participação e risco de baixa adesão | Etapa 6: monitorar participação e limites de cálculo. | Checagem 3 (§6.7.2), CP05 (§6.7.4), TA03 (§6.7.5). | Coberto, com ressalva já registrada sobre denominador indisponível. |
+| JOP04 — qualidade antes de tabular/publicar | Etapas 7-8: encerrar coleta, validar dados e consolidar resultados. | Checagem 3 (§6.7.2), CP06 (§6.7.4), TP01-TP02 (§6.7.4), TA03 (§6.7.5). | Coberto, com pendências de reconciliação explicitadas. |
+| JOP05 — entrega/publicação autorizada | Etapas 9-10: revisar entrega e publicar ou bloquear resultado. | Checagem 4 (§6.7.2), CP07 (§6.7.4), TP03-TP04 (§6.7.4), TA04 (§6.7.5). | Coberto, sem ajuste necessário. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+### 6.7.6 Fluxo de interação do perfil secundário (área técnica)
+
+O perfil secundário é a **área técnica** que dá suporte especializado à Central
+de Pesquisas. Diferente da equipe interna — que opera o ciclo de ponta a ponta
+(§6.7.3) —, a área técnica não conduz a pesquisa: ela **entra no fluxo em três
+instantes pontuais, de alto impacto e alta responsabilidade técnica**. São eles a
+validação técnica do questionário (antes da divulgação), o acompanhamento da
+adesão sob a ótica de representatividade do setor farmacêutico, e a revisão de
+consistência dos resultados antes da tabulação ou publicação. Em todos, o papel é
+de **revisão e sinalização qualificada**: possui acesso de leitura qualificada,
+valida e devolve, mas não avança o ciclo nem publica por conta própria.
+
+Esse recorte importa porque é justamente nesses três pontos que o **modelo mental
+da área técnica tende a divergir** do ciclo de vida modelado pelo grupo. O caso
+mais frequente é presumir que um questionário "aprovado tecnicamente" já está
+pronto para publicar, quando o modelo ainda exige coleta, tabulação, autorização
+e vínculo de versão — divergência classificada na §6.7.12. Por atuar em pontos de
+controle, a área técnica é também quem primeiro **observa** os problemas de dado
+que a §4.0 já havia diagnosticado (chaves órfãs, participação sem denominador,
+respostas que não equivalem a respondentes), o que faz do seu fluxo o principal
+gerador de sinalizações de qualidade.
+
+O diagrama abaixo representa o trecho de interação do perfil secundário; os
+losangos são os pontos de decisão (S1–S3) e os retângulos, os estados resultantes
+no modelo. A notação de estados segue a §6.7.17.
+
+```mermaid
+flowchart TD
+    A([Pesquisa Planejada]) --> S1{S1 · Validar<br/>questionário}
+    S1 -->|inconsistência técnica| P1[Devolvida:<br/>pendente de ajuste]
+    S1 -->|instrumento coerente| V[Questionário validado]
+    P1 -.retrabalho.-> A
+    V --> COL([Em coleta])
+    COL --> S2{S2 · Acompanhar<br/>adesão}
+    S2 -->|sem denominador| L1[Adesão insuficiente<br/>lacuna §6.7.9]
+    S2 -->|base disponível| AD[Adesão disponível]
+    AD --> ENC([Coleta encerrada])
+    L1 --> ENC
+    ENC --> S3{S3 · Revisar<br/>resultados}
+    S3 -->|órfão / duplicidade| P2[Pendente de<br/>reconciliação]
+    S3 -->|consistente| REV[Revisável → tabulação]
+```
+
+<div align="center"><sub>Figura 6.7.2 - Fluxo de interação do perfil secundário (área técnica)</sub><br><sup>Material produzido pelos autores (2026)</sup></div>
+
+A tabela restringe o escopo a esse trecho de divergência; não repete o fluxo
+principal, apenas os passos em que a área técnica age, e associa cada um às
+entidades do modelo e ao estado resultante.
+
+<div align="center">
+<sub>Tabela 6.7.12 - Passos da área técnica no trecho de divergência</sub><br>
+
+| Ordem | Etapa (área técnica) | Ação principal | Interface ou canal | Entidades tocadas | Resposta esperada da solução | Estado resultante | Checagem (§6.7.2) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| S1 | Validar tecnicamente o questionário | Revisar tipos de questão, alternativas, matrizes e coerência do instrumento antes da divulgação. | SurveyMonkey, documentos de apoio, sistema interno | `Questao`, `Pesquisa` | Registrar o questionário como validado ou pendente, preservando versão e vínculo com a pesquisa. | `Questionário validado` ou `Planejada` (com pendência) | Checagem 2 |
+| S2 | Acompanhar adesão e representatividade | Avaliar participação observada, empresas respondentes e risco de baixa representatividade. | Dashboard operacional, base de respondentes/empresas | `Respondente`, `Empresa`, `Pesquisa` | Exibir numerador e denominador quando existir; sinalizar limitação de cálculo e baixa cobertura. | Adesão `Disponível` ou `Insuficiente` | Checagem 3 |
+| S3 | Revisar consistência dos resultados | Conferir agregados, inconsistências, órfãos e duplicidades antes da tabulação/publicação. | Dashboard de qualidade e de resultados | `Resposta`, `Questao`, `Pesquisa` | Classificar resultado como consistente, pendente ou dependente de reconciliação; nunca liberar sem revisão. | `Revisável` ou `Pendente de reconciliação` | Checagem 3 e 4 |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+A área técnica atua como **revisora e validadora**, não como operadora do ciclo:
+seu acesso é de leitura qualificada e sinalização, e suas ações alimentam as
+decisões da equipe interna e do Data Owner, sem substituí-las.
+
+
+### 6.7.7 Transições de estado do modelo — fluxo principal
+
+Esta subseção associa **cada passo do fluxo principal (§6.7.3)** à transição de
+estado que ele provoca no modelo relacional, explicitando qual **entidade** é
+alterada, qual **atributo** muda e qual é o **novo estado**. O objetivo é permitir
+que o diagrama anotado mostre não apenas a ação de interface, mas o efeito
+persistente no dado — e servir de base para localizar, nas §6.7.9 e §6.7.10, onde
+fluxo e modelo deixam de se corresponder.
+
+O ciclo de vida do atributo `status` da entidade `Pesquisa` é a espinha dorsal
+dessas transições:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Solicitada
+    Solicitada --> EmTriagem: triar
+    EmTriagem --> Aprovada: aprovar
+    EmTriagem --> Recusada: recusar
+    Aprovada --> Planejada: planejar + questionário
+    Planejada --> QuestionarioValidado: validação técnica (S1)
+    QuestionarioValidado --> EmColeta: divulgar
+    EmColeta --> ColetaEncerrada: encerrar coleta
+    ColetaEncerrada --> Tabulada: tabular
+    Tabulada --> Revisada: revisar entrega
+    Revisada --> Publicada: publicar (autorização)
+    Revisada --> Bloqueada: bloquear
+    ColetaEncerrada --> PendenteReconciliacao: órfão / duplicidade
+    Recusada --> [*]
+    Publicada --> [*]
+```
+
+<div align="center"><sub>Figura 6.7.3 - Ciclo de vida do status da entidade Pesquisa</sub><br><sup>Material produzido pelos autores (2026)</sup></div>
+
+<div align="center">
+<sub>Tabela 6.7.13 - Transições de estado do modelo no fluxo principal</sub><br>
+
+| Passo (§6.7.3) | Entidade | Atributo alterado | Transição de estado | Observação de integridade |
+| :--- | :--- | :--- | :--- | :--- |
+| 1. Receber demanda | `Pesquisa` | `status`, `data_solicitacao`, origem | `—` → `Solicitada` | Origem preservada; duplicidade apenas sinalizada — sem campo próprio (§6.7.9). |
+| 2. Triar e aprovar | `Pesquisa` | `status`, `data_aprov` | `Solicitada` → `Em triagem` → `Aprovada`/`Recusada` | `data_aprov` ausente em 94,5% do legado — mede validação sobre poucos casos (§4.0). |
+| 3. Planejar pesquisa e questionário | `Pesquisa`, `Questao` | `status`, vínculo `Questao`↔`Pesquisa` | `Aprovada` → `Planejada` | Versão do questionário não é persistida (lacuna §6.7.13). |
+| 4. Criar tarefas e preparar coleta | `Pesquisa` | preparação operacional | `Planejada` (a preparação não gera novo estado canônico; a validação do instrumento é S1, §6.7.8) | Tarefas de Trello não têm entidade no modelo (§6.7.9). |
+| 5. Divulgar pesquisa | `Pesquisa` | `data_divulgacao`, `data_limite`, `status` | `Questionário validado` → `Em coleta` | Divulgação após a validação técnica (S1); marca o início da janela de coleta. |
+| 6. Monitorar participação | `Respondente` | cria vínculo `Empresa`/`Cliente`↔`Pesquisa` | cria `Participação` (`Em coleta`) | Denominador de adesão não é atributo do modelo (§6.7.9). |
+| 7. Encerrar coleta e validar | `Pesquisa`, `Resposta` | `status`, flags de qualidade | `Em coleta` → `Coleta encerrada` / `Pendente de reconciliação` | Órfãos e duplicidades classificados aqui. |
+| 8. Tabular e analisar | `Resposta`, `Questao` | agregação | `Coleta encerrada` → `Tabulada` | 1 linha de `Resposta` ≠ 1 respondente (matriz/checkbox — §6.7.11). |
+| 9. Revisar entrega | `Pesquisa` | `status`, autorização | `Tabulada` → `Revisada`/`Bloqueada` | Autorização e perfil não têm atributo próprio (§6.7.14). |
+| 10. Publicar resultado | `Pesquisa` | `status`, vínculo com acervo | `Revisada` → `Publicada` | Vínculo com o repositório externo não é modelado (§6.7.14). |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+
+### 6.7.8 Transições de estado do modelo — fluxo do perfil secundário
+
+Mesma associação da §6.7.7, agora para os passos da área técnica (§6.7.6). Como o
+perfil secundário **revisa e qualifica** em vez de avançar o ciclo, suas
+transições são de *qualificação de estado* (validar, sinalizar, liberar); por isso
+cada ação declara a **integridade relacional pressuposta** — a condição de dado
+que precisa valer para a transição ser legítima, verificada empiricamente na
+§6.7.15.
+
+<div align="center">
+<sub>Tabela 6.7.14 - Transições de estado do modelo no fluxo do perfil secundário</sub><br>
+
+| Passo (§6.7.6) | Entidade | Atributo alterado | Transição de estado | Integridade relacional pressuposta |
+| :--- | :--- | :--- | :--- | :--- |
+| S1. Validar questionário | `Questao`, `Pesquisa` | flag de validação técnica, `status` | `Planejada` → `Questionário validado` | Toda `Questao` referencia uma `Pesquisa` existente; matrizes têm alternativas coerentes. |
+| S2. Acompanhar adesão | `Respondente`, `Empresa` | estado de cálculo de adesão | `Em coleta` → adesão `Disponível`/`Insuficiente` | `id_empresa` íntegro (100%) e `id_cliente` conciliado; falta o denominador (universo convidado). |
+| S3. Revisar resultados | `Resposta`, `Pesquisa` | flag de consistência, `status` | `Coleta encerrada` → `Revisável`/`Pendente de reconciliação` | Toda `Resposta` liga a `Questao` (100%) e `Pesquisa` — exceto as chaves órfãs conhecidas. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+
+### 6.7.9 Passos do fluxo sem correspondência no modelo de dados
+
+Confrontando os fluxos (§6.7.3 e §6.7.6) com o modelo relacional, alguns passos
+previstos na interface **não têm entidade ou atributo** que os persista. Cada um é
+uma **lacuna potencial de modelagem**: a ação existe na tela, mas o dado que ela
+produziria não tem onde morar hoje — e portanto se perde entre uma sessão e outra.
+
+<div align="center">
+<sub>Tabela 6.7.15 - Passos do fluxo sem correspondência no modelo de dados</sub><br>
+
+| Passo de interface (fluxo) | O que a tela faz | Entidade/atributo faltante | Consequência se não modelado |
+| :--- | :--- | :--- | :--- |
+| Sinalizar duplicidade/conflito ao criar pesquisa (passo 1) | Marca suspeita de duplicata | `Pesquisa.flag_duplicidade` / entidade de conflito | Suspeita se perde; sem trilha da deduplicação. |
+| Registrar motivo de atraso/prorrogação (passo 2/5) | Explica o atraso | `Pesquisa.motivo_prorrogacao` | Prorrogação vira número sem causa; análise de gargalo fica cega. |
+| Preparar tarefas operacionais (passo 4) | Cria tarefas no Trello | Entidade `Tarefa` vinculada à `Pesquisa` | Trabalho operacional não é rastreável no DW. |
+| Exibir denominador de adesão (passo 6 / S2) | Calcula taxa de adesão | `Pesquisa.universo_convidado` (denominador) | Taxa de adesão incalculável ou estimada sem base. |
+| Capturar consentimento do respondente (coleta) | Registra consentimento LGPD | Entidade/atributo `Consentimento` | Base legal e direito do titular ficam sem rastro. |
+| Autorizar publicação com perfil/versão (passo 9/10) | Aprova e versiona a saída | `Pesquisa.autorizacao`, `versao_publicada` | Publicação sem controle de autorização/versão. |
+| Registrar parecer da validação técnica (S1) | Guarda o "aceito/devolvido" | Histórico de validação (revisor, data, parecer) | Decisão técnica não é auditável (§6.7.13). |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+
+### 6.7.10 Estados do modelo não produzidos por nenhum passo do fluxo
+
+O inverso da §6.7.9: estados ou marcações que o **modelo prevê (ou precisará
+prever)**, mas que **nenhuma ação do fluxo de interação alcança**. São estados
+isolados — entram por regra de qualidade/governança ou por processo de carga, não
+por interação do usuário — e por isso exigem rotina automática ou decisão fora do
+fluxo operacional.
+
+<div align="center">
+<sub>Tabela 6.7.16 - Estados do modelo não produzidos por passos do fluxo</sub><br>
+
+| Estado/marcação do modelo | Como surge | Por que nenhum passo do fluxo o produz | Encaminhamento |
+| :--- | :--- | :--- | :--- |
+| `Pesquisa = Não mapeada` (chave órfã) | Reconciliação dos `pesquisa_id` órfãos 424, 1116, 1139, 1147 (e `id_pesq` 304 em respondentes) | Nenhuma tela cria ou resolve o órfão; é decisão de governança com o parceiro | Rotina de qualidade + conciliação (política §2.8 do doc de Governança). |
+| `Registro em quarentena` | Bloqueio na ingestão por desvio crítico | O fluxo opera dados já ingeridos; a quarentena é anterior ao usuário | Fluxo de ações corretivas (governança), não o fluxo de interação. |
+| Histórico de mudança (SCD Tipo 2) | Versionamento de dimensão (ex.: `Empresa`) | O usuário não versiona dimensão pela tela | Processo de carga/ETL; evolução prevista no blueprint dimensional. |
+| `Adesão = Insuficiente (sem denominador)` | Ausência estrutural do universo convidado | Depende de dado inexistente (§6.7.9), não de ação de usuário | Só se resolve quando o denominador for modelado. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+
+### 6.7.11 Pontos de divergência no ciclo de vida das pesquisas
+
+Aqui se localizam os pontos em que o **modelo mental dos usuários contraria o
+ciclo de vida do dado** modelado pelo grupo — o coração do fluxo anotado. Cada
+divergência é ancorada na fase (coleta no SurveyMonkey, consolidação, liberação do
+acervo) e, quando possível, quantificada com o snapshot recebido.
+
+<div align="center">
+<sub>Tabela 6.7.17 - Pontos de divergência no ciclo de vida das pesquisas</sub><br>
+
+| Fase do ciclo | Expectativa do usuário | O que o modelo/fluxo exige | Impacto (com evidência) |
+| :--- | :--- | :--- | :--- |
+| Coleta (SurveyMonkey) | "Cada linha de resposta é uma pessoa." | 1 linha de `Resposta` é um elemento (matriz/checkbox), não um respondente. | 20.607 linhas de `respostas` para 18.735 `respondentes`: contar linha infla participação. |
+| Coleta / identidade | "O respondente é o mesmo entre as bases." | `id_cliente` aparece como texto (`s/i`) e como inteiro; exige conciliação de tipo. | Reconcilia 100% como string, mas o sentinela `s/i` quebra join numérico ingênuo. |
+| Coleta / cobertura | "Toda pesquisa tem questionário e respostas." | Só **10 das 366 pesquisas** têm questionário/respostas no snapshot. | Cubo de resultados cobre ~2,7% do acervo; indicador de conteúdo é parcial. |
+| Consolidação | "Encerrei a coleta, então o resultado está pronto." | Encerrar coleta só muda `status`; validação e tabulação são etapas próprias. | Publicação precoce de dado não validado. |
+| Liberação do acervo | "Aprovei tecnicamente, logo está publicado." | Publicação exige autorização, versão e perfil — não modelados (§6.7.14). | Expectativa de publicação automática sem controle. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+
+### 6.7.12 Divergências de expectativa quanto ao status da pesquisa
+
+Detalhamento de uma classe específica da §6.7.11: os momentos em que o **usuário
+acredita que a pesquisa está concluída, mas o modelo ainda exige validações
+pendentes**. É onde o status percebido descola do status real e gera cobrança ou
+publicação indevida.
+
+<div align="center">
+<sub>Tabela 6.7.18 - Divergências de expectativa quanto ao status da pesquisa</sub><br>
+
+| Status percebido pelo usuário | Status real no modelo | Validação pendente que falta | Efeito no trabalho |
+| :--- | :--- | :--- | :--- |
+| "Coleta encerrada = concluída" | `Coleta encerrada` (≠ `Publicada`) | Validação de qualidade + tabulação + revisão | Retrabalho e cobrança indevida de resultado. |
+| "Questionário aprovado = pronto para publicar" | `Questionário validado` | Coleta, análise e autorização de publicação | Pressão para publicar antes da coleta. |
+| "Tabulado = disponível no acervo" | `Tabulada` | Revisão de entrega + autorização + versionamento | Resultado exposto sem autorização registrada. |
+| "Prorroguei, então o prazo não conta" | `Em coleta` com `prorrogada_ate` | Registro de motivo e recálculo de dias úteis | Indicador de tempo distorcido sem a causa da prorrogação. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+
+### 6.7.13 Lacunas no modelo de dados — validação de pesquisas
+
+Documenta o que o banco **precisaria conter** para persistir os históricos de
+validação técnica, hoje ausentes. Sem isso, a validação da área técnica (S1)
+acontece, mas não deixa rastro consultável nem auditável.
+
+- **O que falta:** entidade/atributos de validação técnica — `Questao.validada`,
+  `Pesquisa.versao_questionario` e um registro de *quem validou, quando e com qual
+  parecer*.
+- **O que o modelo precisaria conter:** um histórico de validação (data, revisor,
+  resultado, versão do instrumento) ligado à `Pesquisa`, permitindo auditar por
+  que um questionário foi aceito ou devolvido.
+- **Evidência da lacuna:** o snapshot não possui nenhuma coluna de parecer ou
+  versão de questionário nas 231 linhas de `questoes`; a decisão técnica existe no
+  processo, não no dado.
+- **Status de implementação:** **pendente** — sinalizado como lacuna; a estrutura
+  de versionamento do questionário ainda não existe.
+
+
+### 6.7.14 Lacunas no modelo de dados — publicação no acervo
+
+Identifica as falhas na estrutura de dados que impedem o **rastreamento
+automatizado entre o DW e o repositório público** do site.
+
+- **O que falta:** vínculo persistido entre a `Pesquisa` interna e o item
+  publicado — `Pesquisa.autorizacao`, `versao_publicada`, `data_publicacao`,
+  `perfil_autorizado` e o identificador do recurso externo.
+- **O que o modelo precisaria conter:** uma relação de publicação ligando
+  resultado, versão, autorização e destino, preservando a linhagem entre o dado
+  interno e o divulgado.
+- **Evidência da lacuna:** não há na base qualquer chave que ligue `Pesquisa` ao
+  acervo publicado; a publicação hoje é manual e sem vínculo rastreável.
+- **Status de implementação:** **pendente** — é uma das evoluções previstas para o
+  TO-BE (§2.1).
+
+
+### 6.7.15 Verificação de alinhamento entre o modelo (DER) e os passos do fluxo
+
+Verificação de consistência (tarefa de teste) que confronta cada **relacionamento
+do DER** com os passos dos fluxos §6.7.3 e §6.7.6, para garantir que a
+correspondência fluxo↔banco esteja mapeada e que toda chave estrangeira usada nas
+transições de estado (§6.7.7 e §6.7.8) se sustente nos dados reais. A checagem é
+**reproduzível** pelo script `scripts/data_quality/valida_integridade_referencial.py`,
+executado sobre o snapshot do parceiro; os resultados abaixo são a sua saída.
+
+<div align="center">
+<sub>Tabela 6.7.19 - Integridade referencial medida nas bases reais (evidência do alinhamento)</sub><br>
+
+| Relacionamento do DER | Chaves distintas | Órfãs | Cobertura | Leitura |
+| :--- | ---: | ---: | ---: | :--- |
+| `questoes.pesquisa_id` → `pesquisas.id` | 10 | 4 | 60,0% | Órfãos documentados (424, 1116, 1139, 1147). |
+| `respostas.pesquisa_id` → `pesquisas.id` | 10 | 4 | 60,0% | Mesmos órfãos; só 10 pesquisas têm questionário. |
+| `respostas.id_pergunta` → `questoes.id_pergunta` | 231 | 0 | 100% | Íntegro. |
+| `respostas.id_empresa` → `empresas.ID` | 131 | 0 | 100% | Íntegro. |
+| `respondentes.id_pesq` → `pesquisas.id` | 327 | 1 | 99,7% | Órfão novo `304` (reter e reconciliar). |
+| `respondentes.id_empresa` → `empresas.ID` | 419 | 0 | 100% | Íntegro. |
+| `respondentes.id_cliente` → `clientes.id_cliente` | 5.430 | 0 | 100% | Íntegro (reconcilia como texto; há sentinela `s/i`). |
+| `clientes.id_empresa` → `empresas.ID` | 410 | 0 | 100% | Íntegro. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Resultado: das oito relações do DER, **seis estão 100% íntegras**; as duas
+exceções são as **chaves órfãs de pesquisa** — as quatro já conhecidas (424, 1116,
+1139, 1147) e a nova `304` encontrada em `respondentes`, todas encaminhadas para
+retenção e reconciliação com o parceiro (§6.7.10 e §2.8 do documento de
+Governança). Nenhuma ação do fluxo fica sem correspondência não analisada; as
+lacunas residuais (denominador de adesão, consentimento e versão de questionário)
+estão registradas nas §6.7.9, §6.7.13 e §6.7.14 como itens de modelagem, não como
+inconsistência de dado.
+
+
+### 6.7.16 Premissas do modelo de dados para o perfil secundário
+
+Hipóteses assumidas sobre a atuação da área técnica, organizadas para compor a
+legenda do artefato e para sinalizar o que precisa ser confirmado com o parceiro.
+
+<div align="center">
+<sub>Tabela 6.7.20 - Premissas do modelo de dados para o perfil secundário</sub><br>
+
+| Premissa | Descrição | Impacto se não se confirmar |
+| :--- | :--- | :--- |
+| Acesso de leitura qualificada | A área técnica consulta e sinaliza, mas não edita o ciclo. | Se tiver escrita, muda o modelo de permissões e a trilha de auditoria (§5). |
+| Atuação pontual | Entra em S1, S2 e S3, não em todo o ciclo. | Se atuar em mais etapas, o fluxo secundário precisa ser reexpandido. |
+| Papel de validação técnica reconhecido | Existe um responsável técnico formal pela validação do questionário. | Sem papel formal, a §6.7.13 vira bloqueio, não só lacuna. |
+| Frequência de acesso sob demanda | Acessa nos marcos de validação/revisão, não continuamente. | Se for contínuo, muda requisitos de desempenho e concorrência (RNF01). |
+| Denominador obtível no futuro | O universo convidado poderá ser capturado na integração com o SurveyMonkey. | Se nunca existir, a taxa de adesão permanece estruturalmente insuficiente. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+
+### 6.7.17 Validação da notação das transições de estado
+
+Checagem final de notação (tarefa de teste): confirma que as mudanças de estado
+das §6.7.7 e §6.7.8 usam **a mesma nomenclatura** de entidades e estados definida
+no modelo relacional, evitando divergência de nomes entre fluxo e banco.
+
+- **Entidades** grafadas de forma única, em maiúscula inicial e no singular:
+  `Pesquisa`, `Questao`, `Empresa`, `Cliente`, `Respondente`, `Resposta`.
+- **Estados de `Pesquisa`** padronizados na sequência do ciclo: `Solicitada` →
+  `Em triagem` → `Aprovada` → `Planejada` → `Questionário validado` → `Em coleta`
+  → `Coleta encerrada` → `Tabulada` → `Revisada` → `Publicada`; estados
+  transversais: `Bloqueada`, `Pendente de reconciliação`, `Não mapeada`.
+- **Convenção de nomes:** campos em `snake_case` (ex.: `data_aprov`, `id_cliente`)
+  e estados de negócio em linguagem natural — sem misturar as duas convenções na
+  mesma célula das tabelas de transição.
+- **Correção aplicada:** o rótulo genérico "concluída", antes usado de forma
+  ambígua, foi substituído pelo estado real correspondente (`Coleta encerrada`,
+  `Tabulada` ou `Publicada`, conforme o ponto), eliminando a ambiguidade apontada
+  na §6.7.12.
+
+Resultado: notação consistente entre as §6.7.6–6.7.8 e o modelo de dados; nenhuma
+divergência de nomenclatura de campo ou entidade remanescente.
+
+### 6.7.18 Classificação das divergências: acomodação e ruptura deliberada
+
+Esta subseção retoma as divergências já localizadas nas §6.7.4, §6.7.11 e
+§6.7.12 e atribui a cada uma uma decisão explícita de **acomodação** ou
+**ruptura deliberada**. As divergências que não se resolvem por decisão de
+interação — porque o modelo de dados não comporta o que o usuário espera — não
+entram aqui; elas são nomeadas como **lacuna** na §6.7.20, categoria que só se
+aplica quando a insuficiência é do modelo, e não a pontos em que o grupo apenas
+preferiu não decidir.
+
+**Acomodações.** São pontos em que o fluxo se ajusta à expectativa existente
+porque preservá-la sustenta o JTBD do perfil, não porque é mais simples de
+implementar.
+
+<div align="center">
+<sub>Tabela 6.7.21 - Acomodações do fluxo às expectativas dos perfis</sub><br>
+
+| ID | Ponto do fluxo | Expectativa preservada | Por que merece ser preservada |
+| :--- | :--- | :--- | :--- |
+| AC01 | Etapa 1 — canais de recebimento da solicitação | O solicitante continua enviando pedidos por Outlook, sem precisar aprender um canal novo. | Mudar o canal de entrada exigiria adoção por atores externos fora do controle do grupo (empresas, áreas requisitantes); a automação (n8n) deve normalizar a entrada existente, não impor comportamento novo a quem já usa e-mail — inverter isso adiaria a adoção sem ganho de rastreabilidade. |
+| AC02 | Etapas 3-4 — planejamento e preparação da coleta | A equipe interna continua operando com Trello, SurveyMonkey e documentos de apoio, em vez de migrar tudo para o sistema interno de uma vez. | O fluxo AS-IS (§4.0) mostra essas ferramentas em uso corrente; a lacuna real é o *vínculo* entre elas e a pesquisa (§6.7.9), não a ferramenta em si. Forçar abandono simultâneo de processo novo e ferramenta nova aumentaria erro operacional sem resolver o problema de rastreabilidade, que se resolve integrando, não substituindo. |
+| AC03 | Etapas 1-2 — etapa de triagem visível | A equipe mantém uma etapa própria de triagem antes de a demanda virar pesquisa oficial, como já ocorre hoje. | A decisão de duplicidade e prioridade (JOP01) já é tomada nesse ponto no processo atual; suprimir a etapa não eliminaria a decisão, apenas a esconderia — e o objetivo de rastreabilidade da §1.4 exige que ela continue explícita. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+**Rupturas deliberadas.** São pontos em que o fluxo contraria intencionalmente
+a expectativa de algum perfil. Para cada uma, registram-se o ganho que a
+sustenta após a aprendizagem, a frequência com que o perfil passa pelo ponto, o
+que determina se ele terá repetição suficiente para se acostumar, e o
+mecanismo de suporte que reduz o custo — detalhado com seu tipo de interface na
+§6.7.19.
+
+<div align="center">
+<sub>Tabela 6.7.22 - Rupturas deliberadas e mecanismos de suporte associados</sub><br>
+
+| ID | Ponto do fluxo (origem) | Ruptura em relação a | Ganho após a aprendizagem | Frequência de exposição | O que determina repetição suficiente | Suporte (§6.7.19) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| R01 | Etapas 1-2 — checagem de duplicidade (§6.7.4, linha 1) | Solicitante, que espera o pedido já em andamento. | Evita duplicar esforço de coleta e preserva a origem da demanda (JOP01); reduz retrabalho de reconciliação mais adiante. | Uma vez por solicitação enviada. | Áreas que solicitam pesquisas com regularidade (ex.: trimestral) acumulam repetições suficientes para internalizar o padrão "confirmação antes de andamento"; áreas que solicitam uma única vez não acumulam essa experiência e cada espera tende a parecer nova frustração. | S01 |
+| R02 | Etapas 2-5 — status só após marcos mínimos definidos (§6.7.4, linha 2) | Solicitante, que espera previsão contínua desde o início. | Evita prometer um SLA sem linha de base comprovada (§4.0.3), preservando a credibilidade dos indicadores de prazo (D01). | Alta — o solicitante tende a checar o status repetidamente enquanto aguarda. | Solicitantes que acompanham várias pesquisas ao longo do tempo aprendem que "sem cronograma definido" é um estado informativo, não uma falha; solicitantes ocasionais não desenvolvem essa leitura. | S02 |
+| R03 | Etapas 3-4 — validação do instrumento antes da coleta (§6.7.4, linha 3) | Área requisitante, que espera ver suas perguntas incorporadas com pouca mediação. | Garante comparabilidade e qualidade do questionário (JOP04), evitando retabulação por instrumento inconsistente. | Uma vez por pesquisa, mas repetida ao longo do ano para áreas que participam de múltiplos ciclos institucionais. | A recorrência da área junto à Central determina se ela passa a reconhecer a validação como etapa de qualidade ou continua a lê-la como barreira burocrática. | S03 |
+| R04 | Etapa 6 — bloqueio de taxa de adesão sem denominador (§6.7.4, linha 4; §6.7.11) | Equipe interna e área técnica, que esperam uma taxa simples de adesão. | Impede decisão baseada em indicador não confiável, protegendo a credibilidade da Central e o JOP03. | Alta — o indicador é consultado continuamente durante a coleta. | Esta ruptura **não converte em aprendizagem plena por repetição**: enquanto o denominador (`universo_convidado`) não existir no modelo (lacuna L04, §6.7.20), o usuário sempre encontrará o indicador bloqueado, então o custo de ruptura só é reduzido de fato quando a lacuna for fechada — a exposição repetida apenas evidencia isso. | S04 |
+| R05 | Etapas 8-10 — publicação condicionada à autorização (§6.7.4, linha 5) | Solicitante, que espera acesso ao resultado assim que a tabulação termina. | Impede publicação sem autorização, versão e perfil compatível — requisito de governança e LGPD (§6.6). | Uma vez por pesquisa entregue; repetida para solicitantes recorrentes. | Solicitantes que interagem com a Central em mais de uma pesquisa aprendem a distinguir "tabulado" de "publicado"; solicitantes eventuais tendem a repetir a cobrança indevida registrada na §6.7.12. | S05 |
+| R06 | "Coleta encerrada = concluída" (§6.7.12, linha 1) | Equipe interna e solicitante, que leem o encerramento da coleta como entrega pronta. | Preserva a separação entre `Coleta encerrada`, `Tabulada`, `Revisada` e `Publicada` (§6.7.7), evitando cobrança e retrabalho por status mal lido. | Uma vez por ciclo de pesquisa, no encerramento da coleta. | Quanto mais pesquisas a equipe acompanha de ponta a ponta, mais rápido associa "encerrado" a "ainda em validação"; times que só acompanham o início do ciclo não desenvolvem essa leitura sozinhos. | S06 |
+| R07 | "Questionário aprovado = pronto para publicar" (§6.7.12, linha 2) | Área técnica, que tende a ler a validação técnica (S1) como autorização de publicação. | Mantém a sequência coleta → análise → autorização como condição de publicação, coerente com a governança (§6.6) e com o papel de revisão, não de decisão, da área técnica (§6.7.6). | Uma vez por questionário validado; a área técnica passa por esse ponto em toda pesquisa em que atua (S1). | Como a área técnica atua de forma pontual (premissa do perfil secundário, §6.7.16), sua repetição depende do volume de pesquisas em que é chamada a validar — quanto menor esse volume, menor a chance de a distinção se consolidar sem suporte. | S07 |
+| R08 | "Tabulado = disponível no acervo" (§6.7.12, linha 3) | Equipe interna, no momento de revisar a entrega. | Garante que resultado tabulado passe por revisão de consistência, autorização e versionamento antes de qualquer disponibilização (JOP05). | Uma vez por pesquisa, na revisão de entrega (etapa 9). | A equipe que revisa entregas com frequência aprende a distinguir os três estados; a leitura só se consolida se a revisão continuar visível como etapa própria e não for pulada em nome de agilidade. | S08 |
+| R09 | Contagem de participação (§6.7.11, coleta) | Equipe interna e área técnica, que leem a contagem de linhas de resposta como contagem de pessoas. | O sistema conta respondentes únicos, não linhas de `Resposta` (20.607 linhas para 18.735 respondentes), evitando inflar participação e adesão. | Média — aparece sempre que participação ou adesão é consultada nos painéis. | Analistas que usam os painéis com frequência internalizam a distinção respostas × respondentes; usuários eventuais tendem a reincidir na leitura ingênua. | S09 |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+As duas divergências restantes da §6.7.11 não recebem classificação de
+acomodação, ruptura ou lacuna porque não são decisões de interação. A
+**identidade inconsistente** (`id_cliente` como texto e como inteiro) é resolvida
+por **conciliação de tipo na camada tratada** — transparente ao usuário, é
+decisão de modelagem/ETL, não de fluxo. A **cobertura parcial** (só 10 das 366
+pesquisas têm questionário) é uma **limitação de dado reportada honestamente**,
+não uma expectativa que o fluxo frustra. Ambas ficam registradas na §6.7.11, mas
+fora da tríade AC/R/L, que se aplica a divergências resolvíveis por decisão de
+projeto.
+
+Em conjunto, essas decisões sustentam uma posição coerente: o projeto **acomoda
+o modo de trabalho atual** onde a mudança de canal ou ferramenta não traria
+ganho de rastreabilidade (AC01-AC03), e **rompe deliberadamente** com a
+expectativa de conclusão instantânea sempre que o dado ainda não sustenta a
+confiança que a Central promete entregar (R01-R09). Nenhuma ruptura desta
+lista é mantida apenas porque seria mais trabalhoso mudar; cada uma está
+amarrada a um JOP (§6.7.1) ou a um requisito de governança (§6.6).
+
+
+### 6.7.19 Mecanismos de suporte para mitigação de ruptura
+
+Cada mecanismo abaixo é posicionado no exato ponto do fluxo em que a ruptura
+correspondente (§6.7.18) ocorre, seguindo os selos e cartões de estado já
+definidos na §6.7.4 (CP01-CP07) e complementando-os com o tipo de interface que
+os torna acionáveis.
+
+<div align="center">
+<sub>Tabela 6.7.23 - Mecanismos de suporte para mitigação de ruptura</sub><br>
+
+| ID | Ruptura mitigada | Mecanismo de suporte | Tipo de interface | Posição no fluxo |
+| :--- | :--- | :--- | :--- | :--- |
+| S01 | R01 | Confirmação imediata da solicitação com selo `nova`, `em triagem` ou `pendente de informação`, mostrando se uma demanda semelhante já existe. | Feedback visual (selo de estado) + validação preventiva (checagem de duplicidade antes de criar registro). | Logo após o envio, na Checagem 1 (§6.7.2), antes de qualquer resposta de e-mail. |
+| S02 | R02 | Barra de progresso do ciclo com rótulo do que falta ("aguardando definição de cronograma") em vez de campo vazio. | Feedback visual (indicador de progresso com texto explicativo). | Na tela de acompanhamento, entre as etapas 2 e 5, atualizada a cada marco. |
+| S03 | R03 | Checklist de preparação visível à área requisitante, com itens `concluído`, `pendente` e `bloqueado`, explicando o motivo de cada bloqueio. | Assistente em tela (checklist guiado) + tooltip explicativo em cada item bloqueado. | Nas etapas 3-4, ao lado do formulário do questionário. |
+| S04 | R04 | Cartão de adesão com estado `calculável`, `indisponível` ou `atenção`, com tooltip explicando por que a taxa não pode ser calculada quando falta denominador. | Feedback visual (cartão de estado) + tooltip explicativo. | Na etapa 6, junto ao indicador de participação (CP05). |
+| S05 | R05 | Selo `autorizado`, `bloqueado` ou `pendente` vinculado à versão do resultado, com lista do que falta para liberar. | Feedback visual (selo) + validação preventiva (bloqueio de publicação sem autorização registrada). | Nas etapas 9-10, na tela de revisão de entrega (CP07). |
+| S06 | R06 | Linha do tempo do ciclo destacando o marco atual entre `Coleta encerrada`, `Tabulada`, `Revisada` e `Publicada`, impedindo que o encerramento da coleta seja lido como conclusão. | Feedback visual (linha do tempo de estados). | Ao encerrar a coleta, na transição para a etapa 7-8. |
+| S07 | R07 | Tooltip explicativo junto ao resultado da validação técnica (S1), esclarecendo que "validado" cobre o instrumento, não o resultado da pesquisa. | Tooltip explicativo. | No painel da área técnica, imediatamente após o parecer de S1 (§6.7.6). |
+| S08 | R08 | Validação preventiva que impede avançar de `Tabulada` para qualquer disponibilização sem passar pela revisão de entrega (etapa 9). | Validação preventiva (bloqueio de transição de estado). | Na tentativa de publicar a partir do estado `Tabulada`, antes da Checagem 4. |
+| S09 | R09 | Rótulo duplo no painel de participação — `respondentes: N` e `respostas: M` — com tooltip explicando que uma resposta de matriz ou checkbox gera várias linhas. | Feedback visual (rótulo duplo) + tooltip explicativo. | No painel de participação/adesão (CP05), junto ao número de respondentes. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+O padrão adotado combina quatro tipos de mecanismo — feedback visual, tooltip
+explicativo, validação preventiva e assistente em tela —, escolhendo o tipo
+conforme a natureza do custo: informação ausente recebe feedback visual ou
+tooltip; decisão que pode ser tomada errado por engano recebe validação
+preventiva; tarefa com múltiplos requisitos recebe assistente em tela.
+
+
+### 6.7.20 Lacunas no modelo de dados — consolidação e nomenclatura
+
+Esta subseção nomeia as lacunas já documentadas nas §6.7.9, §6.7.13 e §6.7.14,
+além da lacuna de prorrogação identificada na §6.7.12. Nomear a insuficiência é
+o que distingue esta categoria das demais: uma divergência só entra aqui
+quando o modelo de dados, e não uma escolha de interação, é o que falta.
+
+<div align="center">
+<sub>Tabela 6.7.24 - Lacunas no modelo de dados consolidadas e nomeadas</sub><br>
+
+| ID | Divergência associada | O que falta no modelo | O que o modelo precisaria conter | Status de implementação |
+| :--- | :--- | :--- | :--- | :--- |
+| L01 | Sinalização de duplicidade ao criar pesquisa (§6.7.9) | `Pesquisa.flag_duplicidade` ou entidade de conflito. | Um registro da suspeita de duplicidade e de sua resolução, ligado à `Pesquisa`, para preservar a trilha de deduplicação. | **Pendente.** |
+| L02 | "Prorroguei, então o prazo não conta" (§6.7.12, linha 4) | `Pesquisa.motivo_prorrogacao`. | Um campo que registre a causa da prorrogação e permita recalcular dias úteis a partir dela, em vez de tratar `prorrogada_ate` como um número isolado. | **Pendente.** |
+| L03 | Tarefas operacionais no Trello (§6.7.9) | Entidade `Tarefa` vinculada à `Pesquisa`. | Um vínculo persistido entre a tarefa operacional e a pesquisa, para que o trabalho realizado fora do sistema interno permaneça rastreável no DW. | **Pendente.** |
+| L04 | Denominador de adesão (§6.7.9, §6.7.11, R04) | `Pesquisa.universo_convidado`. | O universo elegível/convidado por pesquisa, permitindo calcular taxa de adesão com numerador e denominador de grão compatível. | **Pendente** — depende da integração futura com o SurveyMonkey (premissa PA-secundária, §6.7.16). |
+| L05 | Consentimento do respondente na coleta (§6.7.9) | Entidade/atributo `Consentimento`. | Um registro de base legal e consentimento por respondente, hoje inexistente, necessário para sustentar o direito do titular sob a LGPD (§6.6). | **Pendente.** |
+| L06 | Autorização e versionamento da publicação (§6.7.14, R05) | `Pesquisa.autorizacao`, `versao_publicada`, `data_publicacao`, `perfil_autorizado` e identificador do recurso externo. | Uma relação de publicação que ligue resultado, versão, autorização e destino, preservando a linhagem entre o dado interno e o divulgado no acervo. | **Pendente** — evolução prevista para o TO-BE (§2.1). |
+| L07 | Histórico de validação técnica do questionário (§6.7.13, R07) | Registro de *quem validou, quando e com qual parecer*, além de `Questao.validada` e `Pesquisa.versao_questionario`. | Um histórico auditável de validação, ligado à `Pesquisa`, que explique por que um questionário foi aceito ou devolvido. | **Pendente.** |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Nenhuma das sete lacunas foi ajustada nesta sprint; todas permanecem como
+evolução necessária do modelo, distinta das rupturas deliberadas da §6.7.18 —
+que são decisões de interação e não dependem de mudança de esquema.
+
+
+### 6.7.21 Notação e legenda dos diagramas
+
+A notação escolhida para os diagramas anotados (§6.7.3 e §6.7.6, atualizados
+com as marcações abaixo) usa cor e um marcador textual por classificação, para
+que a leitura não dependa de distinguir apenas cor — importante para
+impressão em preto e branco ou leitores com baixa distinção cromática.
+
+<div align="center">
+<sub>Tabela 6.7.25 - Notação e legenda dos diagramas anotados</sub><br>
+
+| Elemento visual | Significado | Onde aparece |
+| :--- | :--- | :--- |
+| Retângulo de borda arredondada `([ ])` | Início ou fim de um trecho do fluxo. | Início/fim de cada diagrama. |
+| Retângulo `[ ]` | Passo de ação de um ator do fluxo. | Todos os passos numerados (§6.7.3) ou identificados por letra de estado (§6.7.6). |
+| Losango `{ }` | Ponto de checagem ou decisão (Checagem 1-4, §6.7.2; S1-S3, §6.7.6). | Nós de checagem/decisão. |
+| Seta cheia | Transição principal do fluxo. | Toda sequência de passos. |
+| Seta pontilhada | Retorno para complementação, ajuste ou retrabalho. | Ex.: `P1 -.complementação.-> A`. |
+| Verde · `✓` + sigla `ACxx` | **Acomodação** — o fluxo se ajusta à expectativa existente (§6.7.18). | Nós B e D do fluxo principal. |
+| Amarelo · `⚠` + sigla `Rxx` | **Ruptura deliberada** — o fluxo contraria a expectativa por decisão de projeto (§6.7.18). | Nós C1, C2, G, H (fluxo principal) e S3 (fluxo secundário). |
+| Vermelho · `⛔` + sigla `Lxx` | **Lacuna no modelo** — a divergência exige mudança de esquema, não decisão de interação (§6.7.20). | Nós C3, C4 (fluxo principal) e S1, S2 (fluxo secundário). |
+| Rótulo abaixo do nó de estado | Estado do dado no modelo relacional (§6.7.7 e §6.7.8), com nomenclatura validada na §6.7.17. | Nós de início/fim e nós de decisão. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Toda premissa assumida (§6.7.5 e §6.7.16) é marcada no texto de apoio com o
+prefixo **"Premissa:"** e não é apresentada como fato do fluxo — convenção
+seguida em todas as tabelas de premissas deste documento.
+
+
+### 6.7.22 Diagramas anotados: fluxo principal e fluxo secundário
+
+Os diagramas abaixo repetem a estrutura das §6.7.3 e §6.7.6, agora com a
+classificação da §6.7.18 aplicada diretamente sobre os nós, seguindo a
+legenda da §6.7.21. As tabelas de passos e transições dessas seções continuam
+válidas. Cada diagrama é apresentado em duas formas equivalentes: o código
+Mermaid (renderizável diretamente no repositório) e a **versão exportada em
+imagem** logo abaixo (`docs/assets/diagramas/`, também disponível em PDF), que é
+o arquivo final legível sem ferramenta proprietária exigido pela entrega
+(checklist §6.7.23).
+
+**Fluxo principal — perfil operacional (equipe da Central de Pesquisas)**
+
+```mermaid
+flowchart TD
+    classDef acom fill:#d4edda,stroke:#28a745,color:#155724
+    classDef rupt fill:#fff3cd,stroke:#e0a800,color:#856404
+    classDef lacuna fill:#f8d7da,stroke:#dc3545,color:#721c24
+
+    A([Solicitação recebida]) --> C1{Checagem 1<br/>pesquisa criada ou localizada?<br/>⚠ R01}
+    C1 -->|duplicidade ou campos ausentes| P1[Pendente de informação<br/>ou revisão<br/>⛔ L01]
+    C1 -->|origem preservada| B[Triagem e aprovação<br/>✓ AC03]
+    P1 -.complementação.-> A
+    B --> C2{Checagem 2<br/>marcos e responsáveis definidos?<br/>⚠ R02}
+    C2 -->|não| P2[Planejamento pendente]
+    C2 -->|sim| D[Planejar questionário<br/>e preparar coleta<br/>✓ AC02 · ⚠ R03]
+    P2 -.ajuste.-> B
+    D --> E[Divulgar pesquisa]
+    E --> F[Monitorar participação]
+    F --> C3{Checagem 3<br/>dados e adesão confiáveis?<br/>⛔ L04}
+    C3 -->|sem denominador<br/>ou anomalia| P3[Pendente de qualidade<br/>ou reconciliação]
+    C3 -->|dados utilizáveis| G[Encerrar coleta<br/>e tabular resultados<br/>⚠ R06]
+    P3 -.correção.-> F
+    G --> H[Revisar entrega<br/>⚠ R08]
+    H --> C4{Checagem 4<br/>resultado autorizado?<br/>⚠ R05 · ⛔ L06}
+    C4 -->|não| P4[Publicação bloqueada<br/>ou pendente]
+    C4 -->|sim| I([Resultado publicado<br/>ou disponibilizado])
+
+    class B,D acom
+    class C1,C2,G,H rupt
+    class C3,C4,P1 lacuna
+```
+
+<div align="center">
+<sub>Figura 6.7.4 - Fluxo de interação anotado do perfil operacional principal (equipe da Central de Pesquisas)</sub><br>
+
+![Fluxo de interação anotado do perfil operacional principal, com checagens 1 a 4 e classificação de acomodação, ruptura e lacuna](assets/diagramas/fluxo-principal.png)
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+**Fluxo secundário — área técnica**
+
+```mermaid
+flowchart TD
+    classDef acom fill:#d4edda,stroke:#28a745,color:#155724
+    classDef rupt fill:#fff3cd,stroke:#e0a800,color:#856404
+    classDef lacuna fill:#f8d7da,stroke:#dc3545,color:#721c24
+
+    A([Pesquisa Planejada<br/>Premissa: acesso de leitura qualificada]) --> S1{S1 · Validar<br/>questionário<br/>⛔ L07}
+    S1 -->|inconsistência técnica| P1[Devolvida:<br/>pendente de ajuste]
+    S1 -->|instrumento coerente| V[Questionário validado<br/>⚠ R07]
+    P1 -.retrabalho.-> A
+    V --> COL([Em coleta])
+    COL --> S2{S2 · Acompanhar<br/>adesão<br/>⛔ L04}
+    S2 -->|sem denominador| L1[Adesão insuficiente<br/>lacuna §6.7.9]
+    S2 -->|base disponível| AD[Adesão disponível]
+    AD --> ENC([Coleta encerrada])
+    L1 --> ENC
+    ENC --> S3{S3 · Revisar<br/>resultados<br/>⚠ R06}
+    S3 -->|órfão / duplicidade| P2[Pendente de<br/>reconciliação]
+    S3 -->|consistente| REV[Revisável → tabulação]
+
+    class S1,S2 lacuna
+    class S3 rupt
+```
+
+<div align="center">
+<sub>Figura 6.7.5 - Fluxo de interação anotado do perfil secundário (área técnica), restrito ao trecho de divergência</sub><br>
+
+![Fluxo de interação anotado do perfil secundário da área técnica, com os pontos S1 a S3 e classificação de lacuna e ruptura](assets/diagramas/fluxo-secundario.png)
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Leitura obrigatória para os dois diagramas: cor e sigla juntas indicam a
+classificação (§6.7.21); a ausência de marcação em um nó (ex.: `E`, `F`,
+`COL`, `AD`) significa que o passo não concentra divergência relevante — ele
+segue o fluxo sem atrito registrado nas §6.7.4, §6.7.11 ou §6.7.12.
+
+### 6.7.23 Checklist de entrega do Fluxo de Interação Anotado
+
+Verificação final (tarefa de teste) dos itens de entrega esperados, aplicada
+ao conteúdo produzido nas §6.7.1-§6.7.23.
+
+<div align="center">
+<sub>Tabela 6.7.26 - Checklist de entrega do Fluxo de Interação Anotado</sub><br>
+
+| Item da checklist | Onde está atendido | Situação |
+| :--- | :--- | :--- |
+| Os dois fluxos previstos no escopo foram entregues (principal ponta a ponta; secundário no trecho de divergência). | §6.7.3 e §6.7.6 (tabelas e diagramas-base); §6.7.22 (diagramas anotados). | Atendido. |
+| O arquivo abre e é legível sem ferramenta proprietária específica. | Diagramas em Mermaid dentro de Markdown e exportados em PNG/PDF na §6.7.22 (`docs/assets/diagramas/fluxo-principal.*` e `fluxo-secundario.*`), abríveis em qualquer visualizador de PDF ou navegador. | Atendido. |
+| As premissas assumidas estão marcadas como tais no documento. | §6.7.5 (perfil principal), §6.7.16 (perfil secundário) e convenção "Premissa:" registrada na §6.7.21. | Atendido. |
+| Há legenda ou chave de leitura da notação adotada. | §6.7.21. | Atendido. |
+| Cada divergência recebeu decisão de acomodação, ruptura deliberada ou lacuna. | §6.7.18 (acomodação e ruptura) e §6.7.20 (lacuna). | Atendido. |
+| Ao menos uma divergência envolve perfis distintos com expectativas incompatíveis sobre o mesmo objeto. | §6.7.4 (equipe interna × solicitante) e R01-R05 (§6.7.18), que retomam essas mesmas linhas. | Atendido. |
+| Passos sem correspondência no modelo e estados sem passo correspondente estão sinalizados, não silenciados. | §6.7.9 e §6.7.10, consolidados como lacunas nomeadas na §6.7.20. | Atendido. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Todos os itens do checklist estão atendidos. Os diagramas anotados da §6.7.22
+foram exportados em PNG e PDF (`docs/assets/diagramas/fluxo-principal.*` e
+`fluxo-secundario.*`), incorporados à documentação com legenda e fonte, e são
+legíveis em visualizador de PDF e em navegador padrão sem depender de ferramenta
+proprietária.
+
+
 # 7. Referências
 
 <a id="ref-1"></a>[1] INTELI; SINDUSFARMA. **Termo de Abertura de Projeto Inteli (TAPI) — ESMD11: arquitetura e governança de dados alinhada à estratégia corporativa**. São Paulo, 2026. Documento externo `Tapi-sinduspharma.txt`, conferido em 13 ago. 2026; SHA-256 `16ec3cb7efefa8a371aa4ad03ff47a0388b24c24f1e22545994d38ffaed0ba3c`.
@@ -2498,5 +3429,3 @@ uma afirmação como confirmada pelo parceiro. TAPI e Arquitetura só sustentam 
 trechos que afirmam explicitamente; conteúdo exclusivo do DMC, dicionário, JTBD
 ou Problem Canvas permanece tratado como referência documental, evidência
 observada nos dados ou proposta, conforme indicado nas tabelas.
-
-
