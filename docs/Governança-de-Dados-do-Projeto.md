@@ -1558,38 +1558,41 @@ listadas na Seção 6.11.
 Não se propõe um prazo único para todos os dados. O critério é manter o mínimo
 necessário enquanto durar a finalidade, a obrigação legal, o exercício regular
 de direitos ou a prestação de contas, conforme o art. 16 da LGPD. A tabela
-registra, para cada classe de dado, o critério proposto, o prazo quando ele tem
-âncora normativa e a condição que precisa ser atendida para o prazo deixar de
-ser `pendente_confirmacao`.
+registra, para cada classe de dado, o critério, o prazo proposto, a ação no
+vencimento e a condição para o prazo ser tratado como vigente.
 
-| Classe de dado | Critério de retenção proposto | Prazo | Condição para tratar como vigente |
-| :--- | :--- | :--- | :--- |
-| **Contatos e mapa de identidade** | Manter enquanto a pessoa for elegível a participar de pesquisas e enquanto a identidade for necessária para reconciliar participações. | `pendente_confirmacao` | Definir com o Sindusfarma o critério de elegibilidade, a base legal e o gatilho de remoção do contato. |
-| **Respostas brutas e participação identificável** | Manter enquanto a pesquisa estiver em execução, conciliação ou contestação de resultado. | `pendente_confirmacao` | Aprovar o marco que encerra a contestação e o prazo de guarda posterior à publicação. |
-| **Dados pseudonimizados para indicadores** | Manter enquanto o indicador for comparável e a série histórica for necessária à análise setorial. | `pendente_confirmacao` | Definir a janela de série histórica exigida pela Central e o momento de remoção da chave de reidentificação. |
-| **Resultado agregado publicado** | Manter enquanto a autorização de publicação permanecer válida, preservando a versão aprovada e sua linhagem. | `pendente_confirmacao` | Definir política de acervo, critério de retirada e responsável pela revogação da autorização. |
-| **Histórico de qualidade e ações corretivas** | Manter enquanto for necessário reconstruir o estado da qualidade em data passada e comprovar o tratamento de um desvio. | `pendente_confirmacao` | Aprovar a janela de reconstrução exigida pela auditoria mensal da Seção 2.7. |
-| **Logs de acesso e auditoria** | Manter pelo período necessário à responsabilização, à investigação e às obrigações aplicáveis, protegidos contra alteração. | `pendente_confirmacao` | Aprovar prazo de expiração formal com o Data Owner e a TI, considerando investigação de incidente. |
-| **Registro de incidente com dados pessoais** | Manter para prestação de contas perante a ANPD, inclusive quando o incidente não for comunicado. | **No mínimo cinco anos** contados da data do registro | Prazo com âncora normativa; resta comprovar o armazenamento protegido e o inventário dos registros. |
-| **Trilha de atendimento a direitos do titular** | Manter como comprovação do atendimento, sem constituir novo repositório de respostas. | `pendente_confirmacao` | Definir canal, responsável e prazo de guarda da evidência do atendimento. |
-| **Artefatos acadêmicos e documentação do projeto** | Manter conforme a exigência do curso, sem dado pessoal, base bruta ou credencial. | `pendente_confirmacao` | Confirmar a exigência institucional de guarda e a data de encerramento do projeto. |
+| Classe de dado | Critério de retenção | Prazo proposto | Ação no vencimento | Condição para tratar como vigente |
+| :--- | :--- | :--- | :--- | :--- |
+| **Contatos e mapa de identidade** | Manter enquanto a pessoa for elegível a participar e enquanto a identidade for necessária para reconciliar participações. | 24 meses após a última participação registrada | Eliminar contato e chave de identidade, preservando a participação já pseudonimizada. | Confirmar o critério de elegibilidade e a base legal com o Sindusfarma. |
+| **Respostas brutas e participação identificável** | Manter enquanto a pesquisa estiver em execução, conciliação ou contestação de resultado. | 24 meses após a publicação do resultado | Pseudonimizar, removendo a chave de reidentificação; não descartar a resposta. | Aprovar o marco que encerra a contestação de resultado. |
+| **Dados pseudonimizados para indicadores** | Manter enquanto o indicador for comparável e a série histórica for necessária à análise setorial. | 5 anos | Reavaliar a necessidade da série; anonimizar ou arquivar conforme o resultado. | Confirmar a janela de série histórica exigida pela Central. |
+| **Resultado agregado publicado** | Manter enquanto a autorização de publicação permanecer válida, preservando a versão aprovada e sua linhagem. | Enquanto a autorização vigorar, com revisão a cada 24 meses | Revalidar a autorização; retirar do acervo quando ela deixar de valer. | Definir política de acervo, critério de retirada e responsável pela revogação. |
+| **Histórico de qualidade e ações corretivas** | Manter enquanto for necessário reconstruir o estado da qualidade em data passada e comprovar o tratamento de um desvio. | 5 anos | Arquivar em camada de menor custo, preservando a imutabilidade do histórico. | Aprovar a janela de reconstrução exigida pela auditoria mensal da Seção 2.7. |
+| **Logs de acesso e auditoria** | Manter pelo período necessário à responsabilização e à investigação, protegidos contra alteração. | 12 meses, observado o mínimo de 6 meses do art. 15 da Lei nº 12.965/2014 | Expirar automaticamente, salvo log vinculado a incidente ou investigação em curso. | Confirmar a aplicabilidade do Marco Civil ao Sindusfarma e aprovar o prazo com a TI. |
+| **Registro de incidente com dados pessoais** | Manter para prestação de contas perante a ANPD, inclusive quando o incidente não for comunicado. | **No mínimo 5 anos** contados da data do registro | Reavaliar; eliminar somente após o prazo e sem investigação pendente. | Prazo com âncora normativa; resta comprovar armazenamento protegido e inventário. |
+| **Trilha de atendimento a direitos do titular** | Manter como comprovação do atendimento, sem constituir novo repositório de respostas. | 5 anos | Eliminar a trilha, preservando o registro estatístico do atendimento. | Definir canal, responsável e formato da evidência do atendimento. |
+| **Artefatos acadêmicos e documentação do projeto** | Manter conforme a exigência do curso, sem dado pessoal, base bruta ou credencial. | Até 12 meses após o encerramento do módulo | Arquivar o repositório; nenhum dado do parceiro é retido nesta classe. | Confirmar a exigência institucional de guarda com a coordenação. |
 
-**Prazos com âncora normativa.** Três prazos desta seção não dependem de decisão
-do parceiro porque decorrem de norma: a guarda mínima de cinco anos do registro
-de incidente, prevista na Resolução CD/ANPD nº 15/2024; a resposta ao titular em
-até quinze dias na hipótese do art. 19 da LGPD; e a comunicação de incidente à
-ANPD e aos titulares em três dias úteis quando presentes cumulativamente os
-critérios do art. 5º da mesma resolução. Os dois últimos são prazos de
-atendimento, não de retenção, e não devem ser convertidos em prazo de guarda.
+**Prazos com âncora normativa.** Quatro prazos não decorrem de escolha do
+projeto. A guarda mínima de cinco anos do registro de incidente vem da Resolução
+CD/ANPD nº 15/2024. O piso de seis meses para registros de acesso a aplicação
+vem do art. 15 da Lei nº 12.965/2014, cuja aplicabilidade ao Sindusfarma precisa
+ser confirmada e por isso aparece como piso, não como prazo adotado. A resposta
+ao titular em até quinze dias, na hipótese do art. 19 da LGPD, e a comunicação
+de incidente em três dias úteis são prazos de atendimento, não de retenção, e
+não devem ser convertidos em prazo de guarda.
 
-**Por que as demais linhas não recebem número.** As Seções 3.4, 3.6 e 3.8 já
-determinam que o catálogo registre dependência e não invente prazo enquanto esta
-seção não estiver homologada, e a Seção 4.10 mantém as retenções como pendentes
-de validação jurídica. Atribuir aqui um número sem decisão do parceiro
-transformaria uma lacuna conhecida em obrigação aparente e faria o catálogo
-herdar um prazo sem lastro. O critério de cada linha é suficiente para orientar
-a modelagem e para instruir a conversa com o Sindusfarma; o número entra quando
-a condição da última coluna for cumprida.
+**Estado dos prazos propostos.** Os demais números são proposta da equipe e
+seguem o mesmo estatuto das metas de backup da Seção 5.8: são baseline para
+discussão com o parceiro, não compromissos assumidos. Cada um tem uma razão
+declarada — o ciclo anual das pesquisas sustenta os 24 meses de contato e de
+resposta identificável, e a cobertura temporal observada nas bases, de 2022 a
+2027, sustenta os cinco anos da série pseudonimizada.
+
+Enquanto a homologação não ocorrer, o catálogo continua registrando `retencao` e
+`descarte` como `pendente_confirmacao`, conforme determinam as Seções 3.4, 3.6 e
+3.8. Um prazo proposto nesta seção não promove o metadado correspondente a
+`vigente`: a promoção exige a aprovação registrada prevista na última coluna.
 
 ## 6.4 Descarte seguro e expurgo
 
@@ -1786,7 +1789,7 @@ público um recorte que nenhuma delas poderia publicar isoladamente.
 | Fases, camadas e gates do ciclo | Proposta da equipe | Validar as transições contra o pipeline implantado e testar cada gate com caso permitido e caso negado. |
 | Critérios de retenção por classe de dado | Proposta da equipe | Aprovar com o Data Owner e a assessoria jurídica a base legal e o critério de cada classe. |
 | Guarda mínima de cinco anos do registro de incidente | Requisito normativo | Comprovar armazenamento protegido, inventário dos registros e acesso restrito ao propósito. |
-| Prazos das demais classes | Pendente de decisão do parceiro | Substituir `pendente_confirmacao` por prazo aprovado, com responsável e data de vigência. |
+| Prazos de retenção propostos por classe | Proposta da equipe, com o mesmo estatuto das metas da Seção 5.8 | Aprovar cada prazo com o Data Owner e a assessoria jurídica, registrando responsável e data de vigência. |
 | Camadas de arquivamento e tempo de recuperação | Pendente | Escolher a plataforma, registrar custo, tempo de recuperação e mecanismo de transição entre camadas. |
 | Propagação do expurgo a cópias e backups | Proposta da equipe | Demonstrar expurgo propagado, expiração verificada e bloqueio de restauração indevida. |
 | `load_id`, `data_version` e versionamento SCD | Capacidades planejadas | Implantar pipeline que registre origem, versão e execução e promover `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA`. |
@@ -1800,7 +1803,7 @@ O ciclo de vida só pode ser descrito como implantado quando houver, no ambiente
 correspondente:
 
 0. inventário de ativos com classe, critério e prazo de retenção aprovados;
-0. tabela de temporalidade sem `pendente_confirmacao` nas classes que contenham dado pessoal;
+0. prazo de retenção aprovado pelo parceiro para cada classe que contenha dado pessoal;
 0. rotina de expurgo executada, com escopo, critério, contagens e responsável registrados;
 0. propagação do descarte comprovada em cópias, backups, índices, caches e exports;
 0. restauração testada sem reintroduzir registro eliminado, bloqueado ou revogado;
