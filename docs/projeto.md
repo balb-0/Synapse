@@ -2485,6 +2485,20 @@ por uma identidade comum.
 | AP03 | Criar tarefa operacional | Trello vinculado ao sistema interno | Tarefa associada ao ID da pesquisa, etapa, responsável e prazo operacional. | Acompanhar responsabilidades sem abrir múltiplas ferramentas para descobrir o estado do trabalho. | Atendida parcialmente enquanto a integração Trello-sistema não for automática; o vínculo pendente deve aparecer como alerta. | Checagem 2 (§6.7.2) |
 | AP04 | Preparar formulário de coleta | SurveyMonkey, documentos de apoio e sistema interno | Questionário associado à pesquisa, com versão ou pendência de versão, status de preparação e responsável. | Saber se o instrumento já pode seguir para divulgação. | Atendida se o fluxo confirma formulário preparado ou bloqueia a divulgação quando faltar validação, versão ou vínculo com a pesquisa. | Checagem 2 (§6.7.2) |
 
+Na tabulação e publicação, a expectativa de entrega só é atendida quando o
+resultado deixa claro de quais respostas veio, quais validações foram aplicadas
+e em que estado de autorização está. Para o operador, dado publicado deve
+significar dado agregado, rastreável e disponível ao perfil correto; quando
+autorização, versão ou vínculo com o acervo não existirem, a solução deve mostrar
+indisponibilidade ou bloqueio, não conclusão automática.
+
+| ID | Passo de tabulação/publicação | Interface ou canal | Entidade/registro esperado | Expectativa do operador | Validação da expectativa | Checagem |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| TP01 | Consolidar respostas encerradas | SurveyMonkey, bases CSV e dashboard de qualidade | `Resposta`, `Questao` e `Pesquisa` vinculadas, com órfãos e duplicidades classificados. | Iniciar a tabulação a partir de um conjunto de respostas confiável. | Atendida se a consolidação informa registros válidos, pendentes e em reconciliação; não atendida se respostas sem vínculo forem somadas sem alerta. | Checagem 3 (§6.7.2) |
+| TP02 | Validar agregados e indicadores | Dashboard de resultados e regras analíticas | Resultado agregado por pesquisa, pergunta e recorte permitido, com `n`, `N` disponível e limitação declarada. | Confiar que o indicador exibido corresponde ao dado coletado e ao grão correto. | Atendida se numerador, denominador e filtros ficam explícitos; parcial quando o denominador não existe e o sistema bloqueia taxa ou marca como indisponível. | Checagem 3 (§6.7.2) |
+| TP03 | Revisar entrega antes da publicação | Sistema interno, dashboard e documento de resultado | Resultado revisado, com versão, responsável, público de destino e decisão pendente/aprovada/bloqueada. | Saber se o resultado já pode ser entregue ou se ainda depende de autorização. | Atendida se a revisão separa `tabulado`, `revisado` e `autorizado`; não atendida se tabulação for tratada como publicação. | Checagem 4 (§6.7.2) |
+| TP04 | Publicar ou disponibilizar no acervo | Acervo do site, dashboard ou relatório autorizado | Resultado publicado ou bloqueado, vinculado à pesquisa interna, versão e decisão do Data Owner. | Supor que o dado disponível no acervo é confiável, atual e permitido para aquele perfil. | Atendida se o acervo preserva vínculo, versão, data e perfil autorizado; enquanto esses metadados forem futuros, a disponibilidade deve aparecer como proposta ou pendente. | Checagem 4 (§6.7.2) |
+
 ### 6.7.5 Premissas e validação de consistência
 
 A equipe interna é tratada como perfil com acesso operacional ao fluxo, mas não
