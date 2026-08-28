@@ -2400,6 +2400,32 @@ resultado. A tabela não descreve todas as regras de tela; ela identifica os
 atores, passos sequenciais e interfaces que devem aparecer no diagrama do perfil
 principal.
 
+O diagrama abaixo resume o fluxo de ponta a ponta do perfil operacional
+principal. Os nós de checagem correspondem aos momentos definidos na §6.7.2 e
+servem como pontos de anotação para conflitos, alertas e mudanças de estado.
+
+```mermaid
+flowchart TD
+    A([Solicitação recebida]) --> C1{Checagem 1<br/>pesquisa criada ou localizada?}
+    C1 -->|duplicidade ou campos ausentes| P1[Pendente de informação<br/>ou revisão]
+    C1 -->|origem preservada| B[Triagem e aprovação]
+    P1 -.complementação.-> A
+    B --> C2{Checagem 2<br/>marcos e responsáveis definidos?}
+    C2 -->|não| P2[Planejamento pendente]
+    C2 -->|sim| D[Planejar questionário<br/>e preparar coleta]
+    P2 -.ajuste.-> B
+    D --> E[Divulgar pesquisa]
+    E --> F[Monitorar participação]
+    F --> C3{Checagem 3<br/>dados e adesão confiáveis?}
+    C3 -->|sem denominador<br/>ou anomalia| P3[Pendente de qualidade<br/>ou reconciliação]
+    C3 -->|dados utilizáveis| G[Encerrar coleta<br/>e tabular resultados]
+    P3 -.correção.-> F
+    G --> H[Revisar entrega]
+    H --> C4{Checagem 4<br/>resultado autorizado?}
+    C4 -->|não| P4[Publicação bloqueada<br/>ou pendente]
+    C4 -->|sim| I([Resultado publicado<br/>ou disponibilizado])
+```
+
 | Ordem | Etapa do fluxo | Atores envolvidos | Interface ou canal | Ação principal | Resposta esperada da solução | Ponto de checagem |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | Receber demanda de pesquisa | Solicitante, equipe da Central | Outlook, n8n, sistema interno | Receber solicitação e registrar necessidade, objetivo e contexto. | Criar ou localizar uma pesquisa com origem preservada e status inicial. | Checagem 1 |
