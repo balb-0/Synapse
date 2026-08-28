@@ -2501,12 +2501,24 @@ indisponibilidade ou bloqueio, não conclusão automática.
 
 ### 6.7.5 Premissas e validação de consistência
 
-A equipe interna é tratada como perfil com acesso operacional ao fluxo, mas não
-como administradora irrestrita dos dados. O fluxo assume treinamento básico,
-permissão para consultar e acompanhar pesquisas internas, e existência futura de
-regras aprovadas para edição, publicação e acesso. Cada critério de sucesso
-listado em §6.7.1 possui pelo menos um ponto de confirmação em §6.7.2 e aparece
-em uma ou mais etapas do fluxo principal da §6.7.3.
+A equipe interna é tratada como perfil com autonomia operacional para acompanhar
+o ciclo das pesquisas, mas não como administradora irrestrita dos dados. As
+premissas abaixo delimitam o que o fluxo assume sobre treinamento, permissões e
+capacidade técnica; se elas não se confirmarem, a adoção da solução pode exigir
+mais mediação, suporte ou revisão de papéis.
+
+| ID | Premissa de autonomia | Descrição | Impacto se não se confirmar |
+| :--- | :--- | :--- | :--- |
+| PA01 | Treinamento básico no fluxo | A equipe interna reconhece etapas, status, pendências e checagens do ciclo de pesquisa descrito na §6.7.3. | O operador pode interpretar alertas como erro do sistema, manter controles paralelos e reduzir a confiança no acompanhamento integrado. |
+| PA02 | Permissão de consulta operacional | O perfil principal pode visualizar pesquisas, marcos, participação, qualidade e estado de publicação necessários ao trabalho diário. | A solução perde valor como ambiente único; a equipe volta a depender de SurveyMonkey, Trello, planilhas e acervo separados para confirmar progresso. |
+| PA03 | Permissão controlada de edição | A equipe pode registrar ou corrigir metadados operacionais, como responsável, status, prazo, pendência e vínculo de tarefa/questionário, dentro de regras aprovadas. | Se a edição depender sempre de outro perfil, aumenta o tempo de atualização e a percepção de automação fica parcial; se for ampla demais, cresce o risco de inconsistência e falta de auditoria. |
+| PA04 | Capacidade de interpretar qualidade do dado | O operador compreende estados como `válido`, `pendente`, `em reconciliação`, `indisponível` e `bloqueado`. | Indicadores podem ser usados fora do contexto, especialmente adesão sem denominador, resultados órfãos ou publicações sem autorização. |
+| PA05 | Suporte técnico disponível quando houver exceção | Casos de chave órfã, integração pendente, falha de carga, versão ausente ou publicação bloqueada têm encaminhamento para área técnica, Data Steward ou Data Owner. | Pendências críticas podem ficar sem dono, gerando frustração, atraso e retorno ao processo manual. |
+
+Cada critério de sucesso listado em §6.7.1 possui pelo menos um ponto de
+confirmação em §6.7.2 e aparece em uma ou mais etapas do fluxo principal da
+§6.7.3. A tabela acima deve ser levada para a legenda do artefato visual como
+premissas do perfil operacional principal.
 
 ### 6.7.6 Fluxo de interação do perfil secundário (área técnica)
 
