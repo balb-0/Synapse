@@ -2457,6 +2457,20 @@ no diagrama anotado.
 | Etapa 6: monitoramento da participação | Adesão/engajamento | Mostrar participação observada e bloquear taxa quando o universo elegível ou denominador não estiver disponível. | Acompanhar uma taxa simples de adesão para saber se a pesquisa está indo bem. | Aumentar adesão é objetivo de negócio, mas o indicador só é confiável quando numerador e denominador têm grão compatível; estimar sem base compromete decisão. |
 | Etapas 8-10: entrega e publicação | Resultado publicado | Disponibilizar apenas resultado agregado, autorizado, versionado e compatível com o perfil de acesso. | Acessar o resultado completo ou publicável assim que a tabulação termina. | O objetivo de tornar a Central referência em dados exige consistência entre sistema interno e acervo; o JTBD da equipe interna só se cumpre se publicação, autorização e linhagem forem verificáveis. |
 
+As marcações abaixo identificam pontos críticos de atrito do perfil principal
+para o rascunho visual. Elas não adicionam novas etapas ao fluxo; apenas indicam
+onde o operador tende a gastar mais esforço cognitivo, depender de conferência
+manual ou acionar suporte antes de seguir.
+
+| ID | Passo crítico no fluxo | Tipo de atrito | Por que exige mais esforço | Marcação preliminar no diagrama |
+| :--- | :--- | :--- | :--- | :--- |
+| AT01 | Etapas 1-2: receber e triar demanda | Decisão de identidade | O operador precisa distinguir nova pesquisa, solicitação incompleta e possível duplicidade sem perder a origem da demanda. | Marcar como `atenção: duplicidade/pendência`. |
+| AT02 | Etapas 3-4: planejar questionário e criar tarefas | Intervenção manual entre ferramentas | Trello, SurveyMonkey, documentos de apoio e sistema interno precisam permanecer vinculados mesmo sem integração plena. | Marcar como `manual assistido`. |
+| AT03 | Etapa 5: divulgar pesquisa | Dependência de confirmação externa | A coleta só deve avançar se envio, prazo e instrumento estiverem confirmados; falha de envio não pode parecer coleta ativa. | Marcar como `confirmação obrigatória`. |
+| AT04 | Etapa 6: monitorar participação | Interpretação de indicador | A leitura de adesão depende de numerador, denominador e recorte compatível; sem isso, o operador precisa interpretar indisponibilidade. | Marcar como `indicador condicionado`. |
+| AT05 | Etapas 7-8: validar e tabular dados | Reconciliação de qualidade | Órfãos, duplicidades, campos ausentes e diferenças de grão exigem decisão antes de consolidar resultados. | Marcar como `reconciliação`. |
+| AT06 | Etapas 9-10: revisar e publicar | Governança e autorização | O operador precisa separar resultado tabulado, resultado revisado e resultado autorizado para evitar publicação indevida. | Marcar como `bloqueio/autorização`. |
+
 Para manter percepção de progresso, cada transição relevante do fluxo principal
 (§6.7.3) deve devolver uma confirmação imediata ao operador. Os textos abaixo
 representam o comportamento esperado da solução e servem como insumo para a
