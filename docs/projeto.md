@@ -2472,6 +2472,19 @@ anotação visual; não são cópia final de interface.
 | CP06 | Etapa 7: coleta encerrada e dados validados | Dados classificados como válidos, pendentes, órfãos ou dependentes de integração futura. | Duplicidade, ausência crítica, quebra de chave ou campo com impacto no indicador. | Painel de qualidade com contagem por severidade e fonte afetada. | Checagem 3 (§6.7.2) |
 | CP07 | Etapas 9-10: resultado revisado para entrega/publicação | Resultado aprovado, bloqueado ou pendente, com versão e perfil autorizado. | Falta de autorização, risco de reidentificação, regra de agregação ausente ou acervo sem vínculo. | Selo `autorizado`, `bloqueado` ou `pendente`, ligado à versão do resultado. | Checagem 4 (§6.7.2) |
 
+Na abertura da pesquisa, a expectativa de agilidade só é atendida quando a
+automação preserva origem, vínculo e pendências. O operador não precisa que
+Outlook, Trello, SurveyMonkey e sistema interno sejam substituídos; precisa que
+a solicitação deixe de circular como informação solta e passe a ser acompanhada
+por uma identidade comum.
+
+| ID | Passo de abertura | Interface ou canal | Entidade/registro esperado | Expectativa do operador | Validação da expectativa | Checagem |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| AP01 | Receber solicitação | Outlook, n8n ou entrada manual no sistema interno | `Pesquisa` solicitada, com origem, data, título e solicitante quando disponível. | Identificar rapidamente se há uma nova demanda acompanhável. | Atendida se o sistema cria ou localiza a pesquisa e explicita campos mínimos ausentes; parcial se a origem ficar apenas no e-mail. | Checagem 1 (§6.7.2) |
+| AP02 | Registrar pesquisa inicial | Sistema interno e dashboard operacional | `Pesquisa` com ID, status inicial, responsável e pendências de triagem. | Evitar duplicidade e começar o acompanhamento sem cruzamento manual. | Atendida se houver ID comum e alerta de demanda semelhante; não atendida se o registro depender de planilha paralela. | Checagem 1 (§6.7.2) |
+| AP03 | Criar tarefa operacional | Trello vinculado ao sistema interno | Tarefa associada ao ID da pesquisa, etapa, responsável e prazo operacional. | Acompanhar responsabilidades sem abrir múltiplas ferramentas para descobrir o estado do trabalho. | Atendida parcialmente enquanto a integração Trello-sistema não for automática; o vínculo pendente deve aparecer como alerta. | Checagem 2 (§6.7.2) |
+| AP04 | Preparar formulário de coleta | SurveyMonkey, documentos de apoio e sistema interno | Questionário associado à pesquisa, com versão ou pendência de versão, status de preparação e responsável. | Saber se o instrumento já pode seguir para divulgação. | Atendida se o fluxo confirma formulário preparado ou bloqueia a divulgação quando faltar validação, versão ou vínculo com a pesquisa. | Checagem 2 (§6.7.2) |
+
 ### 6.7.5 Premissas e validação de consistência
 
 A equipe interna é tratada como perfil com acesso operacional ao fluxo, mas não
