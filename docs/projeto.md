@@ -2520,6 +2520,19 @@ confirmação em §6.7.2 e aparece em uma ou mais etapas do fluxo principal da
 §6.7.3. A tabela acima deve ser levada para a legenda do artefato visual como
 premissas do perfil operacional principal.
 
+Como texto de apoio ao diagrama, as expectativas do perfil operacional devem ser
+lidas em quatro blocos: abertura rastreável, acompanhamento do ciclo,
+confiabilidade dos dados e publicação autorizada. Esses blocos sintetizam a
+Etapa 1 do artefato e justificam as anotações visuais sem substituir os nós,
+setas e estados do fluxo.
+
+| ID | Ponto anotado no diagrama | Texto de apoio para a justificativa | Referência interna |
+| :--- | :--- | :--- | :--- |
+| TA01 | Solicitação recebida e pesquisa criada/localizada | O avanço começa quando a solicitação deixa de ser uma mensagem isolada e passa a ter identidade operacional, origem preservada e pendências explícitas. | JOP01 (§6.7.1), Checagem 1 (§6.7.2), AP01-AP02 (§6.7.4) |
+| TA02 | Planejamento, tarefas e coleta preparados | A agilidade esperada pelo operador depende de vínculos entre sistema interno, Trello e SurveyMonkey; quando a integração ainda for parcial, o fluxo deve mostrar pendência, não esconder trabalho manual. | JOP02 (§6.7.1), Checagem 2 (§6.7.2), AP03-AP04 (§6.7.4) |
+| TA03 | Participação monitorada e dados validados | A percepção de progresso não vem apenas da quantidade de respostas, mas da confiança sobre denominadores, vínculos, órfãos, duplicidades e limitações do indicador. | JOP03-JOP04 (§6.7.1), Checagem 3 (§6.7.2), TP01-TP02 (§6.7.4) |
+| TA04 | Resultado revisado e publicação decidida | A entrega só deve aparecer como concluída quando resultado, versão, autorização, perfil de acesso e vínculo com o acervo estiverem registrados; sem isso, o estado correto é pendente, bloqueado ou proposto. | JOP05 (§6.7.1), Checagem 4 (§6.7.2), TP03-TP04 (§6.7.4) |
+
 ### 6.7.6 Fluxo de interação do perfil secundário (área técnica)
 
 O perfil secundário é a **área técnica** que dá suporte especializado à Central
