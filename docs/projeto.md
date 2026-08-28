@@ -2374,11 +2374,11 @@ O JTBD usado como base é:
 
 | ID | Job operacional | Critério de sucesso associado | Evidência na documentação |
 | :--- | :--- | :--- | :--- |
-| JOP01 | Registrar e iniciar uma pesquisa com identidade rastreável. | A pesquisa foi criada ou localizada sem duplicidade aparente, com origem e status inicial explícitos. | Fluxo de valor etapas 1 e 2; RF01, RF02 e PB01. |
-| JOP02 | Acompanhar status, prazos e marcos do ciclo. | O usuário vê etapa atual, próximos marcos, prazos, pendências e motivo de atraso/prorrogação quando aplicável. | Fluxo de valor etapas 2 a 6; C01 Portfólio e Ciclo; D01 Operação. |
-| JOP03 | Monitorar participação e risco de baixa adesão. | A participação é exibida com numerador, denominador quando existir e limitação quando o cálculo de adesão não for possível. | Fluxo de valor etapa 6; C02 Participação e Representatividade; RF04 e RF05. |
-| JOP04 | Validar qualidade antes de tabular ou publicar. | Inconsistências, órfãos, duplicidades e ausências críticas aparecem com impacto no indicador e ação esperada. | Fluxo de valor etapa 8; RF06, RF07 e D04 Qualidade e Governança. |
-| JOP05 | Entregar e publicar resultado autorizado. | O resultado só avança com autorização, versão, perfil permitido e vínculo com a pesquisa interna. | Fluxo de valor etapas 9 e 10; RF09, PB09 e política de publicação proposta. |
+| JOP01 | Registrar e iniciar uma pesquisa com identidade rastreável. | A pesquisa foi criada ou localizada sem duplicidade aparente, com origem e status inicial explícitos. | Fluxo de valor (§2.1, etapas 1 e 2), requisitos RF01/RF02 (§6.1) e PB01 (§6.3). |
+| JOP02 | Acompanhar status, prazos e marcos do ciclo. | O usuário vê etapa atual, próximos marcos, prazos, pendências e motivo de atraso/prorrogação quando aplicável. | Fluxo de valor (§2.1, etapas 2 a 6), C01 (§5.2.1) e D01 (§6.5). |
+| JOP03 | Monitorar participação e risco de baixa adesão. | A participação é exibida com numerador, denominador quando existir e limitação quando o cálculo de adesão não for possível. | Fluxo de valor (§2.1, etapa 6), C02 (§5.2.2) e requisitos RF04/RF05 (§6.1). |
+| JOP04 | Validar qualidade antes de tabular ou publicar. | Inconsistências, órfãos, duplicidades e ausências críticas aparecem com impacto no indicador e ação esperada. | Fluxo de valor (§2.1, etapa 8), requisitos RF06/RF07 (§6.1) e D04 (§6.5). |
+| JOP05 | Entregar e publicar resultado autorizado. | O resultado só avança com autorização, versão, perfil permitido e vínculo com a pesquisa interna. | Fluxo de valor (§2.1, etapas 9 e 10), requisito RF09 (§6.1), PB09 (§6.3) e governança de publicação (§6.6). |
 
 ### 6.7.2 Pontos de checagem do fluxo
 
@@ -2430,6 +2430,21 @@ no diagrama anotado.
 | Etapas 3-4: questionário e preparação da coleta | Escopo da pesquisa | Preservar versão do questionário, validação técnica e vínculo com a pesquisa antes da coleta. | Ver suas perguntas incorporadas com pouca mediação, mantendo o foco da demanda original. | A qualidade e a comparabilidade dos dados dependem de instrumento validado; o JTBD operacional prioriza confiança e redução de retrabalho, não apenas rapidez de criação. |
 | Etapa 6: monitoramento da participação | Adesão/engajamento | Mostrar participação observada e bloquear taxa quando o universo elegível ou denominador não estiver disponível. | Acompanhar uma taxa simples de adesão para saber se a pesquisa está indo bem. | Aumentar adesão é objetivo de negócio, mas o indicador só é confiável quando numerador e denominador têm grão compatível; estimar sem base compromete decisão. |
 | Etapas 8-10: entrega e publicação | Resultado publicado | Disponibilizar apenas resultado agregado, autorizado, versionado e compatível com o perfil de acesso. | Acessar o resultado completo ou publicável assim que a tabulação termina. | O objetivo de tornar a Central referência em dados exige consistência entre sistema interno e acervo; o JTBD da equipe interna só se cumpre se publicação, autorização e linhagem forem verificáveis. |
+
+Para manter percepção de progresso, cada transição relevante do fluxo principal
+(§6.7.3) deve devolver uma confirmação imediata ao operador. Os textos abaixo
+representam o comportamento esperado da solução e servem como insumo para a
+anotação visual; não são cópia final de interface.
+
+| ID | Transição no fluxo | Mensagem de sistema esperada | Alerta quando houver exceção | Indicador visual exigido | Checagem relacionada |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| CP01 | Etapa 1: solicitação recebida ou localizada | Pesquisa registrada/localizada, com ID, origem e status inicial. | Possível duplicidade, chave divergente ou campos mínimos ausentes. | Selo `nova`, `em triagem` ou `pendente de informação`. | Checagem 1 (§6.7.2) |
+| CP02 | Etapa 2: triagem concluída | Decisão registrada e próxima etapa indicada. | Demanda recusada, ajuste solicitado ou ausência de responsável/data crítica. | Linha do tempo com marco de triagem marcado e próxima ação destacada. | Checagem 2 (§6.7.2) |
+| CP03 | Etapas 3-4: planejamento, questionário e tarefas preparados | Questionário, tarefas e comunicação vinculados à pesquisa. | Questionário sem versão, tarefa sem vínculo ou instrumento ainda não validado. | Checklist de preparação com itens concluídos, pendentes e bloqueados. | Checagem 2 (§6.7.2) |
+| CP04 | Etapa 5: pesquisa divulgada | Coleta aberta, data de divulgação e prazo visíveis. | Prazo ausente, envio não confirmado ou integração com SurveyMonkey/Trello pendente. | Barra de ciclo movida para `em coleta` e contador de dias de coleta. | Checagem 2 (§6.7.2) |
+| CP05 | Etapa 6: participação monitorada | Participação observada exibida com numerador, denominador disponível e recorte permitido. | Denominador inexistente, baixa adesão, representatividade indisponível ou relação órfã. | Cartão de adesão com estado `calculável`, `indisponível` ou `atenção`. | Checagem 3 (§6.7.2) |
+| CP06 | Etapa 7: coleta encerrada e dados validados | Dados classificados como válidos, pendentes, órfãos ou dependentes de integração futura. | Duplicidade, ausência crítica, quebra de chave ou campo com impacto no indicador. | Painel de qualidade com contagem por severidade e fonte afetada. | Checagem 3 (§6.7.2) |
+| CP07 | Etapas 9-10: resultado revisado para entrega/publicação | Resultado aprovado, bloqueado ou pendente, com versão e perfil autorizado. | Falta de autorização, risco de reidentificação, regra de agregação ausente ou acervo sem vínculo. | Selo `autorizado`, `bloqueado` ou `pendente`, ligado à versão do resultado. | Checagem 4 (§6.7.2) |
 
 ### 6.7.5 Premissas e validação de consistência
 
