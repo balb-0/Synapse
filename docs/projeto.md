@@ -2533,6 +2533,19 @@ setas e estados do fluxo.
 | TA03 | Participação monitorada e dados validados | A percepção de progresso não vem apenas da quantidade de respostas, mas da confiança sobre denominadores, vínculos, órfãos, duplicidades e limitações do indicador. | JOP03-JOP04 (§6.7.1), Checagem 3 (§6.7.2), TP01-TP02 (§6.7.4) |
 | TA04 | Resultado revisado e publicação decidida | A entrega só deve aparecer como concluída quando resultado, versão, autorização, perfil de acesso e vínculo com o acervo estiverem registrados; sem isso, o estado correto é pendente, bloqueado ou proposto. | JOP05 (§6.7.1), Checagem 4 (§6.7.2), TP03-TP04 (§6.7.4) |
 
+Validação de consistência da Etapa 1: cada critério do JTBD foi confrontado com
+o fluxo principal para verificar se existe pelo menos um passo em que o operador
+recebe confirmação de progresso. Não foram identificadas omissões que exijam
+ajuste antes do confronto com o modelo de dados.
+
+| Critério do JTBD | Passo de confirmação no fluxo principal | Evidência de suporte | Resultado da validação |
+| :--- | :--- | :--- | :--- |
+| JOP01 — identidade rastreável da pesquisa | Etapas 1-2: receber demanda, criar/localizar pesquisa e registrar triagem. | Checagem 1 (§6.7.2), CP01 (§6.7.4), AP01-AP02 (§6.7.4), TA01 (§6.7.5). | Coberto, sem ajuste necessário. |
+| JOP02 — status, prazos e marcos acompanháveis | Etapas 2-5: triar, planejar, criar tarefas e divulgar a coleta. | Checagem 2 (§6.7.2), CP02-CP04 (§6.7.4), AP03-AP04 (§6.7.4), TA02 (§6.7.5). | Coberto, sem ajuste necessário. |
+| JOP03 — participação e risco de baixa adesão | Etapa 6: monitorar participação e limites de cálculo. | Checagem 3 (§6.7.2), CP05 (§6.7.4), TA03 (§6.7.5). | Coberto, com ressalva já registrada sobre denominador indisponível. |
+| JOP04 — qualidade antes de tabular/publicar | Etapas 7-8: encerrar coleta, validar dados e consolidar resultados. | Checagem 3 (§6.7.2), CP06 (§6.7.4), TP01-TP02 (§6.7.4), TA03 (§6.7.5). | Coberto, com pendências de reconciliação explicitadas. |
+| JOP05 — entrega/publicação autorizada | Etapas 9-10: revisar entrega e publicar ou bloquear resultado. | Checagem 4 (§6.7.2), CP07 (§6.7.4), TP03-TP04 (§6.7.4), TA04 (§6.7.5). | Coberto, sem ajuste necessário. |
+
 ### 6.7.6 Fluxo de interação do perfil secundário (área técnica)
 
 O perfil secundário é a **área técnica** que dá suporte especializado à Central
