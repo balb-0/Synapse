@@ -28,6 +28,9 @@ as limitações e os contratos técnicos complementares.
 
 ## 1.1 Visão Geral do Parceiro
 
+<div align="center">
+<sub>Tabela 1 - Visão geral do parceiro Sindusfarma</sub><br>
+
 | Item | Síntese |
 | :--- | :--- |
 | Organização | Sindusfarma — Sindicato da Indústria de Produtos Farmacêuticos no Estado de São Paulo. |
@@ -37,6 +40,10 @@ as limitações e os contratos técnicos complementares.
 | Principais serviços relacionados ao projeto | Pesquisas setoriais, levantamentos de mercado, coleta de respostas, tabulação, análise, publicação de resultados e apoio à tomada de decisão das empresas participantes. |
 | Histórico resumido no escopo do projeto | O Sindusfarma já possui ferramentas consolidadas para partes do processo, como Excel, SurveyMonkey, Trello, sistema interno, automações pontuais e repositório do site. A maturidade atual é operacionalmente funcional, mas fragmentada do ponto de vista de dados. |
 | Propósito institucional considerado | Apoiar a indústria farmacêutica com informação técnica, regulatória e estratégica. No projeto, esse propósito é traduzido em uma Central de Pesquisas capaz de produzir conhecimento setorial confiável, rastreável e governado. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 A área diretamente atendida é a **Central de Pesquisas**, responsável por
 transformar necessidades de informação do setor farmacêutico em pesquisas,
@@ -81,6 +88,9 @@ As oportunidades identificadas são:
 
 ## 1.3 Objetivos do Projeto
 
+<div align="center">
+<sub>Tabela 2 - Objetivos do projeto e valor gerado para o parceiro</sub><br>
+
 | Objetivo | Valor gerado para o parceiro |
 | :--- | :--- |
 | Centralizar os dados do ciclo de vida das pesquisas em um banco relacional em nuvem. | Reduz dispersão de informações e cria base única para acompanhamento, análise e auditoria. |
@@ -89,6 +99,10 @@ As oportunidades identificadas são:
 | Disponibilizar dashboards operacionais e estratégicos alimentados pelo banco central. | Permite acompanhar volume, status, prazos, adesão, participação, qualidade e resultados com mais agilidade. |
 | Implantar regras de governança, qualidade, segurança e LGPD. | Protege dados pessoais e informações sensíveis de empresas, formalizando responsabilidades e critérios de uso. |
 | Garantir rastreabilidade da solicitação à publicação. | Aumenta confiança na origem dos indicadores e reduz divergências entre o ambiente interno e o acervo externo. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 ## 1.4 Escopo do Projeto
 
@@ -107,6 +121,9 @@ As oportunidades identificadas são:
 
 ### Escopo Não Incluído
 
+<div align="center">
+<sub>Tabela 3 - Itens fora do escopo do projeto e justificativas</sub><br>
+
 | Item fora do escopo | Justificativa |
 | :--- | :--- |
 | Substituir SurveyMonkey, Trello, Excel, sistema interno ou repositório público | O projeto integra e governa ferramentas existentes, sem trocar os sistemas operacionais já utilizados. |
@@ -115,12 +132,19 @@ As oportunidades identificadas são:
 | Calcular adesão sem universo elegível de convidados | Sem denominador confiável, o indicador deve aparecer como indisponível, e não como zero ou estimativa. |
 | Garantir conformidade produtiva apenas por documentação | Políticas, contratos, perfis e bases legais precisam ser validados e implantados pelo parceiro. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 # 2. Alinhamento Estratégico
 
 ## 2.1 Fluxo de Valor
 
 O fluxo de valor central é **transformar uma necessidade de informação do setor
 farmacêutico em conhecimento estruturado e confiável**.
+
+<div align="center">
+<sub>Tabela 4 - Fluxo de valor da Central de Pesquisas por etapa</sub><br>
 
 | Etapa | Entrada | Saída de valor | Atores principais | Como a solução contribui |
 | :--- | :--- | :--- | :--- | :--- |
@@ -135,7 +159,14 @@ farmacêutico em conhecimento estruturado e confiável**.
 | 9. Tabulação e análise | Dados validados | Indicadores e resultados agregados | Central, áreas técnicas e gestores | Gera métricas com denominador, grão e limitações explícitos. |
 | 10. Entrega e publicação | Resultado agregado | Entrega autorizada e acervo consistente | Central, Data Owner, solicitantes e público autorizado | Registra autorização, versão, linhagem e regra de publicação. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ## 2.2 Análise de Stakeholders
+
+<div align="center">
+<sub>Tabela 5 - Análise de stakeholders do projeto</sub><br>
 
 | Stakeholder | Papel na organização | Interesse no projeto | Benefícios esperados | Possíveis preocupações ou resistências |
 | :--- | :--- | :--- | :--- | :--- |
@@ -145,7 +176,14 @@ farmacêutico em conhecimento estruturado e confiável**.
 | Empresas associadas e participantes | Fornecem respostas por meio de representantes e consomem resultados autorizados. | Ter pesquisas mais úteis, resultados confiáveis e proteção adequada de dados enviados. | Maior transparência sobre resultados agregados, preservação de confidencialidade e redução de solicitações duplicadas. | Preocupação com exposição de participação, respostas individuais, dados de mercado ou comparações que permitam reidentificação. |
 | TI / Data Custodian e fornecedores externos | Sustentam infraestrutura, segurança, disponibilidade, integrações, logs, backups e componentes hospedados. | Garantir que a solução seja segura, operável, auditável e compatível com a infraestrutura definida pelo parceiro. | Menor dispersão de dados, melhor controle técnico, trilhas de auditoria e políticas de acesso mais claras. | Risco de aumento de carga operacional, integração com sistemas legados, definição incompleta de responsabilidades e custos de sustentação. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ## 2.3 Processos Impactados
+
+<div align="center">
+<sub>Tabela 6 - Processos impactados pelo projeto e melhorias esperadas</sub><br>
 
 | Processo impactado | Situação atual | Limitações existentes | Melhorias esperadas |
 | :--- | :--- | :--- | :--- |
@@ -156,7 +194,14 @@ farmacêutico em conhecimento estruturado e confiável**.
 | Publicação e acervo externo | Resultados publicados ficam em repositório separado do ambiente interno. | Pode haver divergência entre resultado interno, versão publicada e autorização. | Registrar decisão de publicação, versão, origem, data e perfil autorizado. |
 | Governança, segurança e LGPD | Responsabilidades existem em artefatos, mas precisam ser operacionalizadas em política e logs. | Acesso, retenção, descarte e auditoria dependem de decisões formais. | Definir papéis, catálogo, controles de acesso, trilhas de auditoria e retenção. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ## 2.4 Objetivos Estratégicos Atendidos
+
+<div align="center">
+<sub>Tabela 7 - Objetivos estratégicos atendidos pelo projeto</sub><br>
 
 | Objetivo estratégico | Contribuição do projeto |
 | :--- | :--- |
@@ -167,9 +212,16 @@ farmacêutico em conhecimento estruturado e confiável**.
 | Sustentar decisões data-driven | Disponibiliza perguntas, métricas e dashboards com grão, fonte e limitação explícitos. |
 | Garantir governança e conformidade | Define papéis, controles, classificação, acesso, retenção e publicação conforme LGPD. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 # 3. Governança de Dados
 
 ## 3.1 Estrutura de Governança
+
+<div align="center">
+<sub>Tabela 8 - Estrutura de governança de dados e responsabilidades</sub><br>
 
 | Papel | Responsável / função indicada | Responsabilidades no projeto |
 | :--- | :--- | :--- |
@@ -177,6 +229,10 @@ farmacêutico em conhecimento estruturado e confiável**.
 | Data Stewards | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade | Definir significado dos dados, regras de qualidade, catálogo, linhagem, completude e tratamento de inconsistências. |
 | Data Custodian | Rodrigo Giorgetto / TI, com apoio de fornecedores como RentalHost quando aplicável | Sustentar infraestrutura, segurança, armazenamento, backups, logs e execução técnica das decisões aprovadas. |
 | Controlador / encarregado LGPD | A confirmar pelo Sindusfarma para cada fluxo | Validar bases legais, orientar operadores, coordenar direitos dos titulares e incidentes. |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 As decisões devem seguir a lógica: negócio decide finalidade e exposição,
 stewards definem semântica e qualidade, custódia implementa controles técnicos.
@@ -233,6 +289,9 @@ ser exibidas como indisponibilidade ou pendência, nunca como zero implícito.
 
 ## 4.1 Requisitos Funcionais
 
+<div align="center">
+<sub>Tabela 9 - Requisitos funcionais da solução analítica</sub><br>
+
 | ID | User Story | Critérios de aceitação | Teste de usuário |
 | :--- | :--- | :--- | :--- |
 | RF01 | Como analista da Central, quero consultar o portfólio de pesquisas para entender volume por período, tipo, área, complexidade e status. | Exibir filtros e totais coerentes; impedir acesso por perfil não autorizado. | Filtrar por ano, área e status e conferir se os totais mudam corretamente. |
@@ -249,7 +308,14 @@ ser exibidas como indisponibilidade ou pendência, nunca como zero implícito.
 | RF12 | Como responsável técnico, quero integrar fontes atuais com tratamento de inconsistências para reduzir atualização manual. | Registrar execução, fonte, erro, duplicidade e regra de padronização. | Executar carga de teste e validar logs e resultados agregados. |
 | RF13 | Como área técnica, quero versionar questionários validados para preservar histórico antes da divulgação. | Registrar pesquisa, versão, área revisora, estado de validação e alterações quando os metadados existirem. | Criar nova versão de questionário e confirmar que a anterior não foi sobrescrita. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ## 4.2 Requisitos Não Funcionais
+
+<div align="center">
+<sub>Tabela 10 - Requisitos não funcionais por categoria ISO 25010</sub><br>
 
 | ID | Categoria ISO 25010 | User Story | Critérios de aceitação | Teste de usuário |
 | :--- | :--- | :--- | :--- | :--- |
@@ -262,9 +328,16 @@ ser exibidas como indisponibilidade ou pendência, nunca como zero implícito.
 | RNF07 | Manutenibilidade | Como responsável técnico, quero incluir novas fontes com baixo esforço para evoluir o projeto. | Nova fonte deve ser configurável e versionada sem reescrever o modelo central. | Adicionar fonte de teste e validar carga documentada. |
 | RNF08 | Portabilidade | Como TI, quero que a solução possa ser implantada em nuvem equivalente para reduzir dependência de fornecedor. | Banco relacional, scripts e documentação devem evitar recursos proprietários sem justificativa. | Revisar dependências e simular configuração em ambiente equivalente. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 # 5. Especificação da Solução Analítica
 
 ## 5.1 Perguntas de Negócio
+
+<div align="center">
+<sub>Tabela 11 - Perguntas de negócio e requisitos relacionados</sub><br>
 
 | ID | Pergunta de negócio | Requisito |
 | :--- | :--- | :--- |
@@ -282,7 +355,14 @@ ser exibidas como indisponibilidade ou pendência, nunca como zero implícito.
 | PB12 | Quais integrações e cargas estão atualizadas, com erro ou pendentes? | RF12 |
 | PB13 | Qual versão do questionário foi validada, por quem e em que estado? | RF13 |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ## 5.2 Indicadores e Métricas de Negócio
+
+<div align="center">
+<sub>Tabela 12 - Indicadores e métricas de negócio</sub><br>
 
 | Indicador | Objetivo | Granularidade | Segmentações possíveis |
 | :--- | :--- | :--- | :--- |
@@ -297,6 +377,10 @@ ser exibidas como indisponibilidade ou pendência, nunca como zero implícito.
 | Integridade referencial | Identificar chaves órfãs ou não reconciliadas. | Relação entre fontes. | Fonte, entidade, chave e estado. |
 | Estado de publicação | Controlar resultado autorizado e publicado. | Resultado/pesquisa. | Perfil, versão, data, responsável e acervo. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 ## 5.3 Dashboards Propostos
 
 Os dashboards são formas de consumo dos mesmos fatos e dimensões da modelagem.
@@ -305,6 +389,9 @@ modelo: eles funcionam como recortes de validação. A modelagem deve sustentar 
 demais relatórios a partir de fatos reutilizáveis, dimensões conformadas e
 regras de acesso.
 
+<div align="center">
+<sub>Tabela 13 - Dashboards propostos e cobertura analítica</sub><br>
+
 | Dashboard | Objetivo | Perguntas respondidas | Indicadores | Visualizações e filtros |
 | :--- | :--- | :--- | :--- | :--- |
 | D01 — Operação: portfólio e prazos | Acompanhar produção, status, ritmo e gargalos da Central. | PB01, PB02, PB03 | Volume, andamento, ciclo, prorrogação e atraso. | Cartões de KPI, barras por mês, distribuição por tipo/área, filtros de período, status, área e tipo. |
@@ -312,7 +399,14 @@ regras de acesso.
 | D03 — Resultados e questionários | Consultar resultados agregados e estrutura dos questionários. | PB10, PB11, PB13 | Distribuição de respostas, quantidade de perguntas, alternativas e versões. | Barras, matrizes, tabelas de questões e filtros por pesquisa, pergunta, tipo e versão. |
 | D04 — Qualidade e governança | Monitorar qualidade, linhagem, atualização, acesso e publicação. | PB06, PB07, PB08, PB09, PB12 | Completude, duplicidade, órfãos, estado de carga, publicação e acesso. | Semáforos, tabelas de anomalias, matriz de regras, filtros por fonte, campo, severidade e estado. |
 
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
 # 6. Matriz de Rastreabilidade
+
+<div align="center">
+<sub>Tabela 14 - Matriz de rastreabilidade entre requisitos, perguntas e dashboards</sub><br>
 
 | Requisito Funcional | Pergunta de Negócio | Dashboard |
 | :--- | :--- | :--- |
@@ -329,6 +423,10 @@ regras de acesso.
 | RF11 | PB11 | D03, D04 |
 | RF12 | PB12 | D04 |
 | RF13 | PB13 | D03 |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
 
 # 7. Fontes e Continuidade
 
