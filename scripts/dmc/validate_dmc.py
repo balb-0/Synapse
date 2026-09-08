@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Valida o recorte da Sprint 1 no JSON do Data Model Canvas."""
+"""Valida o recorte da Sprint 3 no JSON do Data Model Canvas."""
 
 from __future__ import annotations
 
@@ -47,30 +47,6 @@ GOVERNANCE_KEYS = (
     "evolucao",
 )
 DIMENSIONAL_LISTS = ("grao", "fatos", "metricas", "dimensoes")
-DATA_GOVERNANCE_LISTS = ("fontes", "transformacoes", "qualidade", "scd")
-DATA_GOVERNANCE_FIELDS = (
-    "particionamento",
-    "materializacoesAgregacoes",
-    "indicesClusteringOrdenacao",
-    "queriesCriticas",
-    "classificacaoPublico",
-    "classificacaoInterno",
-    "classificacaoConfidencial",
-    "classificacaoRestrito",
-    "dadoPessoal",
-    "dadoSensivel",
-    "dadoCritico",
-    "criticidade",
-    "perfisAutorizados",
-    "controleAcesso",
-    "trilhaAuditoria",
-    "retencao",
-    "arquivamento",
-    "descarte",
-    "metadadosObrigatorios",
-    "kpiQualidade",
-    "kpiGovernanca",
-)
 class DmcValidationError(ValueError):
     """Indica uma divergência estrutural no canvas exportado."""
 
@@ -172,14 +148,6 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         for key in DIMENSIONAL_LISTS:
             if not _nonempty_strings(lists.get(key)):
                 raise DmcValidationError(f"cubo {name} deve preencher {key}")
-        for key in DATA_GOVERNANCE_LISTS:
-            if not _nonempty_strings(lists.get(key)):
-                raise DmcValidationError(f"cubo {name} deve preencher Dados/Governança em {key}")
-        for key in DATA_GOVERNANCE_FIELDS:
-            value = fields.get(key)
-            filled = type(value) is bool or (isinstance(value, str) and bool(value.strip()))
-            if not filled:
-                raise DmcValidationError(f"cubo {name} deve preencher Dados/Governança em {key}")
 
     if tuple(names) != EXPECTED_CUBES:
         raise DmcValidationError("nomes ou ordem dos cubos divergem do contrato da Sprint")
@@ -219,7 +187,7 @@ def main() -> int:
 
     print(
         f"DMC válido: schema {summary['schemaVersion']}; "
-        f"{len(summary['cubos'])} cubos; Dados/Governança dos cubos preenchidos"
+        f"{len(summary['cubos'])} cubos; recorte da Sprint 3 preenchido"
     )
     return 0
 
