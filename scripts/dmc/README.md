@@ -8,6 +8,9 @@ Nos cubos, o contrato aceita somente os campos de Modelo Dimensional. Campos
 das antigas subseções Dados e Governança — como `fontes`, `qualidade`,
 `controleAcesso` e `retencao` — são rejeitados. A seção corporativa
 `governancaCorporativa` continua obrigatória e não é afetada por esse recorte.
+Na adequação foram retirados, de cada cubo, 21 campos e as quatro listas
+`fontes`, `transformacoes`, `qualidade` e `scd`. Os testes negativos cobrem a
+reintrodução indevida de `controleAcesso` e `fontes`.
 
 Na raiz do repositório:
 
