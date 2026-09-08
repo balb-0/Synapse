@@ -99,6 +99,20 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Governança Corporativa"):
             validate_dmc.validate_document(changed)
 
+    def test_governance_role_must_state_source_and_pending_approval(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["governancaCorporativa"]["owner"] = "Fabio Moreira"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fonte documental"):
+            validate_dmc.validate_document(changed)
+
+    def test_external_custody_must_remain_conditional(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["governancaCorporativa"]["custodian"] = (
+            "Baseline documental: Rodrigo Giorgetto e RentalHost; homologação pendente."
+        )
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "condicional"):
+            validate_dmc.validate_document(changed)
+
     def test_round_trip_must_preserve_corporate_sections(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["negocioEConsumo"]["usuariosCanais"].append("Canal perdido no round-trip")

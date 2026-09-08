@@ -46,6 +46,7 @@ GOVERNANCE_KEYS = (
     "maturidade",
     "evolucao",
 )
+GOVERNANCE_ROLE_KEYS = ("owner", "steward", "custodian", "tecnico")
 DIMENSIONAL_LISTS = ("grao", "fatos", "metricas", "dimensoes")
 DATA_GOVERNANCE_LISTS = ("fontes", "transformacoes", "qualidade", "scd")
 DATA_GOVERNANCE_FIELDS = (
@@ -128,6 +129,18 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         for key in GOVERNANCE_KEYS
     ):
         raise DmcValidationError("Governança Corporativa deve permanecer preenchida")
+    if not all(
+        governance[key].startswith("Baseline documental:")
+        and "homologa" in governance[key].lower()
+        for key in GOVERNANCE_ROLE_KEYS
+    ):
+        raise DmcValidationError(
+            "papéis de governança devem indicar fonte documental e homologação pendente"
+        )
+    if "RentalHost" not in governance["custodian"] or "condicional" not in governance[
+        "custodian"
+    ]:
+        raise DmcValidationError("custódia externa deve permanecer condicional")
 
     cubes = document["cubos"]
     if not isinstance(cubes, list) or len(cubes) != len(EXPECTED_CUBES):
