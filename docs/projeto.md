@@ -907,7 +907,7 @@ Este cubo não armazena dados individuais de respondentes, respeitando a políti
 
 ### 5.2.2 C02 — Participação e Representatividade
 
-Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um evento de resposta, permitindo análises de adesão, engajamento e representatividade de mercado. O objetivo é responder perguntas como quais empresas participaram, qual a taxa de adesão por área, quem são os respondentes mais frequentes e como a cobertura de mercado evolui.
+Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um registro de participação de `respondentes.csv`, não uma resposta individual a uma questão. O cubo permite análises de alcance observado, engajamento e representatividade de mercado, sem afirmar taxa de adesão quando o universo elegível não estiver disponível.
 
 O grão do cubo é uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual. A fonte de dados principal é o arquivo `respondentes.csv`, complementado por `pesquisas.csv` para a data de divulgação da pesquisa, `clientes.csv` para atributos da pessoa respondente e `empresas.csv` para atributos da empresa. O tipo de fato é uma transação (transaction fact), pois cada linha representa um evento único e não acumula estados. A estrutura do cubo pode ser visualizada abaixo.
 
@@ -925,7 +925,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: inteiro
 - Fonte ou regra de cálculo: sempre 1, pois cada linha é uma participação
 - Aditividade: aditiva
-- Observação: Representa o volume de respostas
+- Observação: Representa o volume de registros de participação; não deve ser rotulada como quantidade de respostas a questões
 
 **seq_ocorrencia**
 - Tipo: inteiro
@@ -943,7 +943,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: decimal
 - Fonte ou regra de cálculo: Coluna `market_share` do `respondentes.csv` no momento da participação
 - Aditividade: não aditiva
-- Observação: Só pode ser lida no nível da participação, pois representa o share da empresa naquela pesquisa específica. Para agregações, deve-se usar a média ponderada ou o share atual da empresa em `DIM_EMPRESA`
+- Observação: Só pode ser lida no nível da participação enquanto a fonte autoritativa não for homologada. Depois da homologação, I09 soma uma vez por pesquisa o valor normalizado de cada empresa participante distinta; conflito entre as duas fontes bloqueia o recorte
 
 #### Dimensões
 
@@ -977,7 +977,7 @@ A data da resposta (`hora_inicio`) tem cobertura reduzida, de aproximadamente 4,
 
 O campo `minutos_preenchimento`, calculado a partir de `hora_inicio` e `hora_termino`, também tem cobertura baixa, de aproximadamente 4,3%, e deve ser usado com cautela. Para métricas de tempo médio de preenchimento, recomenda-se filtrar apenas as linhas com ambos os campos preenchidos.
 
-A coluna `market_share` em `respondentes.csv` representa o percentual de mercado da empresa no momento da participação. Esse valor pode diferir do campo `% de mercado` em `empresas.csv`, que é o valor atual. Para análises de representatividade histórica, deve-se usar o valor da participação; para análises do perfil atual da empresa, usa-se o valor da dimensão.
+A coluna `market_share` em `respondentes.csv` e o campo `% de mercado` em `empresas.csv` divergem. O projeto não presume precedência entre eles: a fonte autoritativa deve ser homologada antes de calcular I09, e o recorte permanece bloqueado quando houver conflito.
 
 A dimensão `DIM_PESSOA` contém cargo e departamento em seus valores brutos, mas esses campos são classificados como restritos. Na camada externa, eles devem ser substituídos por níveis hierárquicos (Diretoria, Gerência, Especialista, Analista, etc.) e agrupamentos de departamento (ex.: Recursos Humanos, Jurídico, etc.), garantindo que nenhuma célula com menos de 5 pessoas seja publicada, conforme a política de k-anonimato. O e-mail foi removido da dimensão por ser um pseudônimo reversível (`cliente<N>@empresa<M>.com`), e nenhum dos relatórios previstos o exige.
 

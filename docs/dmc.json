@@ -228,20 +228,20 @@
       "lists": {
         "grao": [
           "Uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual.",
-          "Cada linha representa um evento de resposta e não acumula estados.",
+          "Cada linha representa um registro de participação de respondentes.csv, não uma resposta individual a uma questão, e não acumula estados.",
           "O cubo suporta contagem bruta de participações e contagem distinta quando filtrado por seq_ocorrencia."
         ],
         "fatos": [
           "Participação registrada",
           "Início de participação registrado",
           "Término de participação registrado",
-          "Evento único de resposta em respondentes.csv"
+          "Registro de participação recebido de respondentes.csv"
         ],
         "metricas": [
-          "qtd_participacao: sempre 1, pois cada linha é uma participação; métrica aditiva.",
+          "qtd_participacao: sempre 1, pois cada linha é uma participação; métrica aditiva que não representa quantidade de respostas a questões.",
           "seq_ocorrencia: número sequencial para duplicatas de pesquisa e pessoa; métrica não aditiva usada como filtro para deduplicação.",
           "minutos_preenchimento: diferença entre hora_termino e hora_inicio em minutos; aditiva onde existir, com cobertura aproximada de 4,3%.",
-          "pct_mercado_na_participacao: market_share de respondentes.csv no momento da participação; não aditiva e lida no nível da participação."
+          "pct_mercado_na_participacao: market_share de respondentes.csv no nível da participação; não aditiva e não homologada enquanto houver conflito com empresas.csv. Após decisão da fonte autoritativa, I09 soma uma vez por pesquisa o valor normalizado de cada empresa participante distinta."
         ],
         "dimensoes": [
           "sk_pesquisa: DIM_PESQUISA, a pesquisa respondida.",
@@ -261,7 +261,7 @@
           "Criar seq_ocorrencia para numerar duplicatas de pesquisa e pessoa; usar seq_ocorrencia = 1 para análises de respondentes únicos.",
           "Calcular minutos_preenchimento a partir de hora_inicio e hora_termino quando ambos existirem.",
           "Usar data_divulgacao da pesquisa como chave temporal primária por causa da baixa cobertura de hora_inicio.",
-          "Usar market_share de respondentes.csv para representatividade histórica e percentual atual de empresas.csv para perfil atual da empresa."
+          "Comparar market_share de respondentes.csv com o percentual de empresas.csv e bloquear I09 quando houver conflito, sem presumir precedência entre fontes."
         ],
         "qualidade": [
           "Foram observados 838 casos de duplicatas em que a mesma pessoa aparece respondendo à mesma pesquisa mais de uma vez.",
