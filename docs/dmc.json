@@ -89,7 +89,7 @@
     "seg": "Controle de acesso por perfil, autenticação de usuários e políticas internas de segurança do Sindusfarma",
     "comp": "Dados reais restritos ao ambiente interno; repositório público e GitHub do Inteli apenas com dados anonimizados/fictícios.",
     "etico": "Uso restrito às finalidades das pesquisas setoriais, preservando a confidencialidade de empresas e respondentes.",
-    "catalogo": "Dicionário das entidades e campos (empresas, clientes, pesquisas, respondentes), com descrição, tipo e origem de cada atributo.",
+    "catalogo": "Catálogo proposto e versionado para pesquisas, empresas, clientes, respondentes, questões e respostas. Cada fonte e campo deve registrar descrição, tipo esperado, nulabilidade ou aplicabilidade, domínio, chave e origem, destino analítico, classificação, responsável, regra de qualidade, versão e estado observado/em reconciliação/proposto; a implantação do catálogo e seus registros de execução dependem da integração futura.",
     "kpis": "% de completude dos campos, % de registros válidos, nº de inconsistências corrigidas etc.",
     "maturidade": "Evolução do estágio atual (dados fragmentados e manuais) para fonte única, integrada e governada",
     "evolucao": "Partir do MVP (banco central + um pipeline + dashboard) e expandir para todas as fontes, automação completa da ingestão e integração automática do repositório público."
