@@ -85,7 +85,7 @@
     "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
     "custodian": "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados na rede interna ou na nuvem do Sindusfarma + empresa RentalHost (fornecedora do sistema interno) para custódia dos dados hospedados no repositório público.",
     "tecnico": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
-    "lgpd": "Aplicação da LGPD — dados de empresas parceiras e respostas individuais tratados com anonimização; base já anonimizada para uso acadêmico.",
+    "lgpd": "Diretriz proposta, sujeita à validação do controlador e do encarregado: limitar cada tratamento à finalidade documentada e ao mínimo necessário; separar identidade da camada analítica; não publicar e-mail, chaves estáveis, respostas individuais ou combinações reidentificáveis; usar apenas dados sintéticos, agregados ou com anonimização testada no ambiente acadêmico; pseudonimização não deve ser apresentada como anonimização.",
     "seg": "Controle de acesso por perfil, autenticação de usuários e políticas internas de segurança do Sindusfarma",
     "comp": "Dados reais restritos ao ambiente interno; repositório público e GitHub do Inteli apenas com dados anonimizados/fictícios.",
     "etico": "Uso restrito às finalidades das pesquisas setoriais, preservando a confidencialidade de empresas e respondentes.",
