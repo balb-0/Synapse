@@ -99,6 +99,18 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Governança Corporativa"):
             validate_dmc.validate_document(changed)
 
+    def test_decisions_and_risks_must_match_dr01_to_dr06(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["decisoesRiscos"].pop()
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "DR01–DR06"):
+            validate_dmc.validate_document(changed)
+
+    def test_every_decision_or_risk_must_state_impact_and_status(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["decisoesRiscos"][0] = "DR01 — Pendente"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "impacto e estado"):
+            validate_dmc.validate_document(changed)
+
     def test_round_trip_must_preserve_corporate_sections(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["negocioEConsumo"]["usuariosCanais"].append("Canal perdido no round-trip")

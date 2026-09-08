@@ -32,6 +32,7 @@ CORPORATE_LISTS = (
     "usuariosCanais",
     "decisoesRiscos",
 )
+EXPECTED_DECISIONS_RISKS = tuple(f"DR{number:02d}" for number in range(1, 7))
 GOVERNANCE_KEYS = (
     "owner",
     "steward",
@@ -119,6 +120,16 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         _nonempty_strings(business.get(key)) for key in CORPORATE_LISTS
     ):
         raise DmcValidationError("Negócio e Consumo Analítico perderam conteúdo obrigatório")
+    decision_ids = tuple(
+        item.partition(" — ")[0] for item in business["decisoesRiscos"]
+    )
+    if decision_ids != EXPECTED_DECISIONS_RISKS:
+        raise DmcValidationError("decisões e riscos devem corresponder a DR01–DR06")
+    if not all(
+        "Impacto:" in item and "Estado:" in item
+        for item in business["decisoesRiscos"]
+    ):
+        raise DmcValidationError("toda decisão ou risco deve informar impacto e estado")
 
     governance = document["governancaCorporativa"]
     if not isinstance(governance, dict) or any(
