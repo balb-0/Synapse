@@ -86,7 +86,7 @@
     "custodian": "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados na rede interna ou na nuvem do Sindusfarma + empresa RentalHost (fornecedora do sistema interno) para custódia dos dados hospedados no repositório público.",
     "tecnico": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
     "lgpd": "Diretriz proposta, sujeita à validação do controlador e do encarregado: limitar cada tratamento à finalidade documentada e ao mínimo necessário; separar identidade da camada analítica; não publicar e-mail, chaves estáveis, respostas individuais ou combinações reidentificáveis; usar apenas dados sintéticos, agregados ou com anonimização testada no ambiente acadêmico; pseudonimização não deve ser apresentada como anonimização.",
-    "seg": "Controle de acesso por perfil, autenticação de usuários e políticas internas de segurança do Sindusfarma",
+    "seg": "Desenho proposto, ainda não homologado: acesso individual por menor privilégio, necessidade de conhecer, recurso, ação e finalidade; segregação entre ambientes acadêmico, desenvolvimento, homologação e produção; dados reais somente em ambiente autorizado; leituras, exportações, alterações, publicações, falhas e acessos administrativos com trilha auditável e revisão periódica.",
     "comp": "Dados reais restritos ao ambiente interno; repositório público e GitHub do Inteli apenas com dados anonimizados/fictícios.",
     "etico": "Uso restrito às finalidades das pesquisas setoriais, preservando a confidencialidade de empresas e respondentes.",
     "catalogo": "Dicionário das entidades e campos (empresas, clientes, pesquisas, respondentes), com descrição, tipo e origem de cada atributo.",
