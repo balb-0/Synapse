@@ -145,11 +145,11 @@
           "Entrega registrada"
         ],
         "metricas": [
-          "dias_uteis_validacao: data_aprov menos data_solicitacao; métrica aditiva; cobertura de aprovação limitada no snapshot.",
+          "dias_uteis_validacao: data_aprov menos data_solicitacao; métrica aditiva somente entre linhas com o par de datas válido; cobertura de 5,5% (20 de 366), com denominador obrigatório.",
           "dias_uteis_coleta: data_limite ou prorrogada_ate menos data_divulgacao; métrica aditiva; usa a data prorrogada quando existir.",
           "dias_uteis_tabulacao: data_entrega menos data_limite ou prorrogada_ate; métrica aditiva.",
           "dias_uteis_ciclo_total: data_entrega menos data_solicitacao; métrica não aditiva, usada sem soma com as fases para evitar dupla contagem.",
-          "qtd_empresas_na_pesquisa: coluna participantes do CSV; métrica não aditiva, lida no nível da pesquisa.",
+          "qtd_empresas_na_pesquisa: contagem declarada na coluna participantes do CSV; métrica não aditiva, lida somente no nível da pesquisa e distinta da contagem observada no C02.",
           "qtd_respondentes_na_pesquisa: métrica removida de C01; contagens de respondentes devem ser calculadas no C02 a partir de respondentes.csv, usando participação ou pessoa conciliada conforme denominador aprovado.",
           "flag_prorrogada: booleano 1 quando prorrogada_ate não é nulo e 0 caso contrário; usado como filtro."
         ],

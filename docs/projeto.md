@@ -796,7 +796,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: inteiro
 - Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
 - Aditividade: aditiva
-- Observação: Cobertura de 97,8% das pesquisas
+- Observação: Cobertura de 5,5% das pesquisas; o indicador deve informar o denominador válido e não sustenta uma leitura geral do ciclo
 
 **dias_uteis_coleta**
 - Tipo: inteiro
@@ -819,7 +819,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: inteiro
 - Fonte ou regra de cálculo: coluna `participantes` do CSV
 - Aditividade: não aditiva
-- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+- Observação: É uma contagem declarada pela origem e só pode ser lida no nível da pesquisa; não substitui a contagem distinta observada no C02 e não pode ser somada entre pesquisas
 
 **qtd_respondentes_na_pesquisa**
 - Tipo: inteiro
@@ -897,7 +897,7 @@ As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é um
 
 Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
 
-A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+A data de aprovação (`data_aprov`) tem cobertura de 5,5% das pesquisas (20 de 366). As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem informar o denominador válido e exibir indisponibilidade quando o recorte não sustentar a comparação.
 
 A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
 
