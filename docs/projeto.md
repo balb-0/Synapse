@@ -776,6 +776,16 @@ No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da ocor
 
 Os quatro cubos não criam uma ponte observada entre participação e resposta. Os 542 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem contrato aprovado. Por isso, o C04 documenta o instrumento de pesquisa e permanece como ponto de extensão para um futuro `FATO_RESPOSTA`, mas não afirma a existência de respostas individuais conciliadas.
 
+**Registro da revisão KP-09.** A conferência entre esta seção e
+`docs/dmc.json` preservou quatro cubos. C01 mantém uma linha por pesquisa e
+explicita a cobertura de aprovação de 20/366; C02 separa participação de
+resposta e bloqueia a representatividade até homologar a fonte; C03 trata o
+estoque como semi-aditivo e condiciona entradas e saídas ao histórico de
+transições; C04 permanece fato de associação pesquisa–pergunta, com contagens
+derivadas e sem ponte presumida para pessoa. `DIM_TEMPO` é conformada nos quatro
+cubos; `DIM_PESQUISA`, em C01, C02 e C04; e Status, Área, Tipo e Perfil, em C01
+e C03. Nenhuma dimensão futura foi declarada como compartilhamento atual.
+
 ### 5.2.1 C01 — Portfólio e Ciclo
 
 Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
