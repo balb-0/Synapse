@@ -1110,7 +1110,26 @@ O cubo é um ponto de extensão para uma futura `FATO_RESPOSTA` conciliada. O pr
 
 A dimensão DIM_PERGUNTA contém metadados adicionais que podem ser úteis para análises futuras: o formato do arquivo de origem, a coluna de origem no arquivo bruto e um campo de confiança que indica o nível de certeza sobre a extração da pergunta.
 
-`qtd_alternativas` é atributo da `DIM_PERGUNTA`. Totais ou médias podem ser derivados sobre perguntas distintas, deixando explícitos o conjunto coberto e o denominador; o atributo não transforma o fato de associação em uma fato com medida armazenada.
+`qtd_alternativas` é atributo da `DIM_PERGUNTA`. Totais ou médias podem ser derivados sobre perguntas distintas, deixando explícitos o conjunto coberto e o denominador; o atributo não transforma o fato de associação em um fato com medida armazenada.
+
+#### Dimensões conformadas entre os cubos
+
+Uma dimensão é classificada como conformada somente quando é compartilhada por
+mais de um cubo com o mesmo significado e contrato de chave.
+
+| Dimensão conformada | Cubos |
+| :--- | :--- |
+| `DIM_TEMPO` | C01, C02, C03 e C04 |
+| `DIM_PESQUISA` | C01, C02 e C04 |
+| `DIM_STATUS_PESQUISA` | C01 e C03 |
+| `DIM_AREA` | C01 e C03 |
+| `DIM_TIPO_PESQUISA` | C01 e C03 |
+| `DIM_PERFIL_PESQUISA` | C01 e C03 |
+
+`DIM_EMPRESA` e `DIM_PESSOA` são próprias do C02; `DIM_PERGUNTA`, do C04;
+`DIM_FAMILIA_PESQUISA`, `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA`, do C01 no
+recorte atualmente documentado. Elas não são chamadas de conformadas apenas por
+serem dimensões ou por poderem ser reutilizadas numa evolução futura.
 
 ### 5.2.5 Matriz de Rastreabilidade (PB → RF → Indicador → Cubo → Dashboard)
 
