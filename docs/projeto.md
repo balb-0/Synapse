@@ -728,11 +728,13 @@ disponibilidade.
 | Resultados e questionários | I12–I14 calculáveis; I15 aguarda versão e decisão de validação | Áreas técnicas, Central e gestores; D03, filtros por questão e resultados agregados | Interpretar distribuições, avaliar a composição do instrumento e verificar validação sem tratar elemento de resposta como pessoa |
 | Qualidade, rastreabilidade e publicação | I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança ainda a designar; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções, investigar órfãos, avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
 
-Os públicos de consumo são distintos. A **Central de Pesquisas** acompanha o
-fluxo operacional; as **áreas técnicas** validam instrumentos e interpretam
-resultados agregados; os **gestores** usam recortes consolidados para priorizar
-portfólio e capacidade; e **solicitantes ou participantes externos** acessam
-apenas resultados autorizados no acervo. Data Owner, Data Steward, Data
+Os públicos de consumo são distintos e aparecem no canvas como UC01–UC04. A
+**Central de Pesquisas (UC01)** acompanha o fluxo operacional com detalhe
+condicionado ao perfil; as **áreas técnicas (UC02)** validam instrumentos e
+interpretam resultados agregados; os **gestores (UC03)** usam recortes
+consolidados, sem drill-down pessoal presumido; e **solicitantes, participantes
+ou público externo (UC04)** acessam apenas resultados autorizados no acervo,
+sem acesso aos dashboards internos. Data Owner, Data Steward, Data
 Custodian/TI e auditor são papéis de governança propostos, ainda sem designação
 formal confirmada. Dashboards D01–D04, relatórios, tabelas equivalentes, filtros,
 drill-down agregado e downloads autorizados são formas propostas de consumo;
