@@ -370,7 +370,7 @@
         "junkDimensions": "Não previstas para este cubo na documentação.",
         "dimensoesConformadas": "Pesquisa; Pergunta; Tempo",
         "particionamento": "Por pesquisa e data de divulgação herdada de pesquisas.csv.",
-        "materializacoesAgregacoes": "Agregações por pesquisa, tipo de questão, pergunta, quantidade de alternativas e período.",
+        "materializacoesAgregacoes": "Contagens derivadas de associações distintas por pesquisa, tipo de questão, pergunta e período; qtd_alternativas permanece atributo de DIM_PERGUNTA.",
         "indicesClusteringOrdenacao": "sk_pesquisa, sk_pergunta e sk_data_pesquisa.",
         "queriesCriticas": "Quantidade de perguntas por pesquisa, tipo predominante de questões e pesquisas que compartilham perguntas semelhantes.",
         "classificacaoPublico": true,
@@ -403,8 +403,8 @@
           "Metadados de pergunta disponíveis para análise futura"
         ],
         "metricas": [
-          "qtd_pergunta: sempre 1, pois cada linha representa uma pergunta; métrica aditiva.",
-          "qtd_alternativas: coluna qtd_alternativas de questoes.csv; métrica aditiva para somar alternativas por pesquisa ou grupo de pesquisas."
+          "qtd_pergunta: COUNT(*) derivado das associações distintas entre pesquisa e pergunta no grão consultado; não é medida constante armazenada no fato.",
+          "qtd_alternativas: atributo de DIM_PERGUNTA, não uma medida do fato; totais e médias devem considerar perguntas distintas e declarar o denominador."
         ],
         "dimensoes": [
           "sk_pesquisa: DIM_PESQUISA, pesquisa que contém a pergunta.",
@@ -416,8 +416,8 @@
           "pesquisas.csv para vínculo com DIM_PESQUISA e data_divulgacao"
         ],
         "transformacoes": [
-          "Criar qtd_pergunta como 1 para cada pergunta em pesquisa.",
-          "Usar qtd_alternativas de questoes.csv como medida aditiva.",
+          "Derivar qtd_pergunta pela contagem das associações distintas entre pesquisa e pergunta.",
+          "Manter qtd_alternativas de questoes.csv como atributo de DIM_PERGUNTA.",
           "Ligar seis pesquisas diretamente por ID: 112, 238, 274, 377, 414 e 415.",
           "Para os IDs 424, 1116, 1139 e 1147 ausentes em pesquisas.csv, usar fallback pelo título quando houver correspondência exata.",
           "Preparar o modelo para receber futuro FATO_RESPOSTA sem reestruturação."
@@ -427,7 +427,7 @@
           "Quatro IDs de pesquisa em questoes.csv não existem em pesquisas.csv: 424, 1116, 1139 e 1147.",
           "As seis pesquisas com ligação direta por ID cobrem 188 das 231 linhas, ou 81,4% do arquivo.",
           "Relatórios dependentes deste cubo funcionam plenamente apenas para as 10 pesquisas cobertas; demais pesquisas devem exibir Dados não disponíveis.",
-          "Hoje não há dados de respostas individuais escolhidas pelos respondentes."
+          "respostas.csv existe, mas respondent_id ainda não possui ponte comprovada com a identidade de respondentes.csv; análises por pessoa ou segmento permanecem bloqueadas até reconciliação."
         ],
         "scd": [
           "DIM_PERGUNTA pode versionar mudanças de enunciado, tipo, alternativas, formato de origem, coluna de origem e confiança da extração.",

@@ -1068,21 +1068,21 @@ O grão do cubo é uma linha por pergunta em uma pesquisa, totalizando 231 linha
   <p><b>Fonte:</b> Material elaborado pela equipe.</p>
 </div>
 
-#### Métricas
+#### Métricas derivadas
 
-As métricas são os números calculados e armazenados no cubo. A coluna Aditividade define se o número pode ser somado em agregações, como somar o número total de perguntas de uma pesquisa.
+Como este é um fato de associação, o fato não armazena medidas numéricas tradicionais. As contagens abaixo são derivadas das linhas e dos atributos dimensionais no momento da consulta.
 
 qtd_pergunta
 - Tipo: inteiro
-- Fonte ou regra de cálculo: sempre 1, pois cada linha representa uma pergunta
-- Aditividade: aditiva
-- Observação: representa o volume de perguntas por pesquisa
+- Fonte ou regra de cálculo: `COUNT(*)` das associações distintas entre pesquisa e pergunta
+- Aditividade: derivada no grão consultado
+- Observação: representa o volume de perguntas cobertas por pesquisa sem persistir uma medida constante no fato
 
 qtd_alternativas
 - Tipo: inteiro
-- Fonte ou regra de cálculo: coluna qtd_alternativas do questoes.csv
-- Aditividade: aditiva
-- Observação: soma total de alternativas de uma pesquisa ou grupo de pesquisas
+- Fonte ou regra de cálculo: atributo `qtd_alternativas` da `DIM_PERGUNTA`
+- Aditividade: não se aplica como medida do fato
+- Observação: somas e médias devem considerar perguntas distintas no recorte para não repetir o atributo em associações duplicadas
 
 #### Dimensões
 
@@ -1106,11 +1106,11 @@ O arquivo questoes.csv contém 10 pesquisas distintas, mas quatro delas (IDs 424
 
 A base de questões cobre apenas 2,7% do acervo total de pesquisas (10 de 366). Os relatórios que dependem deste cubo, como o Relatório #07 (Resultados da Pesquisa) e o Relatório #10 (Benchmark Setorial), só funcionarão plenamente para essas 10 pesquisas. Para as demais, os painéis mostrarão "Dados não disponíveis" ou uma mensagem similar, a menos que a extração de questões seja estendida para todo o acervo.
 
-O cubo é um ponto de extensão para um futuro FATO_RESPOSTA. Hoje não há dados de respostas individuais (o que cada respondente escolheu), e os relatórios que dependem desses dados (Resultados da Pesquisa, Benchmark Setorial e Comparativo Anual) estão bloqueados por essa ausência. O modelo está preparado para receber o FATO_RESPOSTA quando os dados forem disponibilizados, sem necessidade de reestruturação.
+O cubo é um ponto de extensão para uma futura `FATO_RESPOSTA` conciliada. O projeto possui `respostas.csv`, mas a ponte entre `respondent_id` e a identidade de `respondentes.csv` não está comprovada. Distribuições agregadas no grão questão podem ser calculadas quando válidas; análises por pessoa, participação ou segmento permanecem bloqueadas até a reconciliação, sem união por similaridade.
 
 A dimensão DIM_PERGUNTA contém metadados adicionais que podem ser úteis para análises futuras: o formato do arquivo de origem, a coluna de origem no arquivo bruto e um campo de confiança que indica o nível de certeza sobre a extração da pergunta.
 
-A métrica qtd_alternativas é aditiva e pode ser usada para responder perguntas como "quantas alternativas no total uma pesquisa possui" ou "qual a média de alternativas por pesquisa em um determinado tipo".
+`qtd_alternativas` é atributo da `DIM_PERGUNTA`. Totais ou médias podem ser derivados sobre perguntas distintas, deixando explícitos o conjunto coberto e o denominador; o atributo não transforma o fato de associação em uma fato com medida armazenada.
 
 ### 5.2.5 Matriz de Rastreabilidade (PB → RF → Indicador → Cubo → Dashboard)
 
