@@ -99,6 +99,20 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Governança Corporativa"):
             validate_dmc.validate_document(changed)
 
+    def test_user_channels_must_match_uc01_to_uc04(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["usuariosCanais"].pop()
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "UC01–UC04"):
+            validate_dmc.validate_document(changed)
+
+    def test_every_channel_must_state_access_restriction(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["usuariosCanais"][0] = (
+            "UC01 — Central de Pesquisas: dashboard."
+        )
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "restrição"):
+            validate_dmc.validate_document(changed)
+
     def test_round_trip_must_preserve_corporate_sections(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["negocioEConsumo"]["usuariosCanais"].append("Canal perdido no round-trip")
