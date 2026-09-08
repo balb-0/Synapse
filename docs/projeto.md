@@ -2349,6 +2349,15 @@ Se um fornecedor, suporte ou infraestrutura permitir acesso a dados pessoais a p
 
 Assim, a governança proposta atende ao ciclo completo — coleta, integração, análise, publicação, atendimento e descarte — sem afirmar que os controles já existem. A passagem para produção deve ser condicionada ao fechamento do inventário, à validação das bases legais e papéis, à revisão do RIPD, ao teste de acesso e de reidentificação, à confirmação de retenção/backups e à aprovação da publicação pelo parceiro.
 
+**Registro da revisão KP-08.** O catálogo proposto no `docs/dmc.json` passou a
+exigir, por fonte e campo, versão, classificação, responsável, regra e estado.
+Os KPIs I16–I20 conservam contrato mensurável; I21–I25 continuam indisponíveis
+enquanto não houver timestamp, linhagem, autorização, catálogo de execuções,
+política e logs. A maturidade observada permanece caracterizada por fontes
+fragmentadas, operação manual e linhagem parcial. Fonte integrada, governada e
+auditável é estado-alvo, condicionado aos gates incrementais de catálogo,
+pipeline, acesso e publicação, e não capacidade já implantada.
+
 ## 6.7 Fluxo de Interação Anotado
 
 Esta seção organiza a base do Fluxo de Interação Anotado da Sprint 2 para o
