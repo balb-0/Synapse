@@ -323,9 +323,9 @@
           "Fechamento mensal do pipeline"
         ],
         "metricas": [
-          "qtd_pesquisas_no_status: contagem de pesquisas naquele status no último dia do mês; semi-aditiva.",
-          "qtd_entradas_no_mes: quantidade de pesquisas que chegaram ao status durante o mês; aditiva.",
-          "qtd_saidas_no_mes: quantidade de pesquisas que saíram do status durante o mês; aditiva."
+          "qtd_pesquisas_no_status: estoque de pesquisas naquele status no último dia do mês; semi-aditiva entre categorias disjuntas do mesmo fechamento e nunca somada entre meses.",
+          "qtd_entradas_no_mes: fluxo de pesquisas que chegaram ao status durante o mês; aditiva no tempo somente quando houver histórico de transições, pois diferenças de snapshots mostram apenas mudança líquida.",
+          "qtd_saidas_no_mes: fluxo de pesquisas que saíram do status durante o mês; aditiva no tempo e indisponível enquanto não houver histórico de transições."
         ],
         "dimensoes": [
           "sk_data_fim_mes: DIM_TEMPO para o último dia do mês.",
@@ -341,7 +341,7 @@
         "transformacoes": [
           "Gerar snapshot automaticamente no primeiro dia útil de cada mês, considerando o fechamento do mês anterior.",
           "Usar papel específico de DIM_TEMPO para sk_data_fim_mes.",
-          "Calcular entradas e saídas no mês a partir do histórico gerado após o go-live.",
+          "Calcular entradas e saídas no mês a partir de histórico de transições gerado após o go-live; não inferir o fluxo completo apenas pela diferença entre snapshots.",
           "Calcular pesquisas a finalizar na camada semântica com flag_conta_como_a_finalizar, sem métrica qtd_a_finalizar no cubo."
         ],
         "qualidade": [

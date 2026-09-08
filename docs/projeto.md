@@ -998,25 +998,25 @@ O grão do cubo é uma linha por combinação de mês, status, área, tipo e per
 
 #### Métricas
 
-As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações. No caso deste cubo, algumas métricas podem ser somadas no tempo, mas não entre status diferentes.
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define em quais dimensões o número pode ser somado. Medidas de estoque do snapshot não podem ser somadas entre meses; medidas de fluxo podem ser acumuladas no tempo.
 
 **qtd_pesquisas_no_status**
 - Tipo: inteiro
 - Fonte ou regra de cálculo: Contagem de pesquisas que estavam naquele status no último dia do mês
 - Aditividade: semi-aditiva
-- Observação: Pode ser somada ao longo do tempo (ex.: total de pesquisas finalizadas em um ano), mas não pode ser somada entre status diferentes (ex.: "Em andamento" + "Finalizada" não faz sentido)
+- Observação: Pode ser agregada entre categorias disjuntas no mesmo fechamento, mas não entre meses. Para contar finalizações no ano, deve-se usar o fluxo de entradas no status terminal, não somar estoques mensais
 
 **qtd_entradas_no_mes**
 - Tipo: inteiro
 - Fonte ou regra de cálculo: Quantidade de pesquisas que chegaram àquele status durante o mês
 - Aditividade: aditiva
-- Observação: Representa o fluxo de entrada no status
+- Observação: Representa o fluxo de entrada no status e exige histórico de transições; diferenças entre dois snapshots capturam apenas a mudança líquida, não todas as transições do mês
 
 **qtd_saidas_no_mes**
 - Tipo: inteiro
 - Fonte ou regra de cálculo: Quantidade de pesquisas que saíram daquele status durante o mês
 - Aditividade: aditiva
-- Observação: Representa o fluxo de saída do status
+- Observação: Representa o fluxo de saída do status e exige histórico de transições; fica indisponível enquanto esse histórico não existir
 
 #### Dimensões
 
