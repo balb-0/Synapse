@@ -81,10 +81,10 @@
     ]
   },
   "governancaCorporativa": {
-    "owner": "Fabio Moreira.",
-    "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
-    "custodian": "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados na rede interna ou na nuvem do Sindusfarma + empresa RentalHost (fornecedora do sistema interno) para custódia dos dados hospedados no repositório público.",
-    "tecnico": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
+    "owner": "Baseline documental: Fabio Moreira como Data Owner para decisões de negócio, acesso, indicadores, publicação, exceções e risco residual; autoridade formal sujeita à homologação e sem inferência de papel jurídico na LGPD.",
+    "steward": "Baseline documental: Felipe Rojas, Reinaldo Nobrega e Lucas Andrade como Data Stewards de semântica, catálogo, qualidade e linhagem; atribuição e grafia final sujeitas à homologação.",
+    "custodian": "Baseline documental: Rodrigo Giorgetto e TI como Data Custodian de infraestrutura e controles técnicos; participação da RentalHost é condicional ao ambiente e contrato, ambos sujeitos à homologação.",
+    "tecnico": "Baseline documental: Felipe Rojas, Reinaldo Nobrega e Lucas Andrade como responsáveis técnicos pelo conteúdo e regras; escopo operacional sujeito à homologação.",
     "lgpd": "Aplicação da LGPD — dados de empresas parceiras e respostas individuais tratados com anonimização; base já anonimizada para uso acadêmico.",
     "seg": "Controle de acesso por perfil, autenticação de usuários e políticas internas de segurança do Sindusfarma",
     "comp": "Dados reais restritos ao ambiente interno; repositório público e GitHub do Inteli apenas com dados anonimizados/fictícios.",
