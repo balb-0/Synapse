@@ -42,3 +42,9 @@ python scripts/dmc/run_gates.py --reexport /caminho/temporario/dmc-reexportado.j
 
 O gate só comprova o round-trip quando recebe um arquivo realmente produzido
 pela ferramenta. Não use uma cópia de `docs/dmc.json` como substituta.
+
+Na execução de 8 de setembro de 2026, os cinco gates locais foram aprovados e
+o documento apresentou exatamente quatro cubos. O gate de sessão nova continua
+pendente até a integração de KP-07, KP-08 e KP-10 e a disponibilização de um
+JSON realmente reexportado. O arquivo temporário de reexportação não deve ser
+versionado.
