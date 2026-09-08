@@ -66,6 +66,18 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "metricas"):
             validate_dmc.validate_document(changed)
 
+    def test_cube_rejects_field_outside_sprint_3_scope(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][0]["fields"]["controleAcesso"] = "Campo removido"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fora do recorte"):
+            validate_dmc.validate_document(changed)
+
+    def test_cube_rejects_list_outside_sprint_3_scope(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][0]["lists"]["fontes"] = ["Fonte removida"]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fora do recorte"):
+            validate_dmc.validate_document(changed)
+
     def test_missing_corporate_governance_key_fails(self) -> None:
         changed = copy.deepcopy(self.document)
         del changed["governancaCorporativa"]["owner"]

@@ -46,7 +46,21 @@ GOVERNANCE_KEYS = (
     "maturidade",
     "evolucao",
 )
+DIMENSIONAL_FIELDS = (
+    "nome",
+    "starSchema",
+    "snowflakeSchema",
+    "outroSchema",
+    "transactionFact",
+    "periodicSnapshot",
+    "accumulatingSnapshot",
+    "bridgeTables",
+    "junkDimensions",
+    "dimensoesConformadas",
+)
 DIMENSIONAL_LISTS = ("grao", "fatos", "metricas", "dimensoes")
+
+
 class DmcValidationError(ValueError):
     """Indica uma divergência estrutural no canvas exportado."""
 
@@ -123,6 +137,16 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         lists = cube.get("lists")
         if not isinstance(fields, dict) or not isinstance(lists, dict):
             raise DmcValidationError(f"cubo {cube['id']} deve conter fields e lists")
+
+        unexpected_fields = sorted(set(fields) - set(DIMENSIONAL_FIELDS))
+        unexpected_lists = sorted(set(lists) - set(DIMENSIONAL_LISTS))
+        if unexpected_fields or unexpected_lists:
+            unexpected = [f"fields.{key}" for key in unexpected_fields]
+            unexpected.extend(f"lists.{key}" for key in unexpected_lists)
+            raise DmcValidationError(
+                f"cubo {cube['id']} contém campos fora do recorte da Sprint 3: "
+                f"{', '.join(unexpected)}"
+            )
 
         name = fields.get("nome")
         if not isinstance(name, str) or not name.strip():
