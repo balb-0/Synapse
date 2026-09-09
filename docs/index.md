@@ -10,6 +10,7 @@
 | [`arquitetura-de-negocio.md`](arquitetura-de-negocio.md) | Cópia local da Arquitetura de Negócio usada como fonte primária de contexto |
 | [`dmc.json`](dmc.json) | Exportação do Data Model Canvas para importação na ferramenta oficial |
 | [`fontes-e-dependencias.md`](fontes-e-dependencias.md) | Mapa de fontes, limitações e dependências entre os três entregáveis da Sprint 1 |
+| [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Inventário técnico das seis fontes do ETL: formato, grão, chaves, volumes, integridade, acesso e disponibilidade |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 
 O conteúdo essencial permanece em `projeto.md`. O documento de governança é o
