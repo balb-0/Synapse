@@ -21,6 +21,13 @@ propostas em controles já implantados. Os demais arquivos auxiliares existem
 para tornar matrizes extensas auditáveis e reutilizáveis, não para substituir o
 documento principal.
 
+## Transformação essencial — Sprint 3 (Marlos)
+
+- [Inventário de regras](inventario-regras-transformacao.md): fontes, riscos e escopo MG-01.
+- [Schema canônico](schema-transformacao.md) e [catálogo de campos](catalogo-transformacao.md): contrato de destino MG-02.
+- [Integração da transformação](integracao-transformacao.md): chamada, referências, quarentena e confirmação pela carga.
+- [Matriz regra–teste](matriz-transformacao.md): evidências, comandos e limitações MG-01 a MG-11.
+
 ## Evidências e protótipos
 
 | Diretório | Conteúdo |
