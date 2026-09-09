@@ -4,6 +4,7 @@ import os
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
+
 from .identity import canonical_json, digest
 from .validation import Violation
 
@@ -20,8 +21,14 @@ class RejectedRecord:
 
     @property
     def rejection_id(self):
-        return digest([self.source, self.source_checksum, self.source_offset,
-                       [(v.code, v.field) for v in self.violations]])
+        return digest(
+            [
+                self.source,
+                self.source_checksum,
+                self.source_offset,
+                [(v.code, v.field) for v in self.violations],
+            ]
+        )
 
 
 class QuarantineStore:
@@ -31,6 +38,7 @@ class QuarantineStore:
     armazenamento restrito da extração. Apagar essa origem perde a capacidade
     de reprocessamento: retenção é um contrato do operador, não um TTL implícito.
     """
+
     def __init__(self, path):
         self.path = Path(path)
         if self.path.is_symlink():
@@ -51,15 +59,17 @@ class QuarantineStore:
     def persist(self, records):
         with sqlite3.connect(self.path) as db:
             for record in records:
-                metadata = {"source": record.source,
-                            "source_checksum": record.source_checksum,
-                            "source_offset": record.source_offset,
-                            "ingested_at": record.ingested_at,
-                            "violations": [{"code": v.code, "field": v.field}
-                                           for v in record.violations]}
-                db.execute("INSERT OR IGNORE INTO rejections VALUES (?, ?, ?, ?)",
-                           (record.rejection_id, record.run_id, record.batch_id,
-                            canonical_json(metadata)))
+                metadata = {
+                    "source": record.source,
+                    "source_checksum": record.source_checksum,
+                    "source_offset": record.source_offset,
+                    "ingested_at": record.ingested_at,
+                    "violations": [{"code": v.code, "field": v.field} for v in record.violations],
+                }
+                db.execute(
+                    "INSERT OR IGNORE INTO rejections VALUES (?, ?, ?, ?)",
+                    (record.rejection_id, record.run_id, record.batch_id, canonical_json(metadata)),
+                )
 
     def count(self):
         with sqlite3.connect(self.path) as db:

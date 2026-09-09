@@ -7,11 +7,12 @@ from time import perf_counter
 from zoneinfo import ZoneInfo
 
 from etl.extraction.contracts import ExtractedBatch
+
 from .consistency import ReferenceData, validate_consistency
 from .identity import classify_duplicates, digest, json_value, record_identity
 from .normalization import normalize_record
 from .quarantine import RejectedRecord
-from .schema import SCHEMAS, SCHEMA_VERSION
+from .schema import SCHEMA_VERSION, SCHEMAS
 from .validation import Violation
 
 
@@ -35,9 +36,15 @@ class TransformationResult:
         return dict(self.metrics)
 
 
-def transform_batch(batch: ExtractedBatch, *, references: ReferenceData,
-                    previous: dict[str, str], source_offset: int,
-                    ingested_at: datetime, source_timezone: str | None = None):
+def transform_batch(
+    batch: ExtractedBatch,
+    *,
+    references: ReferenceData,
+    previous: dict[str, str],
+    source_offset: int,
+    ingested_at: datetime,
+    source_timezone: str | None = None,
+):
     """Transforma sem escrever dados nem confirmar checkpoint.
 
     ``source_offset`` é a posição absoluta zero-based do primeiro registro,
@@ -54,7 +61,9 @@ def transform_batch(batch: ExtractedBatch, *, references: ReferenceData,
         raise ValueError("UNSUPPORTED_CONTRACT_VERSION")
     if not meta.source_checksum or not re.fullmatch(r"[a-f0-9]{64}", meta.source_checksum):
         raise ValueError("SOURCE_CHECKSUM_REQUIRED")
-    if type(source_offset) is not int or source_offset < 0:
+    if type(source_offset) is not int or not 0 <= source_offset < 2**64:
+        raise ValueError("INVALID_SOURCE_OFFSET")
+    if source_offset + len(batch.records) > 2**64:
         raise ValueError("INVALID_SOURCE_OFFSET")
     if not isinstance(ingested_at, datetime) or ingested_at.utcoffset() is None:
         raise ValueError("INGESTION_TIMEZONE_REQUIRED")
@@ -65,11 +74,20 @@ def transform_batch(batch: ExtractedBatch, *, references: ReferenceData,
         if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", value):
             raise ValueError("INVALID_TECHNICAL_ID")
     timestamp = ingested_at.astimezone(timezone.utc).isoformat()
+    if not 1900 <= ingested_at.astimezone(timezone.utc).year <= 2299:
+        raise ValueError("INGESTION_DATE_RANGE")
     accepted, rejected, duplicates, candidates = [], [], [], []
 
     def rejection(offset, violations):
-        return RejectedRecord(source, meta.source_checksum, offset, meta.run_id,
-                              meta.batch_id, timestamp, tuple(sorted(set(violations))))
+        return RejectedRecord(
+            source,
+            meta.source_checksum,
+            offset,
+            meta.run_id,
+            meta.batch_id,
+            timestamp,
+            tuple(sorted(set(violations))),
+        )
 
     for index, raw in enumerate(batch.records):
         offset = source_offset + index
@@ -81,29 +99,46 @@ def transform_batch(batch: ExtractedBatch, *, references: ReferenceData,
             continue
         identity = record_identity(source, row, meta.source_checksum, offset)
         checksum = digest(row)
-        technical = {"source": source, "run_id": meta.run_id, "task_id": meta.task_id,
-                     "batch_id": meta.batch_id, "source_checksum": meta.source_checksum,
-                     "source_offset": offset, "content_checksum": checksum,
-                     "record_identity": identity,
-                     "idempotency_key": digest([identity, checksum]),
-                     "ingested_at": timestamp, "schema_version": SCHEMA_VERSION}
+        technical = {
+            "source": source,
+            "run_id": meta.run_id,
+            "task_id": meta.task_id,
+            "batch_id": meta.batch_id,
+            "source_checksum": meta.source_checksum,
+            "source_offset": offset,
+            "content_checksum": checksum,
+            "record_identity": identity,
+            "idempotency_key": digest([identity, checksum]),
+            "ingested_at": timestamp,
+            "schema_version": SCHEMA_VERSION,
+        }
         candidates.append((row, technical))
     outcomes = classify_duplicates(
-        [(m["record_identity"], m["content_checksum"]) for _, m in candidates], previous)
+        [(m["record_identity"], m["content_checksum"]) for _, m in candidates], previous
+    )
     for (row, technical), outcome in zip(candidates, outcomes):
         if outcome == "accepted":
             accepted.append(AcceptedRecord(row, technical))
         elif outcome == "duplicate":
             duplicates.append(technical)
         else:
-            rejected.append(rejection(technical["source_offset"], [Violation("IDENTITY_CONFLICT", "identity")]))
+            rejected.append(
+                rejection(technical["source_offset"], [Violation("IDENTITY_CONFLICT", "identity")])
+            )
     total = len(batch.records)
     assert total == len(accepted) + len(rejected) + len(duplicates)
-    metrics = {"source": source, "run_id": meta.run_id, "task_id": meta.task_id,
-               "batch_id": meta.batch_id, "stage": "transformation",
-               "status": "completed_with_rejections" if rejected else "completed",
-               "extracted_count": total, "accepted_count": len(accepted),
-               "rejected_count": len(rejected), "duplicate_count": len(duplicates),
-               "input_bytes": meta.byte_count,
-               "duration_seconds": perf_counter() - started}
+    metrics = {
+        "source": source,
+        "run_id": meta.run_id,
+        "task_id": meta.task_id,
+        "batch_id": meta.batch_id,
+        "stage": "transformation",
+        "status": "completed_with_rejections" if rejected else "completed",
+        "extracted_count": total,
+        "accepted_count": len(accepted),
+        "rejected_count": len(rejected),
+        "duplicate_count": len(duplicates),
+        "input_bytes": meta.byte_count,
+        "duration_seconds": perf_counter() - started,
+    }
     return TransformationResult(tuple(accepted), tuple(rejected), tuple(duplicates), metrics)

@@ -1,17 +1,25 @@
 """Referências técnicas explícitas; nenhuma inferência de identidade pessoal."""
 
 from copy import deepcopy
+
 from .schema import KEYS, QUESTION_TYPES
 from .validation import Violation, conditional_fields
 
 RELATIONS = {
-    "pesquisas": (), "empresas": (),
+    "pesquisas": (),
+    "empresas": (),
     "clientes": (("empresas", ("empresa_id",)),),
-    "respondentes": (("empresas", ("empresa_id",)),
-                     ("pesquisas", ("pesquisa_id",)), ("clientes", ("cliente_id",))),
+    "respondentes": (
+        ("empresas", ("empresa_id",)),
+        ("pesquisas", ("pesquisa_id",)),
+        ("clientes", ("cliente_id",)),
+    ),
     "questoes": (("pesquisas", ("pesquisa_id",)),),
-    "respostas": (("empresas", ("empresa_id",)), ("pesquisas", ("pesquisa_id",)),
-                  ("questoes", ("pesquisa_id", "pergunta_id"))),
+    "respostas": (
+        ("empresas", ("empresa_id",)),
+        ("pesquisas", ("pesquisa_id",)),
+        ("questoes", ("pesquisa_id", "pergunta_id")),
+    ),
 }
 
 
@@ -21,6 +29,7 @@ class ReferenceData:
     Fonte ausente difere de fonte carregada vazia. O chamador deve fornecer
     todas as referências necessárias, inclusive para um lote vazio.
     """
+
     def __init__(self, sources):
         self._indexes = {}
         for source, records in sources.items():
@@ -62,15 +71,25 @@ def validate_consistency(source, record, references):
         if record["tipo"] not in QUESTION_TYPES:
             problems.append(Violation("UNKNOWN_QUESTION_TYPE", "tipo"))
         count = record.get("qtd_alternativas")
-        if count is not None and count != len(record["alternativas"]):
+        expected = len(record["alternativas"])
+        if record["tipo"] == "matriz_avaliacao":
+            # In the source dictionary this is the number of matrix cells.
+            expected = len(record["linhas_matriz"]) * len(record["colunas_matriz"])
+        if count is not None and count != expected:
             problems.append(Violation("ALTERNATIVE_COUNT_MISMATCH", "qtd_alternativas"))
     if source == "respostas":
         question = references.get("questoes", (record["pesquisa_id"], record["pergunta_id"]))
         if question:
             problems.extend(conditional_fields(record, question))
-            for field, domain in (("linha_matriz", "linhas_matriz"),
-                                  ("coluna_matriz", "colunas_matriz")):
-                if record[field] is not None and question.get(domain) and record[field] not in question[domain]:
+            for field, domain in (
+                ("linha_matriz", "linhas_matriz"),
+                ("coluna_matriz", "colunas_matriz"),
+            ):
+                if (
+                    record[field] is not None
+                    and question.get(domain)
+                    and record[field] not in question[domain]
+                ):
                     problems.append(Violation("ANSWER_DOMAIN", field))
             if question.get("alternativas"):
                 answer = record["alternativa"]
@@ -78,12 +97,20 @@ def validate_consistency(source, record, references):
                     answer = record["valor"]
                 if answer is not None and answer not in question["alternativas"]:
                     problems.append(Violation("ANSWER_DOMAIN", "alternativa"))
-    pairs = {"respondentes": (("hora_inicio", "hora_termino"),),
-             "pesquisas": (("data_solicitacao", "data_entrega"),
-                           ("data_divulgacao", "data_limite"),
-                           ("data_limite", "prorrogada_ate"))}.get(source, ())
+    pairs = {
+        "respondentes": (("hora_inicio", "hora_termino"),),
+        "pesquisas": (
+            ("data_solicitacao", "data_entrega"),
+            ("data_divulgacao", "data_limite"),
+            ("data_limite", "prorrogada_ate"),
+        ),
+    }.get(source, ())
     for earlier, later in pairs:
-        if record[earlier] is not None and record[later] is not None and record[later] < record[earlier]:
+        if (
+            record[earlier] is not None
+            and record[later] is not None
+            and record[later] < record[earlier]
+        ):
             problems.append(Violation("TEMPORAL_ORDER", later))
     for name in ("participantes", "qtd_alternativas", "tempo_preenchimento"):
         if record.get(name) is not None and record[name] < 0:

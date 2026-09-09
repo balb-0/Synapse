@@ -4,12 +4,14 @@ import hashlib
 import json
 from datetime import date, datetime
 from decimal import Decimal
+
 from .schema import KEYS, SCHEMA_VERSION
 
 
 def json_value(value):
     if isinstance(value, Decimal):
-        return format(value, "f")
+        # Equivalent numeric values must hash equally (1, 1.0 and 1.000).
+        return "0" if value == 0 else format(value.normalize(), "f")
     if isinstance(value, (date, datetime)):
         return value.isoformat()
     if isinstance(value, dict):
@@ -20,8 +22,13 @@ def json_value(value):
 
 
 def canonical_json(value):
-    return json.dumps(json_value(value), ensure_ascii=False, sort_keys=True,
-                      separators=(",", ":"), allow_nan=False)
+    return json.dumps(
+        json_value(value),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
 
 
 def digest(value):
