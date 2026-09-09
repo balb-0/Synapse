@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "questoes",
+  "namespace": "br.edu.inteli.sindusfarma.bronze",
+  "doc": "Schema bronze para questoes.csv.",
+  "fields": [
+    {"name": "id_pergunta", "type": ["null", "string"], "default": null},
+    {"name": "pesquisa_id", "type": ["null", "string"], "default": null},
+    {"name": "pesquisa_titulo", "type": ["null", "string"], "default": null},
+    {"name": "enunciado", "type": ["null", "string"], "default": null},
+    {"name": "tipo", "type": ["null", "string"], "default": null},
+    {"name": "qtd_alternativas", "type": ["null", "string"], "default": null},
+    {"name": "alternativas", "type": ["null", "string"], "default": null},
+    {"name": "linhas_matriz", "type": ["null", "string"], "default": null},
+    {"name": "colunas_matriz", "type": ["null", "string"], "default": null},
+    {"name": "confianca", "type": ["null", "string"], "default": null},
+    {"name": "formato_arquivo", "type": ["null", "string"], "default": null},
+    {"name": "col_origem", "type": ["null", "string"], "default": null},
+    {"name": "observacoes", "type": ["null", "string"], "default": null}
+  ]
+}
