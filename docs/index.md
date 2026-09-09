@@ -11,6 +11,7 @@
 | [`dmc.json`](dmc.json) | Exportação do Data Model Canvas para importação na ferramenta oficial |
 | [`fontes-e-dependencias.md`](fontes-e-dependencias.md) | Mapa de fontes, limitações e dependências entre os três entregáveis da Sprint 1 |
 | [`contrato-lote-extraido.md`](contrato-lote-extraido.md) | Interface comum dos extratores, contrato de lote, checkpoint e metadados |
+| [`configuracao-extracao.md`](configuracao-extracao.md) | Configuração segura de caminhos, endpoints e credenciais da extração |
 | [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Inventário técnico das seis fontes do ETL: formato, grão, chaves, volumes, integridade, acesso e disponibilidade |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 
