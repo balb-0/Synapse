@@ -71,7 +71,6 @@ RESPONDENTES_REQUIRED_COLUMNS = (
     "id_cliente",
 )
 
-
 class ExtractionError(RuntimeError):
     """Erro conhecido durante a leitura de uma fonte."""
 
@@ -207,9 +206,15 @@ class CsvObjectExtractor:
                 raise MalformedSourceError(
                     f"quantidade de campos inválida na linha {line_number}"
                 )
-            records.append(dict(zip(normalized_headers, row, strict=True)))
+            record = dict(zip(normalized_headers, row, strict=True))
+            records.append(self._prepare_record(record))
 
         return tuple(records)
+
+    def _prepare_record(self, record: dict[str, str]) -> Record:
+        """Permite especializar apenas a representação entregue pelo extrator."""
+
+        return record
 
 
 class PesquisasExtractor(CsvObjectExtractor):
