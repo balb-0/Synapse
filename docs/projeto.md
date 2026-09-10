@@ -3393,8 +3393,8 @@ ou funcionamento de uma plataforma produtiva.
 | Volume do snapshot analisado | 46.148 registros em seis CSVs | soma das contagens reproduzidas pelo perfilador da §5.3 |
 | Duplicidade de linha e das chaves declaradas | 0 ocorrência nas seis bases | `scripts/data_quality/profile_csv.py` e manifesto versionado |
 | Relações pesquisa ausentes | 55 participações, 43 questões e 3.592 elementos de resposta órfãos | relatório `relacionamentos.csv` descrito na §5.3 |
-| Modelo dimensional exportado | 4 cubos com Modelo Dimensional, Dados e Governança preenchidos | `scripts/dmc/validate_dmc.py docs/dmc.json` |
-| Testes estruturais do DMC | 17 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
+| Modelo dimensional exportado | 4 cubos com o recorte de Modelo Dimensional preenchido e seções corporativas de Negócio, Consumo Analítico e Governança completas | `scripts/dmc/validate_dmc.py docs/dmc.json` |
+| Testes estruturais do DMC | 40 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
 | Testes do perfilamento | 5 testes aprovados | `python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'` |
 | Testes de rastreabilidade | 13 testes aprovados, incluindo 2 fontes primárias e 12 afirmações conferidas | `SINDUSFARMA_SOURCE_DIR=/caminho/seguro/das/fontes python3 -m unittest discover -s scripts/traceability -p 'test_*.py'` |
 | Reabertura na ferramenta oficial | 4 cards renderizados, sem erro de aplicação ou resposta HTTP falha | importação e reexportação em sessão nova, com comparação semântica do JSON |
@@ -3414,8 +3414,10 @@ ou funcionamento de uma plataforma produtiva.
 O trabalho torna reproduzíveis o diagnóstico de qualidade, a validação
 estrutural do canvas e a distinção entre métrica disponível e dependência
 futura. O modelo cobre portfólio e ciclo, participação, pipeline mensal e
-resultados/questionários, com Dados e Governança preenchidos como proposta
-técnica sujeita a homologação.
+resultados/questionários no recorte dimensional da Sprint 3. A Governança
+Corporativa está preenchida como proposta técnica sujeita a homologação; as
+antigas subseções de Dados e Governança por cubo foram removidas por estarem
+fora desse recorte.
 
 As principais lacunas analíticas passam a ser a ausência de metadados de versão,
 validação e publicação, além da falta de ponte observada entre participação e
@@ -3482,7 +3484,7 @@ afirmações exigidos nesta Sprint:
 | RF01–RF13 e PB01–PB13 | TAPI [<sup>[1]</sup>](#ref-1), Arquitetura [<sup>[2]</sup>](#ref-2), estrutura observada e síntese do grupo | contrato proposto sustentado por fonte | **OK com limitação:** contratos são da equipe; campos e dependências observáveis são citados diretamente |
 | I01–I25 | CSVs, perfilamento e dependências declaradas nas §§5.6 e 6.4 | observado, mapeamento ou integração futura | **OK:** cada indicador explicita disponibilidade e denominador; indisponível nunca vira zero |
 | Atualização automática, acesso e publicação | ausência de timestamp, política, logs e decisão no snapshot | proposta futura | **Correção aplicada:** removidas afirmações de capacidade atual ou tempo real |
-| Quatro cards dimensionais do DMC | §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional, Dados e Governança preenchidos; C03 é Pipeline Mensal e C04 é Resultados e Questionários |
+| Quatro cards dimensionais do DMC | §5.2 e `docs/dmc.json` | observado no artefato | **OK:** recorte de Modelo Dimensional preenchido; C03 é Pipeline Mensal e C04 é Resultados e Questionários; Dados e Governança por cubo estão corretamente fora do recorte da Sprint 3 |
 
 Nenhuma referência complementar deve ser usada, isoladamente, para classificar
 uma afirmação como confirmada pelo parceiro. TAPI e Arquitetura só sustentam os

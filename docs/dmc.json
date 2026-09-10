@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "metadata": {
     "parceiro": "Sindusfarma",
-    "data": "2026-07-31",
-    "versao": "1.0",
+    "data": "2026-09-10",
+    "versao": "1.1",
     "grupo": "Grupo 05"
   },
   "negocioEConsumo": {
@@ -124,9 +124,9 @@
           "Entrega registrada"
         ],
         "metricas": [
-          "dias_uteis_validacao: data_aprov menos data_solicitacao; métrica aditiva somente entre linhas com o par de datas válido; cobertura de 5,5% (20 de 366), com denominador obrigatório.",
-          "dias_uteis_coleta: data_limite ou prorrogada_ate menos data_divulgacao; métrica aditiva; usa a data prorrogada quando existir.",
-          "dias_uteis_tabulacao: data_entrega menos data_limite ou prorrogada_ate; métrica aditiva.",
+          "dias_uteis_validacao: data_aprov menos data_solicitacao; até a homologação do calendário, calcular e rotular apenas a diferença em dias corridos, sem apresentá-la como dias úteis; cobertura de 5,5% (20 de 366), sempre com denominador e excluídos.",
+          "dias_uteis_coleta: data_limite, ou prorrogada_ate quando existir, menos data_divulgacao; até a homologação do calendário, calcular e rotular apenas dias corridos; não misturar as duas convenções.",
+          "dias_uteis_tabulacao: data_entrega menos data_limite, ou prorrogada_ate quando existir; até a homologação do calendário, calcular e rotular apenas dias corridos; pares incompletos produzem NULL.",
           "dias_uteis_ciclo_total: data_entrega menos data_solicitacao; métrica não aditiva, usada sem soma com as fases para evitar dupla contagem.",
           "qtd_empresas_na_pesquisa: contagem declarada na coluna participantes do CSV; métrica não aditiva, lida somente no nível da pesquisa e distinta da contagem observada no C02.",
           "qtd_respondentes_na_pesquisa: métrica removida de C01; contagens de respondentes devem ser calculadas no C02 a partir de respondentes.csv, usando participação ou pessoa conciliada conforme denominador aprovado.",

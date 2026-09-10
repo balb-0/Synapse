@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -64,6 +66,8 @@ DIMENSIONAL_FIELDS = (
     "dimensoesConformadas",
 )
 DIMENSIONAL_LISTS = ("grao", "fatos", "metricas", "dimensoes")
+METADATA_KEYS = ("parceiro", "data", "versao", "grupo")
+VERSION_PATTERN = re.compile(r"^[1-9]\d*\.\d+$")
 
 
 class DmcValidationError(ValueError):
@@ -105,9 +109,15 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
     metadata = document["metadata"]
     if not isinstance(metadata, dict) or not all(
         isinstance(metadata.get(key), str) and metadata[key].strip()
-        for key in ("parceiro", "data", "versao", "grupo")
+        for key in METADATA_KEYS
     ):
         raise DmcValidationError("metadata deve preservar parceiro, data, versão e grupo")
+    try:
+        date.fromisoformat(metadata["data"])
+    except ValueError as error:
+        raise DmcValidationError("metadata.data deve usar uma data ISO válida (AAAA-MM-DD)") from error
+    if not VERSION_PATTERN.fullmatch(metadata["versao"]):
+        raise DmcValidationError("metadata.versao deve usar o formato inteiro.inteiro")
 
     business = document["negocioEConsumo"]
     if not isinstance(business, dict) or not all(
@@ -204,6 +214,42 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
                 f"{', '.join(unexpected)}"
             )
 
+        missing_fields = [key for key in DIMENSIONAL_FIELDS if key not in fields]
+        missing_lists = [key for key in DIMENSIONAL_LISTS if key not in lists]
+        if missing_fields or missing_lists:
+            missing_keys = [f"fields.{key}" for key in missing_fields]
+            missing_keys.extend(f"lists.{key}" for key in missing_lists)
+            raise DmcValidationError(
+                f"cubo {cube['id']} não preenche o contrato: {', '.join(missing_keys)}"
+            )
+
+        boolean_fields = (
+            "starSchema",
+            "snowflakeSchema",
+            "transactionFact",
+            "periodicSnapshot",
+            "accumulatingSnapshot",
+        )
+        if any(type(fields[key]) is not bool for key in boolean_fields):
+            raise DmcValidationError(
+                f"cubo {cube['id']} deve usar booleanos nos seletores de esquema e fato"
+            )
+
+        text_fields = (
+            "nome",
+            "outroSchema",
+            "bridgeTables",
+            "junkDimensions",
+            "dimensoesConformadas",
+        )
+        if any(
+            not isinstance(fields[key], str) or not fields[key].strip()
+            for key in text_fields
+        ):
+            raise DmcValidationError(
+                f"cubo {cube['id']} deve preencher todos os campos textuais dimensionais"
+            )
+
         name = fields.get("nome")
         if not isinstance(name, str) or not name.strip():
             raise DmcValidationError(f"cubo {cube['id']} deve ter nome")
@@ -228,6 +274,9 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         for key in DIMENSIONAL_LISTS:
             if not _nonempty_strings(lists.get(key)):
                 raise DmcValidationError(f"cubo {name} deve preencher {key}")
+            normalized_items = [item.strip().casefold() for item in lists[key]]
+            if len(normalized_items) != len(set(normalized_items)):
+                raise DmcValidationError(f"cubo {name} contém itens duplicados em {key}")
 
     if tuple(names) != EXPECTED_CUBES:
         raise DmcValidationError("nomes ou ordem dos cubos divergem do contrato da Sprint")

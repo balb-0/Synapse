@@ -1,8 +1,10 @@
 # Validação do Data Model Canvas
 
 O validador confere o recorte da Sprint 3: sintaxe e seções corporativas
-obrigatórias, quatro cubos com nomes e IDs canônicos, esquema dimensional,
-tipo de fato e preenchimento de grão, fatos, métricas e dimensões.
+obrigatórias, metadados com data e versão válidas, quatro cubos com nomes e
+IDs canônicos, presença e tipo de todos os campos dimensionais, seleção de
+esquema e fato e listas não vazias nem duplicadas de grão, fatos, métricas e
+dimensões.
 
 Nos cubos, o contrato aceita somente os campos de Modelo Dimensional. Campos
 das antigas subseções Dados e Governança — como `fontes`, `qualidade`,
@@ -71,8 +73,11 @@ python scripts/dmc/run_gates.py --reexport /caminho/temporario/dmc-reexportado.j
 O gate só comprova o round-trip quando recebe um arquivo realmente produzido
 pela ferramenta. Não use uma cópia de `docs/dmc.json` como substituta.
 
-Na execução de 8 de setembro de 2026, os cinco gates locais foram aprovados e
-o documento apresentou exatamente quatro cubos. O gate de sessão nova continua
-pendente até a integração de KP-08 e KP-10 e a disponibilização de um JSON
-realmente reexportado. O arquivo temporário de reexportação não deve ser
+Na revisão 1.1, de 10 de setembro de 2026, os cinco gates locais foram
+aprovados e o documento apresentou exatamente quatro cubos. KP-08 e KP-10 já
+estão integradas. A reabertura em sessão nova permanece um gate manual externo:
+ela depende da URL ou do executável da ferramenta oficial e de um JSON realmente
+reexportado, nenhum dos quais está disponível no repositório. Essa dependência
+não reduz a completude do artefato versionado, mas impede afirmar compatibilidade
+visual sem executar o teste. O arquivo temporário de reexportação não deve ser
 versionado.

@@ -560,7 +560,9 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.document = DOCUMENT_PATH.read_text(encoding="utf-8")
-        cls.dmc = json.loads((REPOSITORY_ROOT / "docs" / "dmc.json").read_text())
+        cls.dmc = json.loads(
+            (REPOSITORY_ROOT / "docs" / "dmc.json").read_text(encoding="utf-8")
+        )
         cls.architecture = (
             REPOSITORY_ROOT / "docs" / "arquitetura-de-negocio.md"
         ).read_text(encoding="utf-8")

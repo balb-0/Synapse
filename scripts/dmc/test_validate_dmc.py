@@ -48,6 +48,18 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "schemaVersion"):
             validate_dmc.validate_document(changed)
 
+    def test_invalid_metadata_date_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["metadata"]["data"] = "2026-02-30"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "data ISO válida"):
+            validate_dmc.validate_document(changed)
+
+    def test_invalid_metadata_version_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["metadata"]["versao"] = "final"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "inteiro.inteiro"):
+            validate_dmc.validate_document(changed)
+
     def test_multiple_schemas_fail(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["cubos"][0]["fields"]["snowflakeSchema"] = True
@@ -60,10 +72,36 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "tipo de fato"):
             validate_dmc.validate_document(changed)
 
+    def test_missing_dimensional_field_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        del changed["cubos"][0]["fields"]["bridgeTables"]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fields.bridgeTables"):
+            validate_dmc.validate_document(changed)
+
+    def test_non_boolean_selector_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][0]["fields"]["snowflakeSchema"] = "false"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "usar booleanos"):
+            validate_dmc.validate_document(changed)
+
+    def test_blank_dimensional_text_field_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][0]["fields"]["dimensoesConformadas"] = "  "
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "campos textuais"):
+            validate_dmc.validate_document(changed)
+
     def test_dimensional_lists_reject_non_string_items(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["cubos"][0]["lists"]["metricas"].append(42)
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "metricas"):
+            validate_dmc.validate_document(changed)
+
+    def test_dimensional_lists_reject_duplicate_items(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][0]["lists"]["fatos"].append(
+            changed["cubos"][0]["lists"]["fatos"][0].upper()
+        )
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "duplicados em fatos"):
             validate_dmc.validate_document(changed)
 
     def test_cube_rejects_field_outside_sprint_3_scope(self) -> None:
