@@ -10,6 +10,12 @@
 | [`arquitetura-de-negocio.md`](arquitetura-de-negocio.md) | Cópia local da Arquitetura de Negócio usada como fonte primária de contexto |
 | [`dmc.json`](dmc.json) | Exportação do Data Model Canvas para importação na ferramenta oficial |
 | [`fontes-e-dependencias.md`](fontes-e-dependencias.md) | Mapa de fontes, limitações e dependências entre os três entregáveis da Sprint 1 |
+| [`contrato-lote-extraido.md`](contrato-lote-extraido.md) | Interface comum dos extratores, contrato de lote, checkpoint e metadados |
+| [`configuracao-extracao.md`](configuracao-extracao.md) | Configuração segura de caminhos, endpoints e credenciais da extração |
+| [`adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | ADR proposto para o ETL orientado a eventos com Python, Prefect, MinIO, DuckDB e Elastic Stack |
+| [`extratores.md`](extratores.md) | Implementação e limites dos extratores das seis fontes; pesquisas e empresas entregues na LN-04 |
+| [`testes-extracao.md`](testes-extracao.md) | Suíte unitária e de contrato dos seis extratores |
+| [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Inventário técnico das seis fontes do ETL: formato, grão, chaves, volumes, integridade, acesso e disponibilidade |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 
 O conteúdo essencial permanece em `projeto.md`. O documento de governança é o
@@ -17,6 +23,13 @@ artefato específico da Sprint 2 e detalha suas políticas sem transformar
 propostas em controles já implantados. Os demais arquivos auxiliares existem
 para tornar matrizes extensas auditáveis e reutilizáveis, não para substituir o
 documento principal.
+
+## Transformação essencial — Sprint 3 (Marlos)
+
+- [Inventário de regras](inventario-regras-transformacao.md): fontes, riscos e escopo MG-01.
+- [Schema canônico](schema-transformacao.md) e [catálogo de campos](catalogo-transformacao.md): contrato de destino MG-02.
+- [Integração da transformação](integracao-transformacao.md): chamada, referências, quarentena e confirmação pela carga.
+- [Matriz regra–teste](matriz-transformacao.md): evidências, comandos e limitações MG-01 a MG-11.
 
 ## Evidências e protótipos
 
@@ -26,6 +39,7 @@ documento principal.
 | [`../scripts/data_quality/`](../scripts/data_quality/) | manifesto, perfilador, testes e contrato das saídas agregadas |
 | [`../scripts/governance/`](../scripts/governance/) | validação reproduzível da classificação, do TAPI e da matriz de acesso |
 | [`../scripts/traceability/`](../scripts/traceability/) | contrato executável PB–RF–indicador–cubo/dashboard e validação das extensões futuras de resposta conciliada |
+| [`smoke-test-extracao.md`](smoke-test-extracao.md) | Resultado reproduzível da extração das seis fontes com fixtures sintéticas |
 
 ## Documentos de gestão
 
