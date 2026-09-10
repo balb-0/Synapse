@@ -131,9 +131,14 @@ def ingest_object(
     *,
     version_id: str | None = None,
     event_id: str | None = None,
+    reprocess: bool = False,
     db_path: str | None = None,
 ) -> dict:
-    """Ingestão idempotente de um objeto do MinIO na camada tratada (DuckDB)."""
+    """Ingestão idempotente de um objeto do MinIO na camada tratada (DuckDB).
+
+    ``reprocess=True`` ignora o controle de idempotência por objeto (backfill
+    controlado); a deduplicação por linha continua protegendo contra duplicata.
+    """
     logger = get_run_logger()
     if source not in EXTRACTORS:
         raise ValueError(f"fonte desconhecida: {source!r}")
@@ -146,8 +151,10 @@ def ingest_object(
     checksum = _object_checksum(reader, reference)
     with DuckDbLoadRepository(db_path) as repo:
         if repo.object_already_loaded(checksum):
-            logger.info("objeto %s já concluído (hash %s) — ignorado", key, checksum[:12])
-            return {"status": "ignored", "source": source, "source_checksum": checksum}
+            if not reprocess:
+                logger.info("objeto %s já concluído (hash %s) — ignorado", key, checksum[:12])
+                return {"status": "ignored", "source": source, "source_checksum": checksum}
+            logger.info("reprocess: ignorando controle de objeto %s; dedup por linha protege", key)
         references = _build_references(repo, source)
         previous = repo.loaded_identities(source)
 
@@ -165,4 +172,35 @@ def ingest_object(
         "source": source,
         "source_checksum": checksum,
         "reconciliation": reconciliations,
+    }
+
+
+@flow(name="backfill")
+def backfill(
+    sources: list[str],
+    bucket: str,
+    *,
+    prefix: str = "landing",
+    reprocess: bool = False,
+    db_path: str | None = None,
+) -> dict:
+    """Backfill controlado de um conjunto explícito de fontes.
+
+    A janela, as fontes e o modo (reprocesso) são parâmetros e ficam registrados
+    no histórico do run do Prefect. Cada fonte roda como um subflow `ingest-object`.
+    """
+    logger = get_run_logger()
+    logger.info("backfill: fontes=%s prefixo=%s reprocess=%s", sources, prefix, reprocess)
+    resultados = []
+    for source in sources:
+        key = f"{prefix}/{source}.csv"
+        outcome = ingest_object(
+            source=source, bucket=bucket, key=key, reprocess=reprocess, db_path=db_path
+        )
+        resultados.append({"source": source, "status": outcome["status"]})
+    return {
+        "mode": "backfill",
+        "reprocess": reprocess,
+        "sources": list(sources),
+        "results": resultados,
     }
