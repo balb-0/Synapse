@@ -54,6 +54,23 @@ EMPRESAS_REQUIRED_COLUMNS = (
     "País",
 )
 
+CLIENTES_REQUIRED_COLUMNS = (
+    "id_cliente",
+    "id_empresa",
+    "cargo",
+    "departamento",
+    "e-mail",
+)
+
+RESPONDENTES_REQUIRED_COLUMNS = (
+    "id_pesq",
+    "hora_inicio",
+    "hora_termino",
+    "id_empresa",
+    "market_share",
+    "id_cliente",
+)
+
 
 class ExtractionError(RuntimeError):
     """Erro conhecido durante a leitura de uma fonte."""
@@ -226,6 +243,42 @@ class EmpresasExtractor(CsvObjectExtractor):
             source="empresas",
             schema_version="1",
             required_columns=EMPRESAS_REQUIRED_COLUMNS,
+            object_reader=object_reader,
+            object_reference=object_reference,
+        )
+
+
+class ClientesExtractor(CsvObjectExtractor):
+    """Extrai `clientes` preservando identificadores e campos da origem."""
+
+    def __init__(
+        self,
+        *,
+        object_reader: ObjectReader,
+        object_reference: ObjectReference,
+    ) -> None:
+        super().__init__(
+            source="clientes",
+            schema_version="1",
+            required_columns=CLIENTES_REQUIRED_COLUMNS,
+            object_reader=object_reader,
+            object_reference=object_reference,
+        )
+
+
+class RespondentesExtractor(CsvObjectExtractor):
+    """Extrai `respondentes` sem alterar os componentes da chave candidata."""
+
+    def __init__(
+        self,
+        *,
+        object_reader: ObjectReader,
+        object_reference: ObjectReference,
+    ) -> None:
+        super().__init__(
+            source="respondentes",
+            schema_version="1",
+            required_columns=RESPONDENTES_REQUIRED_COLUMNS,
             object_reader=object_reader,
             object_reference=object_reference,
         )

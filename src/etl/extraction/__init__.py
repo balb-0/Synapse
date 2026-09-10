@@ -19,25 +19,32 @@ from .contracts import (
     Record,
 )
 from .csv_extractors import (
+    CLIENTES_REQUIRED_COLUMNS,
     EMPRESAS_REQUIRED_COLUMNS,
     PESQUISAS_REQUIRED_COLUMNS,
+    RESPONDENTES_REQUIRED_COLUMNS,
+    ClientesExtractor,
     CsvObjectExtractor,
     EmpresasExtractor,
     ExtractionError,
     MalformedSourceError,
     PesquisasExtractor,
+    RespondentesExtractor,
     UnsupportedCheckpointError,
 )
 from .object_storage import MinioObjectReader, ObjectReader, ObjectReference
 
 __all__ = [
     "CONTRACT_VERSION",
+    "CLIENTES_REQUIRED_COLUMNS",
     "ENVIRONMENT_VARIABLES",
     "EMPRESAS_REQUIRED_COLUMNS",
     "PESQUISAS_REQUIRED_COLUMNS",
+    "RESPONDENTES_REQUIRED_COLUMNS",
     "REDACTED",
     "BatchMetadata",
     "CheckpointStore",
+    "ClientesExtractor",
     "ConfigurationError",
     "CsvObjectExtractor",
     "EmpresasExtractor",
@@ -53,6 +60,7 @@ __all__ = [
     "ObjectReference",
     "PesquisasExtractor",
     "Record",
+    "RespondentesExtractor",
     "SecretValue",
     "UnsupportedCheckpointError",
     "load_extraction_settings",
