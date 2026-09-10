@@ -747,12 +747,12 @@ As seguintes decisões permanecem abertas e limitam o consumo:
 
 | Decisão ou risco | Efeito analítico | Estado |
 | :--- | :--- | :--- |
-| Universo de empresas e pessoas convidadas/elegíveis | Sem denominador, I08 e I11 ficam indisponíveis | Pendente de fonte e regra |
-| Fonte autoritativa de participação de mercado | Divergências impedem homologar I09 | Pendente de decisão do parceiro |
-| Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes | Pendente de reconciliação |
-| Timestamp de carga, catálogo, versões, autorização e logs | Limita I15 e I21–I25 | Depende de integração futura |
-| Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação, sem alterar o contrato analítico | Proposta da equipe a validar |
-| Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controles antes de detalhar ou exportar | Risco observado no snapshot e condicionado à governança |
+| DR01 — Universo de empresas e pessoas convidadas/elegíveis | Sem denominador, I08 e I11 ficam indisponíveis | Pendente de fonte e regra |
+| DR02 — Fonte autoritativa de participação de mercado | Divergências impedem homologar I09 | Pendente de decisão do parceiro |
+| DR03 — Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes | Pendente de reconciliação |
+| DR04 — Timestamp de carga, catálogo, versões, autorização e logs | Limita I15 e I21–I25 | Depende de integração futura |
+| DR05 — Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação, sem alterar o contrato analítico | Proposta da equipe a validar |
+| DR06 — Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controles antes de detalhar ou exportar | Risco observado no snapshot e condicionado à governança |
 
 ### Evidência e proposta
 
@@ -2397,6 +2397,15 @@ prazo de retenção, matriz final de perfis e limiar de supressão continuam
 dependentes de homologação. A dependência MG-01 (`#170`) permanece aberta;
 portanto, nenhuma regra de schema ou domínio ainda não inventariada é tratada
 como confirmada.
+
+**Registro da revisão KP-08.** O catálogo proposto no `docs/dmc.json` passou a
+exigir, por fonte e campo, versão, classificação, responsável, regra e estado.
+Os KPIs I16–I20 conservam contrato mensurável; I21–I25 continuam indisponíveis
+enquanto não houver timestamp, linhagem, autorização, catálogo de execuções,
+política e logs. A maturidade observada permanece caracterizada por fontes
+fragmentadas, operação manual e linhagem parcial. Fonte integrada, governada e
+auditável é estado-alvo, condicionado aos gates incrementais de catálogo,
+pipeline, acesso e publicação, e não capacidade já implantada.
 
 ## 6.7 Fluxo de Interação Anotado
 
