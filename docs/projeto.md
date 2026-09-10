@@ -2392,6 +2392,15 @@ dependentes de homologação. A dependência MG-01 (`#170`) permanece aberta;
 portanto, nenhuma regra de schema ou domínio ainda não inventariada é tratada
 como confirmada.
 
+**Registro da revisão KP-08.** O catálogo proposto no `docs/dmc.json` passou a
+exigir, por fonte e campo, versão, classificação, responsável, regra e estado.
+Os KPIs I16–I20 conservam contrato mensurável; I21–I25 continuam indisponíveis
+enquanto não houver timestamp, linhagem, autorização, catálogo de execuções,
+política e logs. A maturidade observada permanece caracterizada por fontes
+fragmentadas, operação manual e linhagem parcial. Fonte integrada, governada e
+auditável é estado-alvo, condicionado aos gates incrementais de catálogo,
+pipeline, acesso e publicação, e não capacidade já implantada.
+
 ## 6.7 Fluxo de Interação Anotado
 
 Esta seção organiza a base do Fluxo de Interação Anotado da Sprint 2 para o
