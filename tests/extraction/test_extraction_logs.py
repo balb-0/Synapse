@@ -94,7 +94,7 @@ class ExtractionLogTests(unittest.TestCase):
             self.assertTrue(str(attributes["started_at"]).endswith("Z"))
             self.assertTrue(str(attributes["finished_at"]).endswith("Z"))
             self.assertEqual(
-                attributes["source_checksum"],
+                "sha256:" + attributes["source_checksum"],
                 attributes["checkpoint_source_version"],
             )
 
