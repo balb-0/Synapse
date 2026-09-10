@@ -18,6 +18,7 @@ A implementação está em
 | `ETL_MINIO_ACCESS_KEY` | Sim | Identificador da credencial do MinIO |
 | `ETL_MINIO_SECRET_KEY` | Sim | Segredo da credencial do MinIO |
 | `ETL_REQUEST_TIMEOUT_SECONDS` | Não | Timeout das requisições; padrão `30` segundos |
+| `ETL_EXTRACTION_BATCH_SIZE` | Não | Quantidade máxima de registros por lote; padrão `1000` |
 | `ETL_SOURCE_DIR` | Não | Diretório usado somente pelo adaptador local de desenvolvimento e testes |
 
 O arquivo [`.env.example`](../.env.example) contém somente nomes, endpoints
@@ -35,6 +36,7 @@ Ao carregar a configuração, o código verifica:
 - prefixo relativo e sem referência ao diretório pai;
 - nome válido para o bucket;
 - timeout numérico maior que zero;
+- tamanho de lote inteiro maior que zero;
 - nomes válidos para parâmetros explícitos.
 
 Uma configuração inválida gera `ConfigurationError`. A mensagem identifica o
@@ -46,6 +48,16 @@ campo incorreto, mas não inclui o valor da credencial.
 from etl.extraction import load_extraction_settings
 
 settings = load_extraction_settings()
+```
+
+O tamanho validado pode ser repassado aos extratores:
+
+```python
+extractor = EmpresasExtractor(
+    object_reader=reader,
+    object_reference=reference,
+    batch_size=settings.batch_size,
+)
 ```
 
 Parâmetros explícitos podem ser usados em execução local ou em testes:
