@@ -71,11 +71,12 @@
       "Solicitantes e participantes externos — repositório público do site para consulta ao acervo e download de resultados."
     ],
     "decisoesRiscos": [
-      "Confirmar a plataforma de banco de dados na nuvem.",
-      "Definir o papel do n8n atual (mantido como orquestração ou substituído).",
-      "Definir a política de controle de acesso por perfil de usuário.",
-      "Definir como o repositório público será alimentado automaticamente.",
-      "Dados de origem com campos incompletos/inválidos pode exigir esforço extra de limpeza."
+      "DR01 — Universo elegível de empresas e pessoas. Impacto: I08 e I11 permanecem indisponíveis sem denominador. Estado: pendente de fonte e regra do parceiro.",
+      "DR02 — Fonte autoritativa de participação de mercado. Impacto: divergências bloqueiam a homologação de I09. Estado: pendente de decisão do parceiro.",
+      "DR03 — Ponte entre participação, pessoa e elemento de resposta. Impacto: impede afirmar respondentes únicos entre fontes. Estado: pendente de reconciliação.",
+      "DR04 — Metadados de carga, catálogo, versão, autorização e logs. Impacto: limita I15 e I21–I25. Estado: depende de integração futura.",
+      "DR05 — Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo. Impacto: define a implementação e os controles operacionais. Estado: proposta da equipe a validar.",
+      "DR06 — Campos incompletos, inválidos ou identificáveis. Impacto: exigem tratamento, minimização e controle antes de detalhar ou exportar. Estado: risco observado, condicionado à governança."
     ]
   },
   "governancaCorporativa": {
