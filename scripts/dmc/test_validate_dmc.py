@@ -66,31 +66,16 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "metricas"):
             validate_dmc.validate_document(changed)
 
-    def test_cube_data_and_governance_must_be_filled(self) -> None:
-        for key, value in (("fontes", []), ("controleAcesso", "")):
-            with self.subTest(key=key):
-                changed = copy.deepcopy(self.document)
-                target = changed["cubos"][0]["lists" if key == "fontes" else "fields"]
-                target[key] = value
-                with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Dados/Governança"):
-                    validate_dmc.validate_document(changed)
-
-    def test_empty_governance_list_fails(self) -> None:
+    def test_cube_rejects_field_outside_sprint_3_scope(self) -> None:
         changed = copy.deepcopy(self.document)
-        changed["cubos"][0]["lists"]["fontes"] = []
-        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Dados/Governança"):
+        changed["cubos"][0]["fields"]["controleAcesso"] = "Campo removido"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fora do recorte"):
             validate_dmc.validate_document(changed)
 
-    def test_governance_list_rejects_number_zero(self) -> None:
+    def test_cube_rejects_list_outside_sprint_3_scope(self) -> None:
         changed = copy.deepcopy(self.document)
-        changed["cubos"][0]["lists"]["fontes"] = [0]
-        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Dados/Governança"):
-            validate_dmc.validate_document(changed)
-
-    def test_missing_cube_governance_field_fails(self) -> None:
-        changed = copy.deepcopy(self.document)
-        del changed["cubos"][0]["fields"]["controleAcesso"]
-        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "controleAcesso"):
+        changed["cubos"][0]["lists"]["fontes"] = ["Fonte removida"]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fora do recorte"):
             validate_dmc.validate_document(changed)
 
     def test_missing_corporate_governance_key_fails(self) -> None:

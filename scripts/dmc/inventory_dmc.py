@@ -130,6 +130,7 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
         lines.append(f"- `{cube['id']}` — {cube['name']}")
 
     lines.extend(["", "## Ajustes estruturais identificados", ""])
+    adjustment_start = len(lines)
     if inventory["missing_top_level"]:
         lines.append(
             "- Seções de topo ausentes: " + ", ".join(inventory["missing_top_level"])
@@ -151,8 +152,8 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
                 "campos de Dados/Governança fora do recorte da Sprint 3."
             )
 
-    if lines[-1] == "## Ajustes estruturais identificados":
-        lines.extend(["", "- Nenhum ajuste estrutural detectado."])
+    if len(lines) == adjustment_start:
+        lines.append("- Nenhum ajuste estrutural detectado.")
     return "\n".join(lines) + "\n"
 
 
