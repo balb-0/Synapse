@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-import csv
 import hashlib
 import sys
 import unittest
-from collections.abc import Iterator
-from contextlib import contextmanager
-from io import BytesIO, StringIO
+from io import BytesIO
 from pathlib import Path
-from typing import BinaryIO
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -25,25 +21,7 @@ from etl.extraction import (  # noqa: E402
     UnsupportedCheckpointError,
 )
 from etl.extraction.contracts import ExtractionCheckpoint  # noqa: E402
-
-
-def csv_payload(headers: tuple[str, ...], rows: list[list[str]]) -> bytes:
-    stream = StringIO(newline="")
-    writer = csv.writer(stream, delimiter=";", lineterminator="\n")
-    writer.writerow(headers)
-    writer.writerows(rows)
-    return stream.getvalue().encode("utf-8")
-
-
-class MemoryObjectReader:
-    def __init__(self, payload: bytes) -> None:
-        self.payload = payload
-        self.opened_references: list[ObjectReference] = []
-
-    @contextmanager
-    def open(self, reference: ObjectReference) -> Iterator[BinaryIO]:
-        self.opened_references.append(reference)
-        yield BytesIO(self.payload)
+from tests.extraction.helpers import MemoryObjectReader, csv_payload  # noqa: E402
 
 
 class TrackingResponse(BytesIO):

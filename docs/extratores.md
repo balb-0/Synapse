@@ -11,8 +11,8 @@ regras da camada tratada.
 | :--- | :--- | :--- | :--- |
 | Pesquisas | `landing/pesquisas.csv` | `PesquisasExtractor` | Implementado na LN-04 |
 | Empresas | `landing/empresas.csv` | `EmpresasExtractor` | Implementado na LN-04 |
-| Clientes | `landing/clientes.csv` | `ClientesExtractor` | LN-05 |
-| Respondentes | `landing/respondentes.csv` | `RespondentesExtractor` | LN-05 |
+| Clientes | `landing/clientes.csv` | `ClientesExtractor` | Implementado na LN-05 |
+| Respondentes | `landing/respondentes.csv` | `RespondentesExtractor` | Implementado na LN-05 |
 | Questões | `landing/questoes.csv` | `QuestoesExtractor` | LN-06 |
 | Respostas | `landing/respostas.csv` | `RespostasExtractor` | LN-06 |
 
@@ -47,7 +47,7 @@ O cliente do MinIO é recebido pelo adaptador, em vez de ser criado dentro do
 extrator. Essa separação permite utilizar o serviço real na execução e um leitor
 em memória nos testes, sem mudar a regra de leitura do CSV.
 
-## Comportamento da LN-04
+## Comportamento comum
 
 Os dois extratores:
 
@@ -70,6 +70,18 @@ A retomada parcial ainda não pertence à LN-04. Se um checkpoint for fornecido,
 o extrator encerra com `UnsupportedCheckpointError`. A leitura em lotes e a
 retomada a partir da última linha confirmada serão adicionadas na LN-07.
 
+## Clientes e respondentes
+
+O extrator de clientes preserva `id_cliente` e `id_empresa` como texto, inclusive
+zeros à esquerda, valores não confirmados como `s/i` e campos vazios. O endereço
+presente em `e-mail` faz parte do registro entregue à transformação, mas não é
+incluído nos metadados, atributos de transporte ou mensagens de erro.
+
+O extrator de respondentes preserva sem conversão os três componentes da chave
+candidata: `id_pesq`, `id_empresa` e `id_cliente`. Horários e percentuais também
+permanecem no formato recebido. A validação de chaves incompletas e a conversão
+de tipos pertencem à transformação e não são antecipadas pela extração.
+
 ## Limites entre as etapas
 
 A comparação do hash com o histórico de objetos concluídos pertence ao fluxo
@@ -86,12 +98,13 @@ o schema do banco.
 ## Testes
 
 Os testes usam somente dados sintéticos e não acessam os arquivos do parceiro.
-Eles verificam pesquisas, empresas, fonte vazia, cabeçalho incompatível, linha
-malformada, cálculo de hash, preservação de campos e fechamento da conexão do
-MinIO.
+Eles verificam as fontes implementadas, fonte vazia, cabeçalho incompatível,
+linha malformada, cálculo de hash, preservação de campos, ausência de conteúdo
+sensível nos atributos técnicos e fechamento da conexão do MinIO.
 
 ```bash
 python -m unittest tests.extraction.test_csv_extractors -v
+python -m unittest tests.extraction.test_clientes_respondentes_extractors -v
 ```
 
 ## Verificação com os arquivos fornecidos
@@ -104,3 +117,5 @@ da execução e permaneceram iguais.
 | :--- | ---: | ---: | ---: | :---: |
 | Pesquisas | 366 | 33 | 132.693 | Sim |
 | Empresas | 779 | 9 | 66.691 | Sim |
+| Clientes | 5.430 | 5 | 393.677 | Sim |
+| Respondentes | 18.735 | 6 | 411.628 | Sim |
