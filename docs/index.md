@@ -14,6 +14,7 @@
 | [`configuracao-extracao.md`](configuracao-extracao.md) | Configuração segura de caminhos, endpoints e credenciais da extração |
 | [`adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | ADR proposto para o ETL orientado a eventos com Python, Prefect, MinIO, DuckDB e Elastic Stack |
 | [`extratores.md`](extratores.md) | Implementação e limites dos extratores das seis fontes; pesquisas e empresas entregues na LN-04 |
+| [`testes-extracao.md`](testes-extracao.md) | Suíte unitária e de contrato dos seis extratores |
 | [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Inventário técnico das seis fontes do ETL: formato, grão, chaves, volumes, integridade, acesso e disponibilidade |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 
@@ -38,6 +39,7 @@ documento principal.
 | [`../scripts/data_quality/`](../scripts/data_quality/) | manifesto, perfilador, testes e contrato das saídas agregadas |
 | [`../scripts/governance/`](../scripts/governance/) | validação reproduzível da classificação, do TAPI e da matriz de acesso |
 | [`../scripts/traceability/`](../scripts/traceability/) | contrato executável PB–RF–indicador–cubo/dashboard e validação das extensões futuras de resposta conciliada |
+| [`smoke-test-extracao.md`](smoke-test-extracao.md) | Resultado reproduzível da extração das seis fontes com fixtures sintéticas |
 
 ## Documentos de gestão
 

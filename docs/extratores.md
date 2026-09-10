@@ -251,7 +251,13 @@ python -m unittest tests.extraction.test_questoes_respostas_extractors -v
 python -m unittest tests.extraction.test_batching_checkpoints -v
 python -m unittest tests.extraction.test_resilience -v
 python -m unittest tests.extraction.test_extraction_logs -v
+python -m unittest tests.extraction.test_extractor_contract_suite -v
+python -m unittest tests.extraction.test_smoke_extraction -v
 ```
+
+A matriz completa de cenários está em
+[`testes-extracao.md`](testes-extracao.md), e o resultado reproduzível do smoke
+test está em [`smoke-test-extracao.md`](smoke-test-extracao.md).
 
 ## Verificação com os arquivos fornecidos
 
