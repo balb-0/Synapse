@@ -179,6 +179,11 @@ def ingest_object(
             if not reprocess:
                 logger.info("objeto %s já concluído (hash %s) — ignorado", key, checksum[:12])
                 return {"status": "ignored", "source": source, "source_checksum": checksum}
+            # A proteção por linha depende de a deduplicação e a tabela
+            # `_loaded_identity` concordarem sobre o que é identidade. Ao
+            # aceitar correção como versão nova, rechavear o controle pela
+            # identidade de idempotência antes de confiar nesta linha:
+            # docs/adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md
             logger.info("reprocess: ignorando controle de objeto %s; dedup por linha protege", key)
         references = _build_references(repo, source)
         previous = repo.loaded_identities(source)

@@ -197,5 +197,22 @@ class DuckDBEnvironmentCommandTests(unittest.TestCase):
         self.assertIn("HEALTH_CHECK_FALHOU", result.stderr)
 
 
+class LoadPackageFacadeTests(unittest.TestCase):
+    """O pacote resolve o repositório sob demanda, sem exigir o driver no import."""
+
+    @unittest.skipUnless(DUCKDB_INSTALLED, SEM_DUCKDB)
+    def test_resolves_the_repository_on_demand(self) -> None:
+        import etl.load as load_package
+
+        self.assertEqual(load_package.DuckDbLoadRepository.__name__, "DuckDbLoadRepository")
+        self.assertEqual(load_package.LoadResult.__name__, "LoadResult")
+
+    def test_unknown_attribute_still_fails(self) -> None:
+        import etl.load as load_package
+
+        with self.assertRaises(AttributeError):
+            load_package.RepositorioInexistente
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -10,53 +10,25 @@ Responsabilidades (conforme o ADR 0001):
   - ``_checkpoint``       posição de retomada por fonte;
   - ``_batch_metadata``   metadados técnicos de cada lote (sem PII).
 
+O contrato físico das tabelas — nome, tipo, constraints e views de estado
+atual — vive em :mod:`etl.load.ddl` e é aplicado por ``_ensure_schema``.
+
 Não decide quando o pipeline executa nem contém regra de transformação.
 """
 
 from __future__ import annotations
 
 import json
-import re
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import duckdb
 
 from etl.extraction.contracts import BatchMetadata, ExtractionCheckpoint
+from etl.load.ddl import quote, statements, table_name
 from etl.transformation.pipeline import TransformationResult
-from etl.transformation.schema import KEYS, SCHEMAS, destination_columns
-
-# ClickHouse (contrato canônico) -> DuckDB. Nullable é implícito no DuckDB.
-_BASE_TYPES = {
-    "String": "VARCHAR",
-    "Int64": "BIGINT",
-    "UInt64": "UBIGINT",
-    "Bool": "BOOLEAN",
-    "Date32": "DATE",
-}
-
-
-def _duckdb_type(clickhouse_type: str) -> str:
-    inner = clickhouse_type
-    if inner.startswith("Nullable(") and inner.endswith(")"):
-        inner = inner[len("Nullable(") : -1]
-    if inner.startswith("FixedString"):
-        return "VARCHAR"
-    if inner.startswith("Decimal"):
-        return "DECIMAL(18, 6)"
-    if inner.startswith("DateTime64"):
-        return "TIMESTAMP"
-    if inner.startswith("Array"):
-        return "VARCHAR"  # lista serializada como JSON
-    return _BASE_TYPES.get(inner, "VARCHAR")
-
-
-def _quote(identifier: str) -> str:
-    if not re.fullmatch(r"[A-Za-z0-9_]+", identifier):
-        raise ValueError(f"identificador inválido: {identifier!r}")
-    return f'"{identifier}"'
+from etl.transformation.schema import destination_columns
 
 
 @dataclass(frozen=True)
@@ -107,36 +79,9 @@ class DuckDbLoadRepository:
     # ---------- schema ----------
 
     def _ensure_schema(self) -> None:
-        for source, fields in SCHEMAS.items():
-            cols = ", ".join(
-                f"{_quote(name)} {_duckdb_type(ch_type)}"
-                for name, ch_type in destination_columns(source).items()
-            )
-            self._conn.execute(f"CREATE TABLE IF NOT EXISTS {_quote(source)} ({cols})")
-        self._conn.execute(
-            "CREATE TABLE IF NOT EXISTS rejected ("
-            "source VARCHAR, source_checksum VARCHAR, source_offset UBIGINT, "
-            "run_id VARCHAR, batch_id VARCHAR, ingested_at TIMESTAMP, reasons VARCHAR)"
-        )
-        self._conn.execute(
-            "CREATE TABLE IF NOT EXISTS _control_object ("
-            "source VARCHAR, source_checksum VARCHAR PRIMARY KEY, "
-            "run_id VARCHAR, concluded_at TIMESTAMP)"
-        )
-        self._conn.execute(
-            "CREATE TABLE IF NOT EXISTS _loaded_identity ("
-            "source VARCHAR, record_identity VARCHAR PRIMARY KEY, content_checksum VARCHAR)"
-        )
-        self._conn.execute(
-            "CREATE TABLE IF NOT EXISTS _checkpoint ("
-            "source VARCHAR PRIMARY KEY, position VARCHAR, sequence BIGINT, source_version VARCHAR)"
-        )
-        self._conn.execute(
-            "CREATE TABLE IF NOT EXISTS _batch_metadata ("
-            "source VARCHAR, run_id VARCHAR, task_id VARCHAR, batch_id VARCHAR, "
-            "record_count BIGINT, byte_count BIGINT, schema_version VARCHAR, "
-            "source_checksum VARCHAR, started_at TIMESTAMP, finished_at TIMESTAMP)"
-        )
+        """Aplica o contrato físico versionado da camada de carga."""
+        for statement in statements():
+            self._conn.execute(statement)
 
     # ---------- idempotência por objeto ----------
 
@@ -187,8 +132,8 @@ class DuckDbLoadRepository:
         columns = list(destination_columns(source))
         placeholders = ", ".join("?" for _ in columns)
         insert_sql = (
-            f"INSERT INTO {_quote(source)} "
-            f"({', '.join(_quote(c) for c in columns)}) VALUES ({placeholders})"
+            f"INSERT INTO {quote(table_name(source))} "
+            f"({', '.join(quote(c) for c in columns)}) VALUES ({placeholders})"
         )
         self._conn.execute("BEGIN TRANSACTION")
         try:
@@ -245,7 +190,11 @@ class DuckDbLoadRepository:
         )
 
     def count(self, source: str) -> int:
-        return int(self._conn.execute(f"SELECT count(*) FROM {_quote(source)}").fetchone()[0])
+        return int(
+            self._conn.execute(
+                f"SELECT count(*) FROM {quote(table_name(source))}"
+            ).fetchone()[0]
+        )
 
 
 def _cell(value: Any) -> Any:
