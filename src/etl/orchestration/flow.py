@@ -20,6 +20,7 @@ from etl.extraction import (
     ClientesExtractor,
     EmpresasExtractor,
     MinioObjectReader,
+    ExtractionError,
     ObjectReference,
     PesquisasExtractor,
     QuestoesExtractor,
@@ -79,17 +80,41 @@ def _build_references(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
     return ReferenceData(sources)
 
 
-@task(retries=2, retry_delay_seconds=1, cache_policy=NO_CACHE)
-def extract(reader, reference, source: str, run_id: str) -> list:
-    """Lê o objeto do MinIO e materializa os lotes no contrato comum."""
+def _should_retry(task, task_run, state) -> bool:
+    """Repete só falha transitória inesperada; permanente ou já esgotada, não.
+
+    A extração já reexecuta falhas transitórias internamente (RetryExecutor). No
+    nível do Prefect só faz sentido repetir um erro inesperado; falha permanente
+    (credencial/schema/objeto ausente) e limite de retry esgotado falham rápido.
+    """
+    try:
+        state.result(raise_on_failure=True)
+    except (ExtractionError, ValueError, KeyError):
+        # Erros da extração já chegam terminais (transitório foi reexecutado
+        # internamente); config/schema/objeto ausente também não se repetem.
+        return False
+    except Exception:
+        return True
+    return False
+
+
+@task(
+    retries=2,
+    retry_delay_seconds=1,
+    retry_condition_fn=_should_retry,
+    timeout_seconds=120,
+    cache_policy=NO_CACHE,
+)
+def extract(reader, reference, source: str, run_id: str, checkpoint=None) -> list:
+    """Lê o objeto do MinIO (retomando do checkpoint, se houver) e emite os lotes."""
     logger = get_run_logger()
     extractor = EXTRACTORS[source](object_reader=reader, object_reference=reference)
-    batches = list(extractor.read(run_id=run_id))
+    batches = list(extractor.read(run_id=run_id, checkpoint=checkpoint))
     logger.info("extract concluído: %d lote(s) de '%s'", len(batches), source)
     return batches
 
 
-@task(cache_policy=NO_CACHE)
+@task(timeout_seconds=120, cache_policy=NO_CACHE)
 def transform(batches: list, source: str, references, previous: dict) -> list:
     """Transforma cada lote; acumula o offset absoluto entre lotes."""
     logger = get_run_logger()
@@ -110,7 +135,7 @@ def transform(batches: list, source: str, references, previous: dict) -> list:
     return results
 
 
-@task(cache_policy=NO_CACHE)
+@task(timeout_seconds=120, cache_policy=NO_CACHE)
 def load(db_path: str, results: list) -> list:
     """Grava aceitos e rejeitados no DuckDB e reconcilia as contagens."""
     logger = get_run_logger()
@@ -157,13 +182,20 @@ def ingest_object(
             logger.info("reprocess: ignorando controle de objeto %s; dedup por linha protege", key)
         references = _build_references(repo, source)
         previous = repo.loaded_identities(source)
+        checkpoint = repo.load(source)  # retomada: posição confirmada anterior
+        if checkpoint and checkpoint.source_version != f"sha256:{checksum}":
+            checkpoint = None  # checkpoint é de outra versão do objeto: lê do início
 
-    batches = extract(reader, reference, source, run_id=event_id or checksum[:16])
+    batches = extract(
+        reader, reference, source, run_id=event_id or checksum[:16], checkpoint=checkpoint
+    )
     results = transform(batches, source, references, previous)
     reconciliations = load(db_path, results)
 
     with DuckDbLoadRepository(db_path) as repo:
         repo.mark_object_loaded(source, checksum, event_id or checksum[:16])
+        if batches:  # retomada: confirma a posição somente após a carga
+            repo.commit(batches[-1].checkpoint)
 
     loaded = sum(r["loaded"] for r in reconciliations)
     logger.info("ingestão concluída: %d registro(s) carregado(s) de '%s'", loaded, source)
