@@ -32,6 +32,9 @@ CORPORATE_LISTS = (
     "usuariosCanais",
     "decisoesRiscos",
 )
+EXPECTED_USER_CHANNELS = tuple(f"UC{number:02d}" for number in range(1, 5))
+EXPECTED_DECISIONS_RISKS = tuple(f"DR{number:02d}" for number in range(1, 7))
+EXPECTED_CONSUMPTION_INDICATORS = tuple(f"I{number:02d}" for number in range(1, 26))
 EXPECTED_BUSINESS_QUESTIONS = tuple(f"PB{number:02d}" for number in range(1, 14))
 GOVERNANCE_KEYS = (
     "owner",
@@ -47,6 +50,7 @@ GOVERNANCE_KEYS = (
     "maturidade",
     "evolucao",
 )
+GOVERNANCE_ROLE_KEYS = ("owner", "steward", "custodian", "tecnico")
 DIMENSIONAL_FIELDS = (
     "nome",
     "starSchema",
@@ -110,6 +114,31 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         _nonempty_strings(business.get(key)) for key in CORPORATE_LISTS
     ):
         raise DmcValidationError("Negócio e Consumo Analítico perderam conteúdo obrigatório")
+    user_channel_ids = tuple(
+        item.partition(" — ")[0] for item in business["usuariosCanais"]
+    )
+    if user_channel_ids != EXPECTED_USER_CHANNELS:
+        raise DmcValidationError("usuários e canais devem corresponder a UC01–UC04")
+    if not all(
+        any(term in item for term in ("autorizado", "bloqueado", "sem acesso"))
+        for item in business["usuariosCanais"]
+    ):
+        raise DmcValidationError("todo canal deve explicitar sua restrição de acesso")
+    decision_ids = tuple(
+        item.partition(" — ")[0] for item in business["decisoesRiscos"]
+    )
+    if decision_ids != EXPECTED_DECISIONS_RISKS:
+        raise DmcValidationError("decisões e riscos devem corresponder a DR01–DR06")
+    if not all(
+        "Impacto:" in item and "Estado:" in item
+        for item in business["decisoesRiscos"]
+    ):
+        raise DmcValidationError("toda decisão ou risco deve informar impacto e estado")
+    indicator_ids = tuple(
+        indicator.partition(" — ")[0] for indicator in business["indicadoresConsumo"]
+    )
+    if indicator_ids != EXPECTED_CONSUMPTION_INDICATORS:
+        raise DmcValidationError("indicadores de consumo devem corresponder a I01–I25")
     question_ids = tuple(
         question.partition(" — ")[0] for question in business["perguntasNegocio"]
     )
@@ -133,6 +162,18 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         for key in GOVERNANCE_KEYS
     ):
         raise DmcValidationError("Governança Corporativa deve permanecer preenchida")
+    if not all(
+        governance[key].startswith("Baseline documental:")
+        and "homologa" in governance[key].lower()
+        for key in GOVERNANCE_ROLE_KEYS
+    ):
+        raise DmcValidationError(
+            "papéis de governança devem indicar fonte documental e homologação pendente"
+        )
+    if "RentalHost" not in governance["custodian"] or "condicional" not in governance[
+        "custodian"
+    ]:
+        raise DmcValidationError("custódia externa deve permanecer condicional")
 
     cubes = document["cubos"]
     if not isinstance(cubes, list) or len(cubes) != len(EXPECTED_CUBES):

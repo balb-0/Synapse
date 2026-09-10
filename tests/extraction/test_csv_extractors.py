@@ -76,6 +76,10 @@ class CsvObjectExtractorTests(unittest.TestCase):
         self.assertEqual(batch.metadata.byte_count, len(payload))
         self.assertEqual(
             batch.metadata.source_checksum,
+            hashlib.sha256(payload).hexdigest(),
+        )
+        self.assertEqual(
+            batch.checkpoint.source_version,
             "sha256:" + hashlib.sha256(payload).hexdigest(),
         )
         self.assertEqual(batch.checkpoint.position, "row:1")

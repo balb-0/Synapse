@@ -3,3 +3,6 @@ minio>=7.2,<8
 # Dependências HTTP usadas para configurar timeout sem retries internos ocultos.
 certifi>=2024
 urllib3>=2,<3
+# Orquestração (plano de controle) e banco de ingestão tratada (ADR 0001).
+prefect>=3,<4
+duckdb>=1.1
