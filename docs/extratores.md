@@ -13,8 +13,8 @@ regras da camada tratada.
 | Empresas | `landing/empresas.csv` | `EmpresasExtractor` | Implementado na LN-04 |
 | Clientes | `landing/clientes.csv` | `ClientesExtractor` | Implementado na LN-05 |
 | Respondentes | `landing/respondentes.csv` | `RespondentesExtractor` | Implementado na LN-05 |
-| Questões | `landing/questoes.csv` | `QuestoesExtractor` | LN-06 |
-| Respostas | `landing/respostas.csv` | `RespostasExtractor` | LN-06 |
+| Questões | `landing/questoes.csv` | `QuestoesExtractor` | Implementado na LN-06 |
+| Respostas | `landing/respostas.csv` | `RespostasExtractor` | Implementado na LN-06 |
 
 O prefixo pode ser alterado por configuração. A chave efetiva do objeto vem do
 evento do MinIO e é representada por `ObjectReference`, junto ao bucket, à
@@ -27,7 +27,9 @@ O código está dividido em:
 - [`object_storage.py`](../src/etl/extraction/object_storage.py), com o contrato
   de leitura e o adaptador para o cliente do MinIO;
 - [`csv_extractors.py`](../src/etl/extraction/csv_extractors.py), com a leitura
-  dos arquivos e os extratores de pesquisas e empresas;
+  comum dos arquivos e os extratores das quatro fontes tabulares simples;
+- [`questionnaire_extractors.py`](../src/etl/extraction/questionnaire_extractors.py),
+  com a representação estrutural de questões e respostas;
 - [`contracts.py`](../src/etl/extraction/contracts.py), com o lote, os metadados
   e o checkpoint entregues ao estágio seguinte.
 
@@ -38,7 +40,7 @@ ObjectReference
       ↓
 MinioObjectReader
       ↓
-PesquisasExtractor ou EmpresasExtractor
+Extrator específico da fonte
       ↓
 ExtractedBatch
 ```
@@ -49,7 +51,7 @@ em memória nos testes, sem mudar a regra de leitura do CSV.
 
 ## Comportamento comum
 
-Os dois extratores:
+Os seis extratores:
 
 - abrem o objeto em modo somente leitura;
 - interpretam CSV em UTF-8, com suporte a BOM e separador `;`;
@@ -82,6 +84,46 @@ candidata: `id_pesq`, `id_empresa` e `id_cliente`. Horários e percentuais tamb�
 permanecem no formato recebido. A validação de chaves incompletas e a conversão
 de tipos pertencem à transformação e não são antecipadas pela extração.
 
+## Questões e respostas
+
+Os campos `alternativas`, `linhas_matriz` e `colunas_matriz` de questões usam
+` | ` como separador na fonte recebida. O `QuestoesExtractor` mantém esses
+textos originais e acrescenta `estrutura`, sempre com as três propriedades. Os
+itens são entregues como sequências de texto; quando um campo não se aplica, a
+sequência correspondente fica vazia.
+
+```python
+{
+    "estrutura": {
+        "alternativas": ("Opção A", "Opção B"),
+        "linhas_matriz": (),
+        "colunas_matriz": (),
+    }
+}
+```
+
+Cada linha de `respostas.csv` representa um elemento atômico de resposta, não
+um questionário completo nem uma pessoa. Como os campos preenchidos variam de
+acordo com o tipo da questão, o `RespostasExtractor` acrescenta `conteudo` com
+as mesmas quatro propriedades em todos os registros. Campos não aplicáveis são
+representados por `None` nessa estrutura derivada, enquanto continuam vazios
+nos campos originais.
+
+```python
+{
+    "conteudo": {
+        "alternativa": None,
+        "linha_matriz": "Linha sintética",
+        "coluna_matriz": "Coluna sintética",
+        "valor": "5",
+    }
+}
+```
+
+Essa representação resolve apenas a estrutura variável do CSV. Identificadores,
+quantidades e valores continuam como texto, e nenhuma regra de qualidade altera
+ou descarta registros durante a extração.
+
 ## Limites entre as etapas
 
 A comparação do hash com o histórico de objetos concluídos pertence ao fluxo
@@ -105,11 +147,12 @@ sensível nos atributos técnicos e fechamento da conexão do MinIO.
 ```bash
 python -m unittest tests.extraction.test_csv_extractors -v
 python -m unittest tests.extraction.test_clientes_respondentes_extractors -v
+python -m unittest tests.extraction.test_questoes_respostas_extractors -v
 ```
 
 ## Verificação com os arquivos fornecidos
 
-Foi feita uma execução local somente leitura com a versão mais recente dos dois
+Foi feita uma execução local somente leitura com a versão mais recente dos seis
 arquivos, mantida fora do repositório. Os hashes foram calculados antes e depois
 da execução e permaneceram iguais.
 
@@ -119,3 +162,5 @@ da execução e permaneceram iguais.
 | Empresas | 779 | 9 | 66.691 | Sim |
 | Clientes | 5.430 | 5 | 393.677 | Sim |
 | Respondentes | 18.735 | 6 | 411.628 | Sim |
+| Questões | 3.297 | 13 | 1.125.401 | Sim |
+| Respostas | 281.835 | 9 | 20.291.071 | Sim |
