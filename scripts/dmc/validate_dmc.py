@@ -32,6 +32,7 @@ CORPORATE_LISTS = (
     "usuariosCanais",
     "decisoesRiscos",
 )
+EXPECTED_CONSUMPTION_INDICATORS = tuple(f"I{number:02d}" for number in range(1, 26))
 EXPECTED_BUSINESS_QUESTIONS = tuple(f"PB{number:02d}" for number in range(1, 14))
 GOVERNANCE_KEYS = (
     "owner",
@@ -110,6 +111,11 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         _nonempty_strings(business.get(key)) for key in CORPORATE_LISTS
     ):
         raise DmcValidationError("Negócio e Consumo Analítico perderam conteúdo obrigatório")
+    indicator_ids = tuple(
+        indicator.partition(" — ")[0] for indicator in business["indicadoresConsumo"]
+    )
+    if indicator_ids != EXPECTED_CONSUMPTION_INDICATORS:
+        raise DmcValidationError("indicadores de consumo devem corresponder a I01–I25")
     question_ids = tuple(
         question.partition(" — ")[0] for question in business["perguntasNegocio"]
     )

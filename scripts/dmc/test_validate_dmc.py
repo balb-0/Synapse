@@ -84,6 +84,19 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Governança Corporativa"):
             validate_dmc.validate_document(changed)
 
+    def test_consumption_indicators_must_match_i01_to_i25(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["indicadoresConsumo"].pop()
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "I01–I25"):
+            validate_dmc.validate_document(changed)
+
+    def test_consumption_indicators_must_keep_canonical_order(self) -> None:
+        changed = copy.deepcopy(self.document)
+        indicators = changed["negocioEConsumo"]["indicadoresConsumo"]
+        indicators[0], indicators[1] = indicators[1], indicators[0]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "I01–I25"):
+            validate_dmc.validate_document(changed)
+
     def test_business_questions_must_match_pb01_to_pb13(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["negocioEConsumo"]["perguntasNegocio"][0] = "Pergunta sem ID"
