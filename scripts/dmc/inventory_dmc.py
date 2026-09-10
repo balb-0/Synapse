@@ -16,6 +16,8 @@ REQUIRED_TOP_LEVEL = (
     "negocioEConsumo",
     "governancaCorporativa",
     "cubos",
+    "taticas",
+    "etl",
 )
 REQUIRED_CUBE_LISTS = (
     "grao",
@@ -49,6 +51,7 @@ REQUIRED_DATA_GOVERNANCE_FIELDS = (
     "metadadosObrigatorios",
     "kpiQualidade",
     "kpiGovernanca",
+    "diagramaMermaid",
 )
 
 
@@ -62,6 +65,8 @@ def load_document(path: Path) -> dict[str, Any]:
 def build_inventory(document: dict[str, Any]) -> dict[str, Any]:
     cubes = document.get("cubos")
     cube_list = cubes if isinstance(cubes, list) else []
+    tactics = document.get("taticas")
+    tactic_list = tactics if isinstance(tactics, list) else []
     missing_top_level = [key for key in REQUIRED_TOP_LEVEL if key not in document]
 
     cube_inventory: list[dict[str, Any]] = []
@@ -113,6 +118,8 @@ def build_inventory(document: dict[str, Any]) -> dict[str, Any]:
         "cube_count": len(cube_list),
         "expected_cube_count": EXPECTED_CUBE_COUNT,
         "cube_count_matches": len(cube_list) == EXPECTED_CUBE_COUNT,
+        "tactic_count": len(tactic_list),
+        "etl_present": isinstance(document.get("etl"), dict),
         "blank_governance_fields": blank_governance,
         "cubes": cube_inventory,
     }
@@ -131,6 +138,8 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
             f"- Cubos: `{inventory['cube_count']}` de "
             f"`{inventory['expected_cube_count']}` esperados"
         ),
+        f"- Táticas arquiteturais: `{inventory['tactic_count']}`",
+        f"- ETL preenchido: `{'sim' if inventory['etl_present'] else 'não'}`",
         "",
         "## Cubos",
         "",
@@ -149,6 +158,10 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
             "- Campos de governança vazios: "
             + ", ".join(inventory["blank_governance_fields"])
         )
+    if inventory["tactic_count"] == 0:
+        lines.append("- Nenhuma tática arquitetural preenchida.")
+    if not inventory["etl_present"]:
+        lines.append("- Seção ETL ausente ou inválida.")
     for cube in inventory["cubes"]:
         if cube["missing_cube_lists"]:
             lines.append(

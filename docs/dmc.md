@@ -9,19 +9,20 @@
 | Schema do arquivo-fonte | 1 |
 
 Este documento isola e consolida o conteúdo de Data Model Canvas desenvolvido
-no [`projeto.md`](projeto.md), mantendo o [`dmc.json`](dmc.json) como fonte
-canônica para importação na ferramenta oficial. O canvas cobre o recorte de
+no [`projeto.md`](projeto.md) e o reconcilia com a fonte principal exigida pelo
+barema, o
+[`contexto_organizacional_+_requisitos_da_solução_analítica.md`](contexto_organizacional_+_requisitos_da_solução_analítica.md),
+mantendo o [`dmc.json`](dmc.json) como fonte canônica para importação na
+ferramenta oficial. O canvas cobre o recorte de
 Modelo Dimensional da Sprint 3 e as seções corporativas de Negócio, Consumo
 Analítico e Governança. Os quatro cubos são contratos técnicos propostos; não
 afirmam a existência de um data warehouse implantado. Estados pendentes,
 indisponíveis ou propostos representam dependências reais e não devem ser
 interpretados como campos esquecidos.
 
-Os campos de Modelo Dimensional, Dados e Governança dos quatro cubos estão no
-JSON. Táticas Arquiteturais e Arquitetura do ETL estão completas neste Markdown
-para transferência à interface nova; o texto disponibilizado pela ferramenta
-não informa as chaves JSON desses blocos, portanto elas só devem ser adicionadas
-ao arquivo canônico a partir de uma exportação real, sem nomes inventados.
+Os campos de Modelo Dimensional, Dados e Governança dos quatro cubos, as Táticas
+Arquiteturais e a Arquitetura do ETL estão completos tanto no JSON quanto neste
+Markdown. As chaves seguem o esquema serializado pela ferramenta oficial.
 
 ## 1. Negócio e consumo analítico
 

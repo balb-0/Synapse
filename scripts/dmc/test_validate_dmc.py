@@ -22,6 +22,41 @@ class ValidateDmcTest(unittest.TestCase):
     def test_current_export_is_valid(self) -> None:
         summary = validate_dmc.validate_document(self.document)
         self.assertEqual(summary["cubos"], list(validate_dmc.EXPECTED_CUBES))
+        self.assertEqual(summary["taticas"], list(validate_dmc.EXPECTED_TACTIC_IDS))
+        self.assertTrue(summary["etl"])
+
+    def test_missing_tactics_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        del changed["taticas"]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "taticas"):
+            validate_dmc.validate_document(changed)
+
+    def test_tactic_requires_quality_attribute(self) -> None:
+        changed = copy.deepcopy(self.document)
+        fields = changed["taticas"][0]["fields"]
+        for key in validate_dmc.TACTIC_BOOLEAN_FIELDS:
+            fields[key] = False
+        fields["qaOutro"] = ""
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "atributo de qualidade"):
+            validate_dmc.validate_document(changed)
+
+    def test_tactic_requires_evidence(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["taticas"][0]["lists"]["evidencias"] = []
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "evidências"):
+            validate_dmc.validate_document(changed)
+
+    def test_etl_requires_every_official_field(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["etl"]["fields"]["linhagem"] = " "
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "ETL.*vazio"):
+            validate_dmc.validate_document(changed)
+
+    def test_etl_requires_verifications(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["etl"]["lists"]["verificacoes"] = []
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fontes, camadas"):
+            validate_dmc.validate_document(changed)
 
     def test_invalid_json_is_reported(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -3394,7 +3394,7 @@ ou funcionamento de uma plataforma produtiva.
 | Duplicidade de linha e das chaves declaradas | 0 ocorrência nas seis bases | `scripts/data_quality/profile_csv.py` e manifesto versionado |
 | Relações pesquisa ausentes | 55 participações, 43 questões e 3.592 elementos de resposta órfãos | relatório `relacionamentos.csv` descrito na §5.3 |
 | Data Model Canvas exportado | 4 cubos com Modelo Dimensional, Dados e Governança preenchidos, além das seções corporativas de Negócio, Consumo Analítico e Governança | `scripts/dmc/validate_dmc.py docs/dmc.json` |
-| Testes estruturais do DMC | 42 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
+| Testes estruturais do DMC | 47 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
 | Testes do perfilamento | 5 testes aprovados | `python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'` |
 | Testes de rastreabilidade | 13 testes aprovados, incluindo 2 fontes primárias e 12 afirmações conferidas | `SINDUSFARMA_SOURCE_DIR=/caminho/seguro/das/fontes python3 -m unittest discover -s scripts/traceability -p 'test_*.py'` |
 | Reabertura na ferramenta oficial | 4 cards renderizados, sem erro de aplicação ou resposta HTTP falha | importação e reexportação em sessão nova, com comparação semântica do JSON |

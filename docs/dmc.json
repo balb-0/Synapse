@@ -128,7 +128,8 @@
         "descarte": "Eliminar ou anonimizar ao fim da retenção aprovada; chaves órfãs permanecem em quarentena até reconciliação ou descarte autorizado.",
         "metadadosObrigatorios": "ID da pesquisa, título, marcos do ciclo, área, status, tipo, complexidade, tipo de resposta, fonte, versão e execução de carga.",
         "kpiQualidade": "Cobertura dos marcos: pesquisas com data válida sobre pesquisas elegíveis, por marco; pares incompletos ficam fora das durações e entram no denominador de cobertura.",
-        "kpiGovernanca": "Cobertura de linhagem: pesquisas com fonte, versão e execução registradas sobre pesquisas carregadas."
+        "kpiGovernanca": "Cobertura de linhagem: pesquisas com fonte, versão e execução registradas sobre pesquisas carregadas.",
+        "diagramaMermaid": "flowchart LR\n    DP[DIM_PESQUISA] --> F1[FATO_CICLO_PESQUISA]\n    DT[DIM_TEMPO - 7 papeis] --> F1\n    DS[DIM_STATUS_PESQUISA] --> F1\n    DA[DIM_AREA] --> F1\n    DTI[DIM_TIPO_PESQUISA] --> F1\n    DPE[DIM_PERFIL_PESQUISA] --> F1\n    DF[DIM_FAMILIA_PESQUISA] --> F1\n    DFO[DIM_FONTE_DADO] --> F1\n    DC[DIM_EXECUCAO_CARGA] --> F1"
       },
       "lists": {
         "grao": [
@@ -225,7 +226,8 @@
         "descarte": "Eliminar contato e mapa de identidade ao fim do prazo aprovado; duplicatas não são apagadas silenciosamente e seguem a regra auditável de ocorrência.",
         "metadadosObrigatorios": "Pesquisa, empresa, pessoa quando conciliada, hora_inicio, hora_termino, origem, versão, execução, regra de deduplicação e estado de conciliação.",
         "kpiQualidade": "Cobertura temporal, duplicidade no grão e conciliação: numerador, denominador, unidade, fonte e regra registrados por execução.",
-        "kpiGovernanca": "Percentual de registros com linhagem, chave durável, decisão de acesso e regra de anonimização aplicada."
+        "kpiGovernanca": "Percentual de registros com linhagem, chave durável, decisão de acesso e regra de anonimização aplicada.",
+        "diagramaMermaid": "flowchart LR\n    DP[DIM_PESQUISA] --> F2[FATO_PARTICIPACAO]\n    DE[DIM_EMPRESA] --> F2\n    DPE[DIM_PESSOA] --> F2\n    DTP[DIM_TEMPO - data da pesquisa] --> F2\n    DTR[DIM_TEMPO - data da resposta] --> F2"
       },
       "lists": {
         "grao": [
@@ -312,7 +314,8 @@
         "descarte": "Expurgar snapshots somente após o prazo aprovado; ausência de histórico anterior não autoriza backfill inferido.",
         "metadadosObrigatorios": "Data de fim do mês, instante de fechamento, status, área, tipo, perfil, flags do status, versão da regra e execução.",
         "kpiQualidade": "Cobertura e consistência do fechamento: combinações válidas sobre combinações avaliadas, por execução.",
-        "kpiGovernanca": "Cobertura de snapshots: fechamentos concluídos, versionados e rastreáveis sobre fechamentos esperados."
+        "kpiGovernanca": "Cobertura de snapshots: fechamentos concluídos, versionados e rastreáveis sobre fechamentos esperados.",
+        "diagramaMermaid": "flowchart LR\n    DT[DIM_TEMPO] --> F3[FATO_PIPELINE_MENSAL]\n    DS[DIM_STATUS_PESQUISA] --> F3\n    DA[DIM_AREA] --> F3\n    DTI[DIM_TIPO_PESQUISA] --> F3\n    DP[DIM_PERFIL_PESQUISA] --> F3"
       },
       "lists": {
         "grao": [
@@ -395,7 +398,8 @@
         "descarte": "Eliminar conforme prazo aprovado; órfãos ficam em quarentena e nunca são corrigidos ou vinculados por similaridade silenciosamente.",
         "metadadosObrigatorios": "Pesquisa, pesquisa_id original, pergunta, tipo, alternativas, arquivo e coluna de origem, versão, estado do vínculo e confiança da extração.",
         "kpiQualidade": "Cobertura do acervo e integridade do vínculo: pesquisas cobertas e linhas ligadas sobre respectivos denominadores.",
-        "kpiGovernanca": "Cobertura de linhagem e autorização: associações com origem, versão e decisão registradas sobre associações elegíveis."
+        "kpiGovernanca": "Cobertura de linhagem e autorização: associações com origem, versão e decisão registradas sobre associações elegíveis.",
+        "diagramaMermaid": "flowchart LR\n    DP[DIM_PESQUISA] --> F4[FATO_PESQUISA_PERGUNTA]\n    DQ[DIM_PERGUNTA] --> F4\n    DT[DIM_TEMPO] --> F4"
       },
       "lists": {
         "grao": [
@@ -442,5 +446,133 @@
         ]
       }
     }
-  ]
+  ],
+  "taticas": [
+    {
+      "id": "tatica-1",
+      "fields": {
+        "problema": "Eventos do MinIO podem ser entregues mais de uma vez e snapshots podem ser reenviados; confirmar o progresso antes da carga e da reconciliação pode duplicar ou perder dados.",
+        "qaDesempenho": false,
+        "qaDisponibilidade": false,
+        "qaEscalabilidade": false,
+        "qaSeguranca": false,
+        "qaModificabilidade": true,
+        "qaCusto": false,
+        "qaOutro": "Confiabilidade",
+        "tatica": "Idempotência por conteúdo com checkpoint tardio.",
+        "implementacao": "Identificar a entrada por fonte, versão e SHA-256; consultar a tabela de controle no DuckDB; confirmar checkpoint e hash somente depois de transformação, carga e reconciliação concluídas pelo fluxo Prefect.",
+        "consequencias": "Exige cálculo de hash e tabela de controle, mas permite reexecução convergente. Reverter a decisão exige migrar identidades de entrada e checkpoints dos consumidores.",
+        "diagramaMermaid": "flowchart LR\n    A[Objeto recebido] --> B[SHA-256]\n    B --> C{Hash concluido?}\n    C -->|Sim| D[Registrar ignorado]\n    C -->|Nao| E[Transformar e carregar]\n    E --> F[Reconciliar contagens]\n    F --> G[Confirmar checkpoint]"
+      },
+      "lists": {
+        "alternativas": [
+          "Usar somente o nome do arquivo: rejeitada porque o nome pode ser reutilizado para conteúdos diferentes.",
+          "Usar somente event_id: rejeitada porque notificações podem repetir ou mudar sem representar a identidade do conteúdo."
+        ],
+        "evidencias": [
+          "Testes de batching e checkpoint comprovam que falha posterior não avança a posição confirmada.",
+          "Testes de identidade e DDLs de controle verificam reprocessamento sem duplicação lógica."
+        ]
+      }
+    },
+    {
+      "id": "tatica-2",
+      "fields": {
+        "problema": "Tipos inválidos, chaves órfãs e conteúdo identificável podem contaminar o consumo analítico ou vazar por logs e artefatos de erro.",
+        "qaDesempenho": false,
+        "qaDisponibilidade": false,
+        "qaEscalabilidade": false,
+        "qaSeguranca": true,
+        "qaModificabilidade": false,
+        "qaCusto": false,
+        "qaOutro": "Confiabilidade",
+        "tatica": "Validação fail-closed com quarentena auditável e logs sanitizados.",
+        "implementacao": "O módulo etl.transformation aplica schema, conversão e consistência; falha estrutural bloqueia o lote e registros inválidos seguem ao QuarantineStore com motivo e referência à origem, sem payload bruto nos logs.",
+        "consequencias": "Requer tratamento operacional dos rejeitados e armazenamento restrito da quarentena. A reversão reduziria a auditabilidade e permitiria que dados inválidos ou identificáveis alcançassem o consumo.",
+        "diagramaMermaid": "flowchart LR\n    A[Registro extraido] --> B[Schema e regras]\n    B --> C{Valido?}\n    C -->|Sim| D[Ingestao tratada]\n    C -->|Nao| E[Quarentena restrita]\n    D --> F[Reconciliacao]\n    E --> F"
+      },
+      "lists": {
+        "alternativas": [
+          "Corrigir ou apagar silenciosamente: rejeitada porque destrói a evidência de origem.",
+          "Registrar o payload bruto em logs: rejeitada por risco de exposição de dados pessoais e respostas.",
+          "Aceitar schema incompatível: rejeitada porque transfere corrupção para a camada analítica."
+        ],
+        "evidencias": [
+          "Testes de conversão, consistência, nulabilidade e integridade referencial.",
+          "Testes verificam que logs, resumos e ledger de quarentena não contêm valores brutos."
+        ]
+      }
+    },
+    {
+      "id": "tatica-3",
+      "fields": {
+        "problema": "Varredura periódica aumenta a latência; falhas transitórias interrompem ingestões e retries ocultos podem repetir trabalho sem limite.",
+        "qaDesempenho": true,
+        "qaDisponibilidade": true,
+        "qaEscalabilidade": false,
+        "qaSeguranca": false,
+        "qaModificabilidade": false,
+        "qaCusto": false,
+        "qaOutro": "",
+        "tatica": "Disparo por evento, timeout explícito e retry limitado por classe de falha.",
+        "implementacao": "O adaptador HTTP recebe s3:ObjectCreated do MinIO e aciona um deployment Prefect. resilience.py e failures.py classificam falhas transitórias e permanentes; tarefas possuem timeout e retries limitados.",
+        "consequencias": "Adiciona Prefect, adaptador e fila persistente de notificações. Mantém regras de negócio fora do orquestrador, reduzindo o custo de troca; operar sem fila pode perder disparos durante indisponibilidade.",
+        "diagramaMermaid": "sequenceDiagram\n    MinIO->>Adaptador: s3:ObjectCreated\n    Adaptador->>Prefect: bucket, key, version_id, event_id\n    Prefect->>Extrator: executar com timeout\n    alt falha transitoria\n        Prefect->>Extrator: retry limitado\n    else falha permanente\n        Prefect-->>Prefect: encerrar sem retry\n    end"
+      },
+      "lists": {
+        "alternativas": [
+          "Polling contínuo do bucket: rejeitada por latência, leituras vazias e custo operacional.",
+          "Retry infinito ou oculto no cliente: rejeitada por tempestade de requisições e falta de rastreabilidade.",
+          "NiFi na arquitetura principal: rejeitada nesta etapa por duplicar responsabilidades com Python e Prefect."
+        ],
+        "evidencias": [
+          "Testes de resiliência verificam timeout e classificação de falhas.",
+          "Contratos de evento, execução manual e backfill estão versionados no fluxo de orquestração."
+        ]
+      }
+    }
+  ],
+  "etl": {
+    "fields": {
+      "orquestrador": "Prefect como plano de controle; regras de extração, transformação e carga permanecem em módulos Python testáveis.",
+      "frequencia": "Disparo por evento s3:ObjectCreated; agendamento adicional somente após definição da janela operacional pelo parceiro.",
+      "janelaExecucao": "Parametrizada por deployment e backfill; SLA, horário e frequência produtivos ainda dependem de homologação.",
+      "dependencias": "MinIO landing/raw -> SHA-256 -> extração -> bronze -> transformação/quarentena -> DuckDB -> reconciliação -> checkpoint; Elastic Stack recebe apenas telemetria sanitizada.",
+      "estrategiaCarga": "Carregar registros tecnicamente conformes no DuckDB, persistir rejeições em tabela própria e serializar decisões por identidade; confirmar sucesso somente após reconciliar contagens.",
+      "idempotencia": "Fonte + versão + SHA-256 + lote ou identidade do registro; uma entrada já concluída é registrada como ignorada, sem nova carga.",
+      "reprocessamento": "Execução manual ou backfill parametrizado por fonte, janela e modo, sempre a partir do último checkpoint confirmado e da origem imutável.",
+      "tratamentoFalha": "Falha permanente interrompe sem retry; falha transitória recebe tentativas limitadas e espera progressiva; nenhuma falha de carga ou reconciliação confirma checkpoint.",
+      "metricasTelemetria": "Duração, registros recebidos, carregados, rejeitados e duplicados, bytes, tentativas, latência, status por etapa, run_id, task_id e event_id.",
+      "alertas": "Falha permanente, retries esgotados, timeout, divergência de reconciliação e indisponibilidade de MinIO, Prefect ou DuckDB; falha da telemetria não confirma nem corrompe a carga.",
+      "linhagem": "run_id, task_id, event_id, fonte, bucket, objeto, versão, SHA-256, batch_id, posição, schema_version, contract_version e timestamps.",
+      "custoEstimado": "Separar processamento, armazenamento MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção. Valor monetário indisponível até aprovar volume futuro, frequência, ambiente e retenção; software sem licença não significa infraestrutura sem custo.",
+      "diagramaMermaid": "flowchart LR\n    A[Arquivos ou APIs] -->|publicam objeto| B[MinIO landing/raw]\n    B -->|s3:ObjectCreated| C[Adaptador de eventos]\n    C --> P[Deployment Prefect]\n    P --> H[Verificacao SHA-256]\n    H --> I{Ja concluido?}\n    I -->|Sim| J[Registrar ignorado]\n    I -->|Nao| E[Extrator Python]\n    E --> F[MinIO bronze]\n    F --> T[Transformacoes essenciais]\n    T --> V{Registro valido?}\n    V -->|Sim| D[DuckDB ingestion]\n    V -->|Nao| Q[DuckDB rejected]\n    D --> R[Reconciliacao]\n    Q --> R\n    R --> K[Confirmar checkpoint e hash]\n    P -. logs .-> L[Logstash]\n    E -. logs .-> L\n    T -. logs .-> L\n    D -. logs .-> L\n    L --> ES[Elasticsearch]\n    ES --> KB[Kibana]"
+    },
+    "lists": {
+      "fontesExtracao": [
+        "pesquisas.csv — uma linha por pesquisa; snapshot CSV em lotes; recorte por versão, SHA-256 e row:N.",
+        "empresas.csv — uma linha por empresa; snapshot CSV em lotes; recorte por versão, SHA-256 e row:N.",
+        "clientes.csv — uma linha por pessoa cadastrada; snapshot CSV em lotes; recorte por versão, SHA-256 e row:N.",
+        "respondentes.csv — uma linha por participação; snapshot CSV em lotes; recorte por versão, SHA-256 e posição absoluta.",
+        "questoes.csv — uma linha por pergunta em pesquisa; snapshot CSV em lotes; recorte por versão, SHA-256 e row:N.",
+        "respostas.csv — uma linha por elemento de resposta; snapshot CSV em lotes; recorte por versão, SHA-256 e row:N."
+      ],
+      "camadas": [
+        "Landing/raw no MinIO — objeto recebido imutável, identificado por versão e hash.",
+        "Bronze no MinIO — representação intermediária preservada por execução e lote.",
+        "Ingestão tratada no DuckDB — registros tipados e conformes com metadados técnicos.",
+        "Rejeição/quarentena — referência à origem, regra violada e estado de tratamento, com acesso restrito.",
+        "Controle e reconciliação — execuções, hashes, checkpoints, contagens e decisões de carga.",
+        "Dimensional/consumo — fatos, dimensões e agregações autorizadas após homologação."
+      ],
+      "verificacoes": [
+        "Validar schema, cabeçalhos, encoding, delimitador e contrato do lote; falha estrutural interrompe a carga.",
+        "Validar conversão de IDs, datas, horários, decimais e percentuais, preservando o valor de origem por referência.",
+        "Aplicar nulabilidade e aplicabilidade por campo e distinguir nulo condicional de lacuna.",
+        "Verificar unicidade no grão, classificar duplicatas e testar integridade referencial sem vínculo por similaridade.",
+        "Reconciliar recebidos, aceitos, rejeitados e duplicados antes de confirmar checkpoint.",
+        "Impedir dado pessoal, segredo ou payload bruto em logs, métricas e artefatos do CI."
+      ]
+    }
+  }
 }

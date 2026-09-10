@@ -4,7 +4,9 @@ O validador confere a versão ampliada do canvas: sintaxe e seções corporativa
 obrigatórias, metadados com data e versão válidas, quatro cubos com nomes e IDs
 canônicos, presença e tipo de todos os campos de Modelo Dimensional, Dados e
 Governança, seleção de esquema e fato e listas não vazias nem duplicadas de
-grão, fatos, métricas, dimensões, fontes, transformações, qualidade e SCD.
+grão, fatos, métricas, dimensões, fontes, transformações, qualidade e SCD. O
+contrato também exige diagramas, três táticas arquiteturais completas e a seção
+de ETL com fontes, camadas e verificações.
 
 Os campos de Dados e Governança por cubo voltaram a ser obrigatórios após a
 ampliação da ferramenta oficial em 10 de setembro de 2026. O contrato agora
@@ -42,8 +44,9 @@ Consumo Analítico em KP-02–KP-05, revisão de Governança Corporativa em KP-0
 KP-08 e reconciliação dimensional em KP-09. KP-10 refletiu o recorte disponível
 naquele momento; a ampliação posterior da interface tornou novamente
 obrigatórios os campos de Dados e Governança por cubo. A abertura visual
-continua sendo um gate manual porque o repositório não informa URL ou executável
-da ferramenta oficial.
+continua sendo um gate manual na
+[ferramenta oficial](https://afonsolelis.github.io/aulas/pages/module-11-eng-software/data-model-canvas.html),
+pois exige uma nova sessão e uma reexportação real.
 
 Para reproduzir o baseline:
 
@@ -76,8 +79,7 @@ pela ferramenta. Não use uma cópia de `docs/dmc.json` como substituta.
 Na revisão 1.1, de 10 de setembro de 2026, os cinco gates locais foram
 aprovados e o documento apresentou exatamente quatro cubos. KP-08 e KP-10 já
 estão integradas. A reabertura em sessão nova permanece um gate manual externo:
-ela depende da URL ou do executável da ferramenta oficial e de um JSON realmente
-reexportado, nenhum dos quais está disponível no repositório. Essa dependência
+ela depende de um JSON realmente reexportado pela ferramenta oficial. Essa dependência
 não reduz a completude do artefato versionado, mas impede afirmar compatibilidade
 visual sem executar o teste. O arquivo temporário de reexportação não deve ser
 versionado.

@@ -23,6 +23,8 @@ class InventoryDmcTest(unittest.TestCase):
         self.assertEqual(inventory["cube_count"], 4)
         self.assertTrue(inventory["cube_count_matches"])
         self.assertEqual(inventory["missing_top_level"], [])
+        self.assertEqual(inventory["tactic_count"], 3)
+        self.assertTrue(inventory["etl_present"])
 
     def test_current_document_has_complete_data_and_governance_sections(self) -> None:
         inventory = inventory_dmc.build_inventory(self.document)

@@ -25,6 +25,8 @@ REQUIRED_TOP_LEVEL = (
     "negocioEConsumo",
     "governancaCorporativa",
     "cubos",
+    "taticas",
+    "etl",
 )
 CORPORATE_LISTS = (
     "objetivosNegocio",
@@ -85,6 +87,7 @@ DIMENSIONAL_FIELDS = (
     "metadadosObrigatorios",
     "kpiQualidade",
     "kpiGovernanca",
+    "diagramaMermaid",
 )
 DIMENSIONAL_LISTS = (
     "grao",
@@ -97,6 +100,53 @@ DIMENSIONAL_LISTS = (
     "scd",
 )
 METADATA_KEYS = ("parceiro", "data", "versao", "grupo")
+EXPECTED_TACTIC_IDS = ("tatica-1", "tatica-2", "tatica-3")
+TACTIC_FIELDS = (
+    "problema",
+    "qaDesempenho",
+    "qaDisponibilidade",
+    "qaEscalabilidade",
+    "qaSeguranca",
+    "qaModificabilidade",
+    "qaCusto",
+    "qaOutro",
+    "tatica",
+    "implementacao",
+    "consequencias",
+    "diagramaMermaid",
+)
+TACTIC_BOOLEAN_FIELDS = (
+    "qaDesempenho",
+    "qaDisponibilidade",
+    "qaEscalabilidade",
+    "qaSeguranca",
+    "qaModificabilidade",
+    "qaCusto",
+)
+TACTIC_REQUIRED_TEXT_FIELDS = (
+    "problema",
+    "tatica",
+    "implementacao",
+    "consequencias",
+    "diagramaMermaid",
+)
+TACTIC_LISTS = ("alternativas", "evidencias")
+ETL_FIELDS = (
+    "orquestrador",
+    "frequencia",
+    "janelaExecucao",
+    "dependencias",
+    "estrategiaCarga",
+    "idempotencia",
+    "reprocessamento",
+    "tratamentoFalha",
+    "metricasTelemetria",
+    "alertas",
+    "linhagem",
+    "custoEstimado",
+    "diagramaMermaid",
+)
+ETL_LISTS = ("fontesExtracao", "camadas", "verificacoes")
 VERSION_PATTERN = re.compile(r"^[1-9]\d*\.\d+$")
 
 
@@ -307,6 +357,7 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
             "metadadosObrigatorios",
             "kpiQualidade",
             "kpiGovernanca",
+            "diagramaMermaid",
         )
         if any(
             not isinstance(fields[key], str) or not fields[key].strip()
@@ -346,7 +397,67 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
 
     if tuple(names) != EXPECTED_CUBES:
         raise DmcValidationError("nomes ou ordem dos cubos divergem do contrato da Sprint")
-    return {"schemaVersion": 1, "cubos": names}
+
+    tactics = document["taticas"]
+    if not isinstance(tactics, list) or len(tactics) != len(EXPECTED_TACTIC_IDS):
+        raise DmcValidationError(
+            f"o canvas deve conter {len(EXPECTED_TACTIC_IDS)} táticas arquiteturais"
+        )
+    tactic_ids: list[str] = []
+    for tactic in tactics:
+        if not isinstance(tactic, dict):
+            raise DmcValidationError("cada tática deve ser um objeto")
+        tactic_id = tactic.get("id")
+        fields = tactic.get("fields")
+        lists = tactic.get("lists")
+        if not isinstance(tactic_id, str) or not tactic_id:
+            raise DmcValidationError("toda tática deve ter ID")
+        tactic_ids.append(tactic_id)
+        if not isinstance(fields, dict) or not isinstance(lists, dict):
+            raise DmcValidationError(f"tática {tactic_id} deve conter fields e lists")
+        if set(fields) != set(TACTIC_FIELDS) or set(lists) != set(TACTIC_LISTS):
+            raise DmcValidationError(f"tática {tactic_id} diverge do esquema oficial")
+        if any(type(fields[key]) is not bool for key in TACTIC_BOOLEAN_FIELDS):
+            raise DmcValidationError(f"tática {tactic_id} deve usar booleanos nos atributos")
+        if not any(fields[key] for key in TACTIC_BOOLEAN_FIELDS) and not str(
+            fields["qaOutro"]
+        ).strip():
+            raise DmcValidationError(f"tática {tactic_id} deve selecionar um atributo de qualidade")
+        if any(
+            not isinstance(fields[key], str) or not fields[key].strip()
+            for key in TACTIC_REQUIRED_TEXT_FIELDS
+        ):
+            raise DmcValidationError(f"tática {tactic_id} possui campo textual obrigatório vazio")
+        if not isinstance(fields["qaOutro"], str):
+            raise DmcValidationError(f"tática {tactic_id} possui qaOutro inválido")
+        if any(not _nonempty_strings(lists[key]) for key in TACTIC_LISTS):
+            raise DmcValidationError(f"tática {tactic_id} deve preencher alternativas e evidências")
+    if tuple(tactic_ids) != EXPECTED_TACTIC_IDS:
+        raise DmcValidationError("IDs ou ordem das táticas divergem do contrato")
+
+    etl = document["etl"]
+    if not isinstance(etl, dict):
+        raise DmcValidationError("ETL deve ser um objeto")
+    etl_fields = etl.get("fields")
+    etl_lists = etl.get("lists")
+    if not isinstance(etl_fields, dict) or not isinstance(etl_lists, dict):
+        raise DmcValidationError("ETL deve conter fields e lists")
+    if set(etl_fields) != set(ETL_FIELDS) or set(etl_lists) != set(ETL_LISTS):
+        raise DmcValidationError("ETL diverge do esquema oficial")
+    if any(
+        not isinstance(etl_fields[key], str) or not etl_fields[key].strip()
+        for key in ETL_FIELDS
+    ):
+        raise DmcValidationError("ETL possui campo obrigatório vazio")
+    if any(not _nonempty_strings(etl_lists[key]) for key in ETL_LISTS):
+        raise DmcValidationError("ETL deve preencher fontes, camadas e verificações")
+
+    return {
+        "schemaVersion": 1,
+        "cubos": names,
+        "taticas": tactic_ids,
+        "etl": True,
+    }
 
 
 def validate_preserved_sections(
@@ -382,7 +493,8 @@ def main() -> int:
 
     print(
         f"DMC válido: schema {summary['schemaVersion']}; "
-        f"{len(summary['cubos'])} cubos; Modelo, Dados e Governança preenchidos"
+        f"{len(summary['cubos'])} cubos; {len(summary['taticas'])} táticas; "
+        "ETL, Modelo, Dados e Governança preenchidos"
     )
     return 0
 
