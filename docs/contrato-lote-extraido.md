@@ -76,3 +76,15 @@ do orquestrador ou no mecanismo de transporte.
 Os adaptadores de armazenamento de objetos, APIs, checkpoints e observabilidade
 podem ser implementados sobre essas interfaces. Nenhum deles precisa importar
 ou receber uma conexão com o banco de destino.
+
+## Evento de log da extração
+
+Para cada `ExtractedBatch`, o extrator produz um `ExtractionBatchLogEvent`. Esse
+evento combina os metadados do lote com a posição do checkpoint, mas não carrega
+a coleção `records`. O destino de logs recebe apenas o evento técnico por meio
+de `ExtractionLogSink`.
+
+Essa separação impede que respostas, e-mails, identificadores pessoais ou outros
+valores das fontes sejam serializados acidentalmente. O adaptador
+`StandardLoggingSink` publica os campos como atributos do `LogRecord`; a
+formatação e o transporte dos logs permanecem externos ao contrato do extrator.

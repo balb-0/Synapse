@@ -181,14 +181,48 @@ uma nova tentativa não corrigiria.
 Cada tentativa malsucedida produz um `SourceFailure` com fonte, operação,
 categoria, natureza, número da tentativa, limite e próxima espera. A mensagem da
 exceção e o conteúdo da fonte não fazem parte desse registro. O componente
-`FailureRecorder` permite encaminhar esses eventos à observabilidade; sua
-integração com os logs estruturados pertence à LN-09 e à OV-05.
+`FailureRecorder` permite encaminhar esses eventos à observabilidade. A ligação
+dos eventos de falha com o logger compartilhado permanece no escopo da OV-05.
 
 Ao esgotar uma falha transitória, o extrator gera
 `RetryLimitExceededError`. Falhas permanentes de acesso geram
 `PermanentSourceError`. Problemas no conteúdo CSV continuam gerando
 `MalformedSourceError`, sem retry. A repetição da tarefa completa no Prefect não
 é configurada pelos extratores e permanece sob responsabilidade da OV-04.
+
+## Metadados e logs por lote
+
+Cada lote emitido gera o evento estruturado `extraction.batch.emitted`. O evento
+possui `stage=extraction` e `status=success`, inclusive quando uma fonte contém
+somente o cabeçalho e produz um lote com zero registros.
+
+Os campos publicados são:
+
+| Grupo | Campos |
+| :--- | :--- |
+| Correlação | `source`, `run_id`, `task_id` e `batch_id` |
+| Tempo | `started_at`, `finished_at` e `duration_ms` |
+| Volume | `record_count` e `byte_count` |
+| Contrato | `schema_version` e `contract_version` |
+| Origem | `source_checksum` |
+| Retomada | `checkpoint_position`, `checkpoint_sequence` e `checkpoint_source_version` |
+
+O `ExtractionBatchLogEvent` é criado a partir do lote, mas contém apenas esses
+atributos técnicos. Os registros extraídos, nomes de colunas, respostas,
+identificadores pessoais e valores de negócio não são repassados ao destino de
+logs.
+
+O `StandardLoggingSink` envia os atributos pelo parâmetro `extra` do módulo
+`logging`, usando o logger `etl.extraction`. Dessa forma, o formatador e o
+encaminhamento definidos pela OV-05 podem produzir JSON e enviar os eventos à
+Elastic Stack sem exigir que o extrator conheça essa infraestrutura. Também é
+possível fornecer outra implementação de `ExtractionLogSink` nos testes ou na
+execução do pipeline.
+
+Os timestamps são emitidos no padrão ISO 8601 com timezone UTC. A duração é
+calculada em milissegundos e nunca inclui o conteúdo dos registros. O campo
+`byte_count` representa o tamanho total do objeto de origem lido naquela
+extração, conforme definido no contrato atual.
 
 ## Limites entre as etapas
 
@@ -216,6 +250,7 @@ python -m unittest tests.extraction.test_clientes_respondentes_extractors -v
 python -m unittest tests.extraction.test_questoes_respostas_extractors -v
 python -m unittest tests.extraction.test_batching_checkpoints -v
 python -m unittest tests.extraction.test_resilience -v
+python -m unittest tests.extraction.test_extraction_logs -v
 ```
 
 ## Verificação com os arquivos fornecidos
