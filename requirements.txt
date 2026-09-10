@@ -1,0 +1,2 @@
+# Cliente usado pelo adaptador de leitura dos objetos no MinIO.
+minio>=7.2,<8

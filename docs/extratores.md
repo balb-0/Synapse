@@ -1,0 +1,106 @@
+# Extratores das fontes
+
+Os extratores leem os objetos de entrada sem alterá-los e entregam os registros
+no contrato definido em [`contrato-lote-extraido.md`](contrato-lote-extraido.md).
+A implementação não grava no DuckDB, não confirma checkpoints e não aplica as
+regras da camada tratada.
+
+## Fontes
+
+| Fonte | Objeto esperado | Extrator | Situação |
+| :--- | :--- | :--- | :--- |
+| Pesquisas | `landing/pesquisas.csv` | `PesquisasExtractor` | Implementado na LN-04 |
+| Empresas | `landing/empresas.csv` | `EmpresasExtractor` | Implementado na LN-04 |
+| Clientes | `landing/clientes.csv` | `ClientesExtractor` | LN-05 |
+| Respondentes | `landing/respondentes.csv` | `RespondentesExtractor` | LN-05 |
+| Questões | `landing/questoes.csv` | `QuestoesExtractor` | LN-06 |
+| Respostas | `landing/respostas.csv` | `RespostasExtractor` | LN-06 |
+
+O prefixo pode ser alterado por configuração. A chave efetiva do objeto vem do
+evento do MinIO e é representada por `ObjectReference`, junto ao bucket, à
+versão e ao identificador do evento quando esses valores estiverem disponíveis.
+
+## Implementação
+
+O código está dividido em:
+
+- [`object_storage.py`](../src/etl/extraction/object_storage.py), com o contrato
+  de leitura e o adaptador para o cliente do MinIO;
+- [`csv_extractors.py`](../src/etl/extraction/csv_extractors.py), com a leitura
+  dos arquivos e os extratores de pesquisas e empresas;
+- [`contracts.py`](../src/etl/extraction/contracts.py), com o lote, os metadados
+  e o checkpoint entregues ao estágio seguinte.
+
+```text
+Evento do MinIO
+      ↓
+ObjectReference
+      ↓
+MinioObjectReader
+      ↓
+PesquisasExtractor ou EmpresasExtractor
+      ↓
+ExtractedBatch
+```
+
+O cliente do MinIO é recebido pelo adaptador, em vez de ser criado dentro do
+extrator. Essa separação permite utilizar o serviço real na execução e um leitor
+em memória nos testes, sem mudar a regra de leitura do CSV.
+
+## Comportamento da LN-04
+
+Os dois extratores:
+
+- abrem o objeto em modo somente leitura;
+- interpretam CSV em UTF-8, com suporte a BOM e separador `;`;
+- preservam nomes, chaves e valores recebidos da fonte;
+- validam a presença das colunas conhecidas;
+- rejeitam linhas cuja quantidade de campos difere do cabeçalho;
+- calculam o SHA-256 sobre os bytes originais;
+- produzem um único `ExtractedBatch`, inclusive quando não há registros;
+- informam quantidade de registros, bytes, horários, versão do schema e
+  checkpoint candidato.
+
+O arquivo `pesquisas.csv` possui colunas finais sem nome. Para que nenhuma
+posição seja perdida, elas são expostas de forma determinística como
+`unnamed_column_23`, `unnamed_column_24` e assim por diante. Colunas repetidas
+recebem o sufixo `__2`, `__3` conforme sua ocorrência.
+
+A retomada parcial ainda não pertence à LN-04. Se um checkpoint for fornecido,
+o extrator encerra com `UnsupportedCheckpointError`. A leitura em lotes e a
+retomada a partir da última linha confirmada serão adicionadas na LN-07.
+
+## Limites entre as etapas
+
+A comparação do hash com o histórico de objetos concluídos pertence ao fluxo
+orquestrado. O extrator calcula e informa o hash, mas não decide sozinho se a
+execução deve ser ignorada. Da mesma forma, o checkpoint emitido é apenas um
+candidato e só poderá ser confirmado depois da transformação, carga e
+reconciliação do lote.
+
+Conversão de tipos, normalização de datas e percentuais, tratamento de nulos,
+deduplicação e rejeição são responsabilidades da transformação. Manter essas
+regras fora do extrator preserva a fidelidade da entrada e evita acoplamento com
+o schema do banco.
+
+## Testes
+
+Os testes usam somente dados sintéticos e não acessam os arquivos do parceiro.
+Eles verificam pesquisas, empresas, fonte vazia, cabeçalho incompatível, linha
+malformada, cálculo de hash, preservação de campos e fechamento da conexão do
+MinIO.
+
+```bash
+python -m unittest tests.extraction.test_csv_extractors -v
+```
+
+## Verificação com os arquivos fornecidos
+
+Foi feita uma execução local somente leitura com a versão mais recente dos dois
+arquivos, mantida fora do repositório. Os hashes foram calculados antes e depois
+da execução e permaneceram iguais.
+
+| Fonte | Registros | Colunas | Bytes lidos | Origem preservada |
+| :--- | ---: | ---: | ---: | :---: |
+| Pesquisas | 366 | 33 | 132.693 | Sim |
+| Empresas | 779 | 9 | 66.691 | Sim |

@@ -34,12 +34,12 @@ que ainda não foi processada.
 linha, enquanto uma API pode usar uma página ou cursor. Essa diferença fica
 dentro de cada extrator e não altera o contrato entregue ao restante do ETL.
 
-## Uso com o NiFi
+## Atributos técnicos para transporte
 
-No NiFi, o conteúdo do FlowFile representa os registros do lote. Metadados e
-checkpoint são enviados como atributos por meio de
+Metadados e checkpoint podem ser representados como atributos por meio de
 `ExtractedBatch.as_attributes()`. Os atributos não incluem os registros nem
-campos de negócio, evitando que nomes, e-mails ou respostas apareçam nos logs.
+campos de negócio, evitando que nomes, e-mails ou respostas apareçam nos logs
+do orquestrador ou no mecanismo de transporte.
 
 | Atributo | Descrição |
 | :--- | :--- |
@@ -57,6 +57,6 @@ campos de negócio, evitando que nomes, e-mails ou respostas apareçam nos logs.
 | `checkpoint_source_version` | Versão da fonte à qual o checkpoint pertence, quando disponível |
 | `contract_version` | Versão deste contrato |
 
-Os adaptadores de arquivo, APIs, armazenamento de checkpoint e observabilidade
-serão implementados sobre essas interfaces. Nenhum deles precisa importar ou
-receber uma conexão com o ClickHouse.
+Os adaptadores de armazenamento de objetos, APIs, checkpoints e observabilidade
+podem ser implementados sobre essas interfaces. Nenhum deles precisa importar
+ou receber uma conexão com o banco de destino.
