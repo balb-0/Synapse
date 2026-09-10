@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "respondentes",
+  "namespace": "br.edu.inteli.sindusfarma.bronze",
+  "doc": "Schema bronze para respondentes.csv.",
+  "fields": [
+    {"name": "id_pesq", "type": ["null", "string"], "default": null},
+    {"name": "hora_inicio", "type": ["null", "string"], "default": null},
+    {"name": "hora_termino", "type": ["null", "string"], "default": null},
+    {"name": "id_empresa", "type": ["null", "string"], "default": null},
+    {"name": "market_share", "type": ["null", "string"], "default": null},
+    {"name": "id_cliente", "type": ["null", "string"], "default": null}
+  ]
+}
