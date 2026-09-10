@@ -16,17 +16,16 @@ REDACTED = "********"
 
 ENVIRONMENT_VARIABLES = {
     "source_dir": "ETL_SOURCE_DIR",
-    "nifi_api_url": "ETL_NIFI_API_URL",
-    "nifi_input_dir": "ETL_NIFI_INPUT_DIR",
     "minio_endpoint": "ETL_MINIO_ENDPOINT",
     "minio_bucket": "ETL_MINIO_BUCKET",
+    "minio_input_prefix": "ETL_MINIO_INPUT_PREFIX",
     "minio_access_key": "ETL_MINIO_ACCESS_KEY",
     "minio_secret_key": "ETL_MINIO_SECRET_KEY",
     "request_timeout_seconds": "ETL_REQUEST_TIMEOUT_SECONDS",
 }
 
 DEFAULT_VALUES: dict[str, str] = {
-    "nifi_input_dir": "/opt/nifi/input",
+    "minio_input_prefix": "landing",
     "request_timeout_seconds": "30",
 }
 
@@ -78,7 +77,9 @@ def _validate_endpoint(value: str, field_name: str) -> str:
     return value.rstrip("/")
 
 
-def _validate_source_dir(value: ParameterValue) -> Path:
+def _validate_source_dir(value: ParameterValue) -> Path | None:
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
     if not isinstance(value, (str, Path)):
         raise ConfigurationError(
             "ETL_SOURCE_DIR deve apontar para um caminho válido"
@@ -92,13 +93,14 @@ def _validate_source_dir(value: ParameterValue) -> Path:
     return path
 
 
-def _validate_nifi_input_dir(value: str) -> PurePosixPath:
-    path = PurePosixPath(value)
-    if not path.is_absolute() or ".." in path.parts:
+def _validate_object_prefix(value: str) -> str:
+    normalized = value.strip().strip("/")
+    path = PurePosixPath(normalized)
+    if not normalized or path.is_absolute() or ".." in path.parts:
         raise ConfigurationError(
-            "ETL_NIFI_INPUT_DIR deve ser um caminho absoluto sem '..'"
+            "ETL_MINIO_INPUT_PREFIX deve ser um prefixo relativo sem '..'"
         )
-    return path
+    return normalized
 
 
 def _validate_bucket(value: str) -> str:
@@ -128,29 +130,27 @@ def _validate_timeout(value: ParameterValue) -> float:
 
 @dataclass(frozen=True, slots=True)
 class ExtractionSettings:
-    """Configurações validadas para NiFi, entrada local e MinIO."""
+    """Configurações validadas para leitura de objetos no MinIO."""
 
-    source_dir: Path
-    nifi_api_url: str
-    nifi_input_dir: PurePosixPath
     minio_endpoint: str
     minio_bucket: str
     minio_access_key: SecretValue = field(repr=False)
     minio_secret_key: SecretValue = field(repr=False)
+    minio_input_prefix: str = "landing"
     request_timeout_seconds: float = 30.0
+    source_dir: Path | None = None
 
-    def safe_summary(self) -> dict[str, str | float]:
+    def safe_summary(self) -> dict[str, str | float | None]:
         """Retorna dados apropriados para diagnóstico e logs."""
 
         return {
-            "source_dir": str(self.source_dir),
-            "nifi_api_url": self.nifi_api_url,
-            "nifi_input_dir": str(self.nifi_input_dir),
             "minio_endpoint": self.minio_endpoint,
             "minio_bucket": self.minio_bucket,
+            "minio_input_prefix": self.minio_input_prefix,
             "minio_access_key": REDACTED,
             "minio_secret_key": REDACTED,
             "request_timeout_seconds": self.request_timeout_seconds,
+            "source_dir": str(self.source_dir) if self.source_dir else None,
         }
 
 
@@ -214,20 +214,17 @@ def load_extraction_settings(
         )
     supplied_environment = os.environ if environ is None else environ
 
-    source_dir = _required_value(
+    source_dir = _configured_value(
         "source_dir", supplied_parameters, supplied_environment
-    )
-    nifi_api_url = _required_value(
-        "nifi_api_url", supplied_parameters, supplied_environment
-    )
-    nifi_input_dir = _required_value(
-        "nifi_input_dir", supplied_parameters, supplied_environment
     )
     minio_endpoint = _required_value(
         "minio_endpoint", supplied_parameters, supplied_environment
     )
     minio_bucket = _required_value(
         "minio_bucket", supplied_parameters, supplied_environment
+    )
+    minio_input_prefix = _required_value(
+        "minio_input_prefix", supplied_parameters, supplied_environment
     )
     minio_access_key = _required_value(
         "minio_access_key", supplied_parameters, supplied_environment
@@ -240,14 +237,13 @@ def load_extraction_settings(
     )
 
     return ExtractionSettings(
-        source_dir=_validate_source_dir(source_dir),
-        nifi_api_url=_validate_endpoint(str(nifi_api_url), "ETL_NIFI_API_URL"),
-        nifi_input_dir=_validate_nifi_input_dir(str(nifi_input_dir)),
         minio_endpoint=_validate_endpoint(
             str(minio_endpoint), "ETL_MINIO_ENDPOINT"
         ),
         minio_bucket=_validate_bucket(str(minio_bucket)),
         minio_access_key=_secret(minio_access_key, "minio_access_key"),
         minio_secret_key=_secret(minio_secret_key, "minio_secret_key"),
+        minio_input_prefix=_validate_object_prefix(str(minio_input_prefix)),
         request_timeout_seconds=_validate_timeout(timeout),
+        source_dir=_validate_source_dir(source_dir),
     )
