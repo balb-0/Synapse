@@ -31,6 +31,10 @@ documento principal.
 - [Integração da transformação](integracao-transformacao.md): chamada, referências, quarentena e confirmação pela carga.
 - [Matriz regra–teste](matriz-transformacao.md): evidências, comandos e limitações MG-01 a MG-11.
 
+## Carga e ingestão — Sprint 3 (Lucas)
+
+- [Inventário de contratos dimensionais](inventario-contratos-dimensionais.md): contratos de fato, dimensão e cubo já existentes (Data Model Canvas) que restringem nomes, tipos e metadados da tabela de ingestão.
+
 ## Evidências e protótipos
 
 | Diretório | Conteúdo |
