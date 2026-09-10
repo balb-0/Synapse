@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import re
 from collections.abc import Iterator
 from datetime import UTC, datetime
-from io import StringIO
+from io import TextIOWrapper
+from itertools import islice
+from tempfile import SpooledTemporaryFile
+from typing import BinaryIO
 
 from .contracts import (
     BatchMetadata,
@@ -71,6 +75,12 @@ RESPONDENTES_REQUIRED_COLUMNS = (
     "id_cliente",
 )
 
+DEFAULT_BATCH_SIZE = 1000
+SOURCE_READ_CHUNK_SIZE = 1024 * 1024
+SPOOL_MEMORY_LIMIT_BYTES = 8 * 1024 * 1024
+CHECKPOINT_POSITION_PATTERN = re.compile(r"row:(0|[1-9][0-9]*)")
+
+
 class ExtractionError(RuntimeError):
     """Erro conhecido durante a leitura de uma fonte."""
 
@@ -79,8 +89,12 @@ class MalformedSourceError(ExtractionError):
     """A fonte não pode ser interpretada segundo seu contrato CSV."""
 
 
-class UnsupportedCheckpointError(ExtractionError):
-    """A versão atual do extrator ainda não oferece retomada parcial."""
+class InvalidCheckpointError(ExtractionError):
+    """O checkpoint não pode ser aplicado à fonte informada."""
+
+
+class StaleCheckpointError(InvalidCheckpointError):
+    """O checkpoint pertence a outra versão do objeto de origem."""
 
 
 def _normalize_headers(headers: list[str]) -> tuple[str, ...]:
@@ -101,29 +115,41 @@ def _normalize_headers(headers: list[str]) -> tuple[str, ...]:
 
 
 class CsvObjectExtractor:
-    """Lê integralmente um CSV do MinIO e produz um lote no contrato comum."""
+    """Lê um CSV do MinIO e produz páginas retomáveis no contrato comum."""
 
     delimiter = ";"
     encoding = "utf-8-sig"
+    source_name = ""
+    schema_version = "1"
+    required_columns: tuple[str, ...] = ()
 
     def __init__(
         self,
         *,
-        source: str,
-        schema_version: str,
-        required_columns: tuple[str, ...],
         object_reader: ObjectReader,
         object_reference: ObjectReference,
+        batch_size: int = DEFAULT_BATCH_SIZE,
     ) -> None:
-        self._source = source
-        self._schema_version = schema_version
-        self._required_columns = required_columns
+        if not self.source_name or not self.required_columns:
+            raise TypeError(
+                "o extrator CSV deve declarar fonte e colunas obrigatórias"
+            )
+        if isinstance(batch_size, bool) or not isinstance(batch_size, int):
+            raise ValueError("batch_size deve ser um inteiro positivo")
+        if batch_size <= 0:
+            raise ValueError("batch_size deve ser um inteiro positivo")
+
         self._object_reader = object_reader
         self._object_reference = object_reference
+        self._batch_size = batch_size
 
     @property
     def source(self) -> str:
-        return self._source
+        return self.source_name
+
+    @property
+    def batch_size(self) -> int:
+        return self._batch_size
 
     def read(
         self,
@@ -133,64 +159,136 @@ class CsvObjectExtractor:
     ) -> Iterator[ExtractedBatch]:
         if not run_id or not run_id.strip():
             raise ValueError("run_id não pode ser vazio")
-        if checkpoint is not None:
-            raise UnsupportedCheckpointError(
-                "retomada por checkpoint será implementada na LN-07"
-            )
 
         started_at = datetime.now(UTC)
-        payload = self._read_payload()
-        checksum = "sha256:" + hashlib.sha256(payload).hexdigest()
-        records = self._parse_records(payload)
-        finished_at = datetime.now(UTC)
+        resume_row, next_sequence = self._checkpoint_position(checkpoint)
 
-        extracted_checkpoint = ExtractionCheckpoint(
-            source=self.source,
-            position=f"row:{len(records)}",
-            sequence=1,
-            source_version=checksum,
-        )
-        metadata = BatchMetadata(
-            source=self.source,
-            run_id=run_id,
-            task_id=f"extract-{self.source}",
-            batch_id=f"{self.source}-000001",
-            started_at=started_at,
-            finished_at=finished_at,
-            record_count=len(records),
-            byte_count=len(payload),
-            schema_version=self._schema_version,
-            source_checksum=checksum,
-        )
+        with SpooledTemporaryFile(
+            max_size=SPOOL_MEMORY_LIMIT_BYTES,
+            mode="w+b",
+        ) as buffered_source:
+            byte_count, source_version = self._buffer_source(buffered_source)
+            self._validate_source_version(checkpoint, source_version)
+            buffered_source.seek(0)
+            yield from self._read_batches(
+                buffered_source=buffered_source,
+                run_id=run_id,
+                started_at=started_at,
+                byte_count=byte_count,
+                source_version=source_version,
+                resume_row=resume_row,
+                next_sequence=next_sequence,
+                emit_empty_batch=checkpoint is None,
+            )
 
-        yield ExtractedBatch(
-            records=records,
-            checkpoint=extracted_checkpoint,
-            metadata=metadata,
-        )
+    def _buffer_source(self, destination: BinaryIO) -> tuple[int, str]:
+        digest = hashlib.sha256()
+        byte_count = 0
 
-    def _read_payload(self) -> bytes:
         with self._object_reader.open(self._object_reference) as stream:
-            payload = stream.read()
+            while True:
+                chunk = stream.read(SOURCE_READ_CHUNK_SIZE)
+                if not isinstance(chunk, bytes):
+                    raise MalformedSourceError(
+                        "o objeto de origem deve fornecer bytes"
+                    )
+                if not chunk:
+                    break
+                destination.write(chunk)
+                digest.update(chunk)
+                byte_count += len(chunk)
 
-        if not isinstance(payload, bytes):
-            raise MalformedSourceError("o objeto de origem deve fornecer bytes")
-        return payload
+        return byte_count, "sha256:" + digest.hexdigest()
 
-    def _parse_records(self, payload: bytes) -> tuple[Record, ...]:
+    def _checkpoint_position(
+        self,
+        checkpoint: ExtractionCheckpoint | None,
+    ) -> tuple[int, int]:
+        if checkpoint is None:
+            return 0, 1
+        if checkpoint.source != self.source:
+            raise InvalidCheckpointError("checkpoint pertence a outra fonte")
+
+        match = CHECKPOINT_POSITION_PATTERN.fullmatch(checkpoint.position)
+        if match is None:
+            raise InvalidCheckpointError("posição de checkpoint CSV inválida")
+        return int(match.group(1)), checkpoint.sequence + 1
+
+    def _validate_source_version(
+        self,
+        checkpoint: ExtractionCheckpoint | None,
+        source_version: str,
+    ) -> None:
+        if checkpoint is None:
+            return
+        if checkpoint.source_version is None:
+            raise InvalidCheckpointError(
+                "checkpoint CSV não informa a versão da fonte"
+            )
+        if checkpoint.source_version != source_version:
+            raise StaleCheckpointError("a fonte mudou desde o checkpoint confirmado")
+
+    def _read_batches(
+        self,
+        *,
+        buffered_source: BinaryIO,
+        run_id: str,
+        started_at: datetime,
+        byte_count: int,
+        source_version: str,
+        resume_row: int,
+        next_sequence: int,
+        emit_empty_batch: bool,
+    ) -> Iterator[ExtractedBatch]:
+        text_stream = TextIOWrapper(buffered_source, encoding=self.encoding, newline="")
         try:
-            text = payload.decode(self.encoding)
+            reader = csv.reader(text_stream, delimiter=self.delimiter)
+            records = self._record_iterator(reader)
+            self._skip_confirmed_records(records, resume_row)
+            yielded = False
+            current_row = resume_row
+            sequence = next_sequence
+
+            while batch_records := tuple(islice(records, self.batch_size)):
+                yielded = True
+                current_row += len(batch_records)
+                yield self._build_batch(
+                    records=batch_records,
+                    run_id=run_id,
+                    started_at=started_at,
+                    byte_count=byte_count,
+                    source_version=source_version,
+                    current_row=current_row,
+                    sequence=sequence,
+                )
+                sequence += 1
+
+            if not yielded and resume_row == 0 and emit_empty_batch:
+                yield self._build_batch(
+                    records=(),
+                    run_id=run_id,
+                    started_at=started_at,
+                    byte_count=byte_count,
+                    source_version=source_version,
+                    current_row=0,
+                    sequence=next_sequence,
+                )
         except UnicodeDecodeError as exc:
             raise MalformedSourceError("o CSV deve usar codificação UTF-8") from exc
+        finally:
+            text_stream.detach()
 
-        reader = csv.reader(StringIO(text, newline=""), delimiter=self.delimiter)
+    def _record_iterator(
+        self,
+        reader: Iterator[list[str]],
+    ) -> Iterator[Record]:
         try:
             headers = next(reader)
         except StopIteration as exc:
             raise MalformedSourceError("o CSV não possui cabeçalho") from exc
 
         missing_columns = [
-            column for column in self._required_columns if column not in headers
+            column for column in self.required_columns if column not in headers
         ]
         if missing_columns:
             raise MalformedSourceError(
@@ -198,7 +296,6 @@ class CsvObjectExtractor:
             )
 
         normalized_headers = _normalize_headers(headers)
-        records: list[Record] = []
         for line_number, row in enumerate(reader, start=2):
             if not row:
                 continue
@@ -207,9 +304,55 @@ class CsvObjectExtractor:
                     f"quantidade de campos inválida na linha {line_number}"
                 )
             record = dict(zip(normalized_headers, row, strict=True))
-            records.append(self._prepare_record(record))
+            yield self._prepare_record(record)
 
-        return tuple(records)
+    def _skip_confirmed_records(
+        self,
+        records: Iterator[Record],
+        resume_row: int,
+    ) -> None:
+        for _ in range(resume_row):
+            try:
+                next(records)
+            except StopIteration as exc:
+                raise InvalidCheckpointError(
+                    "checkpoint está além do fim da fonte"
+                ) from exc
+
+    def _build_batch(
+        self,
+        *,
+        records: tuple[Record, ...],
+        run_id: str,
+        started_at: datetime,
+        byte_count: int,
+        source_version: str,
+        current_row: int,
+        sequence: int,
+    ) -> ExtractedBatch:
+        checkpoint = ExtractionCheckpoint(
+            source=self.source,
+            position=f"row:{current_row}",
+            sequence=sequence,
+            source_version=source_version,
+        )
+        metadata = BatchMetadata(
+            source=self.source,
+            run_id=run_id,
+            task_id=f"extract-{self.source}",
+            batch_id=f"{self.source}-{sequence:06d}",
+            started_at=started_at,
+            finished_at=datetime.now(UTC),
+            record_count=len(records),
+            byte_count=byte_count,
+            schema_version=self.schema_version,
+            source_checksum=source_version,
+        )
+        return ExtractedBatch(
+            records=records,
+            checkpoint=checkpoint,
+            metadata=metadata,
+        )
 
     def _prepare_record(self, record: dict[str, str]) -> Record:
         """Permite especializar apenas a representação entregue pelo extrator."""
@@ -220,70 +363,26 @@ class CsvObjectExtractor:
 class PesquisasExtractor(CsvObjectExtractor):
     """Extrai a fonte `pesquisas` sem modificar o objeto no MinIO."""
 
-    def __init__(
-        self,
-        *,
-        object_reader: ObjectReader,
-        object_reference: ObjectReference,
-    ) -> None:
-        super().__init__(
-            source="pesquisas",
-            schema_version="1",
-            required_columns=PESQUISAS_REQUIRED_COLUMNS,
-            object_reader=object_reader,
-            object_reference=object_reference,
-        )
+    source_name = "pesquisas"
+    required_columns = PESQUISAS_REQUIRED_COLUMNS
 
 
 class EmpresasExtractor(CsvObjectExtractor):
     """Extrai a fonte `empresas` sem modificar o objeto no MinIO."""
 
-    def __init__(
-        self,
-        *,
-        object_reader: ObjectReader,
-        object_reference: ObjectReference,
-    ) -> None:
-        super().__init__(
-            source="empresas",
-            schema_version="1",
-            required_columns=EMPRESAS_REQUIRED_COLUMNS,
-            object_reader=object_reader,
-            object_reference=object_reference,
-        )
+    source_name = "empresas"
+    required_columns = EMPRESAS_REQUIRED_COLUMNS
 
 
 class ClientesExtractor(CsvObjectExtractor):
     """Extrai `clientes` preservando identificadores e campos da origem."""
 
-    def __init__(
-        self,
-        *,
-        object_reader: ObjectReader,
-        object_reference: ObjectReference,
-    ) -> None:
-        super().__init__(
-            source="clientes",
-            schema_version="1",
-            required_columns=CLIENTES_REQUIRED_COLUMNS,
-            object_reader=object_reader,
-            object_reference=object_reference,
-        )
+    source_name = "clientes"
+    required_columns = CLIENTES_REQUIRED_COLUMNS
 
 
 class RespondentesExtractor(CsvObjectExtractor):
     """Extrai `respondentes` sem alterar os componentes da chave candidata."""
 
-    def __init__(
-        self,
-        *,
-        object_reader: ObjectReader,
-        object_reference: ObjectReference,
-    ) -> None:
-        super().__init__(
-            source="respondentes",
-            schema_version="1",
-            required_columns=RESPONDENTES_REQUIRED_COLUMNS,
-            object_reader=object_reader,
-            object_reference=object_reference,
-        )
+    source_name = "respondentes"
+    required_columns = RESPONDENTES_REQUIRED_COLUMNS

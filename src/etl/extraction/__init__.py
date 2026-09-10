@@ -20,6 +20,7 @@ from .contracts import (
 )
 from .csv_extractors import (
     CLIENTES_REQUIRED_COLUMNS,
+    DEFAULT_BATCH_SIZE,
     EMPRESAS_REQUIRED_COLUMNS,
     PESQUISAS_REQUIRED_COLUMNS,
     RESPONDENTES_REQUIRED_COLUMNS,
@@ -27,10 +28,11 @@ from .csv_extractors import (
     CsvObjectExtractor,
     EmpresasExtractor,
     ExtractionError,
+    InvalidCheckpointError,
     MalformedSourceError,
     PesquisasExtractor,
     RespondentesExtractor,
-    UnsupportedCheckpointError,
+    StaleCheckpointError,
 )
 from .object_storage import MinioObjectReader, ObjectReader, ObjectReference
 from .questionnaire_extractors import (
@@ -43,6 +45,7 @@ from .questionnaire_extractors import (
 __all__ = [
     "CONTRACT_VERSION",
     "CLIENTES_REQUIRED_COLUMNS",
+    "DEFAULT_BATCH_SIZE",
     "ENVIRONMENT_VARIABLES",
     "EMPRESAS_REQUIRED_COLUMNS",
     "PESQUISAS_REQUIRED_COLUMNS",
@@ -61,6 +64,7 @@ __all__ = [
     "ExtractionCheckpoint",
     "ExtractionSettings",
     "Extractor",
+    "InvalidCheckpointError",
     "MetadataSink",
     "MalformedSourceError",
     "MinioObjectReader",
@@ -72,6 +76,6 @@ __all__ = [
     "RespondentesExtractor",
     "RespostasExtractor",
     "SecretValue",
-    "UnsupportedCheckpointError",
+    "StaleCheckpointError",
     "load_extraction_settings",
 ]

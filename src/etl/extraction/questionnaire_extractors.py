@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from .contracts import Record
 from .csv_extractors import CsvObjectExtractor
-from .object_storage import ObjectReader, ObjectReference
 
 
 QUESTOES_REQUIRED_COLUMNS = (
@@ -49,19 +48,8 @@ def _split_variable_field(value: str) -> tuple[str, ...]:
 class QuestoesExtractor(CsvObjectExtractor):
     """Extrai questões e explicita suas listas em uma estrutura estável."""
 
-    def __init__(
-        self,
-        *,
-        object_reader: ObjectReader,
-        object_reference: ObjectReference,
-    ) -> None:
-        super().__init__(
-            source="questoes",
-            schema_version="1",
-            required_columns=QUESTOES_REQUIRED_COLUMNS,
-            object_reader=object_reader,
-            object_reference=object_reference,
-        )
+    source_name = "questoes"
+    required_columns = QUESTOES_REQUIRED_COLUMNS
 
     def _prepare_record(self, record: dict[str, str]) -> Record:
         prepared: dict[str, object] = dict(record)
@@ -76,19 +64,8 @@ class QuestoesExtractor(CsvObjectExtractor):
 class RespostasExtractor(CsvObjectExtractor):
     """Extrai respostas atômicas com uma forma estável para o conteúdo."""
 
-    def __init__(
-        self,
-        *,
-        object_reader: ObjectReader,
-        object_reference: ObjectReference,
-    ) -> None:
-        super().__init__(
-            source="respostas",
-            schema_version="1",
-            required_columns=RESPOSTAS_REQUIRED_COLUMNS,
-            object_reader=object_reader,
-            object_reference=object_reference,
-        )
+    source_name = "respostas"
+    required_columns = RESPOSTAS_REQUIRED_COLUMNS
 
     def _prepare_record(self, record: dict[str, str]) -> Record:
         prepared: dict[str, object] = dict(record)
