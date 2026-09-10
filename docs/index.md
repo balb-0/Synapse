@@ -13,6 +13,7 @@
 | [`contrato-lote-extraido.md`](contrato-lote-extraido.md) | Interface comum dos extratores, contrato de lote, checkpoint e metadados |
 | [`configuracao-extracao.md`](configuracao-extracao.md) | Configuração segura de caminhos, endpoints e credenciais da extração |
 | [`adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | ADR proposto para o ETL orientado a eventos com Python, Prefect, MinIO, DuckDB e Elastic Stack |
+| [`adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md`](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md) | ADR da identidade de registro e das versões na tabela de ingestão tratada |
 | [`extratores.md`](extratores.md) | Implementação e limites dos extratores das seis fontes; pesquisas e empresas entregues na LN-04 |
 | [`testes-extracao.md`](testes-extracao.md) | Suíte unitária e de contrato dos seis extratores |
 | [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Inventário técnico das seis fontes do ETL: formato, grão, chaves, volumes, integridade, acesso e disponibilidade |
@@ -30,6 +31,12 @@ documento principal.
 - [Schema canônico](schema-transformacao.md) e [catálogo de campos](catalogo-transformacao.md): contrato de destino MG-02.
 - [Integração da transformação](integracao-transformacao.md): chamada, referências, quarentena e confirmação pela carga.
 - [Matriz regra–teste](matriz-transformacao.md): evidências, comandos e limitações MG-01 a MG-11.
+
+## Carga e ingestão — Sprint 3 (Lucas)
+
+- [Inventário de contratos dimensionais](inventario-contratos-dimensionais.md): contratos de fato, dimensão e cubo já existentes (Data Model Canvas) que restringem nomes, tipos e metadados da tabela de ingestão.
+- [Ambiente local do DuckDB](ambiente-duckdb.md): comando que cria o arquivo do banco de ingestão, configuração aceita e health check de consulta e persistência.
+- [Contrato físico das tabelas de ingestão](ddl-ingestao.md): nome, tipo, constraints, metadados técnicos e views de estado atual no DuckDB.
 
 ## Evidências e protótipos
 
