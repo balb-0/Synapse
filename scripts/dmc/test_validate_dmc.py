@@ -66,31 +66,16 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "metricas"):
             validate_dmc.validate_document(changed)
 
-    def test_cube_data_and_governance_must_be_filled(self) -> None:
-        for key, value in (("fontes", []), ("controleAcesso", "")):
-            with self.subTest(key=key):
-                changed = copy.deepcopy(self.document)
-                target = changed["cubos"][0]["lists" if key == "fontes" else "fields"]
-                target[key] = value
-                with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Dados/Governança"):
-                    validate_dmc.validate_document(changed)
-
-    def test_empty_governance_list_fails(self) -> None:
+    def test_cube_rejects_field_outside_sprint_3_scope(self) -> None:
         changed = copy.deepcopy(self.document)
-        changed["cubos"][0]["lists"]["fontes"] = []
-        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Dados/Governança"):
+        changed["cubos"][0]["fields"]["controleAcesso"] = "Campo removido"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fora do recorte"):
             validate_dmc.validate_document(changed)
 
-    def test_governance_list_rejects_number_zero(self) -> None:
+    def test_cube_rejects_list_outside_sprint_3_scope(self) -> None:
         changed = copy.deepcopy(self.document)
-        changed["cubos"][0]["lists"]["fontes"] = [0]
-        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Dados/Governança"):
-            validate_dmc.validate_document(changed)
-
-    def test_missing_cube_governance_field_fails(self) -> None:
-        changed = copy.deepcopy(self.document)
-        del changed["cubos"][0]["fields"]["controleAcesso"]
-        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "controleAcesso"):
+        changed["cubos"][0]["lists"]["fontes"] = ["Fonte removida"]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fora do recorte"):
             validate_dmc.validate_document(changed)
 
     def test_missing_corporate_governance_key_fails(self) -> None:
@@ -109,6 +94,37 @@ class ValidateDmcTest(unittest.TestCase):
         changed = copy.deepcopy(self.document)
         changed["negocioEConsumo"]["decisoesRiscos"][0] = "DR01 — Pendente"
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "impacto e estado"):
+            validate_dmc.validate_document(changed)
+
+    def test_consumption_indicators_must_match_i01_to_i25(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["indicadoresConsumo"].pop()
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "I01–I25"):
+            validate_dmc.validate_document(changed)
+
+    def test_consumption_indicators_must_keep_canonical_order(self) -> None:
+        changed = copy.deepcopy(self.document)
+        indicators = changed["negocioEConsumo"]["indicadoresConsumo"]
+        indicators[0], indicators[1] = indicators[1], indicators[0]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "I01–I25"):
+            validate_dmc.validate_document(changed)
+
+    def test_business_questions_must_match_pb01_to_pb13(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["perguntasNegocio"][0] = "Pergunta sem ID"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "PB01–PB13"):
+            validate_dmc.validate_document(changed)
+
+    def test_business_objective_cannot_claim_achieved_result(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["objetivosNegocio"][0] = "Integração concluída"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "pretendidos"):
+            validate_dmc.validate_document(changed)
+
+    def test_business_process_must_preserve_current_state(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["processosNegocio"][0] = "Processo futuro"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "estado atual"):
             validate_dmc.validate_document(changed)
 
     def test_round_trip_must_preserve_corporate_sections(self) -> None:

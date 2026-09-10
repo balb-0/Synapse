@@ -8,64 +8,62 @@
   },
   "negocioEConsumo": {
     "objetivosNegocio": [
-      "Tornar-se referência de dados do setor farmacêutico.",
-      "Aumentar o engajamento e a adesão das indústrias às pesquisas.",
-      "Aprimorar a qualidade e a relevância dos questionários.",
-      "Reduzir o esforço manual e o tempo de entrega das pesquisas.",
-      "Sustentar decisões estratégicas com dados (data-driven).",
-      "Garantir governança, rastreabilidade e conformidade com a LGPD."
+      "Resultado pretendido: construir a espinha dorsal de dados da Central de Pesquisas, cobrindo integração, centralização, governança, qualidade e visualização.",
+      "Resultado pretendido: integrar as fontes hoje dispersas em um repositório central único.",
+      "Resultado pretendido: garantir rastreabilidade ponta a ponta, da solicitação à publicação.",
+      "Resultado pretendido: reduzir esforço manual e tempo de entrega das pesquisas.",
+      "Resultado pretendido: ampliar adesão e engajamento das indústrias participantes.",
+      "Resultado pretendido: sustentar decisões estratégicas com painéis derivados do banco central.",
+      "Resultado pretendido: assegurar governança, segurança da informação e conformidade com a LGPD."
     ],
     "perguntasNegocio": [
-      "Quantas pesquisas foram realizadas por ano, trimestre ou mês?",
-      "Quantas pesquisas estão em andamento, em tabulação ou em desenvolvimento?",
-      "Qual o volume de pesquisas por tipo e por área?",
-      "Quantas empresas participaram de uma pesquisa específica (ex.: Controle de Jornada)?",
-      "Qual a taxa de adesão por pesquisa e como ela evoluiu?",
-      "Qual foi a variação na adesão de 2025 para 2026 nas pesquisas de RH?",
-      "Quais empresas mais participam e quais menos participam das pesquisas?",
-      "Quais empresas associadas nunca participaram de nenhuma pesquisa?",
-      "Há diferença de adesão entre empresas nacionais e multinacionais?",
-      "De quais pesquisas uma empresa específica participou neste ano?",
-      "Quem é a pessoa mais engajada nas pesquisas de uma área (ex.: Assuntos Regulatórios)?",
-      "Quais cargos e departamentos mais respondem às pesquisas?",
-      "Quantos respondentes únicos a Central engajou no período?",
-      "Quais áreas mais demandam pesquisas e quais têm maior engajamento?",
-      "Quais temas se repetem ao longo dos anos e com que frequência?",
-      "Qual o tempo médio entre a solicitação e a divulgação de uma pesquisa?",
-      "Qual o tempo médio de tabulação e como ele varia por complexidade?",
-      "Quantas pesquisas precisaram de prorrogação de prazo?",
-      "Que percentual do mercado as empresas participantes representam?",
-      "Como evoluiu o volume de pesquisas por área ao longo dos anos?",
-      "A adesão geral às pesquisas está em tendência de alta ou de baixa?",
-      "Quantas pesquisas estão disponíveis no repositório?",
-      "Qual o percentual de registros com campos incompletos ou inválidos?"
+      "PB01 — Quais pesquisas compõem o portfólio e como se distribuem por período, tipo, área, complexidade e status?",
+      "PB02 — Em que etapa está cada pesquisa, quais marcos foram observados ou derivados e quais informações do seu detalhe estão disponíveis?",
+      "PB03 — Quais pesquisas estão atrasadas, foram prorrogadas ou demandam prioridade, qual denominador sustenta cada comparação e como os tempos do ciclo se comparam?",
+      "PB04 — A participação alcançada é suficiente e representa as empresas ou parcelas de mercado relevantes, e qual denominador sustenta essa leitura?",
+      "PB05 — Quais áreas, departamentos e cargos participam mais ou menos, e qual é o denominador disponível para o engajamento?",
+      "PB06 — Quais dados estão completos e válidos, quais lacunas permanecem e qual é o estado de atualização de cada fonte?",
+      "PB07 — Qual sistema ou arquivo sustenta cada elo do agregado, qual é o estado observado, em reconciliação ou proposto, e como tratar os quatro pesquisa_id sem correspondência e as 55 participações com id_pesq 304 ausente?",
+      "PB08 — Que dados cada perfil pode consultar, detalhar ou publicar sem expor informações não autorizadas?",
+      "PB09 — O resultado foi autorizado e publicado, quais metadados sustentam essa decisão e ele está consistente com a pesquisa interna correspondente?",
+      "PB10 — Qual foi a distribuição das respostas para cada questão, qual denominador está disponível e como ela varia entre pesquisas ou segmentos permitidos?",
+      "PB11 — Qual evidência agregada sustenta este resultado, que contexto está disponível e a consulta individual é autorizada e suportada pelos dados?",
+      "PB12 — Quais fontes foram recebidas, atualizadas e padronizadas, quais registros foram deduplicados e qual origem sustenta cada dado?",
+      "PB13 — Qual versão do questionário foi revisada por qual área técnica, em que estado de validação e antes de qual marco do ciclo?"
     ],
     "processosNegocio": [
-      "Solicitação da pesquisa.",
-      "Triagem e aprovação.",
-      "Planejamento (cronograma e questionário).",
-      "Validação técnica.",
-      "Lançamento e divulgação.",
-      "Coleta e monitoramento de respostas.",
-      "Encerramento e validação das respostas.",
-      "Tabulação.",
-      "Divulgação dos resultados e publicação no repositório."
+      "Processo atual: solicitação, triagem e aprovação da demanda de pesquisa.",
+      "Processo atual: planejamento do cronograma e validação técnica do questionário.",
+      "Processo atual: divulgação, coleta e acompanhamento de empresas e respondentes.",
+      "Processo atual: encerramento, validação e tabulação das respostas.",
+      "Processo atual: entrega dos resultados e publicação autorizada no acervo."
     ],
     "indicadoresConsumo": [
-      "Volume de pesquisas por período (total, ano, trimestre, mês, semana).",
-      "Fluxo móvel de pesquisas a finalizar (em tabulação + em andamento + em desenvolvimento + em análise).",
-      "Taxa de adesão por pesquisa, por empresa e por área.",
-      "Variação da adesão entre períodos.",
-      "Tempo médio/mediana de validação (solicitação → divulgação).",
-      "Tempo médio/mediana de coleta (divulgação → encerramento da coleta).",
-      "Tempo médio/mediana de tabulação (encerramento da coleta → entrega).",
-      "Tempo médio/mediana de ciclo total (solicitação → entrega).",
-      "Percentual de pesquisas prorrogadas.",
-      "Nº de respondentes únicos e engajamento por cargo/departamento.",
-      "Representatividade de mercado das participantes.",
-      "Empresas associadas sem nenhuma participação.",
-      "OBS 1) para tempo médio usamos dias úteis;",
-      "OBS 2) as pessoas e empresas que aparecem nos dados disponibilizados são fictícios."
+      "I01 — Pesquisas no portfólio: contagem distinta de pesquisas; calculável agora.",
+      "I02 — Distribuição do portfólio: pesquisas da categoria sobre pesquisas do mesmo recorte; calculável agora.",
+      "I03 — Cobertura dos marcos: pesquisas com data válida sobre pesquisas elegíveis; calculável agora.",
+      "I04 — Tempo entre marcos: diferença apenas entre datas válidas, mantendo dias corridos separados de dias úteis; calculável agora.",
+      "I05 — Taxa observada de prorrogação: pesquisas com prorrogação sobre pesquisas com data limite; calculável agora.",
+      "I06 — Pesquisas atrasadas ou prioritárias: indisponível sem data de referência e regra aprovadas.",
+      "I07 — Empresas participantes distintas por pesquisa; calculável agora.",
+      "I08 — Taxa de adesão: participantes elegíveis sobre empresas convidadas; indisponível sem universo de convites.",
+      "I09 — Participação de mercado observada: bloqueada até normalizar os valores e homologar a fonte autoritativa.",
+      "I10 — Engajamento por público: participações e clientes conciliados são contagens separadas; exige reconciliação.",
+      "I11 — Taxa de engajamento: participantes elegíveis sobre convidados do mesmo público; indisponível sem denominador.",
+      "I12 — Distribuição agregada de respostas: elementos válidos da categoria sobre elementos válidos da questão; calculável na fonte de respostas.",
+      "I13 — Respondentes distintos na fonte de respostas: contagem distinta de respondent_id, sem união presumida com clientes.",
+      "I14 — Questões por tipo: contagem distinta de perguntas; calculável agora.",
+      "I15 — Estado de validação e versão: indisponível sem versão, área revisora, decisão e timestamp.",
+      "I16 — Completude aplicável: células preenchidas sobre células aplicáveis; calculável agora.",
+      "I17 — Taxa de duplicidade: linhas além da primeira no grão sobre linhas avaliadas; calculável agora.",
+      "I18 — Integridade referencial: chaves correspondentes sobre chaves informadas, calculada por relação.",
+      "I19 — Parseabilidade: valores convertíveis sobre valores informados avaliados; calculável agora.",
+      "I20 — Divergência de título: linhas divergentes sobre linhas comparáveis; calculável agora.",
+      "I21 — Frescor da fonte: indisponível sem timestamp de carga e regra aprovada.",
+      "I22 — Cobertura da linhagem: elos correspondentes sobre elos elegíveis; exige mapeamento.",
+      "I23 — Estado de publicação autorizada: indisponível sem decisão, estado e data de publicação.",
+      "I24 — Cobertura do processamento: fontes concluídas e válidas sobre fontes esperadas; indisponível sem catálogo e execuções.",
+      "I25 — Conformidade de acesso: decisões aderentes à política sobre tentativas avaliadas; indisponível sem política e logs."
     ],
     "usuariosCanais": [
       "Equipe interna da Central de Pesquisas — data warehouse e dashboards operacionais (uso diário para gestão do fluxo e indicadores).",
@@ -86,10 +84,10 @@
     "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
     "custodian": "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados na rede interna ou na nuvem do Sindusfarma + empresa RentalHost (fornecedora do sistema interno) para custódia dos dados hospedados no repositório público.",
     "tecnico": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
-    "lgpd": "Aplicação da LGPD — dados de empresas parceiras e respostas individuais tratados com anonimização; base já anonimizada para uso acadêmico.",
-    "seg": "Controle de acesso por perfil, autenticação de usuários e políticas internas de segurança do Sindusfarma",
-    "comp": "Dados reais restritos ao ambiente interno; repositório público e GitHub do Inteli apenas com dados anonimizados/fictícios.",
-    "etico": "Uso restrito às finalidades das pesquisas setoriais, preservando a confidencialidade de empresas e respondentes.",
+    "lgpd": "Diretriz proposta, sujeita à validação do controlador e do encarregado: limitar cada tratamento à finalidade documentada e ao mínimo necessário; separar identidade da camada analítica; não publicar e-mail, chaves estáveis, respostas individuais ou combinações reidentificáveis; usar apenas dados sintéticos, agregados ou com anonimização testada no ambiente acadêmico; pseudonimização não deve ser apresentada como anonimização.",
+    "seg": "Desenho proposto, ainda não homologado: acesso individual por menor privilégio, necessidade de conhecer, recurso, ação e finalidade; segregação entre ambientes acadêmico, desenvolvimento, homologação e produção; dados reais somente em ambiente autorizado; leituras, exportações, alterações, publicações, falhas e acessos administrativos com trilha auditável e revisão periódica.",
+    "comp": "Dados reais ficam restritos ao ambiente autorizado; GitLab e entrega acadêmica recebem apenas código, documentação e dados sintéticos, agregados ou anonimizados. A retenção não usa prazo único: mantém-se o mínimo necessário à finalidade, obrigação aplicável e prestação de contas; ao término, o dado deve ser eliminado, anonimizado ou bloqueado, incluindo expiração controlada de backups.",
+    "etico": "Uso restrito às finalidades documentadas das pesquisas setoriais. Registros inválidos, órfãos ou suspeitos devem ser classificados e colocados em quarentena para auditoria e reconciliação, nunca apagados ou corrigidos silenciosamente; somente dados aprovados seguem para consumo ou publicação, preservando a confidencialidade de empresas e respondentes.",
     "catalogo": "Dicionário das entidades e campos (empresas, clientes, pesquisas, respondentes), com descrição, tipo e origem de cada atributo.",
     "kpis": "% de completude dos campos, % de registros válidos, nº de inconsistências corrigidas etc.",
     "maturidade": "Evolução do estágio atual (dados fragmentados e manuais) para fonte única, integrada e governada",
@@ -108,28 +106,7 @@
         "accumulatingSnapshot": true,
         "bridgeTables": "Não previstas para este cubo na documentação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Pesquisa; Tempo; Fonte de Dado; Execução de Carga",
-        "particionamento": "Por data de solicitação ou data de divulgação, conforme necessidade do painel.",
-        "materializacoesAgregacoes": "Agregações por período, área, tipo, status, complexidade, família de pesquisa e flag de prorrogação.",
-        "indicesClusteringOrdenacao": "Chaves de pesquisa, papéis de tempo, status, área, tipo e família de pesquisa.",
-        "queriesCriticas": "Análises de duração por etapa, volume de entregas, pesquisas prorrogadas e gargalos operacionais.",
-        "classificacaoPublico": true,
-        "classificacaoInterno": true,
-        "classificacaoConfidencial": false,
-        "classificacaoRestrito": false,
-        "dadoPessoal": false,
-        "dadoSensivel": false,
-        "dadoCritico": true,
-        "criticidade": "Cubo operacional central para acompanhamento do ciclo de vida das pesquisas; não armazena dados individuais de respondentes.",
-        "perfisAutorizados": "Camada externa com agregações de mais de cinco empresas; camada interna com detalhe para a equipe da Central de Pesquisas.",
-        "controleAcesso": "Publicação externa apenas em agregações compatíveis com k-anonimato; detalhe operacional restrito à camada interna.",
-        "trilhaAuditoria": "Dimensões DIM_FONTE_DADO e DIM_EXECUCAO_CARGA preservam origem e execução de ETL.",
-        "retencao": "Preservar histórico dos marcos e chaves de origem para auditoria e reconciliação futura.",
-        "arquivamento": "Arquivar execuções de carga e versões de dimensões relacionadas ao ciclo.",
-        "descarte": "Não descartar chaves órfãs; manter como não mapeadas até validação de reconciliação.",
-        "metadadosObrigatorios": "ID da pesquisa, título, marcos do ciclo, área, status, tipo, complexidade, tipo de resposta, fonte e execução de carga.",
-        "kpiQualidade": "Cobertura de marcos do ciclo e presença de datas necessárias para cálculo das métricas.",
-        "kpiGovernanca": "Percentual de pesquisas com linhagem de fonte e execução de carga registrada."
+        "dimensoesConformadas": "Pesquisa; Tempo; Status da Pesquisa; Área; Tipo; Perfil"
       },
       "lists": {
         "grao": [
@@ -146,11 +123,11 @@
           "Entrega registrada"
         ],
         "metricas": [
-          "dias_uteis_validacao: data_aprov menos data_solicitacao; métrica aditiva; cobertura de aprovação limitada no snapshot.",
+          "dias_uteis_validacao: data_aprov menos data_solicitacao; métrica aditiva somente entre linhas com o par de datas válido; cobertura de 5,5% (20 de 366), com denominador obrigatório.",
           "dias_uteis_coleta: data_limite ou prorrogada_ate menos data_divulgacao; métrica aditiva; usa a data prorrogada quando existir.",
           "dias_uteis_tabulacao: data_entrega menos data_limite ou prorrogada_ate; métrica aditiva.",
           "dias_uteis_ciclo_total: data_entrega menos data_solicitacao; métrica não aditiva, usada sem soma com as fases para evitar dupla contagem.",
-          "qtd_empresas_na_pesquisa: coluna participantes do CSV; métrica não aditiva, lida no nível da pesquisa.",
+          "qtd_empresas_na_pesquisa: contagem declarada na coluna participantes do CSV; métrica não aditiva, lida somente no nível da pesquisa e distinta da contagem observada no C02.",
           "qtd_respondentes_na_pesquisa: métrica removida de C01; contagens de respondentes devem ser calculadas no C02 a partir de respondentes.csv, usando participação ou pessoa conciliada conforme denominador aprovado.",
           "flag_prorrogada: booleano 1 quando prorrogada_ate não é nulo e 0 caso contrário; usado como filtro."
         ],
@@ -169,25 +146,6 @@
           "sk_familia: DIM_FAMILIA_PESQUISA, derivada do título para agrupar edições recorrentes.",
           "sk_fonte: DIM_FONTE_DADO, dimensão de linhagem do sistema de origem.",
           "sk_carga: DIM_EXECUCAO_CARGA, dimensão de governança da execução de ETL."
-        ],
-        "fontes": [
-          "pesquisas.csv"
-        ],
-        "transformacoes": [
-          "Calcular durações a partir das datas do ciclo; quando houver prorrogação, usar prorrogada_ate como fim da coleta e referência para tabulação.",
-          "Derivar flag_prorrogada pela presença de prorrogada_ate.",
-          "Derivar DIM_FAMILIA_PESQUISA por normalização de título, removendo anos e padronizando texto.",
-          "Preservar chaves recebidas como chaves de origem, sem criar chave canônica antes da reconciliação."
-        ],
-        "qualidade": [
-          "Os pesquisa_id 424, 1116, 1139 e 1147 não existem em pesquisas.csv e devem apontar para registro Não mapeado em DIM_PESQUISA até reconciliação.",
-          "A data de aprovação tem baixa cobertura; métricas dependentes de data_aprov terão muitos valores NULL.",
-          "A DIM_FAMILIA_PESQUISA deve ser validada pelo Sindusfarma antes de uso homologado.",
-          "O cubo não armazena dados individuais de respondentes e deve respeitar a política de k-anonimato e LGPD."
-        ],
-        "scd": [
-          "DIM_PESQUISA, DIM_STATUS_PESQUISA, DIM_AREA, DIM_TIPO_PESQUISA, DIM_PERFIL_PESQUISA e DIM_FAMILIA_PESQUISA podem evoluir para versionamento histórico quando houver regra aprovada.",
-          "Manter chaves de origem e linhagem de carga para auditoria e reconciliação futura."
         ]
       }
     },
@@ -203,46 +161,25 @@
         "accumulatingSnapshot": false,
         "bridgeTables": "Não previstas para este cubo na documentação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Pesquisa; Empresa; Pessoa; Tempo",
-        "particionamento": "Por data da pesquisa, herdada de data_divulgacao, e opcionalmente por data de resposta quando hora_inicio existir.",
-        "materializacoesAgregacoes": "Agregações por pesquisa, empresa, pessoa conciliada, cargo, departamento, período e representatividade de mercado.",
-        "indicesClusteringOrdenacao": "Chaves de pesquisa, empresa, pessoa, data da pesquisa, data da resposta e seq_ocorrencia.",
-        "queriesCriticas": "Adesão, engajamento, respondentes frequentes, participação por empresa e evolução de cobertura de mercado.",
-        "classificacaoPublico": true,
-        "classificacaoInterno": true,
-        "classificacaoConfidencial": false,
-        "classificacaoRestrito": true,
-        "dadoPessoal": true,
-        "dadoSensivel": false,
-        "dadoCritico": true,
-        "criticidade": "Contém dimensão de pessoa com cargo e departamento restritos; e-mail é removido por ser pseudônimo reversível.",
-        "perfisAutorizados": "Camada interna para detalhe da Central de Pesquisas; camada externa apenas com agregações protegidas por k-anonimato.",
-        "controleAcesso": "Substituir cargo e departamento brutos por níveis hierárquicos e agrupamentos na camada externa; bloquear células com menos de cinco pessoas.",
-        "trilhaAuditoria": "Registrar fonte da participação, conciliação de empresa/pessoa e regra de deduplicação usada em seq_ocorrencia.",
-        "retencao": "Manter participações brutas e deduplicadas para permitir contagem total e contagem distinta.",
-        "arquivamento": "Arquivar snapshots de conciliação de empresa e pessoa, preservando chaves duráveis.",
-        "descarte": "Remover e-mail da dimensão de pessoa; não descartar duplicatas, apenas numerar ocorrências.",
-        "metadadosObrigatorios": "ID da pesquisa, empresa, pessoa quando conciliada, hora_inicio, hora_termino, cargo, departamento, market_share e seq_ocorrencia.",
-        "kpiQualidade": "Cobertura de hora_inicio/hora_termino, quantidade de duplicatas e taxa de registros conciliados.",
-        "kpiGovernanca": "Percentual de registros com chaves duráveis e regras de anonimização aplicadas."
+        "dimensoesConformadas": "Pesquisa; Tempo"
       },
       "lists": {
         "grao": [
           "Uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual.",
-          "Cada linha representa um evento de resposta e não acumula estados.",
+          "Cada linha representa um registro de participação de respondentes.csv, não uma resposta individual a uma questão, e não acumula estados.",
           "O cubo suporta contagem bruta de participações e contagem distinta quando filtrado por seq_ocorrencia."
         ],
         "fatos": [
           "Participação registrada",
           "Início de participação registrado",
           "Término de participação registrado",
-          "Evento único de resposta em respondentes.csv"
+          "Registro de participação recebido de respondentes.csv"
         ],
         "metricas": [
-          "qtd_participacao: sempre 1, pois cada linha é uma participação; métrica aditiva.",
+          "qtd_participacao: sempre 1, pois cada linha é uma participação; métrica aditiva que não representa quantidade de respostas a questões.",
           "seq_ocorrencia: número sequencial para duplicatas de pesquisa e pessoa; métrica não aditiva usada como filtro para deduplicação.",
           "minutos_preenchimento: diferença entre hora_termino e hora_inicio em minutos; aditiva onde existir, com cobertura aproximada de 4,3%.",
-          "pct_mercado_na_participacao: market_share de respondentes.csv no momento da participação; não aditiva e lida no nível da participação."
+          "pct_mercado_na_participacao: market_share de respondentes.csv no nível da participação; não aditiva e não homologada enquanto houver conflito com empresas.csv. Após decisão da fonte autoritativa, I09 soma uma vez por pesquisa o valor normalizado de cada empresa participante distinta."
         ],
         "dimensoes": [
           "sk_pesquisa: DIM_PESQUISA, a pesquisa respondida.",
@@ -250,29 +187,6 @@
           "sk_pessoa: DIM_PESSOA, com cargo, departamento, nível hierárquico e agrupamento de departamento para anonimização; sem e-mail.",
           "sk_data_pesquisa: DIM_TEMPO herdada de data_divulgacao em pesquisas.csv, chave temporal primária.",
           "sk_data_resposta: DIM_TEMPO extraída de hora_inicio em respondentes.csv, chave opcional para sazonalidade e tempo de preenchimento."
-        ],
-        "fontes": [
-          "respondentes.csv",
-          "pesquisas.csv para data_divulgacao da pesquisa",
-          "clientes.csv para atributos da pessoa respondente",
-          "empresas.csv para atributos da empresa"
-        ],
-        "transformacoes": [
-          "Criar qtd_participacao como 1 para cada linha.",
-          "Criar seq_ocorrencia para numerar duplicatas de pesquisa e pessoa; usar seq_ocorrencia = 1 para análises de respondentes únicos.",
-          "Calcular minutos_preenchimento a partir de hora_inicio e hora_termino quando ambos existirem.",
-          "Usar data_divulgacao da pesquisa como chave temporal primária por causa da baixa cobertura de hora_inicio.",
-          "Usar market_share de respondentes.csv para representatividade histórica e percentual atual de empresas.csv para perfil atual da empresa."
-        ],
-        "qualidade": [
-          "Foram observados 838 casos de duplicatas em que a mesma pessoa aparece respondendo à mesma pesquisa mais de uma vez.",
-          "hora_inicio e hora_termino têm cobertura baixa, aproximadamente 4,3%, e devem ser usados com cautela.",
-          "market_share em respondentes.csv pode diferir do percentual de mercado em empresas.csv; a escolha depende do recorte histórico ou atual.",
-          "Cargo e departamento brutos são restritos na camada externa e devem ser agrupados com k-anonimato."
-        ],
-        "scd": [
-          "Usar id_empresa_durable e id_pessoa_durable para contagens distintas.",
-          "As chaves duráveis preservam contagens corretas caso dimensões históricas SCD2 sejam adotadas futuramente."
         ]
       }
     },
@@ -288,28 +202,7 @@
         "accumulatingSnapshot": false,
         "bridgeTables": "Não previstas para este cubo na documentação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Tempo; Status da Pesquisa; Área; Tipo; Perfil",
-        "particionamento": "Por último dia do mês do snapshot.",
-        "materializacoesAgregacoes": "Agregações mensais por status, área, tipo e perfil.",
-        "indicesClusteringOrdenacao": "sk_data_fim_mes, sk_status, sk_area, sk_tipo e sk_perfil.",
-        "queriesCriticas": "Pesquisas em andamento por mês, evolução do fluxo de entregas, entradas e saídas por status e gargalos operacionais.",
-        "classificacaoPublico": true,
-        "classificacaoInterno": true,
-        "classificacaoConfidencial": false,
-        "classificacaoRestrito": false,
-        "dadoPessoal": false,
-        "dadoSensivel": false,
-        "dadoCritico": true,
-        "criticidade": "Cubo de fluxo mensal sem histórico anterior ao go-live; usado para análise operacional do pipeline.",
-        "perfisAutorizados": "Central de Pesquisas e áreas técnicas em agregações por status, área, tipo e perfil.",
-        "controleAcesso": "Publicar apenas agregações operacionais, sem detalhe individual de respondentes.",
-        "trilhaAuditoria": "Registrar data de fechamento do mês e execução que gerou o snapshot.",
-        "retencao": "Manter snapshots mensais para comparação histórica a partir do go-live.",
-        "arquivamento": "Arquivar cada fotografia mensal de fechamento do pipeline.",
-        "descarte": "Não há backfill de status anteriores por ausência de histórico disponível.",
-        "metadadosObrigatorios": "Data de fim do mês, status, área, tipo, perfil, flags do status e execução do snapshot.",
-        "kpiQualidade": "Cobertura e consistência de status no fechamento mensal.",
-        "kpiGovernanca": "Snapshots gerados automaticamente no primeiro dia útil e identificados por execução."
+        "dimensoesConformadas": "Tempo; Status da Pesquisa; Área; Tipo; Perfil"
       },
       "lists": {
         "grao": [
@@ -324,9 +217,9 @@
           "Fechamento mensal do pipeline"
         ],
         "metricas": [
-          "qtd_pesquisas_no_status: contagem de pesquisas naquele status no último dia do mês; semi-aditiva.",
-          "qtd_entradas_no_mes: quantidade de pesquisas que chegaram ao status durante o mês; aditiva.",
-          "qtd_saidas_no_mes: quantidade de pesquisas que saíram do status durante o mês; aditiva."
+          "qtd_pesquisas_no_status: estoque de pesquisas naquele status no último dia do mês; semi-aditiva entre categorias disjuntas do mesmo fechamento e nunca somada entre meses.",
+          "qtd_entradas_no_mes: fluxo de pesquisas que chegaram ao status durante o mês; aditiva no tempo somente quando houver histórico de transições, pois diferenças de snapshots mostram apenas mudança líquida.",
+          "qtd_saidas_no_mes: fluxo de pesquisas que saíram do status durante o mês; aditiva no tempo e indisponível enquanto não houver histórico de transições."
         ],
         "dimensoes": [
           "sk_data_fim_mes: DIM_TEMPO para o último dia do mês.",
@@ -334,26 +227,6 @@
           "sk_area: DIM_AREA, área responsável pela pesquisa.",
           "sk_tipo: DIM_TIPO_PESQUISA, tipo da pesquisa.",
           "sk_perfil: DIM_PERFIL_PESQUISA, com atributos imutáveis como complexidade e tipo de resposta."
-        ],
-        "fontes": [
-          "Derivado do Cubo 1",
-          "pesquisas.csv como base inicial dos atributos de pesquisa"
-        ],
-        "transformacoes": [
-          "Gerar snapshot automaticamente no primeiro dia útil de cada mês, considerando o fechamento do mês anterior.",
-          "Usar papel específico de DIM_TEMPO para sk_data_fim_mes.",
-          "Calcular entradas e saídas no mês a partir do histórico gerado após o go-live.",
-          "Calcular pesquisas a finalizar na camada semântica com flag_conta_como_a_finalizar, sem métrica qtd_a_finalizar no cubo."
-        ],
-        "qualidade": [
-          "O cubo não possui dados históricos antes do go-live porque status anteriores não foram registrados em base disponível.",
-          "Backfill não é possível com os dados atuais e isso deve ser comunicado ao cliente.",
-          "A métrica qtd_a_finalizar foi removida porque agregações sobre múltiplos status multiplicavam o estoque de pesquisas.",
-          "A DIM_STATUS_PESQUISA deve conter flag_em_aberto, flag_conta_como_a_finalizar e flag_terminal."
-        ],
-        "scd": [
-          "Manter histórico mensal de snapshots a partir do go-live.",
-          "Versionar mudanças de interpretação de status por meio da DIM_STATUS_PESQUISA quando houver revisão de regras."
         ]
       }
     },
@@ -369,28 +242,7 @@
         "accumulatingSnapshot": false,
         "bridgeTables": "Não prevista; o vínculo entre pesquisa e pergunta é modelado no próprio fato de associação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Pesquisa; Pergunta; Tempo",
-        "particionamento": "Por pesquisa e data de divulgação herdada de pesquisas.csv.",
-        "materializacoesAgregacoes": "Agregações por pesquisa, tipo de questão, pergunta, quantidade de alternativas e período.",
-        "indicesClusteringOrdenacao": "sk_pesquisa, sk_pergunta e sk_data_pesquisa.",
-        "queriesCriticas": "Quantidade de perguntas por pesquisa, tipo predominante de questões e pesquisas que compartilham perguntas semelhantes.",
-        "classificacaoPublico": true,
-        "classificacaoInterno": true,
-        "classificacaoConfidencial": false,
-        "classificacaoRestrito": false,
-        "dadoPessoal": false,
-        "dadoSensivel": false,
-        "dadoCritico": true,
-        "criticidade": "Cobre apenas parte do acervo e serve como ponto de extensão para futuro FATO_RESPOSTA.",
-        "perfisAutorizados": "Central de Pesquisas e usuários autorizados dos relatórios de resultados e benchmark.",
-        "controleAcesso": "Exibir indisponibilidade quando a pesquisa não estiver coberta pela base de questões; não expor respostas individuais inexistentes no snapshot atual.",
-        "trilhaAuditoria": "Registrar origem da pergunta, coluna de origem no arquivo bruto e nível de confiança de extração.",
-        "retencao": "Preservar perguntas, alternativas e vínculos com pesquisa para extensão futura de respostas.",
-        "arquivamento": "Arquivar versões de DIM_PERGUNTA e mapeamentos de pesquisa usados no fallback.",
-        "descarte": "Não criar entidades artificiais para pesquisas órfãs; preservar mapeamento por título quando aplicável.",
-        "metadadosObrigatorios": "Pesquisa, pergunta, tipo de questão, número de alternativas, formato do arquivo de origem, coluna de origem e confiança da extração.",
-        "kpiQualidade": "Cobertura do acervo por questões e percentual de linhas ligadas diretamente ou por fallback à DIM_PESQUISA.",
-        "kpiGovernanca": "Rastreabilidade da origem da pergunta e prontidão para integração futura com FATO_RESPOSTA."
+        "dimensoesConformadas": "Pesquisa; Tempo"
       },
       "lists": {
         "grao": [
@@ -404,35 +256,13 @@
           "Metadados de pergunta disponíveis para análise futura"
         ],
         "metricas": [
-          "qtd_pergunta: sempre 1, pois cada linha representa uma pergunta; métrica aditiva.",
-          "qtd_alternativas: coluna qtd_alternativas de questoes.csv; métrica aditiva para somar alternativas por pesquisa ou grupo de pesquisas."
+          "qtd_pergunta: COUNT(*) derivado das associações distintas entre pesquisa e pergunta no grão consultado; não é medida constante armazenada no fato.",
+          "qtd_alternativas: atributo de DIM_PERGUNTA, não uma medida do fato; totais e médias devem considerar perguntas distintas e declarar o denominador."
         ],
         "dimensoes": [
           "sk_pesquisa: DIM_PESQUISA, pesquisa que contém a pergunta.",
           "sk_pergunta: DIM_PERGUNTA, com enunciado, tipo de questão, número de alternativas, formato de arquivo de origem e outras características.",
           "sk_data_pesquisa: DIM_TEMPO herdada da data_divulgacao de pesquisas.csv."
-        ],
-        "fontes": [
-          "questoes.csv",
-          "pesquisas.csv para vínculo com DIM_PESQUISA e data_divulgacao"
-        ],
-        "transformacoes": [
-          "Criar qtd_pergunta como 1 para cada pergunta em pesquisa.",
-          "Usar qtd_alternativas de questoes.csv como medida aditiva.",
-          "Ligar seis pesquisas diretamente por ID: 112, 238, 274, 377, 414 e 415.",
-          "Para os IDs 424, 1116, 1139 e 1147 ausentes em pesquisas.csv, usar fallback pelo título quando houver correspondência exata.",
-          "Preparar o modelo para receber futuro FATO_RESPOSTA sem reestruturação."
-        ],
-        "qualidade": [
-          "questoes.csv cobre apenas 10 pesquisas distintas e 2,7% do acervo total.",
-          "Quatro IDs de pesquisa em questoes.csv não existem em pesquisas.csv: 424, 1116, 1139 e 1147.",
-          "As seis pesquisas com ligação direta por ID cobrem 188 das 231 linhas, ou 81,4% do arquivo.",
-          "Relatórios dependentes deste cubo funcionam plenamente apenas para as 10 pesquisas cobertas; demais pesquisas devem exibir Dados não disponíveis.",
-          "Hoje não há dados de respostas individuais escolhidas pelos respondentes."
-        ],
-        "scd": [
-          "DIM_PERGUNTA pode versionar mudanças de enunciado, tipo, alternativas, formato de origem, coluna de origem e confiança da extração.",
-          "Manter o cubo como ponto de extensão para futuro FATO_RESPOSTA quando os dados forem disponibilizados."
         ]
       }
     }

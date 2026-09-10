@@ -67,6 +67,7 @@ venv/
 env/
 .ipynb_checkpoints/
 .pytest_cache/
+.coverage
 .mypy_cache/
 .ruff_cache/
 
@@ -91,6 +92,9 @@ temp/
 *.swp
 *.swo
 *~
+
+# --- Ferramentas locais de desenvolvimento ----------------------------------
+.agents/skills/glab/
 
 # --- Sistema operacional -----------------------------------------------------
 .DS_Store

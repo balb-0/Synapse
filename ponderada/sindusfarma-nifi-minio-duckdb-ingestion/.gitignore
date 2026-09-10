@@ -1,0 +1,10 @@
+# Ambiente local da entrega
+.env
+local/
+
+# Artefatos gerados em execucoes locais
+*.duckdb
+*.db
+*.parquet
+*.log
+
