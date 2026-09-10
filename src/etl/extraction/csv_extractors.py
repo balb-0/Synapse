@@ -19,6 +19,11 @@ from .contracts import (
     Record,
 )
 from .failures import FailureCategory
+from .log_events import (
+    ExtractionBatchLogEvent,
+    ExtractionLogSink,
+    StandardLoggingSink,
+)
 from .object_storage import ObjectReader, ObjectReference
 from .resilience import RetryExecutor
 
@@ -134,6 +139,7 @@ class CsvObjectExtractor:
         object_reference: ObjectReference,
         batch_size: int = DEFAULT_BATCH_SIZE,
         retry_executor: RetryExecutor | None = None,
+        log_sink: ExtractionLogSink | None = None,
     ) -> None:
         if not self.source_name or not self.required_columns:
             raise TypeError(
@@ -148,6 +154,7 @@ class CsvObjectExtractor:
         self._object_reference = object_reference
         self._batch_size = batch_size
         self._retry_executor = retry_executor or RetryExecutor()
+        self._log_sink = log_sink or StandardLoggingSink()
 
     @property
     def source(self) -> str:
@@ -373,11 +380,13 @@ class CsvObjectExtractor:
             schema_version=self.schema_version,
             source_checksum=source_version,
         )
-        return ExtractedBatch(
+        batch = ExtractedBatch(
             records=records,
             checkpoint=checkpoint,
             metadata=metadata,
         )
+        self._log_sink.emit(ExtractionBatchLogEvent.from_batch(batch))
+        return batch
 
     def _prepare_record(self, record: dict[str, str]) -> Record:
         """Permite especializar apenas a representação entregue pelo extrator."""

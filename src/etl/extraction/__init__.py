@@ -52,6 +52,14 @@ from .failures import (
     SourceFailure,
     classify_source_failure,
 )
+from .log_events import (
+    EXTRACTION_BATCH_EVENT,
+    EXTRACTION_STAGE,
+    SUCCESS_STATUS,
+    ExtractionBatchLogEvent,
+    ExtractionLogSink,
+    StandardLoggingSink,
+)
 from .resilience import RetryExecutor, RetryPolicy
 
 __all__ = [
@@ -60,6 +68,8 @@ __all__ = [
     "DEFAULT_BATCH_SIZE",
     "ENVIRONMENT_VARIABLES",
     "EMPRESAS_REQUIRED_COLUMNS",
+    "EXTRACTION_BATCH_EVENT",
+    "EXTRACTION_STAGE",
     "PESQUISAS_REQUIRED_COLUMNS",
     "QUESTOES_REQUIRED_COLUMNS",
     "RESPONDENTES_REQUIRED_COLUMNS",
@@ -73,8 +83,10 @@ __all__ = [
     "EmpresasExtractor",
     "ExtractedBatch",
     "ExtractionError",
+    "ExtractionBatchLogEvent",
     "ExtractionCheckpoint",
     "ExtractionSettings",
+    "ExtractionLogSink",
     "Extractor",
     "FailureCategory",
     "FailureClassification",
@@ -99,6 +111,8 @@ __all__ = [
     "SourceAccessError",
     "SourceFailure",
     "StaleCheckpointError",
+    "StandardLoggingSink",
+    "SUCCESS_STATUS",
     "classify_source_failure",
     "load_extraction_settings",
 ]
