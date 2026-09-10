@@ -328,6 +328,53 @@ class ControlTablesWrittenByTheLoadTests(LoadRepositoryTestCase):
         )
 
 
+class ConfirmedCountsComeFromTheDatabaseTests(LoadRepositoryTestCase):
+    """`loaded`/`rejected` vêm de um SELECT no banco, não de `len()` em memória.
+
+    Uma linha inserida por fora do `load_batch`, para o mesmo run_id/batch_id,
+    só aparece na contagem devolvida se ela de fato veio de uma consulta ao
+    banco — `len(result.accepted)`/`len(result.rejected)` nunca saberiam dela.
+    """
+
+    def test_loaded_count_includes_a_row_the_batch_itself_did_not_insert(self) -> None:
+        metadata = _metadata(1)
+        self.repository._conn.execute(
+            "INSERT INTO ingestao_pesquisas "
+            "(pesquisa_id, source, run_id, task_id, batch_id, source_offset,"
+            " content_checksum, record_identity, idempotency_key, ingested_at, schema_version)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                "linha-fora-do-lote",
+                "pesquisas",
+                metadata.run_id,
+                metadata.task_id,
+                metadata.batch_id,
+                999,
+                "b" * 64,
+                "c" * 64,
+                "d" * 64,
+                NOW,
+                "1.0",
+            ],
+        )
+
+        result = self._load([RAW["pesquisas"]], metadata)
+
+        self.assertEqual(result.loaded, 2)
+
+    def test_rejected_count_includes_a_row_the_batch_itself_did_not_insert(self) -> None:
+        metadata = _metadata(1)
+        self.repository._conn.execute(
+            "INSERT INTO rejected (rejection_id, source, source_offset, run_id, batch_id, ingested_at)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            ["e" * 64, "pesquisas", 999, metadata.run_id, metadata.batch_id, NOW],
+        )
+
+        result = self._load([{"titulo": "sem id"}], metadata)
+
+        self.assertEqual(result.rejected, 2)
+
+
 class FailedBatchIsStillRecordedTests(LoadRepositoryTestCase):
     """Lote revertido não pode desaparecer do histórico da execução."""
 

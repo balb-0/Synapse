@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import math
 import os
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -11,12 +13,20 @@ from typing import TypeAlias
 
 ENVIRONMENT_VARIABLES = {
     "database_path": "ETL_DUCKDB_PATH",
+    "threads": "ETL_DUCKDB_THREADS",
+    "memory_limit": "ETL_DUCKDB_MEMORY_LIMIT",
+    "write_lock_timeout_seconds": "ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS",
 }
 
 DEFAULT_DATABASE_PATH = "data/duckdb/ingestao.duckdb"
 
+# threads e memory_limit ficam sem padrão: ausente significa não tocar no que
+# o DuckDB já usa por conta própria, não impor um valor arbitrário.
+DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS = 300.0
+
 DEFAULT_VALUES: dict[str, str] = {
     "database_path": DEFAULT_DATABASE_PATH,
+    "write_lock_timeout_seconds": str(DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS),
 }
 
 IN_MEMORY_ALIASES = frozenset({":memory:", "memory"})
@@ -42,6 +52,9 @@ class DuckDBSettings:
     """
 
     database_path: Path
+    threads: int | None = None
+    memory_limit: str | None = None
+    write_lock_timeout_seconds: float = DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS
 
 
 def _validate_database_path(value: ParameterValue) -> Path:
@@ -68,6 +81,65 @@ def _validate_database_path(value: ParameterValue) -> Path:
             "o caminho do banco de ingestão não pode conter '..'"
         )
     return Path(os.path.abspath(path))
+
+
+def _validate_threads(value: ParameterValue) -> int | None:
+    """Ausente é válido: significa deixar o DuckDB decidir sozinho."""
+
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        raise ConfigurationError("o número de threads do DuckDB deve ser inteiro positivo")
+    if isinstance(value, int):
+        threads = value
+    elif isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        if not re.fullmatch(r"[1-9][0-9]*", text):
+            raise ConfigurationError("o número de threads do DuckDB deve ser inteiro positivo")
+        threads = int(text)
+    else:
+        raise ConfigurationError("o número de threads do DuckDB deve ser inteiro positivo")
+    if threads <= 0:
+        raise ConfigurationError("o número de threads do DuckDB deve ser inteiro positivo")
+    return threads
+
+
+def _validate_memory_limit(value: ParameterValue) -> str | None:
+    """A gramática do valor (`'2GB'`, `'80%'`, ...) é validada pelo próprio DuckDB.
+
+    Reimplementar essa gramática aqui duplicaria uma checagem que o `SET
+    memory_limit=?` já faz com um erro claro; aqui só garante que o valor
+    configurado é texto não vazio antes de chegar à conexão.
+    """
+
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, str):
+        raise ConfigurationError("o limite de memória do DuckDB deve ser texto")
+    text = value.strip()
+    return text or None
+
+
+def _validate_write_lock_timeout(value: ParameterValue) -> float:
+    """Maior que zero: um timeout nulo ou negativo tornaria a espera pelo lock inútil."""
+
+    if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+        raise ConfigurationError(
+            "o timeout do lock de escrita do DuckDB deve ser numérico e maior que zero"
+        )
+    try:
+        timeout = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ConfigurationError(
+            "o timeout do lock de escrita do DuckDB deve ser numérico e maior que zero"
+        ) from exc
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ConfigurationError(
+            "o timeout do lock de escrita do DuckDB deve ser numérico e maior que zero"
+        )
+    return timeout
 
 
 def _configured_value(
@@ -110,5 +182,16 @@ def load_duckdb_settings(
     return DuckDBSettings(
         database_path=_validate_database_path(
             _configured_value("database_path", supplied_parameters, supplied_environment)
-        )
+        ),
+        threads=_validate_threads(
+            _configured_value("threads", supplied_parameters, supplied_environment)
+        ),
+        memory_limit=_validate_memory_limit(
+            _configured_value("memory_limit", supplied_parameters, supplied_environment)
+        ),
+        write_lock_timeout_seconds=_validate_write_lock_timeout(
+            _configured_value(
+                "write_lock_timeout_seconds", supplied_parameters, supplied_environment
+            )
+        ),
     )

@@ -19,6 +19,7 @@ Não decide quando o pipeline executa nem contém regra de transformação.
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -26,6 +27,7 @@ from typing import Any
 import duckdb
 
 from etl.extraction.contracts import BatchMetadata, ExtractionCheckpoint
+from etl.load.config import DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS
 from etl.load.ddl import (
     BATCH_METADATA_COLUMNS,
     BATCH_METADATA_TABLE,
@@ -76,13 +78,65 @@ class LoadResult:
         }
 
 
+# O DuckDB já recusa uma segunda conexão de escrita ao mesmo arquivo com este
+# erro, nomeando o processo concorrente. Só distinguimos essa mensagem de
+# outro IOException (ex.: permissão negada) para saber quando vale esperar.
+WRITE_LOCK_CONFLICT_MARKER = "Could not set lock"
+WRITE_LOCK_POLL_INTERVAL_SECONDS = 0.05
+
+
+class WriteLockTimeoutError(RuntimeError):
+    """Não foi possível abrir o arquivo: outro processo mantinha a escrita."""
+
+
+def _connect_with_retry(database: str, timeout_seconds: float) -> duckdb.DuckDBPyConnection:
+    """Espera o escritor anterior liberar o arquivo em vez de falhar de imediato.
+
+    O DuckDB só permite um processo com o arquivo aberto para escrita por vez.
+    Um erro que não seja de lock (arquivo sem permissão, diretório ausente)
+    propaga na primeira tentativa: esperar não o resolveria.
+    """
+    deadline = time.monotonic() + timeout_seconds
+    while True:
+        try:
+            return duckdb.connect(database)
+        except duckdb.IOException as error:
+            if WRITE_LOCK_CONFLICT_MARKER not in str(error):
+                raise
+            if time.monotonic() >= deadline:
+                raise WriteLockTimeoutError(
+                    f"não foi possível abrir {database} em {timeout_seconds}s: "
+                    f"outra carga está em andamento ({error})"
+                ) from error
+            time.sleep(WRITE_LOCK_POLL_INTERVAL_SECONDS)
+
+
 class DuckDbLoadRepository:
     """Grava lotes tratados no DuckDB e mantém as tabelas de controle."""
 
-    def __init__(self, database: str | Path) -> None:
+    def __init__(
+        self,
+        database: str | Path,
+        *,
+        threads: int | None = None,
+        memory_limit: str | None = None,
+        write_lock_timeout_seconds: float = DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS,
+    ) -> None:
         self._database = str(database)
-        self._conn = duckdb.connect(self._database)
+        self._conn = _connect_with_retry(self._database, write_lock_timeout_seconds)
+        self._apply_connection_tuning(threads, memory_limit)
         self._ensure_schema()
+
+    def _apply_connection_tuning(self, threads: int | None, memory_limit: str | None) -> None:
+        """Ajusta a conexão só quando configurado; ausente mantém o padrão do DuckDB.
+
+        A gramática de `memory_limit` (ex.: `'2GB'`) é validada pelo próprio
+        `SET`, com o erro do banco — reimplementá-la aqui duplicaria a checagem.
+        """
+        if threads is not None:
+            self._conn.execute("SET threads=?", [threads])
+        if memory_limit is not None:
+            self._conn.execute("SET memory_limit=?", [memory_limit])
 
     def close(self) -> None:
         self._conn.close()
@@ -198,7 +252,14 @@ class DuckDbLoadRepository:
     # ---------- carga do lote ----------
 
     def load_batch(self, result: TransformationResult, metadata: BatchMetadata) -> LoadResult:
-        """Grava aceitos e rejeitados numa transação e reconcilia as contagens."""
+        """Grava aceitos e rejeitados numa transação e reconcilia as contagens.
+
+        ``loaded`` e ``rejected`` vêm de uma contagem no banco (por
+        ``run_id``+``batch_id``), não do tamanho das listas em memória: assim a
+        reconciliação não fecha só porque as duas pontas nasceram do mesmo lote
+        transformado, e sim porque o que está gravado bate com o que se
+        pretendia gravar.
+        """
         source = metadata.source
         columns = list(destination_columns(source))
         placeholders = ", ".join("?" for _ in columns)
@@ -206,24 +267,26 @@ class DuckDbLoadRepository:
             f"INSERT INTO {quote(table_name(source))} "
             f"({', '.join(quote(c) for c in columns)}) VALUES ({placeholders})"
         )
+        rows = [record.as_clickhouse_row() for record in result.accepted]
         self._conn.execute("BEGIN TRANSACTION")
         try:
-            for record in result.accepted:
-                row = record.as_clickhouse_row()
-                self._conn.execute(insert_sql, [_cell(row.get(c)) for c in columns])
-                self._conn.execute(
-                    "INSERT OR REPLACE INTO _loaded_identity VALUES (?, ?, ?)",
-                    [source, row["record_identity"], row["content_checksum"]],
+            if rows:
+                self._conn.executemany(
+                    insert_sql, [[_cell(row.get(c)) for c in columns] for row in rows]
                 )
-            for rejected in result.rejected:
-                self._record_rejection(rejected)
+                self._conn.executemany(
+                    "INSERT OR REPLACE INTO _loaded_identity VALUES (?, ?, ?)",
+                    [[source, row["record_identity"], row["content_checksum"]] for row in rows],
+                )
+            self._record_rejections(result.rejected)
+            loaded, rejected_count = self._confirmed_counts(metadata)
             self._record_batch(
                 metadata,
                 status=(
                     BATCH_STATUS_LOADED_WITH_REJECTIONS if result.rejected else BATCH_STATUS_LOADED
                 ),
-                accepted=len(result.accepted),
-                rejected=len(result.rejected),
+                accepted=loaded,
+                rejected=rejected_count,
                 duplicated=len(result.duplicates),
             )
             self._conn.execute("COMMIT")
@@ -236,43 +299,67 @@ class DuckDbLoadRepository:
             run_id=metadata.run_id,
             batch_id=metadata.batch_id,
             extracted=result.metrics["extracted_count"],
-            loaded=len(result.accepted),
-            rejected=len(result.rejected),
+            loaded=loaded,
+            rejected=rejected_count,
             duplicates=len(result.duplicates),
         )
 
+    def _confirmed_counts(self, metadata: BatchMetadata) -> tuple[int, int]:
+        """Conta o que o banco tem para este lote, não o que ficou em memória.
+
+        Roda ainda dentro da transação aberta pelo ``load_batch``: o que se lê
+        aqui é exatamente o que o ``COMMIT`` seguinte torna durável, ou some
+        junto no rollback se a transação falhar depois — nunca diverge do que
+        de fato persiste.
+        """
+        run_id, batch_id = metadata.run_id, metadata.batch_id
+        loaded = self._conn.execute(
+            f"SELECT count(*) FROM {quote(table_name(metadata.source))}"
+            " WHERE run_id = ? AND batch_id = ?",
+            [run_id, batch_id],
+        ).fetchone()[0]
+        rejected = self._conn.execute(
+            f"SELECT count(*) FROM {quote(REJECTED_TABLE)} WHERE run_id = ? AND batch_id = ?",
+            [run_id, batch_id],
+        ).fetchone()[0]
+        return int(loaded), int(rejected)
+
     # ---------- registro de rejeição ----------
 
-    def _record_rejection(self, rejected: RejectedRecord) -> None:
-        """Grava a ocorrência rejeitada e um motivo por linha.
+    def _record_rejections(self, rejected: tuple[RejectedRecord, ...]) -> None:
+        """Grava as ocorrências rejeitadas e os motivos do lote inteiro em duas escritas em lote.
 
-        A rejeição converge em vez de falhar por chave repetida em dois casos
-        reais: um backfill reprocessa o lote, e o mesmo par código/campo
-        aparece duas vezes na mesma ocorrência.
+        Duas ``executemany`` para o lote inteiro, não uma por ocorrência: é o
+        que torna a escrita "em lotes parametrizados" de fato, em vez de N
+        comandos avulsos. A rejeição converge em vez de falhar por chave
+        repetida quando um backfill reprocessa o lote. Lote sem rejeição chega
+        com listas vazias; ``_insert_many`` não emite comando nesse caso.
         """
-        self._insert(
+        self._insert_many(
             "rejected",
             REJECTED_COLUMNS,
-            {
-                "rejection_id": rejected.rejection_id,
-                "source": rejected.source,
-                "source_checksum": rejected.source_checksum,
-                "source_offset": rejected.source_offset,
-                "run_id": rejected.run_id,
-                "batch_id": rejected.batch_id,
-                "ingested_at": rejected.ingested_at,
-            },
-        )
-        for violation in rejected.violations:
-            self._insert(
-                "rejected_reason",
-                REJECTED_REASON_COLUMNS,
+            [
                 {
-                    "rejection_id": rejected.rejection_id,
-                    "code": violation.code,
-                    "field": violation.field,
-                },
-            )
+                    "rejection_id": record.rejection_id,
+                    "source": record.source,
+                    "source_checksum": record.source_checksum,
+                    "source_offset": record.source_offset,
+                    "run_id": record.run_id,
+                    "batch_id": record.batch_id,
+                    "ingested_at": record.ingested_at,
+                }
+                for record in rejected
+            ],
+        )
+        self._insert_many(
+            "rejected_reason",
+            REJECTED_REASON_COLUMNS,
+            [
+                {"rejection_id": record.rejection_id, "code": violation.code, "field": violation.field}
+                for record in rejected
+                for violation in record.violations
+            ],
+        )
 
     # ---------- registro de execução (por lote) ----------
 
@@ -326,19 +413,27 @@ class DuckDbLoadRepository:
             pass
 
     def _insert(self, table: str, columns: tuple[str, ...], values: dict[str, Any]) -> None:
-        """Insere por nome de coluna, convergindo quando a linha já existe.
+        """Insere uma linha por nome de coluna; ver :meth:`_insert_many`."""
+        self._insert_many(table, columns, [values])
+
+    def _insert_many(
+        self, table: str, columns: tuple[str, ...], rows: list[dict[str, Any]]
+    ) -> None:
+        """Insere o lote inteiro num só ``executemany``, por nome de coluna.
 
         Nomear as colunas troca "valor deslocado em silêncio" por erro de
         coluna ausente quando o contrato ganha campo. ``INSERT OR REPLACE``
         porque um reprocessamento reapresenta a mesma linha de controle — o que
         só é possível onde existe chave para substituir.
         """
+        if not rows:
+            return
         verb = "INSERT INTO" if table in self._keyless_control_tables else "INSERT OR REPLACE INTO"
         names = ", ".join(quote(column) for column in columns)
         placeholders = ", ".join("?" for _ in columns)
-        self._conn.execute(
+        self._conn.executemany(
             f"{verb} {quote(table)} ({names}) VALUES ({placeholders})",
-            [values[column] for column in columns],
+            [[row[column] for column in columns] for row in rows],
         )
 
     def count(self, source: str) -> int:
