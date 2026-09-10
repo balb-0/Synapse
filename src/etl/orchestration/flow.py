@@ -33,6 +33,7 @@ from etl.transformation.pipeline import transform_batch
 from etl.transformation.schema import KEYS
 from etl.transformation.consistency import ReferenceData
 from etl.load import DuckDbLoadRepository
+from etl.load.config import load_duckdb_settings
 
 EXTRACTORS = {
     "empresas": EmpresasExtractor,
@@ -67,6 +68,21 @@ def _object_checksum(reader: MinioObjectReader, reference: ObjectReference) -> s
         for chunk in iter(lambda: stream.read(1 << 16), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _connection_tuning() -> dict:
+    """Parâmetros de conexão do DuckDB configurados por variável de ambiente.
+
+    Independentes de ``db_path``: vêm das próprias variáveis de tuning
+    (`ETL_DUCKDB_THREADS`, `ETL_DUCKDB_MEMORY_LIMIT`,
+    `ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS`), não da configuração de extração.
+    """
+    settings = load_duckdb_settings()
+    return {
+        "threads": settings.threads,
+        "memory_limit": settings.memory_limit,
+        "write_lock_timeout_seconds": settings.write_lock_timeout_seconds,
+    }
 
 
 def _build_references(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
@@ -136,10 +152,10 @@ def transform(batches: list, source: str, references, previous: dict) -> list:
 
 
 @task(timeout_seconds=120, cache_policy=NO_CACHE)
-def load(db_path: str, results: list) -> list:
+def load(db_path: str, results: list, tuning: dict) -> list:
     """Grava aceitos e rejeitados no DuckDB e reconcilia as contagens."""
     logger = get_run_logger()
-    with DuckDbLoadRepository(db_path) as repo:
+    with DuckDbLoadRepository(db_path, **tuning) as repo:
         reconciliations = []
         for result, metadata in results:
             outcome = repo.load_batch(result, metadata)
@@ -174,7 +190,8 @@ def ingest_object(
     reference = ObjectReference(bucket=bucket, key=key, version_id=version_id)
 
     checksum = _object_checksum(reader, reference)
-    with DuckDbLoadRepository(db_path) as repo:
+    tuning = _connection_tuning()
+    with DuckDbLoadRepository(db_path, **tuning) as repo:
         if repo.object_already_loaded(checksum):
             if not reprocess:
                 logger.info("objeto %s já concluído (hash %s) — ignorado", key, checksum[:12])
@@ -195,9 +212,9 @@ def ingest_object(
         reader, reference, source, run_id=event_id or checksum[:16], checkpoint=checkpoint
     )
     results = transform(batches, source, references, previous)
-    reconciliations = load(db_path, results)
+    reconciliations = load(db_path, results, tuning)
 
-    with DuckDbLoadRepository(db_path) as repo:
+    with DuckDbLoadRepository(db_path, **tuning) as repo:
         repo.mark_object_loaded(source, checksum, event_id or checksum[:16])
         if batches:  # retomada: confirma a posição somente após a carga
             repo.commit(batches[-1].checkpoint)
