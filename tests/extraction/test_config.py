@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 import tempfile
 import unittest
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -23,22 +23,28 @@ class ExtractionSettingsTests(unittest.TestCase):
         self.addCleanup(self.temporary_directory.cleanup)
         self.source_dir = Path(self.temporary_directory.name)
         self.environment = {
-            "ETL_SOURCE_DIR": str(self.source_dir),
-            "ETL_NIFI_API_URL": "http://localhost:8080/nifi-api",
-            "ETL_NIFI_INPUT_DIR": "/opt/nifi/input",
             "ETL_MINIO_ENDPOINT": "http://minio:9000",
             "ETL_MINIO_BUCKET": "sindusfarma-data",
+            "ETL_MINIO_INPUT_PREFIX": "landing",
             "ETL_MINIO_ACCESS_KEY": "access-key-for-test",
             "ETL_MINIO_SECRET_KEY": "secret-key-for-test",
             "ETL_REQUEST_TIMEOUT_SECONDS": "30",
+            "ETL_EXTRACTION_BATCH_SIZE": "1000",
+            "ETL_EXTRACTION_MAX_ATTEMPTS": "4",
+            "ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS": "0.25",
+            "ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS": "2",
         }
 
     def test_loads_complete_configuration_from_environment(self) -> None:
         settings = load_extraction_settings(environ=self.environment)
 
-        self.assertEqual(settings.source_dir, self.source_dir.resolve())
-        self.assertEqual(settings.nifi_input_dir, PurePosixPath("/opt/nifi/input"))
+        self.assertIsNone(settings.source_dir)
+        self.assertEqual(settings.minio_input_prefix, "landing")
         self.assertEqual(settings.request_timeout_seconds, 30.0)
+        self.assertEqual(settings.batch_size, 1000)
+        self.assertEqual(settings.max_attempts, 4)
+        self.assertEqual(settings.retry_initial_delay_seconds, 0.25)
+        self.assertEqual(settings.retry_max_delay_seconds, 2.0)
         self.assertEqual(
             settings.minio_access_key.get_secret_value(), "access-key-for-test"
         )
@@ -47,23 +53,80 @@ class ExtractionSettingsTests(unittest.TestCase):
         settings = load_extraction_settings(
             parameters={
                 "minio_endpoint": "http://localhost:19000/",
+                "minio_input_prefix": "/incoming/",
                 "request_timeout_seconds": 12,
+                "batch_size": 250,
+                "max_attempts": 2,
+                "retry_initial_delay_seconds": 0,
+                "retry_max_delay_seconds": 1,
             },
             environ=self.environment,
         )
 
         self.assertEqual(settings.minio_endpoint, "http://localhost:19000")
+        self.assertEqual(settings.minio_input_prefix, "incoming")
         self.assertEqual(settings.request_timeout_seconds, 12.0)
+        self.assertEqual(settings.batch_size, 250)
+        self.assertEqual(settings.max_attempts, 2)
+        self.assertEqual(settings.retry_initial_delay_seconds, 0.0)
+        self.assertEqual(settings.retry_max_delay_seconds, 1.0)
 
     def test_uses_safe_defaults_for_optional_values(self) -> None:
         environment = dict(self.environment)
-        environment.pop("ETL_NIFI_INPUT_DIR")
+        environment.pop("ETL_MINIO_INPUT_PREFIX")
         environment.pop("ETL_REQUEST_TIMEOUT_SECONDS")
+        environment.pop("ETL_EXTRACTION_BATCH_SIZE")
+        environment.pop("ETL_EXTRACTION_MAX_ATTEMPTS")
+        environment.pop("ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS")
+        environment.pop("ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS")
 
         settings = load_extraction_settings(environ=environment)
 
-        self.assertEqual(settings.nifi_input_dir, PurePosixPath("/opt/nifi/input"))
+        self.assertEqual(settings.minio_input_prefix, "landing")
         self.assertEqual(settings.request_timeout_seconds, 30.0)
+        self.assertEqual(settings.batch_size, 1000)
+        self.assertEqual(settings.max_attempts, 3)
+        self.assertEqual(settings.retry_initial_delay_seconds, 0.5)
+        self.assertEqual(settings.retry_max_delay_seconds, 5.0)
+
+    def test_rejects_invalid_batch_size(self) -> None:
+        for invalid_value in ("0", "1.5", "invalid", 0, True):
+            with self.subTest(invalid_value=invalid_value):
+                with self.assertRaisesRegex(ConfigurationError, "inteiro positivo"):
+                    load_extraction_settings(
+                        parameters={"batch_size": invalid_value},
+                        environ=self.environment,
+                    )
+
+    def test_rejects_invalid_retry_configuration(self) -> None:
+        invalid_parameters = (
+            {"max_attempts": 0},
+            {"max_attempts": "1.5"},
+            {"retry_initial_delay_seconds": -1},
+            {"retry_max_delay_seconds": "invalid"},
+            {
+                "retry_initial_delay_seconds": 2,
+                "retry_max_delay_seconds": 1,
+            },
+        )
+
+        for parameters in invalid_parameters:
+            with self.subTest(parameters=parameters):
+                with self.assertRaises(ConfigurationError):
+                    load_extraction_settings(
+                        parameters=parameters,
+                        environ=self.environment,
+                    )
+
+    def test_accepts_optional_local_source_directory(self) -> None:
+        environment = {
+            **self.environment,
+            "ETL_SOURCE_DIR": str(self.source_dir),
+        }
+
+        settings = load_extraction_settings(environ=environment)
+
+        self.assertEqual(settings.source_dir, self.source_dir.resolve())
 
     def test_reports_missing_required_configuration_without_values(self) -> None:
         environment = dict(self.environment)
@@ -77,8 +140,10 @@ class ExtractionSettingsTests(unittest.TestCase):
         self.assertNotIn("secret-key-for-test", message)
 
     def test_rejects_missing_source_directory(self) -> None:
-        environment = dict(self.environment)
-        environment["ETL_SOURCE_DIR"] = str(self.source_dir / "inexistente")
+        environment = {
+            **self.environment,
+            "ETL_SOURCE_DIR": str(self.source_dir / "inexistente"),
+        }
 
         with self.assertRaisesRegex(ConfigurationError, "não existe"):
             load_extraction_settings(environ=environment)
@@ -102,11 +167,11 @@ class ExtractionSettingsTests(unittest.TestCase):
 
         self.assertNotIn("segredo", str(context.exception))
 
-    def test_rejects_relative_nifi_input_path(self) -> None:
+    def test_rejects_parent_reference_in_minio_prefix(self) -> None:
         environment = dict(self.environment)
-        environment["ETL_NIFI_INPUT_DIR"] = "local/input"
+        environment["ETL_MINIO_INPUT_PREFIX"] = "landing/../private"
 
-        with self.assertRaisesRegex(ConfigurationError, "caminho absoluto"):
+        with self.assertRaisesRegex(ConfigurationError, "prefixo relativo"):
             load_extraction_settings(environ=environment)
 
     def test_secrets_are_redacted_from_representations(self) -> None:

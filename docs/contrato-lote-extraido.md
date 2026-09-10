@@ -34,12 +34,28 @@ que ainda não foi processada.
 linha, enquanto uma API pode usar uma página ou cursor. Essa diferença fica
 dentro de cada extrator e não altera o contrato entregue ao restante do ETL.
 
-## Uso com o NiFi
+## Convenção dos arquivos CSV
 
-No NiFi, o conteúdo do FlowFile representa os registros do lote. Metadados e
-checkpoint são enviados como atributos por meio de
+Os extratores CSV representam a posição como `row:N`, em que `N` é a quantidade
+de registros lógicos já incluídos nos lotes. Cabeçalho e linhas vazias não entram
+nessa contagem. A sequência começa em 1 e avança uma unidade por lote.
+
+O checkpoint CSV inclui obrigatoriamente `source_version` com o SHA-256 do
+objeto. Antes da retomada, o extrator valida a fonte, o formato da posição e essa
+versão. Depois, pula exatamente os registros confirmados e emite a página
+seguinte. Um checkpoint que já alcançou o fim resulta em uma sequência vazia,
+sem recriar o último lote.
+
+O `CheckpointStore` continua separado da leitura. Cabe ao fluxo carregar o
+último checkpoint confirmado, entregá-lo ao extrator e chamar `commit` somente
+depois que o lote tiver sido transformado, carregado e reconciliado.
+
+## Atributos técnicos para transporte
+
+Metadados e checkpoint podem ser representados como atributos por meio de
 `ExtractedBatch.as_attributes()`. Os atributos não incluem os registros nem
-campos de negócio, evitando que nomes, e-mails ou respostas apareçam nos logs.
+campos de negócio, evitando que nomes, e-mails ou respostas apareçam nos logs
+do orquestrador ou no mecanismo de transporte.
 
 | Atributo | Descrição |
 | :--- | :--- |
@@ -57,6 +73,18 @@ campos de negócio, evitando que nomes, e-mails ou respostas apareçam nos logs.
 | `checkpoint_source_version` | Versão da fonte à qual o checkpoint pertence, quando disponível |
 | `contract_version` | Versão deste contrato |
 
-Os adaptadores de arquivo, APIs, armazenamento de checkpoint e observabilidade
-serão implementados sobre essas interfaces. Nenhum deles precisa importar ou
-receber uma conexão com o ClickHouse.
+Os adaptadores de armazenamento de objetos, APIs, checkpoints e observabilidade
+podem ser implementados sobre essas interfaces. Nenhum deles precisa importar
+ou receber uma conexão com o banco de destino.
+
+## Evento de log da extração
+
+Para cada `ExtractedBatch`, o extrator produz um `ExtractionBatchLogEvent`. Esse
+evento combina os metadados do lote com a posição do checkpoint, mas não carrega
+a coleção `records`. O destino de logs recebe apenas o evento técnico por meio
+de `ExtractionLogSink`.
+
+Essa separação impede que respostas, e-mails, identificadores pessoais ou outros
+valores das fontes sejam serializados acidentalmente. O adaptador
+`StandardLoggingSink` publica os campos como atributos do `LogRecord`; a
+formatação e o transporte dos logs permanecem externos ao contrato do extrator.

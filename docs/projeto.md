@@ -661,16 +661,19 @@ uma carga de data warehouse já implementada.
 
 O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
 ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
-Governança Corporativa e quatro cards de cubo. Negócio, Consumo Analítico e
-Governança Corporativa preservam o baseline do JSON. Os quatro cubos foram
-preenchidos como contratos técnicos propostos, mantendo a distinção entre
-evidência observada no snapshot e desenho ainda sujeito a homologação.
+Governança Corporativa e quatro cards de cubo. A seção Negócio foi reconciliada
+com as definições canônicas deste documento; as demais seções mantêm seu
+baseline até a revisão específica. Os quatro cubos foram preenchidos como
+contratos técnicos propostos, mantendo a distinção entre evidência observada no
+snapshot e desenho ainda sujeito a homologação.
 
 ### Síntese do negócio
 
-Os três arrays de Negócio são a única ampliação de conteúdo em relação ao
-baseline do PDF. Eles consolidam o objetivo geral e os objetivos específicos da
-§3, as PB01–PB13 da §6.3 e os macroprocessos observados na §4.0.2.
+Os três arrays de Negócio consolidam o objetivo geral e os objetivos
+específicos da §3, as PB01–PB13 da §6.3 e os macroprocessos observados na
+§4.0.2. No JSON, objetivos são marcados como resultados pretendidos e processos
+como atuais; assim, uma capacidade futura não é apresentada como resultado já
+alcançado.
 
 **Objetivos de negócio.** O objetivo geral é construir a espinha dorsal de dados
 da Central de Pesquisas, com os seguintes resultados pretendidos:
@@ -717,9 +720,10 @@ de cada indicador segue a §5.6: **calculável agora** descreve o que o snapshot
 permite calcular, não uma entrega produtiva; **exige normalização ou
 mapeamento** identifica uma regra ou reconciliação pendente; e **depende de
 integração futura** indica que falta uma fonte ou metadado. O JSON preserva o
-baseline de consumo preenchido pelo orientador; os quatro eixos abaixo são a
-leitura analítica usada neste documento, sem mudar essas classificações de
-disponibilidade.
+baseline documental e reconcilia a lista de consumo com I01–I25. Cada item
+informa a unidade ou o denominador necessário e explicita quando o cálculo
+depende de regra, reconciliação, fonte ou metadado futuro. Os quatro eixos
+abaixo agrupam essa leitura sem mudar as classificações de disponibilidade.
 
 | Eixo de consumo | Indicadores | Usuário e forma de consumo propostos | Decisões apoiadas |
 | :--- | :--- | :--- | :--- |
@@ -755,7 +759,7 @@ As seguintes decisões permanecem abertas e limitam o consumo:
 | Elemento do canvas | Evidência disponível | Proposta ainda a validar ou implementar |
 | :--- | :--- | :--- |
 | Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [<sup>[1]</sup>](#ref-1), [<sup>[2]</sup>](#ref-2), [<sup>[13]</sup>](#ref-13), [<sup>[14]</sup>](#ref-14). O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
-| Consumo Analítico | O JSON preserva os indicadores, usuários/canais, decisões e riscos preenchidos pelo orientador como baseline documental [<sup>[3]</sup>](#ref-3). | A interpretação de dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanece condicionada às limitações das §§5.6–6.5. |
+| Consumo Analítico | O JSON registra I01–I25 em correspondência com o catálogo da §5.6 e preserva usuários/canais, decisões e riscos como baseline documental [<sup>[3]</sup>](#ref-3). | Dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanecem condicionados às limitações das §§5.6–6.5; indicador indisponível não recebe valor zero. |
 | Governança Corporativa | O JSON preserva os nomes e textos preenchidos pelo orientador como baseline documental [<sup>[3]</sup>](#ref-3). | A formalização jurídica e operacional dos papéis ainda deve ser validada pelo parceiro; política de acesso, retenção, auditoria e publicação também requer aprovação antes da produção. |
 | Cubos | O JSON define quatro recortes: portfólio e ciclo, participação e representatividade, pipeline mensal e resultados/questionários. | Os quatro modelos foram preenchidos como contratos propostos; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro antes da implantação produtiva. |
 

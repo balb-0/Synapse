@@ -1,7 +1,7 @@
 """Interfaces compartilhadas pelos extratores.
 
-O módulo contém apenas tipos de domínio. Ele não conhece NiFi, MinIO,
-ClickHouse nem a forma usada para persistir checkpoints e metadados.
+O módulo contém apenas tipos de domínio. Ele não conhece o armazenamento de
+objetos, o orquestrador, o banco nem a forma de persistir checkpoints.
 """
 
 from __future__ import annotations
@@ -137,8 +137,8 @@ class ExtractedBatch:
     def as_attributes(self) -> dict[str, str]:
         """Representa metadados e checkpoint como atributos de transporte.
 
-        O formato pode ser usado em um FlowFile do NiFi ou em outro mecanismo
-        de mensageria sem incluir os registros ou qualquer PII nos atributos.
+        O formato pode ser usado pelo orquestrador ou por outro mecanismo de
+        mensageria sem incluir os registros ou qualquer PII nos atributos.
         """
 
         metadata = {

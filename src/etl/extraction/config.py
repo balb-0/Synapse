@@ -16,18 +16,25 @@ REDACTED = "********"
 
 ENVIRONMENT_VARIABLES = {
     "source_dir": "ETL_SOURCE_DIR",
-    "nifi_api_url": "ETL_NIFI_API_URL",
-    "nifi_input_dir": "ETL_NIFI_INPUT_DIR",
     "minio_endpoint": "ETL_MINIO_ENDPOINT",
     "minio_bucket": "ETL_MINIO_BUCKET",
+    "minio_input_prefix": "ETL_MINIO_INPUT_PREFIX",
     "minio_access_key": "ETL_MINIO_ACCESS_KEY",
     "minio_secret_key": "ETL_MINIO_SECRET_KEY",
     "request_timeout_seconds": "ETL_REQUEST_TIMEOUT_SECONDS",
+    "batch_size": "ETL_EXTRACTION_BATCH_SIZE",
+    "max_attempts": "ETL_EXTRACTION_MAX_ATTEMPTS",
+    "retry_initial_delay_seconds": "ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS",
+    "retry_max_delay_seconds": "ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS",
 }
 
 DEFAULT_VALUES: dict[str, str] = {
-    "nifi_input_dir": "/opt/nifi/input",
+    "minio_input_prefix": "landing",
     "request_timeout_seconds": "30",
+    "batch_size": "1000",
+    "max_attempts": "3",
+    "retry_initial_delay_seconds": "0.5",
+    "retry_max_delay_seconds": "5",
 }
 
 
@@ -78,7 +85,9 @@ def _validate_endpoint(value: str, field_name: str) -> str:
     return value.rstrip("/")
 
 
-def _validate_source_dir(value: ParameterValue) -> Path:
+def _validate_source_dir(value: ParameterValue) -> Path | None:
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
     if not isinstance(value, (str, Path)):
         raise ConfigurationError(
             "ETL_SOURCE_DIR deve apontar para um caminho válido"
@@ -92,13 +101,14 @@ def _validate_source_dir(value: ParameterValue) -> Path:
     return path
 
 
-def _validate_nifi_input_dir(value: str) -> PurePosixPath:
-    path = PurePosixPath(value)
-    if not path.is_absolute() or ".." in path.parts:
+def _validate_object_prefix(value: str) -> str:
+    normalized = value.strip().strip("/")
+    path = PurePosixPath(normalized)
+    if not normalized or path.is_absolute() or ".." in path.parts:
         raise ConfigurationError(
-            "ETL_NIFI_INPUT_DIR deve ser um caminho absoluto sem '..'"
+            "ETL_MINIO_INPUT_PREFIX deve ser um prefixo relativo sem '..'"
         )
-    return path
+    return normalized
 
 
 def _validate_bucket(value: str) -> str:
@@ -126,31 +136,87 @@ def _validate_timeout(value: ParameterValue) -> float:
     return timeout
 
 
+def _validate_batch_size(value: ParameterValue) -> int:
+    if isinstance(value, bool):
+        raise ConfigurationError("ETL_EXTRACTION_BATCH_SIZE deve ser inteiro positivo")
+    if isinstance(value, int):
+        batch_size = value
+    elif isinstance(value, str) and re.fullmatch(r"[1-9][0-9]*", value.strip()):
+        batch_size = int(value)
+    else:
+        raise ConfigurationError("ETL_EXTRACTION_BATCH_SIZE deve ser inteiro positivo")
+
+    if batch_size <= 0:
+        raise ConfigurationError("ETL_EXTRACTION_BATCH_SIZE deve ser inteiro positivo")
+    return batch_size
+
+
+def _validate_max_attempts(value: ParameterValue) -> int:
+    if isinstance(value, bool):
+        raise ConfigurationError(
+            "ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo"
+        )
+    if isinstance(value, int):
+        max_attempts = value
+    elif isinstance(value, str) and re.fullmatch(r"[1-9][0-9]*", value.strip()):
+        max_attempts = int(value)
+    else:
+        raise ConfigurationError(
+            "ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo"
+        )
+
+    if max_attempts <= 0:
+        raise ConfigurationError(
+            "ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo"
+        )
+    return max_attempts
+
+
+def _validate_retry_delay(value: ParameterValue, variable: str) -> float:
+    if isinstance(value, (bool, Path, SecretValue)) or value is None:
+        raise ConfigurationError(f"{variable} deve ser numérico e não negativo")
+    try:
+        delay = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ConfigurationError(
+            f"{variable} deve ser numérico e não negativo"
+        ) from exc
+    if not math.isfinite(delay) or delay < 0:
+        raise ConfigurationError(f"{variable} deve ser numérico e não negativo")
+    return delay
+
+
 @dataclass(frozen=True, slots=True)
 class ExtractionSettings:
-    """Configurações validadas para NiFi, entrada local e MinIO."""
+    """Configurações validadas para leitura de objetos no MinIO."""
 
-    source_dir: Path
-    nifi_api_url: str
-    nifi_input_dir: PurePosixPath
     minio_endpoint: str
     minio_bucket: str
     minio_access_key: SecretValue = field(repr=False)
     minio_secret_key: SecretValue = field(repr=False)
+    minio_input_prefix: str = "landing"
     request_timeout_seconds: float = 30.0
+    batch_size: int = 1000
+    max_attempts: int = 3
+    retry_initial_delay_seconds: float = 0.5
+    retry_max_delay_seconds: float = 5.0
+    source_dir: Path | None = None
 
-    def safe_summary(self) -> dict[str, str | float]:
+    def safe_summary(self) -> dict[str, str | int | float | None]:
         """Retorna dados apropriados para diagnóstico e logs."""
 
         return {
-            "source_dir": str(self.source_dir),
-            "nifi_api_url": self.nifi_api_url,
-            "nifi_input_dir": str(self.nifi_input_dir),
             "minio_endpoint": self.minio_endpoint,
             "minio_bucket": self.minio_bucket,
+            "minio_input_prefix": self.minio_input_prefix,
             "minio_access_key": REDACTED,
             "minio_secret_key": REDACTED,
             "request_timeout_seconds": self.request_timeout_seconds,
+            "batch_size": self.batch_size,
+            "max_attempts": self.max_attempts,
+            "retry_initial_delay_seconds": self.retry_initial_delay_seconds,
+            "retry_max_delay_seconds": self.retry_max_delay_seconds,
+            "source_dir": str(self.source_dir) if self.source_dir else None,
         }
 
 
@@ -214,20 +280,17 @@ def load_extraction_settings(
         )
     supplied_environment = os.environ if environ is None else environ
 
-    source_dir = _required_value(
+    source_dir = _configured_value(
         "source_dir", supplied_parameters, supplied_environment
-    )
-    nifi_api_url = _required_value(
-        "nifi_api_url", supplied_parameters, supplied_environment
-    )
-    nifi_input_dir = _required_value(
-        "nifi_input_dir", supplied_parameters, supplied_environment
     )
     minio_endpoint = _required_value(
         "minio_endpoint", supplied_parameters, supplied_environment
     )
     minio_bucket = _required_value(
         "minio_bucket", supplied_parameters, supplied_environment
+    )
+    minio_input_prefix = _required_value(
+        "minio_input_prefix", supplied_parameters, supplied_environment
     )
     minio_access_key = _required_value(
         "minio_access_key", supplied_parameters, supplied_environment
@@ -238,16 +301,45 @@ def load_extraction_settings(
     timeout = _required_value(
         "request_timeout_seconds", supplied_parameters, supplied_environment
     )
+    batch_size = _required_value(
+        "batch_size", supplied_parameters, supplied_environment
+    )
+    max_attempts = _required_value(
+        "max_attempts", supplied_parameters, supplied_environment
+    )
+    retry_initial_delay = _required_value(
+        "retry_initial_delay_seconds", supplied_parameters, supplied_environment
+    )
+    retry_max_delay = _required_value(
+        "retry_max_delay_seconds", supplied_parameters, supplied_environment
+    )
+
+    validated_retry_initial_delay = _validate_retry_delay(
+        retry_initial_delay,
+        "ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS",
+    )
+    validated_retry_max_delay = _validate_retry_delay(
+        retry_max_delay,
+        "ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS",
+    )
+    if validated_retry_max_delay < validated_retry_initial_delay:
+        raise ConfigurationError(
+            "ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS deve ser maior ou igual "
+            "a ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS"
+        )
 
     return ExtractionSettings(
-        source_dir=_validate_source_dir(source_dir),
-        nifi_api_url=_validate_endpoint(str(nifi_api_url), "ETL_NIFI_API_URL"),
-        nifi_input_dir=_validate_nifi_input_dir(str(nifi_input_dir)),
         minio_endpoint=_validate_endpoint(
             str(minio_endpoint), "ETL_MINIO_ENDPOINT"
         ),
         minio_bucket=_validate_bucket(str(minio_bucket)),
         minio_access_key=_secret(minio_access_key, "minio_access_key"),
         minio_secret_key=_secret(minio_secret_key, "minio_secret_key"),
+        minio_input_prefix=_validate_object_prefix(str(minio_input_prefix)),
         request_timeout_seconds=_validate_timeout(timeout),
+        batch_size=_validate_batch_size(batch_size),
+        max_attempts=_validate_max_attempts(max_attempts),
+        retry_initial_delay_seconds=validated_retry_initial_delay,
+        retry_max_delay_seconds=validated_retry_max_delay,
+        source_dir=_validate_source_dir(source_dir),
     )

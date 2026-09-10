@@ -1,8 +1,16 @@
 # Validação do Data Model Canvas
 
-O validador confere o recorte da Sprint 1: sintaxe e seções obrigatórias,
-quatro cubos com nomes e IDs únicos, esquema dimensional, tipo de fato e
-preenchimento das seções de Modelo Dimensional, Dados e Governança dos cubos.
+O validador confere o recorte da Sprint 3: sintaxe e seções corporativas
+obrigatórias, quatro cubos com nomes e IDs canônicos, esquema dimensional,
+tipo de fato e preenchimento de grão, fatos, métricas e dimensões.
+
+Nos cubos, o contrato aceita somente os campos de Modelo Dimensional. Campos
+das antigas subseções Dados e Governança — como `fontes`, `qualidade`,
+`controleAcesso` e `retencao` — são rejeitados. A seção corporativa
+`governancaCorporativa` continua obrigatória e não é afetada por esse recorte.
+Na adequação foram retirados, de cada cubo, 21 campos e as quatro listas
+`fontes`, `transformacoes`, `qualidade` e `scd`. Os testes negativos cobrem a
+reintrodução indevida de `controleAcesso` e `fontes`.
 
 Na raiz do repositório:
 
@@ -41,3 +49,30 @@ Para reproduzir o baseline:
 python scripts/dmc/inventory_dmc.py docs/dmc.json
 python scripts/dmc/validate_dmc.py docs/dmc.json
 ```
+
+## Gates finais
+
+O orquestrador executa, em sequência, a leitura estrutural do JSON, a validação
+semântica do DMC, a rastreabilidade e as duas suítes de testes:
+
+```bash
+python scripts/dmc/run_gates.py
+```
+
+Após importar o canvas em uma sessão nova da ferramenta oficial, conferir os
+quatro cards e exportar novamente para um caminho temporário fora do
+repositório. O argumento `--reexport` acrescenta os gates estrutural e de
+round-trip semântico desse arquivo:
+
+```bash
+python scripts/dmc/run_gates.py --reexport /caminho/temporario/dmc-reexportado.json
+```
+
+O gate só comprova o round-trip quando recebe um arquivo realmente produzido
+pela ferramenta. Não use uma cópia de `docs/dmc.json` como substituta.
+
+Na execução de 8 de setembro de 2026, os cinco gates locais foram aprovados e
+o documento apresentou exatamente quatro cubos. O gate de sessão nova continua
+pendente até a integração de KP-08 e KP-10 e a disponibilização de um JSON
+realmente reexportado. O arquivo temporário de reexportação não deve ser
+versionado.
