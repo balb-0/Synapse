@@ -153,6 +153,43 @@ Checkpoints com posição inválida, versão ausente ou posição além do fim g
 `StaleCheckpointError`, impedindo que uma posição antiga seja aplicada ao novo
 arquivo. Se o último checkpoint já cobre toda a fonte, nenhum lote é emitido.
 
+## Timeout, retry e falhas das fontes
+
+O acesso ao MinIO utiliza timeout de conexão e de leitura configurado por
+`ETL_REQUEST_TIMEOUT_SECONDS`. Os retries do cliente HTTP são desativados para
+que todas as tentativas fiquem sujeitas ao mesmo limite explícito da extração.
+
+Por padrão, uma leitura pode realizar até três tentativas. Depois da primeira
+falha transitória, as esperas são de 0,5 segundo e 1 segundo. O crescimento é
+exponencial e nunca ultrapassa o valor de
+`ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS`. Antes de cada nova tentativa, o buffer
+parcial é descartado, evitando juntar bytes de duas leituras do mesmo objeto.
+
+As falhas são classificadas da seguinte forma:
+
+| Natureza | Categorias | Comportamento |
+| :--- | :--- | :--- |
+| Transitória | timeout, indisponibilidade e limite de requisições | Repete até `ETL_EXTRACTION_MAX_ATTEMPTS` |
+| Permanente | autenticação, objeto inexistente, CSV malformado e falha desconhecida | Interrompe na primeira ocorrência |
+
+São consideradas transitórias as exceções conhecidas de timeout e conexão, os
+status HTTP `408`, `425`, `429`, `500`, `502`, `503` e `504` e os códigos
+equivalentes do armazenamento de objetos. Erros desconhecidos não são repetidos
+automaticamente, pois podem representar defeitos de programação ou entradas que
+uma nova tentativa não corrigiria.
+
+Cada tentativa malsucedida produz um `SourceFailure` com fonte, operação,
+categoria, natureza, número da tentativa, limite e próxima espera. A mensagem da
+exceção e o conteúdo da fonte não fazem parte desse registro. O componente
+`FailureRecorder` permite encaminhar esses eventos à observabilidade; sua
+integração com os logs estruturados pertence à LN-09 e à OV-05.
+
+Ao esgotar uma falha transitória, o extrator gera
+`RetryLimitExceededError`. Falhas permanentes de acesso geram
+`PermanentSourceError`. Problemas no conteúdo CSV continuam gerando
+`MalformedSourceError`, sem retry. A repetição da tarefa completa no Prefect não
+é configurada pelos extratores e permanece sob responsabilidade da OV-04.
+
 ## Limites entre as etapas
 
 A comparação do hash com o histórico de objetos concluídos pertence ao fluxo
@@ -178,6 +215,7 @@ python -m unittest tests.extraction.test_csv_extractors -v
 python -m unittest tests.extraction.test_clientes_respondentes_extractors -v
 python -m unittest tests.extraction.test_questoes_respostas_extractors -v
 python -m unittest tests.extraction.test_batching_checkpoints -v
+python -m unittest tests.extraction.test_resilience -v
 ```
 
 ## Verificação com os arquivos fornecidos

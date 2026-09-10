@@ -23,12 +23,18 @@ ENVIRONMENT_VARIABLES = {
     "minio_secret_key": "ETL_MINIO_SECRET_KEY",
     "request_timeout_seconds": "ETL_REQUEST_TIMEOUT_SECONDS",
     "batch_size": "ETL_EXTRACTION_BATCH_SIZE",
+    "max_attempts": "ETL_EXTRACTION_MAX_ATTEMPTS",
+    "retry_initial_delay_seconds": "ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS",
+    "retry_max_delay_seconds": "ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS",
 }
 
 DEFAULT_VALUES: dict[str, str] = {
     "minio_input_prefix": "landing",
     "request_timeout_seconds": "30",
     "batch_size": "1000",
+    "max_attempts": "3",
+    "retry_initial_delay_seconds": "0.5",
+    "retry_max_delay_seconds": "5",
 }
 
 
@@ -145,6 +151,41 @@ def _validate_batch_size(value: ParameterValue) -> int:
     return batch_size
 
 
+def _validate_max_attempts(value: ParameterValue) -> int:
+    if isinstance(value, bool):
+        raise ConfigurationError(
+            "ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo"
+        )
+    if isinstance(value, int):
+        max_attempts = value
+    elif isinstance(value, str) and re.fullmatch(r"[1-9][0-9]*", value.strip()):
+        max_attempts = int(value)
+    else:
+        raise ConfigurationError(
+            "ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo"
+        )
+
+    if max_attempts <= 0:
+        raise ConfigurationError(
+            "ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo"
+        )
+    return max_attempts
+
+
+def _validate_retry_delay(value: ParameterValue, variable: str) -> float:
+    if isinstance(value, (bool, Path, SecretValue)) or value is None:
+        raise ConfigurationError(f"{variable} deve ser numérico e não negativo")
+    try:
+        delay = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ConfigurationError(
+            f"{variable} deve ser numérico e não negativo"
+        ) from exc
+    if not math.isfinite(delay) or delay < 0:
+        raise ConfigurationError(f"{variable} deve ser numérico e não negativo")
+    return delay
+
+
 @dataclass(frozen=True, slots=True)
 class ExtractionSettings:
     """Configurações validadas para leitura de objetos no MinIO."""
@@ -156,6 +197,9 @@ class ExtractionSettings:
     minio_input_prefix: str = "landing"
     request_timeout_seconds: float = 30.0
     batch_size: int = 1000
+    max_attempts: int = 3
+    retry_initial_delay_seconds: float = 0.5
+    retry_max_delay_seconds: float = 5.0
     source_dir: Path | None = None
 
     def safe_summary(self) -> dict[str, str | int | float | None]:
@@ -169,6 +213,9 @@ class ExtractionSettings:
             "minio_secret_key": REDACTED,
             "request_timeout_seconds": self.request_timeout_seconds,
             "batch_size": self.batch_size,
+            "max_attempts": self.max_attempts,
+            "retry_initial_delay_seconds": self.retry_initial_delay_seconds,
+            "retry_max_delay_seconds": self.retry_max_delay_seconds,
             "source_dir": str(self.source_dir) if self.source_dir else None,
         }
 
@@ -257,6 +304,29 @@ def load_extraction_settings(
     batch_size = _required_value(
         "batch_size", supplied_parameters, supplied_environment
     )
+    max_attempts = _required_value(
+        "max_attempts", supplied_parameters, supplied_environment
+    )
+    retry_initial_delay = _required_value(
+        "retry_initial_delay_seconds", supplied_parameters, supplied_environment
+    )
+    retry_max_delay = _required_value(
+        "retry_max_delay_seconds", supplied_parameters, supplied_environment
+    )
+
+    validated_retry_initial_delay = _validate_retry_delay(
+        retry_initial_delay,
+        "ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS",
+    )
+    validated_retry_max_delay = _validate_retry_delay(
+        retry_max_delay,
+        "ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS",
+    )
+    if validated_retry_max_delay < validated_retry_initial_delay:
+        raise ConfigurationError(
+            "ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS deve ser maior ou igual "
+            "a ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS"
+        )
 
     return ExtractionSettings(
         minio_endpoint=_validate_endpoint(
@@ -268,5 +338,8 @@ def load_extraction_settings(
         minio_input_prefix=_validate_object_prefix(str(minio_input_prefix)),
         request_timeout_seconds=_validate_timeout(timeout),
         batch_size=_validate_batch_size(batch_size),
+        max_attempts=_validate_max_attempts(max_attempts),
+        retry_initial_delay_seconds=validated_retry_initial_delay,
+        retry_max_delay_seconds=validated_retry_max_delay,
         source_dir=_validate_source_dir(source_dir),
     )

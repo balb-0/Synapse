@@ -30,6 +30,9 @@ class ExtractionSettingsTests(unittest.TestCase):
             "ETL_MINIO_SECRET_KEY": "secret-key-for-test",
             "ETL_REQUEST_TIMEOUT_SECONDS": "30",
             "ETL_EXTRACTION_BATCH_SIZE": "1000",
+            "ETL_EXTRACTION_MAX_ATTEMPTS": "4",
+            "ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS": "0.25",
+            "ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS": "2",
         }
 
     def test_loads_complete_configuration_from_environment(self) -> None:
@@ -39,6 +42,9 @@ class ExtractionSettingsTests(unittest.TestCase):
         self.assertEqual(settings.minio_input_prefix, "landing")
         self.assertEqual(settings.request_timeout_seconds, 30.0)
         self.assertEqual(settings.batch_size, 1000)
+        self.assertEqual(settings.max_attempts, 4)
+        self.assertEqual(settings.retry_initial_delay_seconds, 0.25)
+        self.assertEqual(settings.retry_max_delay_seconds, 2.0)
         self.assertEqual(
             settings.minio_access_key.get_secret_value(), "access-key-for-test"
         )
@@ -50,6 +56,9 @@ class ExtractionSettingsTests(unittest.TestCase):
                 "minio_input_prefix": "/incoming/",
                 "request_timeout_seconds": 12,
                 "batch_size": 250,
+                "max_attempts": 2,
+                "retry_initial_delay_seconds": 0,
+                "retry_max_delay_seconds": 1,
             },
             environ=self.environment,
         )
@@ -58,18 +67,27 @@ class ExtractionSettingsTests(unittest.TestCase):
         self.assertEqual(settings.minio_input_prefix, "incoming")
         self.assertEqual(settings.request_timeout_seconds, 12.0)
         self.assertEqual(settings.batch_size, 250)
+        self.assertEqual(settings.max_attempts, 2)
+        self.assertEqual(settings.retry_initial_delay_seconds, 0.0)
+        self.assertEqual(settings.retry_max_delay_seconds, 1.0)
 
     def test_uses_safe_defaults_for_optional_values(self) -> None:
         environment = dict(self.environment)
         environment.pop("ETL_MINIO_INPUT_PREFIX")
         environment.pop("ETL_REQUEST_TIMEOUT_SECONDS")
         environment.pop("ETL_EXTRACTION_BATCH_SIZE")
+        environment.pop("ETL_EXTRACTION_MAX_ATTEMPTS")
+        environment.pop("ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS")
+        environment.pop("ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS")
 
         settings = load_extraction_settings(environ=environment)
 
         self.assertEqual(settings.minio_input_prefix, "landing")
         self.assertEqual(settings.request_timeout_seconds, 30.0)
         self.assertEqual(settings.batch_size, 1000)
+        self.assertEqual(settings.max_attempts, 3)
+        self.assertEqual(settings.retry_initial_delay_seconds, 0.5)
+        self.assertEqual(settings.retry_max_delay_seconds, 5.0)
 
     def test_rejects_invalid_batch_size(self) -> None:
         for invalid_value in ("0", "1.5", "invalid", 0, True):
@@ -77,6 +95,26 @@ class ExtractionSettingsTests(unittest.TestCase):
                 with self.assertRaisesRegex(ConfigurationError, "inteiro positivo"):
                     load_extraction_settings(
                         parameters={"batch_size": invalid_value},
+                        environ=self.environment,
+                    )
+
+    def test_rejects_invalid_retry_configuration(self) -> None:
+        invalid_parameters = (
+            {"max_attempts": 0},
+            {"max_attempts": "1.5"},
+            {"retry_initial_delay_seconds": -1},
+            {"retry_max_delay_seconds": "invalid"},
+            {
+                "retry_initial_delay_seconds": 2,
+                "retry_max_delay_seconds": 1,
+            },
+        )
+
+        for parameters in invalid_parameters:
+            with self.subTest(parameters=parameters):
+                with self.assertRaises(ConfigurationError):
+                    load_extraction_settings(
+                        parameters=parameters,
                         environ=self.environment,
                     )
 

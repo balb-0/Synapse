@@ -5,7 +5,18 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, BinaryIO, ContextManager, Protocol, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    BinaryIO,
+    ContextManager,
+    Protocol,
+    runtime_checkable,
+)
+from urllib.parse import urlsplit
+
+if TYPE_CHECKING:
+    from .config import ExtractionSettings
 
 
 def _require_text(value: str, field_name: str) -> None:
@@ -46,6 +57,34 @@ class MinioObjectReader:
 
     def __init__(self, client: Any) -> None:
         self._client = client
+
+    @classmethod
+    def from_settings(cls, settings: ExtractionSettings) -> MinioObjectReader:
+        """Cria o adaptador com timeout e sem retry interno do cliente HTTP."""
+
+        import certifi
+        from minio import Minio
+        from urllib3 import PoolManager, Timeout
+
+        parsed_endpoint = urlsplit(settings.minio_endpoint)
+        http_client = PoolManager(
+            timeout=Timeout(
+                connect=settings.request_timeout_seconds,
+                read=settings.request_timeout_seconds,
+            ),
+            maxsize=10,
+            cert_reqs="CERT_REQUIRED",
+            ca_certs=certifi.where(),
+            retries=False,
+        )
+        client = Minio(
+            endpoint=parsed_endpoint.netloc,
+            access_key=settings.minio_access_key.get_secret_value(),
+            secret_key=settings.minio_secret_key.get_secret_value(),
+            secure=parsed_endpoint.scheme == "https",
+            http_client=http_client,
+        )
+        return cls(client)
 
     @contextmanager
     def open(self, reference: ObjectReference) -> Iterator[BinaryIO]:
