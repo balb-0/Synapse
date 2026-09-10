@@ -107,7 +107,28 @@
         "accumulatingSnapshot": true,
         "bridgeTables": "Não previstas para este cubo na documentação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Pesquisa; Tempo; Status da Pesquisa; Área; Tipo; Perfil"
+        "dimensoesConformadas": "Pesquisa; Tempo; Status da Pesquisa; Área; Tipo; Perfil",
+        "particionamento": "Por data de solicitação ou data de divulgação, conforme a necessidade do painel.",
+        "materializacoesAgregacoes": "Agregações por período, área, tipo, status, complexidade, família de pesquisa e flag de prorrogação.",
+        "indicesClusteringOrdenacao": "Chaves de pesquisa, papéis de tempo, status, área, tipo e família de pesquisa.",
+        "queriesCriticas": "Análises de duração por etapa, volume de entregas, pesquisas prorrogadas e gargalos operacionais.",
+        "classificacaoPublico": false,
+        "classificacaoInterno": true,
+        "classificacaoConfidencial": false,
+        "classificacaoRestrito": false,
+        "dadoPessoal": false,
+        "dadoSensivel": false,
+        "dadoCritico": true,
+        "criticidade": "Cubo operacional central para acompanhar o ciclo das pesquisas; não armazena dados individuais de respondentes.",
+        "perfisAutorizados": "Camada externa com agregações aprovadas; camada interna com detalhe para a Central de Pesquisas conforme menor privilégio.",
+        "controleAcesso": "Publicação externa apenas em agregações autorizadas e com limiar de anonimização homologado; detalhe operacional restrito à camada interna.",
+        "trilhaAuditoria": "DIM_FONTE_DADO e DIM_EXECUCAO_CARGA preservam origem, versão da fonte, execução, resultado e timestamp do ETL.",
+        "retencao": "Manter os marcos e chaves de origem pelo prazo aprovado para finalidade, obrigação aplicável e prestação de contas.",
+        "arquivamento": "Arquivar versões de dimensões e execuções de carga enquanto o critério de retenção estiver vigente.",
+        "descarte": "Eliminar ou anonimizar ao fim da retenção aprovada; chaves órfãs permanecem em quarentena até reconciliação ou descarte autorizado.",
+        "metadadosObrigatorios": "ID da pesquisa, título, marcos do ciclo, área, status, tipo, complexidade, tipo de resposta, fonte, versão e execução de carga.",
+        "kpiQualidade": "Cobertura dos marcos: pesquisas com data válida sobre pesquisas elegíveis, por marco; pares incompletos ficam fora das durações e entram no denominador de cobertura.",
+        "kpiGovernanca": "Cobertura de linhagem: pesquisas com fonte, versão e execução registradas sobre pesquisas carregadas."
       },
       "lists": {
         "grao": [
@@ -147,6 +168,27 @@
           "sk_familia: DIM_FAMILIA_PESQUISA, derivada do título para agrupar edições recorrentes.",
           "sk_fonte: DIM_FONTE_DADO, dimensão de linhagem do sistema de origem.",
           "sk_carga: DIM_EXECUCAO_CARGA, dimensão de governança da execução de ETL."
+        ],
+        "fontes": [
+          "pesquisas.csv"
+        ],
+        "transformacoes": [
+          "Validar e converter datas sem transformar sentinelas ou valores inválidos em datas válidas.",
+          "Calcular diferenças em dias corridos entre pares válidos; só calcular dias úteis quando houver calendário homologado.",
+          "Quando houver prorrogação, usar prorrogada_ate como fim efetivo da coleta e referência da tabulação.",
+          "Derivar flag_prorrogada pela presença de prorrogada_ate e DIM_FAMILIA_PESQUISA pela normalização controlada do título.",
+          "Preservar chaves recebidas como chaves de origem, sem criar identidade canônica antes da reconciliação."
+        ],
+        "qualidade": [
+          "Os pesquisa_id 424, 1116, 1139 e 1147 não existem em pesquisas.csv e permanecem como Não mapeado até reconciliação.",
+          "data_aprov possui cobertura de 20 em 366 pesquisas, ou 5,5%; métricas dependentes devem declarar denominador e valores excluídos.",
+          "DIM_FAMILIA_PESQUISA deve ser homologada pelo Sindusfarma antes de uso oficial.",
+          "O cubo não contém dados individuais de respondentes e toda publicação depende da política de agregação aprovada."
+        ],
+        "scd": [
+          "Aplicar SCD1 a correções sem valor histórico e SCD2 somente a atributos cuja mudança histórica precise ser preservada após regra aprovada.",
+          "Usar chaves duráveis para identidade e chaves substitutas para versões dimensionais.",
+          "Manter chaves de origem, vigência e linhagem de carga para auditoria e reconciliação."
         ]
       }
     },
@@ -162,7 +204,28 @@
         "accumulatingSnapshot": false,
         "bridgeTables": "Não previstas para este cubo na documentação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Pesquisa; Tempo"
+        "dimensoesConformadas": "Pesquisa; Tempo",
+        "particionamento": "Por data da pesquisa e, opcionalmente, por data da resposta quando hora_inicio for válida.",
+        "materializacoesAgregacoes": "Agregações por pesquisa, empresa, pessoa conciliada, cargo agrupado, departamento agrupado, período e representatividade homologada.",
+        "indicesClusteringOrdenacao": "Chaves de pesquisa, empresa, pessoa, data da pesquisa, data da resposta e seq_ocorrencia.",
+        "queriesCriticas": "Participação por empresa, pessoas distintas conciliadas, engajamento por público e cobertura de mercado após homologação.",
+        "classificacaoPublico": false,
+        "classificacaoInterno": false,
+        "classificacaoConfidencial": false,
+        "classificacaoRestrito": true,
+        "dadoPessoal": true,
+        "dadoSensivel": false,
+        "dadoCritico": true,
+        "criticidade": "Contém vínculo com pessoa, cargo e departamento; combinações podem permitir reidentificação mesmo sem e-mail.",
+        "perfisAutorizados": "Central de Pesquisas no detalhe estritamente necessário; áreas técnicas e gestores somente em agregações autorizadas; público externo sem detalhe.",
+        "controleAcesso": "Aplicar menor privilégio, finalidade e segregação por camada; agrupar cargo e departamento e bloquear células abaixo do limiar homologado.",
+        "trilhaAuditoria": "Registrar fonte, versão, execução, identidade conciliada, regra de deduplicação, consulta, exportação e decisão de acesso.",
+        "retencao": "Reter participação e mapa de identidade separadamente, somente enquanto necessários à finalidade e conforme prazo aprovado.",
+        "arquivamento": "Arquivar versões de conciliação com chaves duráveis, acesso restrito e mesma classificação da origem.",
+        "descarte": "Eliminar contato e mapa de identidade ao fim do prazo aprovado; duplicatas não são apagadas silenciosamente e seguem a regra auditável de ocorrência.",
+        "metadadosObrigatorios": "Pesquisa, empresa, pessoa quando conciliada, hora_inicio, hora_termino, origem, versão, execução, regra de deduplicação e estado de conciliação.",
+        "kpiQualidade": "Cobertura temporal, duplicidade no grão e conciliação: numerador, denominador, unidade, fonte e regra registrados por execução.",
+        "kpiGovernanca": "Percentual de registros com linhagem, chave durável, decisão de acesso e regra de anonimização aplicada."
       },
       "lists": {
         "grao": [
@@ -188,6 +251,31 @@
           "sk_pessoa: DIM_PESSOA, com cargo, departamento, nível hierárquico e agrupamento de departamento para anonimização; sem e-mail.",
           "sk_data_pesquisa: DIM_TEMPO herdada de data_divulgacao em pesquisas.csv, chave temporal primária.",
           "sk_data_resposta: DIM_TEMPO extraída de hora_inicio em respondentes.csv, chave opcional para sazonalidade e tempo de preenchimento."
+        ],
+        "fontes": [
+          "respondentes.csv",
+          "pesquisas.csv para data_divulgacao da pesquisa",
+          "clientes.csv para atributos da pessoa respondente",
+          "empresas.csv para atributos da empresa"
+        ],
+        "transformacoes": [
+          "Criar qtd_participacao como 1 para cada linha preservada.",
+          "Criar seq_ocorrencia para numerar ocorrências de pesquisa e pessoa; usar seq_ocorrencia = 1 quando a análise exigir deduplicação.",
+          "Calcular minutos_preenchimento somente quando hora_inicio e hora_termino forem válidas e consistentes.",
+          "Usar data_divulgacao como chave temporal primária enquanto hora_inicio tiver baixa cobertura.",
+          "Não escolher automaticamente entre market_share de respondentes.csv e percentual de mercado de empresas.csv; bloquear I09 até homologação."
+        ],
+        "qualidade": [
+          "Foram observadas 838 ocorrências adicionais da mesma pessoa na mesma pesquisa; elas devem ser numeradas, não apagadas.",
+          "hora_inicio e hora_termino têm cobertura aproximada de 4,3%; análises temporais devem declarar o denominador.",
+          "market_share de respondentes.csv diverge do percentual de mercado de empresas.csv e exige decisão de fonte autoritativa.",
+          "Cargo e departamento brutos são restritos e combinações com baixa frequência podem reidentificar pessoas.",
+          "As 55 participações com id_pesq 304 permanecem órfãs até reconciliação."
+        ],
+        "scd": [
+          "Usar id_empresa_durable e id_pessoa_durable para contagens distintas entre versões.",
+          "Aplicar SCD2 somente a atributos históricos aprovados; cargo, departamento e empresa exigem vigência e fonte.",
+          "Separar a identidade canônica das versões dimensionais e preservar o estado da conciliação."
         ]
       }
     },
@@ -203,7 +291,28 @@
         "accumulatingSnapshot": false,
         "bridgeTables": "Não previstas para este cubo na documentação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Tempo; Status da Pesquisa; Área; Tipo; Perfil"
+        "dimensoesConformadas": "Tempo; Status da Pesquisa; Área; Tipo; Perfil",
+        "particionamento": "Por último dia do mês do snapshot.",
+        "materializacoesAgregacoes": "Agregações mensais por status, área, tipo e perfil; estoques separados de fluxos.",
+        "indicesClusteringOrdenacao": "sk_data_fim_mes, sk_status, sk_area, sk_tipo e sk_perfil.",
+        "queriesCriticas": "Pesquisas em andamento por mês, evolução das entregas, entradas e saídas por status e gargalos operacionais.",
+        "classificacaoPublico": false,
+        "classificacaoInterno": true,
+        "classificacaoConfidencial": false,
+        "classificacaoRestrito": false,
+        "dadoPessoal": false,
+        "dadoSensivel": false,
+        "dadoCritico": true,
+        "criticidade": "Cubo operacional de fluxo mensal sem histórico anterior ao go-live; não contém detalhe pessoal.",
+        "perfisAutorizados": "Central de Pesquisas, áreas técnicas e gestores em agregações por status, área, tipo e perfil.",
+        "controleAcesso": "Publicar apenas agregações operacionais autorizadas, sem detalhe individual de respondentes.",
+        "trilhaAuditoria": "Registrar data de competência, instante de fechamento, regra de status e execução que produziu cada snapshot.",
+        "retencao": "Manter snapshots mensais pelo período aprovado para comparação histórica e prestação de contas.",
+        "arquivamento": "Arquivar cada fotografia mensal com schema, regra de classificação e execução identificados.",
+        "descarte": "Expurgar snapshots somente após o prazo aprovado; ausência de histórico anterior não autoriza backfill inferido.",
+        "metadadosObrigatorios": "Data de fim do mês, instante de fechamento, status, área, tipo, perfil, flags do status, versão da regra e execução.",
+        "kpiQualidade": "Cobertura e consistência do fechamento: combinações válidas sobre combinações avaliadas, por execução.",
+        "kpiGovernanca": "Cobertura de snapshots: fechamentos concluídos, versionados e rastreáveis sobre fechamentos esperados."
       },
       "lists": {
         "grao": [
@@ -228,6 +337,28 @@
           "sk_area: DIM_AREA, área responsável pela pesquisa.",
           "sk_tipo: DIM_TIPO_PESQUISA, tipo da pesquisa.",
           "sk_perfil: DIM_PERFIL_PESQUISA, com atributos imutáveis como complexidade e tipo de resposta."
+        ],
+        "fontes": [
+          "Cubo 1 como contrato dimensional de origem",
+          "pesquisas.csv como baseline inicial dos atributos de pesquisa",
+          "Histórico de transições produzido após o go-live"
+        ],
+        "transformacoes": [
+          "Gerar o snapshot após o fechamento de cada mês, com competência e execução explícitas.",
+          "Usar papel específico de DIM_TEMPO para sk_data_fim_mes.",
+          "Calcular entradas e saídas pelo histórico de transições, nunca apenas pela diferença líquida entre snapshots.",
+          "Calcular pesquisas a finalizar na camada semântica com flag_conta_como_a_finalizar, sem armazenar qtd_a_finalizar."
+        ],
+        "qualidade": [
+          "Não existe histórico antes do go-live; backfill inferido é proibido.",
+          "Estoques mensais não podem ser somados entre meses.",
+          "Entradas e saídas permanecem indisponíveis enquanto o histórico de transições não existir.",
+          "DIM_STATUS_PESQUISA deve registrar flag_em_aberto, flag_conta_como_a_finalizar e flag_terminal."
+        ],
+        "scd": [
+          "Manter snapshots mensais imutáveis a partir do go-live.",
+          "Versionar em DIM_STATUS_PESQUISA mudanças de significado, agrupamento ou flags de status.",
+          "Preservar a versão da regra usada em cada fechamento."
         ]
       }
     },
@@ -243,7 +374,28 @@
         "accumulatingSnapshot": false,
         "bridgeTables": "Não prevista; o vínculo entre pesquisa e pergunta é modelado no próprio fato de associação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Pesquisa; Tempo"
+        "dimensoesConformadas": "Pesquisa; Tempo",
+        "particionamento": "Por pesquisa e data de divulgação herdada de pesquisas.csv.",
+        "materializacoesAgregacoes": "Agregações por pesquisa, tipo de questão, pergunta distinta, quantidade de alternativas e período.",
+        "indicesClusteringOrdenacao": "sk_pesquisa, sk_pergunta e sk_data_pesquisa.",
+        "queriesCriticas": "Perguntas por pesquisa, tipos de questão, instrumentos semelhantes e cobertura do acervo.",
+        "classificacaoPublico": false,
+        "classificacaoInterno": true,
+        "classificacaoConfidencial": false,
+        "classificacaoRestrito": false,
+        "dadoPessoal": false,
+        "dadoSensivel": false,
+        "dadoCritico": true,
+        "criticidade": "Cobre somente parte do acervo e é extensão para futura FATO_RESPOSTA; não contém respostas individuais conciliadas.",
+        "perfisAutorizados": "Central de Pesquisas e áreas técnicas; gestores e público externo apenas sobre resultados agregados e autorizados.",
+        "controleAcesso": "Exibir indisponibilidade fora da cobertura; não liberar resposta individual nem segmento sem autorização e limiar de anonimização.",
+        "trilhaAuditoria": "Registrar arquivo, pesquisa_id original, vínculo direto ou fallback, título comparado, versão da pergunta e confiança da extração.",
+        "retencao": "Reter instrumento, associações e linhagem conforme finalidade da pesquisa e política aprovada.",
+        "arquivamento": "Arquivar versões de DIM_PERGUNTA e mapeamentos de pesquisa enquanto a retenção estiver vigente.",
+        "descarte": "Eliminar conforme prazo aprovado; órfãos ficam em quarentena e nunca são corrigidos ou vinculados por similaridade silenciosamente.",
+        "metadadosObrigatorios": "Pesquisa, pesquisa_id original, pergunta, tipo, alternativas, arquivo e coluna de origem, versão, estado do vínculo e confiança da extração.",
+        "kpiQualidade": "Cobertura do acervo e integridade do vínculo: pesquisas cobertas e linhas ligadas sobre respectivos denominadores.",
+        "kpiGovernanca": "Cobertura de linhagem e autorização: associações com origem, versão e decisão registradas sobre associações elegíveis."
       },
       "lists": {
         "grao": [
@@ -264,6 +416,29 @@
           "sk_pesquisa: DIM_PESQUISA, pesquisa que contém a pergunta.",
           "sk_pergunta: DIM_PERGUNTA, com enunciado, tipo de questão, número de alternativas, formato de arquivo de origem e outras características.",
           "sk_data_pesquisa: DIM_TEMPO herdada da data_divulgacao de pesquisas.csv."
+        ],
+        "fontes": [
+          "questoes.csv",
+          "pesquisas.csv para vínculo com DIM_PESQUISA e data_divulgacao"
+        ],
+        "transformacoes": [
+          "Deduplicar a associação pesquisa e pergunta no grão declarado, preservando a linha de origem.",
+          "Derivar qtd_pergunta por COUNT(*) das associações distintas; manter qtd_alternativas como atributo de DIM_PERGUNTA.",
+          "Ligar diretamente por ID as pesquisas 112, 238, 274, 377, 414 e 415.",
+          "Para 424, 1116, 1139 e 1147, registrar estado em reconciliação; fallback por título exige correspondência exata e trilha auditável.",
+          "Não ligar respondent_id a clientes ou participações sem contrato de identidade aprovado."
+        ],
+        "qualidade": [
+          "questoes.csv cobre 10 das 366 pesquisas, aproximadamente 2,7% do acervo.",
+          "Quatro pesquisa_id não existem em pesquisas.csv: 424, 1116, 1139 e 1147.",
+          "A ligação direta por ID cobre 188 das 231 linhas, aproximadamente 81,4%.",
+          "Consultas fora das 10 pesquisas cobertas devem retornar indisponível, nunca zero.",
+          "Distribuições agregadas de respostas não autorizam consulta individual nem união presumida de identidades."
+        ],
+        "scd": [
+          "Versionar DIM_PERGUNTA quando enunciado, tipo, alternativas ou metadados de origem mudarem.",
+          "A associação deve referenciar a versão do instrumento vigente na pesquisa.",
+          "Manter o cubo como ponto de extensão para FATO_RESPOSTA somente após reconciliação e autorização."
         ]
       }
     }

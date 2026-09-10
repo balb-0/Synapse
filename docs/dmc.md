@@ -17,6 +17,12 @@ afirmam a existência de um data warehouse implantado. Estados pendentes,
 indisponíveis ou propostos representam dependências reais e não devem ser
 interpretados como campos esquecidos.
 
+Os campos de Modelo Dimensional, Dados e Governança dos quatro cubos estão no
+JSON. Táticas Arquiteturais e Arquitetura do ETL estão completas neste Markdown
+para transferência à interface nova; o texto disponibilizado pela ferramenta
+não informa as chaves JSON desses blocos, portanto elas só devem ser adicionadas
+ao arquivo canônico a partir de uma exportação real, sem nomes inventados.
+
 ## 1. Negócio e consumo analítico
 
 ### 1.1 Objetivos de negócio
@@ -274,6 +280,19 @@ e-mail nem resposta individual nos painéis.
 
 *Fonte: material elaborado pela equipe.*
 
+```mermaid
+flowchart LR
+    DP[DIM_PESQUISA] --> F1[FATO_CICLO_PESQUISA]
+    DT[DIM_TEMPO<br/>7 papéis] --> F1
+    DS[DIM_STATUS_PESQUISA] --> F1
+    DA[DIM_AREA] --> F1
+    DTI[DIM_TIPO_PESQUISA] --> F1
+    DPE[DIM_PERFIL_PESQUISA] --> F1
+    DF[DIM_FAMILIA_PESQUISA] --> F1
+    DFO[DIM_FONTE_DADO] --> F1
+    DC[DIM_EXECUCAO_CARGA] --> F1
+```
+
 #### Grão
 
 - Uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual.
@@ -323,6 +342,38 @@ e-mail nem resposta individual nos painéis.
 - `DIM_FAMILIA_PESQUISA` é derivada por normalização de títulos e precisa de validação do Sindusfarma antes de ser tratada como classificação oficial.
 - O cubo não armazena dados individuais de respondentes. Publicações externas exigem agregação e os controles de anonimização aprovados.
 
+#### Dados do C01
+
+**Fontes:** `pesquisas.csv`.
+
+**Transformações:** validar e converter datas; calcular diferenças em dias
+corridos entre pares válidos; usar calendário útil somente após homologação;
+usar `prorrogada_ate` como fim efetivo quando existir; derivar
+`flag_prorrogada` e `DIM_FAMILIA_PESQUISA`; preservar chaves de origem.
+
+**Qualidade:** quatro IDs de outras fontes permanecem em reconciliação;
+`data_aprov` tem baixa cobertura; famílias derivadas exigem homologação; o cubo
+não recebe detalhe individual de respondentes.
+
+**Histórico/SCD:** usar SCD2 somente após aprovação das regras; manter chave
+durável, chave de origem, início/fim de vigência, versão e linhagem de carga.
+
+#### Otimização e governança do C01
+
+| Campo | Definição |
+| :--- | :--- |
+| Particionamento | Data de solicitação ou divulgação, conforme a consulta. |
+| Materializações | Período, área, tipo, status, complexidade, família e prorrogação. |
+| Ordenação | Pesquisa, papéis de tempo, status, área, tipo e família. |
+| Queries críticas | Duração por etapa, entregas, prorrogações e gargalos. |
+| Classificação | Interno; sem dado pessoal ou sensível; dado crítico. Uma saída agregada só se torna pública após autorização. |
+| Acesso | Agregação externa autorizada; detalhe interno por menor privilégio. |
+| Auditoria | Fonte, versão, execução, resultado e timestamp do ETL. |
+| Ciclo de vida | Retenção por finalidade; arquivo versionado; expurgo aprovado e quarentena de órfãos. |
+| Metadados | Pesquisa, título, marcos, área, status, tipo, perfil, fonte, versão e execução. |
+| KPI de qualidade | Pesquisas com data válida / pesquisas elegíveis, por marco. |
+| KPI de governança | Pesquisas com fonte, versão e execução / pesquisas carregadas. |
+
 ### 3.2 C02 — Participação e Representatividade
 
 | Propriedade | Definição |
@@ -338,6 +389,15 @@ e-mail nem resposta individual nos painéis.
 ![Diagrama do Cubo 2 — Participação e Representatividade](assets/prototipos-dashboards/imagens/cubo-02.png)
 
 *Fonte: material elaborado pela equipe.*
+
+```mermaid
+flowchart LR
+    DP[DIM_PESQUISA] --> F2[FATO_PARTICIPACAO]
+    DE[DIM_EMPRESA] --> F2
+    DPE[DIM_PESSOA] --> F2
+    DTP[DIM_TEMPO<br/>data da pesquisa] --> F2
+    DTR[DIM_TEMPO<br/>data da resposta] --> F2
+```
 
 #### Grão
 
@@ -375,6 +435,40 @@ e-mail nem resposta individual nos painéis.
 - Cargo e departamento são restritos. A camada externa deve usar agrupamentos aprovados e não pode expor e-mail ou combinações reidentificáveis.
 - Contagens distintas devem usar chaves duráveis de empresa ou pessoa, e não chaves substitutas sujeitas a versionamento SCD2.
 
+#### Dados do C02
+
+**Fontes:** `respondentes.csv`, `pesquisas.csv`, `clientes.csv` e
+`empresas.csv`.
+
+**Transformações:** criar `qtd_participacao`; numerar `seq_ocorrencia`;
+calcular duração somente com horários válidos; usar `data_divulgacao` como data
+primária enquanto `hora_inicio` tiver baixa cobertura; não escolher uma fonte
+de market share antes da homologação.
+
+**Qualidade:** 838 ocorrências adicionais devem ser preservadas e numeradas;
+horários têm cobertura aproximada de 4,3%; market share é divergente; cargo e
+departamento são restritos; 55 participações apontam para `id_pesq=304` ausente.
+
+**Histórico/SCD:** usar chaves duráveis nas contagens; versionar atributos
+históricos somente com vigência e fonte aprovadas; separar identidade canônica
+das versões dimensionais.
+
+#### Otimização e governança do C02
+
+| Campo | Definição |
+| :--- | :--- |
+| Particionamento | Data da pesquisa e, opcionalmente, data da resposta válida. |
+| Materializações | Pesquisa, empresa, pessoa conciliada, público agrupado, período e representatividade homologada. |
+| Ordenação | Pesquisa, empresa, pessoa, datas e `seq_ocorrencia`. |
+| Queries críticas | Participação por empresa, pessoas distintas, engajamento e cobertura de mercado. |
+| Classificação | Restrito; dado pessoal e crítico; não sensível por definição atual. |
+| Acesso | Menor privilégio e finalidade; agrupamento de atributos e bloqueio abaixo do limiar homologado. |
+| Auditoria | Origem, execução, conciliação, deduplicação, consultas, exportações e decisões de acesso. |
+| Ciclo de vida | Identidade separada; retenção mínima; arquivo restrito; eliminação autorizada sem apagar duplicatas silenciosamente. |
+| Metadados | Pesquisa, empresa, pessoa conciliada, horários, origem, versão, execução e estado da conciliação. |
+| KPI de qualidade | Cobertura temporal, duplicidade e conciliação com numerador e denominador. |
+| KPI de governança | Registros com linhagem, chave durável, decisão de acesso e anonimização / registros elegíveis. |
+
 ### 3.3 C03 — Pipeline Mensal
 
 | Propriedade | Definição |
@@ -390,6 +484,15 @@ e-mail nem resposta individual nos painéis.
 ![Diagrama do Cubo 3 — Pipeline Mensal](assets/prototipos-dashboards/imagens/cubo-03.png)
 
 *Fonte: material elaborado pela equipe.*
+
+```mermaid
+flowchart LR
+    DT[DIM_TEMPO] --> F3[FATO_PIPELINE_MENSAL]
+    DS[DIM_STATUS_PESQUISA] --> F3
+    DA[DIM_AREA] --> F3
+    DTI[DIM_TIPO_PESQUISA] --> F3
+    DP[DIM_PERFIL_PESQUISA] --> F3
+```
 
 #### Grão
 
@@ -425,6 +528,38 @@ e-mail nem resposta individual nos painéis.
 - `DIM_STATUS_PESQUISA` deve oferecer `flag_em_aberto`, `flag_conta_como_a_finalizar` e `flag_terminal`, evitando regras de status fixas no código.
 - O fechamento recomendado ocorre no primeiro dia útil do mês, referente ao último dia do mês anterior, após aprovação operacional dessa agenda.
 
+#### Dados do C03
+
+**Fontes:** derivado do C01, com `pesquisas.csv` como base inicial.
+
+**Transformações:** fechar o mês em execução identificada; usar papel específico
+de `DIM_TEMPO`; calcular entradas e saídas apenas sobre histórico real; derivar
+“a finalizar” na camada semântica pelas flags de status.
+
+**Qualidade:** não há histórico anterior ao go-live; backfill inferido é
+proibido; estoque não pode ser somado entre meses; toda linha precisa de status
+válido e versão da regra.
+
+**Histórico/SCD:** snapshots mensais são imutáveis; mudanças de significado dos
+status são versionadas em `DIM_STATUS_PESQUISA`; cada fechamento preserva a
+versão aplicada.
+
+#### Otimização e governança do C03
+
+| Campo | Definição |
+| :--- | :--- |
+| Particionamento | Último dia do mês do snapshot. |
+| Materializações | Agregações mensais por status, área, tipo e perfil; estoques separados de fluxos. |
+| Ordenação | `sk_data_fim_mes`, status, área, tipo e perfil. |
+| Queries críticas | Pipeline por mês, entregas, entradas, saídas e gargalos. |
+| Classificação | Interno; sem dado pessoal ou sensível; dado crítico. |
+| Acesso | Agregações operacionais autorizadas, sem detalhe pessoal. |
+| Auditoria | Competência, fechamento, versão da regra e execução do snapshot. |
+| Ciclo de vida | Retenção mensal aprovada, arquivo de cada fotografia e expurgo após o prazo. |
+| Metadados | Competência, instante de fechamento, dimensões, flags, versão da regra e execução. |
+| KPI de qualidade | Combinações válidas / combinações avaliadas em cada fechamento. |
+| KPI de governança | Snapshots com competência, regra e execução completas / snapshots esperados. |
+
 ### 3.4 C04 — Resultados e Questionários
 
 | Propriedade | Definição |
@@ -440,6 +575,13 @@ e-mail nem resposta individual nos painéis.
 ![Diagrama do Cubo 4 — Resultados e Questionários](assets/prototipos-dashboards/imagens/cubo-04.png)
 
 *Fonte: material elaborado pela equipe.*
+
+```mermaid
+flowchart LR
+    DP[DIM_PESQUISA] --> F4[FATO_PESQUISA_PERGUNTA]
+    DQ[DIM_PERGUNTA] --> F4
+    DT[DIM_TEMPO] --> F4
+```
 
 #### Grão
 
@@ -470,6 +612,39 @@ e-mail nem resposta individual nos painéis.
 - A fonte cobre 10 de 366 pesquisas (2,7%). Para as demais, o consumo deve declarar “Dados não disponíveis”.
 - O cubo é ponto de extensão para uma futura `FATO_RESPOSTA`. A ponte entre `respostas.respondent_id` e a identidade de `respondentes.csv` não está comprovada; análise por pessoa ou segmento continua bloqueada.
 - `qtd_alternativas` é atributo de `DIM_PERGUNTA`. Agregações devem operar sobre perguntas distintas e declarar o denominador.
+
+#### Dados do C04
+
+**Fontes:** `questoes.csv` e `pesquisas.csv`. `respostas.csv` é somente uma
+extensão agregada futura e não integra o cubo atual.
+
+**Transformações:** deduplicar a associação no grão; derivar `qtd_pergunta` por
+contagem; manter `qtd_alternativas` como atributo; vincular seis pesquisas por
+ID; manter quatro IDs em reconciliação com fallback exato e auditável; não unir
+respondentes e clientes sem contrato aprovado.
+
+**Qualidade:** cobertura de 10/366 pesquisas; ligação direta de 188/231 linhas;
+quatro IDs órfãos; consulta fora da cobertura retorna indisponível; resposta
+agregada não autoriza consulta individual.
+
+**Histórico/SCD:** versionar `DIM_PERGUNTA` e o instrumento vigente; integrar
+uma futura `FATO_RESPOSTA` somente depois da reconciliação e autorização.
+
+#### Otimização e governança do C04
+
+| Campo | Definição |
+| :--- | :--- |
+| Particionamento | Pesquisa e data de divulgação. |
+| Materializações | Pesquisa, tipo de questão, pergunta distinta, alternativas e período. |
+| Ordenação | `sk_pesquisa`, `sk_pergunta` e `sk_data_pesquisa`. |
+| Queries críticas | Perguntas por pesquisa, tipos, instrumentos semelhantes e cobertura. |
+| Classificação | Interno; sem dado pessoal ou sensível no modelo atual; dado crítico. |
+| Acesso | Indisponibilidade fora da cobertura; nenhum detalhe individual sem autorização. |
+| Auditoria | Arquivo, ID original, tipo do vínculo, título comparado, versão e confiança. |
+| Ciclo de vida | Retenção pela finalidade; arquivo de versões; expurgo aprovado; órfãos em quarentena. |
+| Metadados | Pesquisa, ID original, pergunta, tipo, alternativas, origem, versão, vínculo e confiança. |
+| KPI de qualidade | Pesquisas cobertas / acervo e linhas ligadas / linhas avaliadas. |
+| KPI de governança | Associações com origem, versão e decisão / associações elegíveis. |
 
 ### 3.5 Dimensões conformadas entre os cubos
 
@@ -507,7 +682,170 @@ recorte atual. Uma possível reutilização futura não as torna conformadas hoj
 | PB12 | RF12 | I17, I19, I21, I24 | Perfilamento de qualidade e governança | D04 |
 | PB13 | RF13 | I14, I15 | C04; metadados de versão e validação dependem de integração | D03 |
 
-## 5. Validação
+## 5. Táticas arquiteturais
+
+### 5.1 Idempotência por conteúdo e checkpoint tardio
+
+| Campo | Definição |
+| :--- | :--- |
+| Problema atacado | Eventos do MinIO podem ser repetidos e snapshots podem ser reenviados; confirmar cedo demais duplica ou perde dados. |
+| Atributo de qualidade | Confiabilidade e modificabilidade. |
+| Tática | Identificar a entrada por fonte, versão e SHA-256; confirmar checkpoint somente depois de transformar, carregar e reconciliar. |
+| Implementação | `ExtractedBatch`, `CheckpointStore`, tabela de controle no DuckDB e fluxo Prefect. |
+| Alternativas descartadas | Usar somente nome do arquivo ou `event_id`, pois ambos podem repetir ou mudar sem representar o conteúdo. |
+| Evidência | Testes de checkpoint, batching, identidade de carga, DDL de controle e reprocessamento seguro. |
+| Consequências | Exige tabela de controle e cálculo de hash; permite reexecução convergente. Reversão demanda migrar identidades e checkpoints. |
+
+```mermaid
+flowchart LR
+    A[Objeto recebido] --> B[SHA-256]
+    B --> C{Concluído?}
+    C -->|sim| D[Ignorar com registro]
+    C -->|não| E[Transformar e carregar]
+    E --> F[Reconciliar contagens]
+    F --> G[Confirmar checkpoint]
+```
+
+### 5.2 Validação fail-closed e quarentena auditável
+
+| Campo | Definição |
+| :--- | :--- |
+| Problema atacado | Tipos inválidos, chaves órfãs e conteúdo identificável podem contaminar o consumo ou vazar em logs. |
+| Atributo de qualidade | Segurança e confiabilidade. |
+| Tática | Falha de schema interrompe a carga; registros inválidos seguem para quarentena com motivo e referência, sem valor bruto no log. |
+| Implementação | `etl.transformation`, `QuarantineStore`, schemas canônicos, regras de consistência e logs sanitizados. |
+| Alternativas descartadas | Corrigir ou apagar silenciosamente; registrar payload bruto em logs; aceitar schema incompatível. |
+| Evidência | Testes de conversão, consistência, quarentena, ausência de valores brutos e integridade referencial. |
+| Consequências | Requer reconciliação operacional dos rejeitados; preserva auditabilidade e impede publicação indevida. |
+
+```mermaid
+flowchart LR
+    A[Registro extraído] --> B[Schema e regras]
+    B --> C{Válido?}
+    C -->|sim| D[Ingestão tratada]
+    C -->|não| E[Quarentena restrita]
+    D --> F[Reconciliação]
+    E --> F
+```
+
+### 5.3 Evento, timeout e retry limitado
+
+| Campo | Definição |
+| :--- | :--- |
+| Problema atacado | Varredura periódica aumenta latência; falhas transitórias podem interromper a ingestão; retry oculto pode duplicar trabalho. |
+| Atributo de qualidade | Disponibilidade e desempenho. |
+| Tática | Evento `s3:ObjectCreated`, timeout explícito e retry limitado somente para falha transitória. |
+| Implementação | Adaptador HTTP MinIO → deployment Prefect; `resilience.py` e `failures.py`; parâmetros de timeout. |
+| Alternativas descartadas | Polling contínuo; retry infinito; NiFi na arquitetura principal, que duplicaria responsabilidades com Python e Prefect. |
+| Evidência | Testes de resiliência, classificação de falhas e contratos de evento; smoke operacional previsto. |
+| Consequências | Adiciona Prefect e adaptador de eventos; a fila de notificações precisa ser persistente. A troca do orquestrador fica isolada dos contratos de domínio. |
+
+```mermaid
+sequenceDiagram
+    MinIO->>Adaptador: s3:ObjectCreated
+    Adaptador->>Prefect: bucket, key, version_id, event_id
+    Prefect->>Extrator: executar com timeout
+    alt falha transitória
+        Prefect->>Extrator: retry limitado
+    else falha permanente
+        Prefect-->>Prefect: encerrar sem retry
+    end
+```
+
+## 6. Arquitetura do ETL
+
+### 6.1 Fontes e extração
+
+As seis fontes atuais são snapshots CSV. Não existe coluna de atualização ou
+frequência confirmada que sustente extração incremental por data. O recorte
+incremental técnico é a versão do objeto e seu SHA-256.
+
+| Fonte | Grão | Extração | Critério de recorte |
+| :--- | :--- | :--- | :--- |
+| `pesquisas.csv` | Pesquisa | CSV do MinIO, em lotes | versão + SHA-256 + posição `row:N` |
+| `empresas.csv` | Empresa | CSV do MinIO, em lotes | versão + SHA-256 + posição `row:N` |
+| `clientes.csv` | Pessoa cadastrada | CSV do MinIO, em lotes | versão + SHA-256 + posição `row:N` |
+| `respondentes.csv` | Participação | CSV do MinIO, em lotes | versão + SHA-256 + posição absoluta |
+| `questoes.csv` | Pergunta em pesquisa | CSV do MinIO, em lotes | versão + SHA-256 + posição `row:N` |
+| `respostas.csv` | Elemento de resposta | CSV do MinIO, em lotes | versão + SHA-256 + posição `row:N` |
+
+### 6.2 Camadas e zonas
+
+| Camada | Conteúdo | Produzida por |
+| :--- | :--- | :--- |
+| Landing/raw no MinIO | Objeto recebido, imutável, identificado por versão e hash | Publicador da fonte ou futuro coletor de API |
+| Bronze no MinIO | Representação intermediária preservada por execução/lote | Extratores Python |
+| Ingestão tratada no DuckDB | Registros tipados e tecnicamente conformes, com metadados | Transformação e repositório de carga |
+| Rejeição/quarentena | Referência à origem, regra violada e estado de tratamento; acesso restrito | Transformação |
+| Controle e reconciliação | Execuções, hashes, checkpoints, contagens e decisões de carga | Orquestração e carga |
+| Dimensional/consumo | Fatos, dimensões e agregações autorizadas dos quatro cubos | Evolução posterior à ingestão homologada |
+
+### 6.3 Orquestração
+
+| Campo | Definição |
+| :--- | :--- |
+| Orquestrador | Prefect como plano de controle; regras de negócio permanecem em Python. |
+| Frequência | Por evento de criação do objeto; schedule adicional somente após definição da janela operacional. |
+| Janela de execução | Parametrizada no deployment; não há SLA ou horário homologado pelo parceiro. |
+| Dependências | MinIO → verificação do hash → extração → bronze → transformação/quarentena → DuckDB → reconciliação → checkpoint. |
+
+### 6.4 Carga e reprocessamento
+
+| Campo | Definição |
+| :--- | :--- |
+| Estratégia de carga | Carregar registros conformes no DuckDB e rejeições nas tabelas próprias; serializar decisão por identidade. |
+| Idempotência | Fonte + checksum + lote/identidade; hash concluído é ignorado sem duplicação. |
+| Reprocessamento | Manual ou backfill parametrizado por fonte, janela e modo; usa somente estado confirmado. |
+| Tratamento de falha | Falha permanente interrompe; falha transitória recebe retry limitado; checkpoint não avança antes da reconciliação. |
+
+### 6.5 Verificações de qualidade
+
+- schema, cabeçalhos, encoding, delimitador e contrato do lote;
+- conversão de IDs, datas, horários, decimais e percentuais;
+- nulabilidade e aplicabilidade por campo;
+- unicidade no grão e classificação auditável de duplicatas;
+- integridade referencial sem criar vínculo por similaridade;
+- reconciliação entre recebidos, aceitos, rejeitados e duplicados;
+- ausência de dado pessoal, segredo ou payload bruto em logs;
+- bloqueio da confirmação quando carga ou reconciliação falhar.
+
+### 6.6 Telemetria e custo
+
+| Campo | Definição |
+| :--- | :--- |
+| Métricas coletadas | Duração, recebidos, carregados, rejeitados, duplicados, bytes, tentativas, latência e estado por etapa. |
+| Alertas | Falha permanente, retries esgotados, timeout, divergência de reconciliação e indisponibilidade dos serviços essenciais. |
+| Linhagem | `run_id`, `task_id`, `event_id`, fonte, bucket, objeto, versão, hash, lote, schema e timestamps. |
+| Custo estimado | Deve separar processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção. Valor monetário permanece indisponível sem volume futuro, frequência, ambiente e retenção aprovados. |
+
+### 6.7 Fluxo ponta a ponta
+
+```mermaid
+flowchart LR
+    A[Arquivos ou APIs] -->|publicam objeto| B[MinIO landing/raw]
+    B -->|s3:ObjectCreated| C[Adaptador de eventos]
+    C --> P[Deployment Prefect]
+    P --> H[Verificação SHA-256]
+    H --> I{Já concluído?}
+    I -->|sim| J[Registrar ignorado]
+    I -->|não| E[Extrator Python]
+    E --> F[MinIO bronze]
+    F --> T[Transformações essenciais]
+    T --> V{Registro válido?}
+    V -->|sim| D[DuckDB ingestion]
+    V -->|não| Q[DuckDB rejected]
+    D --> R[Reconciliação]
+    Q --> R
+    R --> K[Confirmar checkpoint e hash]
+    P -. logs .-> L[Logstash]
+    E -. logs .-> L
+    T -. logs .-> L
+    D -. logs .-> L
+    L --> ES[Elasticsearch]
+    ES --> KB[Kibana]
+```
+
+## 7. Validação
 
 O JSON canônico e sua rastreabilidade podem ser verificados com:
 

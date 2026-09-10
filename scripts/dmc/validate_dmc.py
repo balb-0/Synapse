@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Valida o recorte da Sprint 3 no JSON do Data Model Canvas."""
+"""Valida o contrato ampliado do JSON do Data Model Canvas."""
 
 from __future__ import annotations
 
@@ -64,8 +64,38 @@ DIMENSIONAL_FIELDS = (
     "bridgeTables",
     "junkDimensions",
     "dimensoesConformadas",
+    "particionamento",
+    "materializacoesAgregacoes",
+    "indicesClusteringOrdenacao",
+    "queriesCriticas",
+    "classificacaoPublico",
+    "classificacaoInterno",
+    "classificacaoConfidencial",
+    "classificacaoRestrito",
+    "dadoPessoal",
+    "dadoSensivel",
+    "dadoCritico",
+    "criticidade",
+    "perfisAutorizados",
+    "controleAcesso",
+    "trilhaAuditoria",
+    "retencao",
+    "arquivamento",
+    "descarte",
+    "metadadosObrigatorios",
+    "kpiQualidade",
+    "kpiGovernanca",
 )
-DIMENSIONAL_LISTS = ("grao", "fatos", "metricas", "dimensoes")
+DIMENSIONAL_LISTS = (
+    "grao",
+    "fatos",
+    "metricas",
+    "dimensoes",
+    "fontes",
+    "transformacoes",
+    "qualidade",
+    "scd",
+)
 METADATA_KEYS = ("parceiro", "data", "versao", "grupo")
 VERSION_PATTERN = re.compile(r"^[1-9]\d*\.\d+$")
 
@@ -210,7 +240,7 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
             unexpected = [f"fields.{key}" for key in unexpected_fields]
             unexpected.extend(f"lists.{key}" for key in unexpected_lists)
             raise DmcValidationError(
-                f"cubo {cube['id']} contém campos fora do recorte da Sprint 3: "
+                f"cubo {cube['id']} contém campos desconhecidos: "
                 f"{', '.join(unexpected)}"
             )
 
@@ -229,10 +259,32 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
             "transactionFact",
             "periodicSnapshot",
             "accumulatingSnapshot",
+            "classificacaoPublico",
+            "classificacaoInterno",
+            "classificacaoConfidencial",
+            "classificacaoRestrito",
+            "dadoPessoal",
+            "dadoSensivel",
+            "dadoCritico",
         )
         if any(type(fields[key]) is not bool for key in boolean_fields):
             raise DmcValidationError(
-                f"cubo {cube['id']} deve usar booleanos nos seletores de esquema e fato"
+                f"cubo {cube['id']} deve usar booleanos nos seletores e classificações"
+            )
+
+        classification_fields = (
+            "classificacaoPublico",
+            "classificacaoInterno",
+            "classificacaoConfidencial",
+            "classificacaoRestrito",
+        )
+        if sum(fields[key] for key in classification_fields) != 1:
+            raise DmcValidationError(
+                f"cubo {cube['id']} deve selecionar exatamente uma classificação"
+            )
+        if fields["dadoPessoal"] and not fields["classificacaoRestrito"]:
+            raise DmcValidationError(
+                f"cubo {cube['id']} com dado pessoal deve ser classificado como restrito"
             )
 
         text_fields = (
@@ -241,13 +293,27 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
             "bridgeTables",
             "junkDimensions",
             "dimensoesConformadas",
+            "particionamento",
+            "materializacoesAgregacoes",
+            "indicesClusteringOrdenacao",
+            "queriesCriticas",
+            "criticidade",
+            "perfisAutorizados",
+            "controleAcesso",
+            "trilhaAuditoria",
+            "retencao",
+            "arquivamento",
+            "descarte",
+            "metadadosObrigatorios",
+            "kpiQualidade",
+            "kpiGovernanca",
         )
         if any(
             not isinstance(fields[key], str) or not fields[key].strip()
             for key in text_fields
         ):
             raise DmcValidationError(
-                f"cubo {cube['id']} deve preencher todos os campos textuais dimensionais"
+                f"cubo {cube['id']} deve preencher todos os campos textuais"
             )
 
         name = fields.get("nome")
@@ -316,7 +382,7 @@ def main() -> int:
 
     print(
         f"DMC válido: schema {summary['schemaVersion']}; "
-        f"{len(summary['cubos'])} cubos; recorte da Sprint 3 preenchido"
+        f"{len(summary['cubos'])} cubos; Modelo, Dados e Governança preenchidos"
     )
     return 0
 

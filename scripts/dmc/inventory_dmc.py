@@ -17,9 +17,17 @@ REQUIRED_TOP_LEVEL = (
     "governancaCorporativa",
     "cubos",
 )
-REQUIRED_DIMENSIONAL_LISTS = ("grao", "fatos", "metricas", "dimensoes")
-SPRINT3_OUT_OF_SCOPE_LISTS = ("fontes", "transformacoes", "qualidade", "scd")
-SPRINT3_OUT_OF_SCOPE_FIELDS = (
+REQUIRED_CUBE_LISTS = (
+    "grao",
+    "fatos",
+    "metricas",
+    "dimensoes",
+    "fontes",
+    "transformacoes",
+    "qualidade",
+    "scd",
+)
+REQUIRED_DATA_GOVERNANCE_FIELDS = (
     "particionamento",
     "materializacoesAgregacoes",
     "indicesClusteringOrdenacao",
@@ -64,28 +72,29 @@ def build_inventory(document: dict[str, Any]) -> dict[str, Any]:
                     "position": position,
                     "id": None,
                     "name": None,
-                    "missing_dimensional_lists": list(REQUIRED_DIMENSIONAL_LISTS),
-                    "sprint3_out_of_scope_keys": [],
+                    "missing_cube_lists": list(REQUIRED_CUBE_LISTS),
+                    "missing_data_governance_fields": list(
+                        REQUIRED_DATA_GOVERNANCE_FIELDS
+                    ),
                 }
             )
             continue
 
         fields = cube.get("fields") if isinstance(cube.get("fields"), dict) else {}
         lists = cube.get("lists") if isinstance(cube.get("lists"), dict) else {}
-        missing_dimensional = [
-            key for key in REQUIRED_DIMENSIONAL_LISTS if not lists.get(key)
+        missing_lists = [
+            key for key in REQUIRED_CUBE_LISTS if not lists.get(key)
         ]
-        out_of_scope = [
-            *(f"lists.{key}" for key in SPRINT3_OUT_OF_SCOPE_LISTS if key in lists),
-            *(f"fields.{key}" for key in SPRINT3_OUT_OF_SCOPE_FIELDS if key in fields),
+        missing_fields = [
+            key for key in REQUIRED_DATA_GOVERNANCE_FIELDS if key not in fields
         ]
         cube_inventory.append(
             {
                 "position": position,
                 "id": cube.get("id"),
                 "name": fields.get("nome"),
-                "missing_dimensional_lists": missing_dimensional,
-                "sprint3_out_of_scope_keys": out_of_scope,
+                "missing_cube_lists": missing_lists,
+                "missing_data_governance_fields": missing_fields,
             }
         )
 
@@ -141,15 +150,15 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
             + ", ".join(inventory["blank_governance_fields"])
         )
     for cube in inventory["cubes"]:
-        if cube["missing_dimensional_lists"]:
+        if cube["missing_cube_lists"]:
             lines.append(
                 f"- `{cube['id']}` não preenche: "
-                + ", ".join(cube["missing_dimensional_lists"])
+                + ", ".join(cube["missing_cube_lists"])
             )
-        if cube["sprint3_out_of_scope_keys"]:
+        if cube["missing_data_governance_fields"]:
             lines.append(
-                f"- `{cube['id']}` ainda contém {len(cube['sprint3_out_of_scope_keys'])} "
-                "campos de Dados/Governança fora do recorte da Sprint 3."
+                f"- `{cube['id']}` não preenche campos de Dados/Governança: "
+                + ", ".join(cube["missing_data_governance_fields"])
             )
 
     if len(lines) == adjustment_start:

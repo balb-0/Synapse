@@ -2,8 +2,8 @@
 
 ## Parecer
 
-O `docs/dmc.json`, versão 1.1 de 10 de setembro de 2026, está completo para o
-recorte da Sprint 3 e aprovado nos gates reproduzíveis do repositório. O
+O `docs/dmc.json`, versão 1.1 de 10 de setembro de 2026, está completo para a
+interface ampliada do Data Model Canvas e aprovado nos gates reproduzíveis do repositório. O
 artefato preserva limitações e decisões externas como estados explícitos, sem
 transformá-las em resultados inventados ou capacidades já implantadas.
 
@@ -24,7 +24,11 @@ documentado em `scripts/dmc/README.md` compara a reexportação integralmente.
 | Decisões e riscos | DR01–DR06, todos com impacto e estado | Completo |
 | Governança corporativa | 12 campos obrigatórios preenchidos | Completo |
 | Modelo dimensional | C01–C04, IDs e nomes canônicos | Completo |
-| Conteúdo dos cubos | grão, fatos, métricas e dimensões em cada cubo | Completo |
+| Conteúdo dimensional | grão, fatos, métricas, dimensões e dimensões especiais em cada cubo | Completo |
+| Dados por cubo | fontes, transformações, qualidade e histórico/SCD | Completo |
+| Governança por cubo | otimização, classificação, acesso, auditoria, ciclo de vida, catálogo e KPIs | Completo |
+| Táticas arquiteturais | idempotência, quarentena fail-closed e resiliência orientada a eventos | Documentadas no Markdown |
+| Arquitetura do ETL | fontes, camadas, orquestração, carga, qualidade, telemetria, custo e fluxo | Documentada no Markdown |
 | Rastreabilidade | 13 perguntas, 25 indicadores e 4 cubos no manifesto | Aprovada |
 
 ## Correções desta revisão
@@ -38,8 +42,12 @@ documentado em `scripts/dmc/README.md` compara a reexportação integralmente.
    ausente ou vazio, seletor não booleano e item duplicado nas listas dos cubos.
 4. O teste de consistência de governança passou a abrir o DMC explicitamente em
    UTF-8, eliminando falha dependente do locale no Windows.
-5. O documento principal foi alinhado ao recorte vigente: Dados e Governança
-   por cubo estão fora da Sprint 3; Governança Corporativa permanece completa.
+5. A ampliação da ferramenta em 10 de setembro foi incorporada: Dados e
+   Governança por cubo voltaram ao contrato e foram preenchidos sem perder a
+   Governança Corporativa transversal.
+6. O `dmc.md` passou a consolidar também os blocos novos de Táticas
+   Arquiteturais e Arquitetura do ETL, com oito diagramas Mermaid prontos para
+   renderização ou transferência à ferramenta.
 
 ## Validações executadas
 
@@ -50,11 +58,11 @@ python scripts/dmc/run_gates.py
 [ok] 5 gates aprovados
 
 python -m unittest discover -s scripts/dmc -p "test_*.py"
-Ran 40 tests
+Ran 42 tests
 OK
 ```
 
-Os gates cobrem JSON canônico, contrato semântico, rastreabilidade, 40 testes
+Os gates cobrem JSON canônico, contrato semântico, rastreabilidade, 42 testes
 do DMC e 14 testes de rastreabilidade. Um teste de rastreabilidade de fontes
 primárias é corretamente ignorado quando os arquivos externos protegidos não
 estão presentes.
