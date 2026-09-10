@@ -49,3 +49,30 @@ Para reproduzir o baseline:
 python scripts/dmc/inventory_dmc.py docs/dmc.json
 python scripts/dmc/validate_dmc.py docs/dmc.json
 ```
+
+## Gates finais
+
+O orquestrador executa, em sequência, a leitura estrutural do JSON, a validação
+semântica do DMC, a rastreabilidade e as duas suítes de testes:
+
+```bash
+python scripts/dmc/run_gates.py
+```
+
+Após importar o canvas em uma sessão nova da ferramenta oficial, conferir os
+quatro cards e exportar novamente para um caminho temporário fora do
+repositório. O argumento `--reexport` acrescenta os gates estrutural e de
+round-trip semântico desse arquivo:
+
+```bash
+python scripts/dmc/run_gates.py --reexport /caminho/temporario/dmc-reexportado.json
+```
+
+O gate só comprova o round-trip quando recebe um arquivo realmente produzido
+pela ferramenta. Não use uma cópia de `docs/dmc.json` como substituta.
+
+Na execução de 8 de setembro de 2026, os cinco gates locais foram aprovados e
+o documento apresentou exatamente quatro cubos. O gate de sessão nova continua
+pendente até a integração de KP-08 e KP-10 e a disponibilização de um JSON
+realmente reexportado. O arquivo temporário de reexportação não deve ser
+versionado.
