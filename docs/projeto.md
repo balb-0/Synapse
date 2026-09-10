@@ -661,16 +661,19 @@ uma carga de data warehouse já implementada.
 
 O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
 ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
-Governança Corporativa e quatro cards de cubo. Negócio, Consumo Analítico e
-Governança Corporativa preservam o baseline do JSON. Os quatro cubos foram
-preenchidos como contratos técnicos propostos, mantendo a distinção entre
-evidência observada no snapshot e desenho ainda sujeito a homologação.
+Governança Corporativa e quatro cards de cubo. A seção Negócio foi reconciliada
+com as definições canônicas deste documento; as demais seções mantêm seu
+baseline até a revisão específica. Os quatro cubos foram preenchidos como
+contratos técnicos propostos, mantendo a distinção entre evidência observada no
+snapshot e desenho ainda sujeito a homologação.
 
 ### Síntese do negócio
 
-Os três arrays de Negócio são a única ampliação de conteúdo em relação ao
-baseline do PDF. Eles consolidam o objetivo geral e os objetivos específicos da
-§3, as PB01–PB13 da §6.3 e os macroprocessos observados na §4.0.2.
+Os três arrays de Negócio consolidam o objetivo geral e os objetivos
+específicos da §3, as PB01–PB13 da §6.3 e os macroprocessos observados na
+§4.0.2. No JSON, objetivos são marcados como resultados pretendidos e processos
+como atuais; assim, uma capacidade futura não é apresentada como resultado já
+alcançado.
 
 **Objetivos de negócio.** O objetivo geral é construir a espinha dorsal de dados
 da Central de Pesquisas, com os seguintes resultados pretendidos:

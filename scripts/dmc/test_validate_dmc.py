@@ -84,6 +84,24 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "Governança Corporativa"):
             validate_dmc.validate_document(changed)
 
+    def test_business_questions_must_match_pb01_to_pb13(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["perguntasNegocio"][0] = "Pergunta sem ID"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "PB01–PB13"):
+            validate_dmc.validate_document(changed)
+
+    def test_business_objective_cannot_claim_achieved_result(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["objetivosNegocio"][0] = "Integração concluída"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "pretendidos"):
+            validate_dmc.validate_document(changed)
+
+    def test_business_process_must_preserve_current_state(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["negocioEConsumo"]["processosNegocio"][0] = "Processo futuro"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "estado atual"):
+            validate_dmc.validate_document(changed)
+
     def test_round_trip_must_preserve_corporate_sections(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["negocioEConsumo"]["usuariosCanais"].append("Canal perdido no round-trip")

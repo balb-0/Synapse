@@ -32,6 +32,7 @@ CORPORATE_LISTS = (
     "usuariosCanais",
     "decisoesRiscos",
 )
+EXPECTED_BUSINESS_QUESTIONS = tuple(f"PB{number:02d}" for number in range(1, 14))
 GOVERNANCE_KEYS = (
     "owner",
     "steward",
@@ -109,6 +110,20 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         _nonempty_strings(business.get(key)) for key in CORPORATE_LISTS
     ):
         raise DmcValidationError("Negócio e Consumo Analítico perderam conteúdo obrigatório")
+    question_ids = tuple(
+        question.partition(" — ")[0] for question in business["perguntasNegocio"]
+    )
+    if question_ids != EXPECTED_BUSINESS_QUESTIONS:
+        raise DmcValidationError("perguntas de negócio devem corresponder a PB01–PB13")
+    if not all(
+        objective.startswith("Resultado pretendido:")
+        for objective in business["objetivosNegocio"]
+    ):
+        raise DmcValidationError("objetivos devem ser identificados como resultados pretendidos")
+    if not all(
+        process.startswith("Processo atual:") for process in business["processosNegocio"]
+    ):
+        raise DmcValidationError("processos devem preservar seu estado atual")
 
     governance = document["governancaCorporativa"]
     if not isinstance(governance, dict) or any(
