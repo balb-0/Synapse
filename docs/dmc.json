@@ -66,9 +66,10 @@
       "I25 — Conformidade de acesso: decisões aderentes à política sobre tentativas avaliadas; indisponível sem política e logs."
     ],
     "usuariosCanais": [
-      "Equipe interna da Central de Pesquisas — data warehouse e dashboards operacionais (uso diário para gestão do fluxo e indicadores).",
-      "Áreas técnicas do Sindusfarma — dashboards e relatórios de adesão/status das pesquisas que validam.",
-      "Solicitantes e participantes externos — repositório público do site para consulta ao acervo e download de resultados."
+      "UC01 — Central de Pesquisas: dashboards operacionais D01–D04, relatórios e tabelas; detalhe somente quando o perfil e a finalidade estiverem autorizados.",
+      "UC02 — Áreas técnicas do Sindusfarma: dashboards e relatórios das pesquisas sob sua atuação; resultados agregados e sem acesso individual presumido.",
+      "UC03 — Gestores: painéis consolidados de portfólio, adesão, qualidade e capacidade; drill-down pessoal bloqueado sem autorização específica.",
+      "UC04 — Solicitantes, participantes e público externo: acervo ou download apenas de resultados aprovados para publicação; sem acesso aos dashboards internos."
     ],
     "decisoesRiscos": [
       "DR01 — Universo elegível de empresas e pessoas. Impacto: I08 e I11 permanecem indisponíveis sem denominador. Estado: pendente de fonte e regra do parceiro.",

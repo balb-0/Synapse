@@ -32,6 +32,7 @@ CORPORATE_LISTS = (
     "usuariosCanais",
     "decisoesRiscos",
 )
+EXPECTED_USER_CHANNELS = tuple(f"UC{number:02d}" for number in range(1, 5))
 EXPECTED_DECISIONS_RISKS = tuple(f"DR{number:02d}" for number in range(1, 7))
 EXPECTED_CONSUMPTION_INDICATORS = tuple(f"I{number:02d}" for number in range(1, 26))
 EXPECTED_BUSINESS_QUESTIONS = tuple(f"PB{number:02d}" for number in range(1, 14))
@@ -112,6 +113,16 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         _nonempty_strings(business.get(key)) for key in CORPORATE_LISTS
     ):
         raise DmcValidationError("Negócio e Consumo Analítico perderam conteúdo obrigatório")
+    user_channel_ids = tuple(
+        item.partition(" — ")[0] for item in business["usuariosCanais"]
+    )
+    if user_channel_ids != EXPECTED_USER_CHANNELS:
+        raise DmcValidationError("usuários e canais devem corresponder a UC01–UC04")
+    if not all(
+        any(term in item for term in ("autorizado", "bloqueado", "sem acesso"))
+        for item in business["usuariosCanais"]
+    ):
+        raise DmcValidationError("todo canal deve explicitar sua restrição de acesso")
     decision_ids = tuple(
         item.partition(" — ")[0] for item in business["decisoesRiscos"]
     )
