@@ -18,9 +18,7 @@ from etl.extraction import (  # noqa: E402
     MinioObjectReader,
     ObjectReference,
     PesquisasExtractor,
-    UnsupportedCheckpointError,
 )
-from etl.extraction.contracts import ExtractionCheckpoint  # noqa: E402
 from tests.extraction.helpers import MemoryObjectReader, csv_payload  # noqa: E402
 
 
@@ -159,28 +157,6 @@ class CsvObjectExtractorTests(unittest.TestCase):
 
         with self.assertRaisesRegex(MalformedSourceError, "linha 2"):
             list(extractor.read(run_id="run-invalid-row"))
-
-    def test_rejects_checkpoint_until_batching_is_implemented(self) -> None:
-        payload = csv_payload(EMPRESAS_REQUIRED_COLUMNS, [])
-        extractor = EmpresasExtractor(
-            object_reader=MemoryObjectReader(payload),
-            object_reference=ObjectReference(
-                bucket="sindusfarma-data",
-                key="landing/empresas.csv",
-            ),
-        )
-
-        with self.assertRaisesRegex(UnsupportedCheckpointError, "LN-07"):
-            list(
-                extractor.read(
-                    run_id="run-checkpoint",
-                    checkpoint=ExtractionCheckpoint(
-                        source="empresas",
-                        position="row:10",
-                        sequence=1,
-                    ),
-                )
-            )
 
     def test_minio_reader_passes_version_and_releases_connection(self) -> None:
         response = TrackingResponse(b"conteudo")

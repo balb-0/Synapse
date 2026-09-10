@@ -29,6 +29,7 @@ class ExtractionSettingsTests(unittest.TestCase):
             "ETL_MINIO_ACCESS_KEY": "access-key-for-test",
             "ETL_MINIO_SECRET_KEY": "secret-key-for-test",
             "ETL_REQUEST_TIMEOUT_SECONDS": "30",
+            "ETL_EXTRACTION_BATCH_SIZE": "1000",
         }
 
     def test_loads_complete_configuration_from_environment(self) -> None:
@@ -37,6 +38,7 @@ class ExtractionSettingsTests(unittest.TestCase):
         self.assertIsNone(settings.source_dir)
         self.assertEqual(settings.minio_input_prefix, "landing")
         self.assertEqual(settings.request_timeout_seconds, 30.0)
+        self.assertEqual(settings.batch_size, 1000)
         self.assertEqual(
             settings.minio_access_key.get_secret_value(), "access-key-for-test"
         )
@@ -47,6 +49,7 @@ class ExtractionSettingsTests(unittest.TestCase):
                 "minio_endpoint": "http://localhost:19000/",
                 "minio_input_prefix": "/incoming/",
                 "request_timeout_seconds": 12,
+                "batch_size": 250,
             },
             environ=self.environment,
         )
@@ -54,16 +57,28 @@ class ExtractionSettingsTests(unittest.TestCase):
         self.assertEqual(settings.minio_endpoint, "http://localhost:19000")
         self.assertEqual(settings.minio_input_prefix, "incoming")
         self.assertEqual(settings.request_timeout_seconds, 12.0)
+        self.assertEqual(settings.batch_size, 250)
 
     def test_uses_safe_defaults_for_optional_values(self) -> None:
         environment = dict(self.environment)
         environment.pop("ETL_MINIO_INPUT_PREFIX")
         environment.pop("ETL_REQUEST_TIMEOUT_SECONDS")
+        environment.pop("ETL_EXTRACTION_BATCH_SIZE")
 
         settings = load_extraction_settings(environ=environment)
 
         self.assertEqual(settings.minio_input_prefix, "landing")
         self.assertEqual(settings.request_timeout_seconds, 30.0)
+        self.assertEqual(settings.batch_size, 1000)
+
+    def test_rejects_invalid_batch_size(self) -> None:
+        for invalid_value in ("0", "1.5", "invalid", 0, True):
+            with self.subTest(invalid_value=invalid_value):
+                with self.assertRaisesRegex(ConfigurationError, "inteiro positivo"):
+                    load_extraction_settings(
+                        parameters={"batch_size": invalid_value},
+                        environ=self.environment,
+                    )
 
     def test_accepts_optional_local_source_directory(self) -> None:
         environment = {
