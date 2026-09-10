@@ -85,10 +85,10 @@
     "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
     "custodian": "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados na rede interna ou na nuvem do Sindusfarma + empresa RentalHost (fornecedora do sistema interno) para custódia dos dados hospedados no repositório público.",
     "tecnico": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
-    "lgpd": "Aplicação da LGPD — dados de empresas parceiras e respostas individuais tratados com anonimização; base já anonimizada para uso acadêmico.",
-    "seg": "Controle de acesso por perfil, autenticação de usuários e políticas internas de segurança do Sindusfarma",
-    "comp": "Dados reais restritos ao ambiente interno; repositório público e GitHub do Inteli apenas com dados anonimizados/fictícios.",
-    "etico": "Uso restrito às finalidades das pesquisas setoriais, preservando a confidencialidade de empresas e respondentes.",
+    "lgpd": "Diretriz proposta, sujeita à validação do controlador e do encarregado: limitar cada tratamento à finalidade documentada e ao mínimo necessário; separar identidade da camada analítica; não publicar e-mail, chaves estáveis, respostas individuais ou combinações reidentificáveis; usar apenas dados sintéticos, agregados ou com anonimização testada no ambiente acadêmico; pseudonimização não deve ser apresentada como anonimização.",
+    "seg": "Desenho proposto, ainda não homologado: acesso individual por menor privilégio, necessidade de conhecer, recurso, ação e finalidade; segregação entre ambientes acadêmico, desenvolvimento, homologação e produção; dados reais somente em ambiente autorizado; leituras, exportações, alterações, publicações, falhas e acessos administrativos com trilha auditável e revisão periódica.",
+    "comp": "Dados reais ficam restritos ao ambiente autorizado; GitLab e entrega acadêmica recebem apenas código, documentação e dados sintéticos, agregados ou anonimizados. A retenção não usa prazo único: mantém-se o mínimo necessário à finalidade, obrigação aplicável e prestação de contas; ao término, o dado deve ser eliminado, anonimizado ou bloqueado, incluindo expiração controlada de backups.",
+    "etico": "Uso restrito às finalidades documentadas das pesquisas setoriais. Registros inválidos, órfãos ou suspeitos devem ser classificados e colocados em quarentena para auditoria e reconciliação, nunca apagados ou corrigidos silenciosamente; somente dados aprovados seguem para consumo ou publicação, preservando a confidencialidade de empresas e respondentes.",
     "catalogo": "Dicionário das entidades e campos (empresas, clientes, pesquisas, respondentes), com descrição, tipo e origem de cada atributo.",
     "kpis": "% de completude dos campos, % de registros válidos, nº de inconsistências corrigidas etc.",
     "maturidade": "Evolução do estágio atual (dados fragmentados e manuais) para fonte única, integrada e governada",
@@ -107,7 +107,7 @@
         "accumulatingSnapshot": true,
         "bridgeTables": "Não previstas para este cubo na documentação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Pesquisa; Tempo; Fonte de Dado; Execução de Carga"
+        "dimensoesConformadas": "Pesquisa; Tempo; Status da Pesquisa; Área; Tipo; Perfil"
       },
       "lists": {
         "grao": [
@@ -124,11 +124,11 @@
           "Entrega registrada"
         ],
         "metricas": [
-          "dias_uteis_validacao: data_aprov menos data_solicitacao; métrica aditiva; cobertura de aprovação limitada no snapshot.",
+          "dias_uteis_validacao: data_aprov menos data_solicitacao; métrica aditiva somente entre linhas com o par de datas válido; cobertura de 5,5% (20 de 366), com denominador obrigatório.",
           "dias_uteis_coleta: data_limite ou prorrogada_ate menos data_divulgacao; métrica aditiva; usa a data prorrogada quando existir.",
           "dias_uteis_tabulacao: data_entrega menos data_limite ou prorrogada_ate; métrica aditiva.",
           "dias_uteis_ciclo_total: data_entrega menos data_solicitacao; métrica não aditiva, usada sem soma com as fases para evitar dupla contagem.",
-          "qtd_empresas_na_pesquisa: coluna participantes do CSV; métrica não aditiva, lida no nível da pesquisa.",
+          "qtd_empresas_na_pesquisa: contagem declarada na coluna participantes do CSV; métrica não aditiva, lida somente no nível da pesquisa e distinta da contagem observada no C02.",
           "qtd_respondentes_na_pesquisa: métrica removida de C01; contagens de respondentes devem ser calculadas no C02 a partir de respondentes.csv, usando participação ou pessoa conciliada conforme denominador aprovado.",
           "flag_prorrogada: booleano 1 quando prorrogada_ate não é nulo e 0 caso contrário; usado como filtro."
         ],
@@ -162,25 +162,25 @@
         "accumulatingSnapshot": false,
         "bridgeTables": "Não previstas para este cubo na documentação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Pesquisa; Empresa; Pessoa; Tempo"
+        "dimensoesConformadas": "Pesquisa; Tempo"
       },
       "lists": {
         "grao": [
           "Uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual.",
-          "Cada linha representa um evento de resposta e não acumula estados.",
+          "Cada linha representa um registro de participação de respondentes.csv, não uma resposta individual a uma questão, e não acumula estados.",
           "O cubo suporta contagem bruta de participações e contagem distinta quando filtrado por seq_ocorrencia."
         ],
         "fatos": [
           "Participação registrada",
           "Início de participação registrado",
           "Término de participação registrado",
-          "Evento único de resposta em respondentes.csv"
+          "Registro de participação recebido de respondentes.csv"
         ],
         "metricas": [
-          "qtd_participacao: sempre 1, pois cada linha é uma participação; métrica aditiva.",
+          "qtd_participacao: sempre 1, pois cada linha é uma participação; métrica aditiva que não representa quantidade de respostas a questões.",
           "seq_ocorrencia: número sequencial para duplicatas de pesquisa e pessoa; métrica não aditiva usada como filtro para deduplicação.",
           "minutos_preenchimento: diferença entre hora_termino e hora_inicio em minutos; aditiva onde existir, com cobertura aproximada de 4,3%.",
-          "pct_mercado_na_participacao: market_share de respondentes.csv no momento da participação; não aditiva e lida no nível da participação."
+          "pct_mercado_na_participacao: market_share de respondentes.csv no nível da participação; não aditiva e não homologada enquanto houver conflito com empresas.csv. Após decisão da fonte autoritativa, I09 soma uma vez por pesquisa o valor normalizado de cada empresa participante distinta."
         ],
         "dimensoes": [
           "sk_pesquisa: DIM_PESQUISA, a pesquisa respondida.",
@@ -218,9 +218,9 @@
           "Fechamento mensal do pipeline"
         ],
         "metricas": [
-          "qtd_pesquisas_no_status: contagem de pesquisas naquele status no último dia do mês; semi-aditiva.",
-          "qtd_entradas_no_mes: quantidade de pesquisas que chegaram ao status durante o mês; aditiva.",
-          "qtd_saidas_no_mes: quantidade de pesquisas que saíram do status durante o mês; aditiva."
+          "qtd_pesquisas_no_status: estoque de pesquisas naquele status no último dia do mês; semi-aditiva entre categorias disjuntas do mesmo fechamento e nunca somada entre meses.",
+          "qtd_entradas_no_mes: fluxo de pesquisas que chegaram ao status durante o mês; aditiva no tempo somente quando houver histórico de transições, pois diferenças de snapshots mostram apenas mudança líquida.",
+          "qtd_saidas_no_mes: fluxo de pesquisas que saíram do status durante o mês; aditiva no tempo e indisponível enquanto não houver histórico de transições."
         ],
         "dimensoes": [
           "sk_data_fim_mes: DIM_TEMPO para o último dia do mês.",
@@ -243,7 +243,7 @@
         "accumulatingSnapshot": false,
         "bridgeTables": "Não prevista; o vínculo entre pesquisa e pergunta é modelado no próprio fato de associação.",
         "junkDimensions": "Não previstas para este cubo na documentação.",
-        "dimensoesConformadas": "Pesquisa; Pergunta; Tempo"
+        "dimensoesConformadas": "Pesquisa; Tempo"
       },
       "lists": {
         "grao": [
@@ -257,8 +257,8 @@
           "Metadados de pergunta disponíveis para análise futura"
         ],
         "metricas": [
-          "qtd_pergunta: sempre 1, pois cada linha representa uma pergunta; métrica aditiva.",
-          "qtd_alternativas: coluna qtd_alternativas de questoes.csv; métrica aditiva para somar alternativas por pesquisa ou grupo de pesquisas."
+          "qtd_pergunta: COUNT(*) derivado das associações distintas entre pesquisa e pergunta no grão consultado; não é medida constante armazenada no fato.",
+          "qtd_alternativas: atributo de DIM_PERGUNTA, não uma medida do fato; totais e médias devem considerar perguntas distintas e declarar o denominador."
         ],
         "dimensoes": [
           "sk_pesquisa: DIM_PESQUISA, pesquisa que contém a pergunta.",

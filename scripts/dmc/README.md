@@ -29,3 +29,23 @@ python3 scripts/dmc/validate_dmc.py /tmp/dmc-reexportado.json \
 
 A abertura e a renderização dos cards ainda devem ser conferidas em uma sessão
 nova da ferramenta oficial; o parser isolado não substitui esse gate.
+
+## Baseline da Sprint 3
+
+O inventário inicial de `docs/dmc.json` registrou `schemaVersion` 1, versão 1.0,
+data 2026-07-31 e quatro cubos (`cubo-1` a `cubo-4`), todos com grão, fatos,
+métricas e dimensões preenchidos. As seções de topo estavam presentes e não
+havia campo vazio em Governança Corporativa.
+
+O inventário também delimitou o trabalho posterior: revisão de Negócio e
+Consumo Analítico em KP-02–KP-05, revisão de Governança Corporativa em KP-07 e
+KP-08, reconciliação dimensional em KP-09 e redução do recorte dos cubos em
+KP-10. A abertura visual continua sendo um gate manual porque o repositório não
+informa URL ou executável da ferramenta oficial.
+
+Para reproduzir o baseline:
+
+```bash
+python scripts/dmc/inventory_dmc.py docs/dmc.json
+python scripts/dmc/validate_dmc.py docs/dmc.json
+```
