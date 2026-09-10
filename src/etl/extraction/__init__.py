@@ -33,6 +33,12 @@ from .csv_extractors import (
     UnsupportedCheckpointError,
 )
 from .object_storage import MinioObjectReader, ObjectReader, ObjectReference
+from .questionnaire_extractors import (
+    QUESTOES_REQUIRED_COLUMNS,
+    RESPOSTAS_REQUIRED_COLUMNS,
+    QuestoesExtractor,
+    RespostasExtractor,
+)
 
 __all__ = [
     "CONTRACT_VERSION",
@@ -40,7 +46,9 @@ __all__ = [
     "ENVIRONMENT_VARIABLES",
     "EMPRESAS_REQUIRED_COLUMNS",
     "PESQUISAS_REQUIRED_COLUMNS",
+    "QUESTOES_REQUIRED_COLUMNS",
     "RESPONDENTES_REQUIRED_COLUMNS",
+    "RESPOSTAS_REQUIRED_COLUMNS",
     "REDACTED",
     "BatchMetadata",
     "CheckpointStore",
@@ -59,8 +67,10 @@ __all__ = [
     "ObjectReader",
     "ObjectReference",
     "PesquisasExtractor",
+    "QuestoesExtractor",
     "Record",
     "RespondentesExtractor",
+    "RespostasExtractor",
     "SecretValue",
     "UnsupportedCheckpointError",
     "load_extraction_settings",
