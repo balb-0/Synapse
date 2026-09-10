@@ -720,9 +720,10 @@ de cada indicador segue a §5.6: **calculável agora** descreve o que o snapshot
 permite calcular, não uma entrega produtiva; **exige normalização ou
 mapeamento** identifica uma regra ou reconciliação pendente; e **depende de
 integração futura** indica que falta uma fonte ou metadado. O JSON preserva o
-baseline de consumo preenchido pelo orientador; os quatro eixos abaixo são a
-leitura analítica usada neste documento, sem mudar essas classificações de
-disponibilidade.
+baseline documental e reconcilia a lista de consumo com I01–I25. Cada item
+informa a unidade ou o denominador necessário e explicita quando o cálculo
+depende de regra, reconciliação, fonte ou metadado futuro. Os quatro eixos
+abaixo agrupam essa leitura sem mudar as classificações de disponibilidade.
 
 | Eixo de consumo | Indicadores | Usuário e forma de consumo propostos | Decisões apoiadas |
 | :--- | :--- | :--- | :--- |
@@ -731,11 +732,13 @@ disponibilidade.
 | Resultados e questionários | I12–I14 calculáveis; I15 aguarda versão e decisão de validação | Áreas técnicas, Central e gestores; D03, filtros por questão e resultados agregados | Interpretar distribuições, avaliar a composição do instrumento e verificar validação sem tratar elemento de resposta como pessoa |
 | Qualidade, rastreabilidade e publicação | I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança ainda a designar; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções, investigar órfãos, avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
 
-Os públicos de consumo são distintos. A **Central de Pesquisas** acompanha o
-fluxo operacional; as **áreas técnicas** validam instrumentos e interpretam
-resultados agregados; os **gestores** usam recortes consolidados para priorizar
-portfólio e capacidade; e **solicitantes ou participantes externos** acessam
-apenas resultados autorizados no acervo. Data Owner, Data Steward, Data
+Os públicos de consumo são distintos e aparecem no canvas como UC01–UC04. A
+**Central de Pesquisas (UC01)** acompanha o fluxo operacional com detalhe
+condicionado ao perfil; as **áreas técnicas (UC02)** validam instrumentos e
+interpretam resultados agregados; os **gestores (UC03)** usam recortes
+consolidados, sem drill-down pessoal presumido; e **solicitantes, participantes
+ou público externo (UC04)** acessam apenas resultados autorizados no acervo,
+sem acesso aos dashboards internos. Data Owner, Data Steward, Data
 Custodian/TI e auditor são papéis de governança propostos, ainda sem designação
 formal confirmada. Dashboards D01–D04, relatórios, tabelas equivalentes, filtros,
 drill-down agregado e downloads autorizados são formas propostas de consumo;
@@ -746,19 +749,19 @@ As seguintes decisões permanecem abertas e limitam o consumo:
 
 | Decisão ou risco | Efeito analítico | Estado |
 | :--- | :--- | :--- |
-| Universo de empresas e pessoas convidadas/elegíveis | Sem denominador, I08 e I11 ficam indisponíveis | Pendente de fonte e regra |
-| Fonte autoritativa de participação de mercado | Divergências impedem homologar I09 | Pendente de decisão do parceiro |
-| Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes | Pendente de reconciliação |
-| Timestamp de carga, catálogo, versões, autorização e logs | Limita I15 e I21–I25 | Depende de integração futura |
-| Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação, sem alterar o contrato analítico | Proposta da equipe a validar |
-| Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controles antes de detalhar ou exportar | Risco observado no snapshot e condicionado à governança |
+| DR01 — Universo de empresas e pessoas convidadas/elegíveis | Sem denominador, I08 e I11 ficam indisponíveis | Pendente de fonte e regra |
+| DR02 — Fonte autoritativa de participação de mercado | Divergências impedem homologar I09 | Pendente de decisão do parceiro |
+| DR03 — Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes | Pendente de reconciliação |
+| DR04 — Timestamp de carga, catálogo, versões, autorização e logs | Limita I15 e I21–I25 | Depende de integração futura |
+| DR05 — Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação, sem alterar o contrato analítico | Proposta da equipe a validar |
+| DR06 — Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controles antes de detalhar ou exportar | Risco observado no snapshot e condicionado à governança |
 
 ### Evidência e proposta
 
 | Elemento do canvas | Evidência disponível | Proposta ainda a validar ou implementar |
 | :--- | :--- | :--- |
 | Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [<sup>[1]</sup>](#ref-1), [<sup>[2]</sup>](#ref-2), [<sup>[13]</sup>](#ref-13), [<sup>[14]</sup>](#ref-14). O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
-| Consumo Analítico | O JSON preserva os indicadores, usuários/canais, decisões e riscos preenchidos pelo orientador como baseline documental [<sup>[3]</sup>](#ref-3). | A interpretação de dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanece condicionada às limitações das §§5.6–6.5. |
+| Consumo Analítico | O JSON registra I01–I25 em correspondência com o catálogo da §5.6 e preserva usuários/canais, decisões e riscos como baseline documental [<sup>[3]</sup>](#ref-3). | Dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanecem condicionados às limitações das §§5.6–6.5; indicador indisponível não recebe valor zero. |
 | Governança Corporativa | O JSON preserva os nomes e textos preenchidos pelo orientador como baseline documental [<sup>[3]</sup>](#ref-3). | A formalização jurídica e operacional dos papéis ainda deve ser validada pelo parceiro; política de acesso, retenção, auditoria e publicação também requer aprovação antes da produção. |
 | Cubos | O JSON define quatro recortes: portfólio e ciclo, participação e representatividade, pipeline mensal e resultados/questionários. | Os quatro modelos foram preenchidos como contratos propostos; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro antes da implantação produtiva. |
 
@@ -2200,9 +2203,15 @@ encarregado ainda dependem da realidade de cada tratamento.
 | :--- | :--- | :--- |
 | Data Owner | Fabio Moreira, conforme baseline do DMC | Aprovar finalidades, classificações, acesso por perfil, indicadores e publicação; decidir sobre exceções e risco residual. |
 | Data Steward | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade, conforme grafia do baseline do DMC | Manter o catálogo e o dicionário, definir significado e regras de qualidade, acompanhar origem, linhagem, minimização e atendimento operacional das solicitações. |
-| Data Custodian | Rodrigo Giorgetto/TI e RentalHost, conforme baseline do DMC | Administrar infraestrutura, credenciais, cópias, logs e segregação técnica segundo instruções aprovadas; não decidir finalidade por conta própria. |
+| Data Custodian | Rodrigo Giorgetto/TI, conforme baseline do DMC; RentalHost apenas de forma condicional ao ambiente e contrato | Administrar infraestrutura, credenciais, cópias, logs e segregação técnica segundo instruções aprovadas; não decidir finalidade por conta própria. |
 | Controlador | A definir pelo Sindusfarma para cada fluxo | Decidir finalidades e meios, validar bases legais, instruir operadores, aprovar compartilhamentos e coordenar respostas e comunicações quando aplicável. |
 | Encarregado | A indicar pelo controlador | Atuar como canal entre titulares, controlador e ANPD, receber reclamações e comunicações, orientar as equipes e apoiar o atendimento dos direitos e incidentes. |
+
+Na revisão KP-06, os quatro campos de papéis do `docs/dmc.json` foram alinhados
+a esta tabela. Todos permanecem identificados como baseline documental e com
+homologação pendente. A responsabilidade técnica não cria autoridade de
+negócio ou papel jurídico; a custódia externa da RentalHost não é afirmada fora
+de um ambiente e contrato confirmados.
 
 As áreas envolvidas na governança combinam operação, negócio, tecnologia e consumo dos resultados. A Central de Pesquisas é a área principal, pois opera o ciclo completo das pesquisas e valida o valor dos indicadores. As áreas técnicas do Sindusfarma participam da revisão de questionários, da interpretação de resultados e do acompanhamento da adesão nas pesquisas relacionadas aos seus temas. A TI sustenta armazenamento, segurança, disponibilidade e integrações. A RentalHost entra como custódia externa quando houver dados ou componentes mantidos no sistema interno ou no repositório público. Gestores, empresas participantes, solicitantes e respondentes consomem ou fornecem informações, mas devem acessar apenas os recortes autorizados para sua finalidade.
 
@@ -2390,6 +2399,15 @@ prazo de retenção, matriz final de perfis e limiar de supressão continuam
 dependentes de homologação. A dependência MG-01 (`#170`) permanece aberta;
 portanto, nenhuma regra de schema ou domínio ainda não inventariada é tratada
 como confirmada.
+
+**Registro da revisão KP-08.** O catálogo proposto no `docs/dmc.json` passou a
+exigir, por fonte e campo, versão, classificação, responsável, regra e estado.
+Os KPIs I16–I20 conservam contrato mensurável; I21–I25 continuam indisponíveis
+enquanto não houver timestamp, linhagem, autorização, catálogo de execuções,
+política e logs. A maturidade observada permanece caracterizada por fontes
+fragmentadas, operação manual e linhagem parcial. Fonte integrada, governada e
+auditável é estado-alvo, condicionado aos gates incrementais de catálogo,
+pipeline, acesso e publicação, e não capacidade já implantada.
 
 ## 6.7 Fluxo de Interação Anotado
 

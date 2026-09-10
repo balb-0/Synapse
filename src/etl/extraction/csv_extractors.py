@@ -378,7 +378,9 @@ class CsvObjectExtractor:
             record_count=len(records),
             byte_count=byte_count,
             schema_version=self.schema_version,
-            source_checksum=source_version,
+            # source_checksum é o hash puro (contrato técnico FixedString(64));
+            # o rótulo de algoritmo permanece apenas no source_version do checkpoint.
+            source_checksum=source_version.removeprefix("sha256:"),
         )
         batch = ExtractedBatch(
             records=records,
