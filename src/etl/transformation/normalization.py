@@ -2,6 +2,7 @@
 
 import json
 from collections.abc import Mapping
+
 from . import conversion as conv
 from .schema import SCHEMAS
 from .validation import Violation, missing, required_fields
@@ -55,12 +56,17 @@ def normalize_record(source, raw, source_timezone=None):
             values[spec.name] = [] if spec.kind == "list" else None
             continue
         try:
-            convert = {"text": conv.text, "id": conv.identifier,
-                       "integer": conv.integer, "decimal": conv.decimal,
-                       "percent": lambda v: conv.decimal(v, percent=True),
-                       "date": conv.civil_date,
-                       "datetime": lambda v: conv.instant(v, source_timezone),
-                       "boolean": conv.boolean, "list": string_list}[spec.kind]
+            convert = {
+                "text": conv.text,
+                "id": conv.identifier,
+                "integer": conv.integer,
+                "decimal": conv.decimal,
+                "percent": lambda v: conv.decimal(v, percent=True),
+                "date": conv.civil_date,
+                "datetime": lambda v: conv.instant(v, source_timezone),
+                "boolean": conv.boolean,
+                "list": string_list,
+            }[spec.kind]
             values[spec.name] = convert(value)
         except conv.ConversionError as error:
             values[spec.name] = None

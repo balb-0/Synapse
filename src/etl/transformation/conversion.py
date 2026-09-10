@@ -23,7 +23,9 @@ def number(value):
     if isinstance(value, bool) or not isinstance(value, (str, int, Decimal)):
         raise ConversionError("INVALID_NUMBER")
     rendered = str(value).strip()
-    if not re.fullmatch(r"[+-]?(?:[0-9]+(?:[.,][0-9]+)?|[0-9]{1,3}(?:\.[0-9]{3})+,[0-9]+)", rendered):
+    if not re.fullmatch(
+        r"[+-]?(?:[0-9]+(?:[.,][0-9]+)?|[0-9]{1,3}(?:\.[0-9]{3})+,[0-9]+)", rendered
+    ):
         raise ConversionError("INVALID_NUMBER")
     if "," in rendered:
         rendered = rendered.replace(".", "").replace(",", ".")
@@ -95,7 +97,10 @@ def instant(value, source_timezone=None):
     elif isinstance(value, str):
         rendered = value.strip()
         parsed = None
-        if re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]{1,6})?)?(?:Z|[+-][0-9]{2}:[0-9]{2})?", rendered):
+        if re.fullmatch(
+            r"[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]{1,6})?)?(?:Z|[+-][0-9]{2}:[0-9]{2})?",
+            rendered,
+        ):
             try:
                 parsed = datetime.fromisoformat(rendered.replace("Z", "+00:00"))
             except ValueError:
@@ -115,10 +120,15 @@ def instant(value, source_timezone=None):
         if not source_timezone:
             raise ConversionError("TIMEZONE_REQUIRED")
         zone = ZoneInfo(source_timezone)
-        variants = {parsed.replace(tzinfo=zone, fold=fold).astimezone(timezone.utc)
-                    for fold in (0, 1)
-                    if parsed.replace(tzinfo=zone, fold=fold).astimezone(timezone.utc)
-                    .astimezone(zone).replace(tzinfo=None) == parsed}
+        variants = {
+            parsed.replace(tzinfo=zone, fold=fold).astimezone(timezone.utc)
+            for fold in (0, 1)
+            if parsed.replace(tzinfo=zone, fold=fold)
+            .astimezone(timezone.utc)
+            .astimezone(zone)
+            .replace(tzinfo=None)
+            == parsed
+        }
         if len(variants) != 1:
             raise ConversionError("AMBIGUOUS_OR_NONEXISTENT_TIME")
         parsed = variants.pop()
