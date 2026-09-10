@@ -59,7 +59,7 @@ Os seis extratores:
 - validam a presença das colunas conhecidas;
 - rejeitam linhas cuja quantidade de campos difere do cabeçalho;
 - calculam o SHA-256 sobre os bytes originais;
-- produzem um único `ExtractedBatch`, inclusive quando não há registros;
+- produzem páginas de `ExtractedBatch` com tamanho configurável;
 - informam quantidade de registros, bytes, horários, versão do schema e
   checkpoint candidato.
 
@@ -67,10 +67,6 @@ O arquivo `pesquisas.csv` possui colunas finais sem nome. Para que nenhuma
 posição seja perdida, elas são expostas de forma determinística como
 `unnamed_column_23`, `unnamed_column_24` e assim por diante. Colunas repetidas
 recebem o sufixo `__2`, `__3` conforme sua ocorrência.
-
-A retomada parcial ainda não pertence à LN-04. Se um checkpoint for fornecido,
-o extrator encerra com `UnsupportedCheckpointError`. A leitura em lotes e a
-retomada a partir da última linha confirmada serão adicionadas na LN-07.
 
 ## Clientes e respondentes
 
@@ -124,6 +120,39 @@ Essa representação resolve apenas a estrutura variável do CSV. Identificadore
 quantidades e valores continuam como texto, e nenhuma regra de qualidade altera
 ou descarta registros durante a extração.
 
+## Lotes e retomada
+
+O tamanho padrão de cada lote é de 1.000 registros e pode ser alterado pelo
+parâmetro `batch_size` do extrator. Na composição do pipeline, esse valor deve
+vir de `ETL_EXTRACTION_BATCH_SIZE`. O cabeçalho e as linhas vazias não entram na
+contagem de registros.
+
+Para calcular o SHA-256 antes de emitir lotes sem manter objetos grandes na
+memória, a origem é lida em blocos de 1 MiB para um buffer temporário. Até 8 MiB
+ficam em memória; acima desse limite, a biblioteca transfere o buffer para um
+arquivo temporário, removido automaticamente ao encerrar a leitura.
+
+Cada lote informa:
+
+- `batch_id` sequencial, como `empresas-000002`;
+- `checkpoint.position` com a última posição lógica incluída, como `row:2000`;
+- `checkpoint.sequence` com a ordem da página;
+- `checkpoint.source_version` com o SHA-256 do objeto;
+- `record_count` com a quantidade de registros da página;
+- `byte_count` com o tamanho total do objeto lido.
+
+Na retomada, o extrator aceita somente checkpoints da mesma fonte e do mesmo
+SHA-256. Ele ignora a quantidade de registros já confirmada e começa no registro
+seguinte. Uma página entregue, mas ainda não confirmada pelo consumidor, volta a
+ser emitida depois de uma interrupção; páginas já confirmadas não são repetidas.
+Esse comportamento mantém a entrega pelo menos uma vez sem avançar o estado
+antes da transformação e da carga.
+
+Checkpoints com posição inválida, versão ausente ou posição além do fim geram
+`InvalidCheckpointError`. Quando o conteúdo da origem mudou, o resultado é
+`StaleCheckpointError`, impedindo que uma posição antiga seja aplicada ao novo
+arquivo. Se o último checkpoint já cobre toda a fonte, nenhum lote é emitido.
+
 ## Limites entre as etapas
 
 A comparação do hash com o histórico de objetos concluídos pertence ao fluxo
@@ -148,6 +177,7 @@ sensível nos atributos técnicos e fechamento da conexão do MinIO.
 python -m unittest tests.extraction.test_csv_extractors -v
 python -m unittest tests.extraction.test_clientes_respondentes_extractors -v
 python -m unittest tests.extraction.test_questoes_respostas_extractors -v
+python -m unittest tests.extraction.test_batching_checkpoints -v
 ```
 
 ## Verificação com os arquivos fornecidos
@@ -156,11 +186,15 @@ Foi feita uma execução local somente leitura com a versão mais recente dos se
 arquivos, mantida fora do repositório. Os hashes foram calculados antes e depois
 da execução e permaneceram iguais.
 
-| Fonte | Registros | Colunas | Bytes lidos | Origem preservada |
-| :--- | ---: | ---: | ---: | :---: |
-| Pesquisas | 366 | 33 | 132.693 | Sim |
-| Empresas | 779 | 9 | 66.691 | Sim |
-| Clientes | 5.430 | 5 | 393.677 | Sim |
-| Respondentes | 18.735 | 6 | 411.628 | Sim |
-| Questões | 3.297 | 13 | 1.125.401 | Sim |
-| Respostas | 281.835 | 9 | 20.291.071 | Sim |
+| Fonte | Registros | Colunas | Bytes lidos | Lotes de até 1.000 | Origem preservada |
+| :--- | ---: | ---: | ---: | ---: | :---: |
+| Pesquisas | 366 | 33 | 132.693 | 1 | Sim |
+| Empresas | 779 | 9 | 66.691 | 1 | Sim |
+| Clientes | 5.430 | 5 | 393.677 | 6 | Sim |
+| Respondentes | 18.735 | 6 | 411.628 | 19 | Sim |
+| Questões | 3.297 | 13 | 1.125.401 | 4 | Sim |
+| Respostas | 281.835 | 9 | 20.291.071 | 282 | Sim |
+
+Também foi simulada uma interrupção durante a leitura de `respostas.csv`. Na
+retomada, o lote não confirmado foi emitido novamente e os lotes anteriores ao
+checkpoint confirmado não foram repetidos.

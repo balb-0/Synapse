@@ -22,11 +22,13 @@ ENVIRONMENT_VARIABLES = {
     "minio_access_key": "ETL_MINIO_ACCESS_KEY",
     "minio_secret_key": "ETL_MINIO_SECRET_KEY",
     "request_timeout_seconds": "ETL_REQUEST_TIMEOUT_SECONDS",
+    "batch_size": "ETL_EXTRACTION_BATCH_SIZE",
 }
 
 DEFAULT_VALUES: dict[str, str] = {
     "minio_input_prefix": "landing",
     "request_timeout_seconds": "30",
+    "batch_size": "1000",
 }
 
 
@@ -128,6 +130,21 @@ def _validate_timeout(value: ParameterValue) -> float:
     return timeout
 
 
+def _validate_batch_size(value: ParameterValue) -> int:
+    if isinstance(value, bool):
+        raise ConfigurationError("ETL_EXTRACTION_BATCH_SIZE deve ser inteiro positivo")
+    if isinstance(value, int):
+        batch_size = value
+    elif isinstance(value, str) and re.fullmatch(r"[1-9][0-9]*", value.strip()):
+        batch_size = int(value)
+    else:
+        raise ConfigurationError("ETL_EXTRACTION_BATCH_SIZE deve ser inteiro positivo")
+
+    if batch_size <= 0:
+        raise ConfigurationError("ETL_EXTRACTION_BATCH_SIZE deve ser inteiro positivo")
+    return batch_size
+
+
 @dataclass(frozen=True, slots=True)
 class ExtractionSettings:
     """Configurações validadas para leitura de objetos no MinIO."""
@@ -138,9 +155,10 @@ class ExtractionSettings:
     minio_secret_key: SecretValue = field(repr=False)
     minio_input_prefix: str = "landing"
     request_timeout_seconds: float = 30.0
+    batch_size: int = 1000
     source_dir: Path | None = None
 
-    def safe_summary(self) -> dict[str, str | float | None]:
+    def safe_summary(self) -> dict[str, str | int | float | None]:
         """Retorna dados apropriados para diagnóstico e logs."""
 
         return {
@@ -150,6 +168,7 @@ class ExtractionSettings:
             "minio_access_key": REDACTED,
             "minio_secret_key": REDACTED,
             "request_timeout_seconds": self.request_timeout_seconds,
+            "batch_size": self.batch_size,
             "source_dir": str(self.source_dir) if self.source_dir else None,
         }
 
@@ -235,6 +254,9 @@ def load_extraction_settings(
     timeout = _required_value(
         "request_timeout_seconds", supplied_parameters, supplied_environment
     )
+    batch_size = _required_value(
+        "batch_size", supplied_parameters, supplied_environment
+    )
 
     return ExtractionSettings(
         minio_endpoint=_validate_endpoint(
@@ -245,5 +267,6 @@ def load_extraction_settings(
         minio_secret_key=_secret(minio_secret_key, "minio_secret_key"),
         minio_input_prefix=_validate_object_prefix(str(minio_input_prefix)),
         request_timeout_seconds=_validate_timeout(timeout),
+        batch_size=_validate_batch_size(batch_size),
         source_dir=_validate_source_dir(source_dir),
     )

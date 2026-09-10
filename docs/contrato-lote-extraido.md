@@ -34,6 +34,22 @@ que ainda não foi processada.
 linha, enquanto uma API pode usar uma página ou cursor. Essa diferença fica
 dentro de cada extrator e não altera o contrato entregue ao restante do ETL.
 
+## Convenção dos arquivos CSV
+
+Os extratores CSV representam a posição como `row:N`, em que `N` é a quantidade
+de registros lógicos já incluídos nos lotes. Cabeçalho e linhas vazias não entram
+nessa contagem. A sequência começa em 1 e avança uma unidade por lote.
+
+O checkpoint CSV inclui obrigatoriamente `source_version` com o SHA-256 do
+objeto. Antes da retomada, o extrator valida a fonte, o formato da posição e essa
+versão. Depois, pula exatamente os registros confirmados e emite a página
+seguinte. Um checkpoint que já alcançou o fim resulta em uma sequência vazia,
+sem recriar o último lote.
+
+O `CheckpointStore` continua separado da leitura. Cabe ao fluxo carregar o
+último checkpoint confirmado, entregá-lo ao extrator e chamar `commit` somente
+depois que o lote tiver sido transformado, carregado e reconciliado.
+
 ## Atributos técnicos para transporte
 
 Metadados e checkpoint podem ser representados como atributos por meio de
