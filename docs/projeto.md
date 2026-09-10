@@ -661,16 +661,19 @@ uma carga de data warehouse já implementada.
 
 O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
 ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
-Governança Corporativa e quatro cards de cubo. Negócio, Consumo Analítico e
-Governança Corporativa preservam o baseline do JSON. Os quatro cubos foram
-preenchidos como contratos técnicos propostos, mantendo a distinção entre
-evidência observada no snapshot e desenho ainda sujeito a homologação.
+Governança Corporativa e quatro cards de cubo. A seção Negócio foi reconciliada
+com as definições canônicas deste documento; as demais seções mantêm seu
+baseline até a revisão específica. Os quatro cubos foram preenchidos como
+contratos técnicos propostos, mantendo a distinção entre evidência observada no
+snapshot e desenho ainda sujeito a homologação.
 
 ### Síntese do negócio
 
-Os três arrays de Negócio são a única ampliação de conteúdo em relação ao
-baseline do PDF. Eles consolidam o objetivo geral e os objetivos específicos da
-§3, as PB01–PB13 da §6.3 e os macroprocessos observados na §4.0.2.
+Os três arrays de Negócio consolidam o objetivo geral e os objetivos
+específicos da §3, as PB01–PB13 da §6.3 e os macroprocessos observados na
+§4.0.2. No JSON, objetivos são marcados como resultados pretendidos e processos
+como atuais; assim, uma capacidade futura não é apresentada como resultado já
+alcançado.
 
 **Objetivos de negócio.** O objetivo geral é construir a espinha dorsal de dados
 da Central de Pesquisas, com os seguintes resultados pretendidos:
@@ -777,6 +780,16 @@ No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da ocor
 
 Os quatro cubos não criam uma ponte observada entre participação e resposta. Os 542 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem contrato aprovado. Por isso, o C04 documenta o instrumento de pesquisa e permanece como ponto de extensão para um futuro `FATO_RESPOSTA`, mas não afirma a existência de respostas individuais conciliadas.
 
+**Registro da revisão KP-09.** A conferência entre esta seção e
+`docs/dmc.json` preservou quatro cubos. C01 mantém uma linha por pesquisa e
+explicita a cobertura de aprovação de 20/366; C02 separa participação de
+resposta e bloqueia a representatividade até homologar a fonte; C03 trata o
+estoque como semi-aditivo e condiciona entradas e saídas ao histórico de
+transições; C04 permanece fato de associação pesquisa–pergunta, com contagens
+derivadas e sem ponte presumida para pessoa. `DIM_TEMPO` é conformada nos quatro
+cubos; `DIM_PESQUISA`, em C01, C02 e C04; e Status, Área, Tipo e Perfil, em C01
+e C03. Nenhuma dimensão futura foi declarada como compartilhamento atual.
+
 ### 5.2.1 C01 — Portfólio e Ciclo
 
 Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
@@ -797,7 +810,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: inteiro
 - Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
 - Aditividade: aditiva
-- Observação: Cobertura de 97,8% das pesquisas
+- Observação: Cobertura de 5,5% das pesquisas; o indicador deve informar o denominador válido e não sustenta uma leitura geral do ciclo
 
 **dias_uteis_coleta**
 - Tipo: inteiro
@@ -820,7 +833,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: inteiro
 - Fonte ou regra de cálculo: coluna `participantes` do CSV
 - Aditividade: não aditiva
-- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+- Observação: É uma contagem declarada pela origem e só pode ser lida no nível da pesquisa; não substitui a contagem distinta observada no C02 e não pode ser somada entre pesquisas
 
 **qtd_respondentes_na_pesquisa**
 - Tipo: inteiro
@@ -898,7 +911,7 @@ As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é um
 
 Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
 
-A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+A data de aprovação (`data_aprov`) tem cobertura de 5,5% das pesquisas (20 de 366). As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem informar o denominador válido e exibir indisponibilidade quando o recorte não sustentar a comparação.
 
 A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
 
@@ -908,7 +921,7 @@ Este cubo não armazena dados individuais de respondentes, respeitando a políti
 
 ### 5.2.2 C02 — Participação e Representatividade
 
-Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um evento de resposta, permitindo análises de adesão, engajamento e representatividade de mercado. O objetivo é responder perguntas como quais empresas participaram, qual a taxa de adesão por área, quem são os respondentes mais frequentes e como a cobertura de mercado evolui.
+Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um registro de participação de `respondentes.csv`, não uma resposta individual a uma questão. O cubo permite análises de alcance observado, engajamento e representatividade de mercado, sem afirmar taxa de adesão quando o universo elegível não estiver disponível.
 
 O grão do cubo é uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual. A fonte de dados principal é o arquivo `respondentes.csv`, complementado por `pesquisas.csv` para a data de divulgação da pesquisa, `clientes.csv` para atributos da pessoa respondente e `empresas.csv` para atributos da empresa. O tipo de fato é uma transação (transaction fact), pois cada linha representa um evento único e não acumula estados. A estrutura do cubo pode ser visualizada abaixo.
 
@@ -926,7 +939,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: inteiro
 - Fonte ou regra de cálculo: sempre 1, pois cada linha é uma participação
 - Aditividade: aditiva
-- Observação: Representa o volume de respostas
+- Observação: Representa o volume de registros de participação; não deve ser rotulada como quantidade de respostas a questões
 
 **seq_ocorrencia**
 - Tipo: inteiro
@@ -944,7 +957,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: decimal
 - Fonte ou regra de cálculo: Coluna `market_share` do `respondentes.csv` no momento da participação
 - Aditividade: não aditiva
-- Observação: Só pode ser lida no nível da participação, pois representa o share da empresa naquela pesquisa específica. Para agregações, deve-se usar a média ponderada ou o share atual da empresa em `DIM_EMPRESA`
+- Observação: Só pode ser lida no nível da participação enquanto a fonte autoritativa não for homologada. Depois da homologação, I09 soma uma vez por pesquisa o valor normalizado de cada empresa participante distinta; conflito entre as duas fontes bloqueia o recorte
 
 #### Dimensões
 
@@ -978,7 +991,7 @@ A data da resposta (`hora_inicio`) tem cobertura reduzida, de aproximadamente 4,
 
 O campo `minutos_preenchimento`, calculado a partir de `hora_inicio` e `hora_termino`, também tem cobertura baixa, de aproximadamente 4,3%, e deve ser usado com cautela. Para métricas de tempo médio de preenchimento, recomenda-se filtrar apenas as linhas com ambos os campos preenchidos.
 
-A coluna `market_share` em `respondentes.csv` representa o percentual de mercado da empresa no momento da participação. Esse valor pode diferir do campo `% de mercado` em `empresas.csv`, que é o valor atual. Para análises de representatividade histórica, deve-se usar o valor da participação; para análises do perfil atual da empresa, usa-se o valor da dimensão.
+A coluna `market_share` em `respondentes.csv` e o campo `% de mercado` em `empresas.csv` divergem. O projeto não presume precedência entre eles: a fonte autoritativa deve ser homologada antes de calcular I09, e o recorte permanece bloqueado quando houver conflito.
 
 A dimensão `DIM_PESSOA` contém cargo e departamento em seus valores brutos, mas esses campos são classificados como restritos. Na camada externa, eles devem ser substituídos por níveis hierárquicos (Diretoria, Gerência, Especialista, Analista, etc.) e agrupamentos de departamento (ex.: Recursos Humanos, Jurídico, etc.), garantindo que nenhuma célula com menos de 5 pessoas seja publicada, conforme a política de k-anonimato. O e-mail foi removido da dimensão por ser um pseudônimo reversível (`cliente<N>@empresa<M>.com`), e nenhum dos relatórios previstos o exige.
 
@@ -999,25 +1012,25 @@ O grão do cubo é uma linha por combinação de mês, status, área, tipo e per
 
 #### Métricas
 
-As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações. No caso deste cubo, algumas métricas podem ser somadas no tempo, mas não entre status diferentes.
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define em quais dimensões o número pode ser somado. Medidas de estoque do snapshot não podem ser somadas entre meses; medidas de fluxo podem ser acumuladas no tempo.
 
 **qtd_pesquisas_no_status**
 - Tipo: inteiro
 - Fonte ou regra de cálculo: Contagem de pesquisas que estavam naquele status no último dia do mês
 - Aditividade: semi-aditiva
-- Observação: Pode ser somada ao longo do tempo (ex.: total de pesquisas finalizadas em um ano), mas não pode ser somada entre status diferentes (ex.: "Em andamento" + "Finalizada" não faz sentido)
+- Observação: Pode ser agregada entre categorias disjuntas no mesmo fechamento, mas não entre meses. Para contar finalizações no ano, deve-se usar o fluxo de entradas no status terminal, não somar estoques mensais
 
 **qtd_entradas_no_mes**
 - Tipo: inteiro
 - Fonte ou regra de cálculo: Quantidade de pesquisas que chegaram àquele status durante o mês
 - Aditividade: aditiva
-- Observação: Representa o fluxo de entrada no status
+- Observação: Representa o fluxo de entrada no status e exige histórico de transições; diferenças entre dois snapshots capturam apenas a mudança líquida, não todas as transições do mês
 
 **qtd_saidas_no_mes**
 - Tipo: inteiro
 - Fonte ou regra de cálculo: Quantidade de pesquisas que saíram daquele status durante o mês
 - Aditividade: aditiva
-- Observação: Representa o fluxo de saída do status
+- Observação: Representa o fluxo de saída do status e exige histórico de transições; fica indisponível enquanto esse histórico não existir
 
 #### Dimensões
 
@@ -1069,21 +1082,21 @@ O grão do cubo é uma linha por pergunta em uma pesquisa, totalizando 231 linha
   <p><b>Fonte:</b> Material elaborado pela equipe.</p>
 </div>
 
-#### Métricas
+#### Métricas derivadas
 
-As métricas são os números calculados e armazenados no cubo. A coluna Aditividade define se o número pode ser somado em agregações, como somar o número total de perguntas de uma pesquisa.
+Como este é um fato de associação, o fato não armazena medidas numéricas tradicionais. As contagens abaixo são derivadas das linhas e dos atributos dimensionais no momento da consulta.
 
 qtd_pergunta
 - Tipo: inteiro
-- Fonte ou regra de cálculo: sempre 1, pois cada linha representa uma pergunta
-- Aditividade: aditiva
-- Observação: representa o volume de perguntas por pesquisa
+- Fonte ou regra de cálculo: `COUNT(*)` das associações distintas entre pesquisa e pergunta
+- Aditividade: derivada no grão consultado
+- Observação: representa o volume de perguntas cobertas por pesquisa sem persistir uma medida constante no fato
 
 qtd_alternativas
 - Tipo: inteiro
-- Fonte ou regra de cálculo: coluna qtd_alternativas do questoes.csv
-- Aditividade: aditiva
-- Observação: soma total de alternativas de uma pesquisa ou grupo de pesquisas
+- Fonte ou regra de cálculo: atributo `qtd_alternativas` da `DIM_PERGUNTA`
+- Aditividade: não se aplica como medida do fato
+- Observação: somas e médias devem considerar perguntas distintas no recorte para não repetir o atributo em associações duplicadas
 
 #### Dimensões
 
@@ -1107,11 +1120,30 @@ O arquivo questoes.csv contém 10 pesquisas distintas, mas quatro delas (IDs 424
 
 A base de questões cobre apenas 2,7% do acervo total de pesquisas (10 de 366). Os relatórios que dependem deste cubo, como o Relatório #07 (Resultados da Pesquisa) e o Relatório #10 (Benchmark Setorial), só funcionarão plenamente para essas 10 pesquisas. Para as demais, os painéis mostrarão "Dados não disponíveis" ou uma mensagem similar, a menos que a extração de questões seja estendida para todo o acervo.
 
-O cubo é um ponto de extensão para um futuro FATO_RESPOSTA. Hoje não há dados de respostas individuais (o que cada respondente escolheu), e os relatórios que dependem desses dados (Resultados da Pesquisa, Benchmark Setorial e Comparativo Anual) estão bloqueados por essa ausência. O modelo está preparado para receber o FATO_RESPOSTA quando os dados forem disponibilizados, sem necessidade de reestruturação.
+O cubo é um ponto de extensão para uma futura `FATO_RESPOSTA` conciliada. O projeto possui `respostas.csv`, mas a ponte entre `respondent_id` e a identidade de `respondentes.csv` não está comprovada. Distribuições agregadas no grão questão podem ser calculadas quando válidas; análises por pessoa, participação ou segmento permanecem bloqueadas até a reconciliação, sem união por similaridade.
 
 A dimensão DIM_PERGUNTA contém metadados adicionais que podem ser úteis para análises futuras: o formato do arquivo de origem, a coluna de origem no arquivo bruto e um campo de confiança que indica o nível de certeza sobre a extração da pergunta.
 
-A métrica qtd_alternativas é aditiva e pode ser usada para responder perguntas como "quantas alternativas no total uma pesquisa possui" ou "qual a média de alternativas por pesquisa em um determinado tipo".
+`qtd_alternativas` é atributo da `DIM_PERGUNTA`. Totais ou médias podem ser derivados sobre perguntas distintas, deixando explícitos o conjunto coberto e o denominador; o atributo não transforma o fato de associação em um fato com medida armazenada.
+
+#### Dimensões conformadas entre os cubos
+
+Uma dimensão é classificada como conformada somente quando é compartilhada por
+mais de um cubo com o mesmo significado e contrato de chave.
+
+| Dimensão conformada | Cubos |
+| :--- | :--- |
+| `DIM_TEMPO` | C01, C02, C03 e C04 |
+| `DIM_PESQUISA` | C01, C02 e C04 |
+| `DIM_STATUS_PESQUISA` | C01 e C03 |
+| `DIM_AREA` | C01 e C03 |
+| `DIM_TIPO_PESQUISA` | C01 e C03 |
+| `DIM_PERFIL_PESQUISA` | C01 e C03 |
+
+`DIM_EMPRESA` e `DIM_PESSOA` são próprias do C02; `DIM_PERGUNTA`, do C04;
+`DIM_FAMILIA_PESQUISA`, `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA`, do C01 no
+recorte atualmente documentado. Elas não são chamadas de conformadas apenas por
+serem dimensões ou por poderem ser reutilizadas numa evolução futura.
 
 ### 5.2.5 Matriz de Rastreabilidade (PB → RF → Indicador → Cubo → Dashboard)
 
@@ -2349,6 +2381,16 @@ Se um fornecedor, suporte ou infraestrutura permitir acesso a dados pessoais a p
 | Entrega acadêmica | Confusão entre protótipo da sprint e sistema produtivo | Tratar a entrega como ambiente acadêmico independente; não prometer conformidade operacional nem reproduzir controles não verificados. |
 
 Assim, a governança proposta atende ao ciclo completo — coleta, integração, análise, publicação, atendimento e descarte — sem afirmar que os controles já existem. A passagem para produção deve ser condicionada ao fechamento do inventário, à validação das bases legais e papéis, à revisão do RIPD, ao teste de acesso e de reidentificação, à confirmação de retenção/backups e à aprovação da publicação pelo parceiro.
+
+**Registro da revisão KP-07.** As regras corporativas de `docs/dmc.json` foram
+conferidas contra esta seção. O canvas passou a registrar minimização,
+segregação de ambientes, retenção por finalidade, menor privilégio, quarentena
+de rejeitados e publicação condicionada como diretrizes propostas, e não como
+controles já implantados. Controlador, operador, encarregado, hipótese legal,
+prazo de retenção, matriz final de perfis e limiar de supressão continuam
+dependentes de homologação. A dependência MG-01 (`#170`) permanece aberta;
+portanto, nenhuma regra de schema ou domínio ainda não inventariada é tratada
+como confirmada.
 
 ## 6.7 Fluxo de Interação Anotado
 

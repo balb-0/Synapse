@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Valida o recorte da Sprint 1 no JSON do Data Model Canvas."""
+"""Valida o recorte da Sprint 3 no JSON do Data Model Canvas."""
 
 from __future__ import annotations
 
@@ -33,6 +33,7 @@ CORPORATE_LISTS = (
     "decisoesRiscos",
 )
 EXPECTED_CONSUMPTION_INDICATORS = tuple(f"I{number:02d}" for number in range(1, 26))
+EXPECTED_BUSINESS_QUESTIONS = tuple(f"PB{number:02d}" for number in range(1, 14))
 GOVERNANCE_KEYS = (
     "owner",
     "steward",
@@ -47,31 +48,21 @@ GOVERNANCE_KEYS = (
     "maturidade",
     "evolucao",
 )
-DIMENSIONAL_LISTS = ("grao", "fatos", "metricas", "dimensoes")
-DATA_GOVERNANCE_LISTS = ("fontes", "transformacoes", "qualidade", "scd")
-DATA_GOVERNANCE_FIELDS = (
-    "particionamento",
-    "materializacoesAgregacoes",
-    "indicesClusteringOrdenacao",
-    "queriesCriticas",
-    "classificacaoPublico",
-    "classificacaoInterno",
-    "classificacaoConfidencial",
-    "classificacaoRestrito",
-    "dadoPessoal",
-    "dadoSensivel",
-    "dadoCritico",
-    "criticidade",
-    "perfisAutorizados",
-    "controleAcesso",
-    "trilhaAuditoria",
-    "retencao",
-    "arquivamento",
-    "descarte",
-    "metadadosObrigatorios",
-    "kpiQualidade",
-    "kpiGovernanca",
+DIMENSIONAL_FIELDS = (
+    "nome",
+    "starSchema",
+    "snowflakeSchema",
+    "outroSchema",
+    "transactionFact",
+    "periodicSnapshot",
+    "accumulatingSnapshot",
+    "bridgeTables",
+    "junkDimensions",
+    "dimensoesConformadas",
 )
+DIMENSIONAL_LISTS = ("grao", "fatos", "metricas", "dimensoes")
+
+
 class DmcValidationError(ValueError):
     """Indica uma divergência estrutural no canvas exportado."""
 
@@ -125,6 +116,20 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
     )
     if indicator_ids != EXPECTED_CONSUMPTION_INDICATORS:
         raise DmcValidationError("indicadores de consumo devem corresponder a I01–I25")
+    question_ids = tuple(
+        question.partition(" — ")[0] for question in business["perguntasNegocio"]
+    )
+    if question_ids != EXPECTED_BUSINESS_QUESTIONS:
+        raise DmcValidationError("perguntas de negócio devem corresponder a PB01–PB13")
+    if not all(
+        objective.startswith("Resultado pretendido:")
+        for objective in business["objetivosNegocio"]
+    ):
+        raise DmcValidationError("objetivos devem ser identificados como resultados pretendidos")
+    if not all(
+        process.startswith("Processo atual:") for process in business["processosNegocio"]
+    ):
+        raise DmcValidationError("processos devem preservar seu estado atual")
 
     governance = document["governancaCorporativa"]
     if not isinstance(governance, dict) or any(
@@ -154,6 +159,16 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(fields, dict) or not isinstance(lists, dict):
             raise DmcValidationError(f"cubo {cube['id']} deve conter fields e lists")
 
+        unexpected_fields = sorted(set(fields) - set(DIMENSIONAL_FIELDS))
+        unexpected_lists = sorted(set(lists) - set(DIMENSIONAL_LISTS))
+        if unexpected_fields or unexpected_lists:
+            unexpected = [f"fields.{key}" for key in unexpected_fields]
+            unexpected.extend(f"lists.{key}" for key in unexpected_lists)
+            raise DmcValidationError(
+                f"cubo {cube['id']} contém campos fora do recorte da Sprint 3: "
+                f"{', '.join(unexpected)}"
+            )
+
         name = fields.get("nome")
         if not isinstance(name, str) or not name.strip():
             raise DmcValidationError(f"cubo {cube['id']} deve ter nome")
@@ -178,14 +193,6 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         for key in DIMENSIONAL_LISTS:
             if not _nonempty_strings(lists.get(key)):
                 raise DmcValidationError(f"cubo {name} deve preencher {key}")
-        for key in DATA_GOVERNANCE_LISTS:
-            if not _nonempty_strings(lists.get(key)):
-                raise DmcValidationError(f"cubo {name} deve preencher Dados/Governança em {key}")
-        for key in DATA_GOVERNANCE_FIELDS:
-            value = fields.get(key)
-            filled = type(value) is bool or (isinstance(value, str) and bool(value.strip()))
-            if not filled:
-                raise DmcValidationError(f"cubo {name} deve preencher Dados/Governança em {key}")
 
     if tuple(names) != EXPECTED_CUBES:
         raise DmcValidationError("nomes ou ordem dos cubos divergem do contrato da Sprint")
@@ -225,7 +232,7 @@ def main() -> int:
 
     print(
         f"DMC válido: schema {summary['schemaVersion']}; "
-        f"{len(summary['cubos'])} cubos; Dados/Governança dos cubos preenchidos"
+        f"{len(summary['cubos'])} cubos; recorte da Sprint 3 preenchido"
     )
     return 0
 
