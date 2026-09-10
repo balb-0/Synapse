@@ -81,10 +81,10 @@
     ]
   },
   "governancaCorporativa": {
-    "owner": "Fabio Moreira.",
-    "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
-    "custodian": "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados na rede interna ou na nuvem do Sindusfarma + empresa RentalHost (fornecedora do sistema interno) para custódia dos dados hospedados no repositório público.",
-    "tecnico": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
+    "owner": "Baseline documental: Fabio Moreira como Data Owner para decisões de negócio, acesso, indicadores, publicação, exceções e risco residual; autoridade formal sujeita à homologação e sem inferência de papel jurídico na LGPD.",
+    "steward": "Baseline documental: Felipe Rojas, Reinaldo Nobrega e Lucas Andrade como Data Stewards de semântica, catálogo, qualidade e linhagem; atribuição e grafia final sujeitas à homologação.",
+    "custodian": "Baseline documental: Rodrigo Giorgetto e TI como Data Custodian de infraestrutura e controles técnicos; participação da RentalHost é condicional ao ambiente e contrato, ambos sujeitos à homologação.",
+    "tecnico": "Baseline documental: Felipe Rojas, Reinaldo Nobrega e Lucas Andrade como responsáveis técnicos pelo conteúdo e regras; escopo operacional sujeito à homologação.",
     "lgpd": "Diretriz proposta, sujeita à validação do controlador e do encarregado: limitar cada tratamento à finalidade documentada e ao mínimo necessário; separar identidade da camada analítica; não publicar e-mail, chaves estáveis, respostas individuais ou combinações reidentificáveis; usar apenas dados sintéticos, agregados ou com anonimização testada no ambiente acadêmico; pseudonimização não deve ser apresentada como anonimização.",
     "seg": "Desenho proposto, ainda não homologado: acesso individual por menor privilégio, necessidade de conhecer, recurso, ação e finalidade; segregação entre ambientes acadêmico, desenvolvimento, homologação e produção; dados reais somente em ambiente autorizado; leituras, exportações, alterações, publicações, falhas e acessos administrativos com trilha auditável e revisão periódica.",
     "comp": "Dados reais ficam restritos ao ambiente autorizado; GitLab e entrega acadêmica recebem apenas código, documentação e dados sintéticos, agregados ou anonimizados. A retenção não usa prazo único: mantém-se o mínimo necessário à finalidade, obrigação aplicável e prestação de contas; ao término, o dado deve ser eliminado, anonimizado ou bloqueado, incluindo expiração controlada de backups.",

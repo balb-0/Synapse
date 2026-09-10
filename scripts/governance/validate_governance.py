@@ -1075,13 +1075,21 @@ def validate_role_consistency(
             "governancaCorporativa ausente ou inválida no DMC"
         )
     dmc_requirements = {
-        "owner": "Fabio Moreira.",
-        "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
+        "owner": (
+            "Baseline documental: Fabio Moreira como Data Owner para decisões de "
+            "negócio, acesso, indicadores, publicação, exceções e risco residual; "
+            "autoridade formal sujeita à homologação e sem inferência de papel "
+            "jurídico na LGPD."
+        ),
+        "steward": (
+            "Baseline documental: Felipe Rojas, Reinaldo Nobrega e Lucas Andrade "
+            "como Data Stewards de semântica, catálogo, qualidade e linhagem; "
+            "atribuição e grafia final sujeitas à homologação."
+        ),
         "custodian": (
-            "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados "
-            "na rede interna ou na nuvem do Sindusfarma + empresa RentalHost "
-            "(fornecedora do sistema interno) para custódia dos dados hospedados "
-            "no repositório público."
+            "Baseline documental: Rodrigo Giorgetto e TI como Data Custodian de "
+            "infraestrutura e controles técnicos; participação da RentalHost é "
+            "condicional ao ambiente e contrato, ambos sujeitos à homologação."
         ),
     }
     for field, expected in dmc_requirements.items():
