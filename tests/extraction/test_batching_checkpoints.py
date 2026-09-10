@@ -75,7 +75,7 @@ class BatchingCheckpointTests(unittest.TestCase):
         )
         self.assertEqual(
             {batch.checkpoint.source_version for batch in batches},
-            {batches[0].metadata.source_checksum},
+            {"sha256:" + batches[0].metadata.source_checksum},
         )
 
     def test_resumes_after_confirmed_batch_without_repeating_its_rows(self) -> None:
