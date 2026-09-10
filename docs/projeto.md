@@ -2349,6 +2349,16 @@ Se um fornecedor, suporte ou infraestrutura permitir acesso a dados pessoais a p
 
 Assim, a governança proposta atende ao ciclo completo — coleta, integração, análise, publicação, atendimento e descarte — sem afirmar que os controles já existem. A passagem para produção deve ser condicionada ao fechamento do inventário, à validação das bases legais e papéis, à revisão do RIPD, ao teste de acesso e de reidentificação, à confirmação de retenção/backups e à aprovação da publicação pelo parceiro.
 
+**Registro da revisão KP-07.** As regras corporativas de `docs/dmc.json` foram
+conferidas contra esta seção. O canvas passou a registrar minimização,
+segregação de ambientes, retenção por finalidade, menor privilégio, quarentena
+de rejeitados e publicação condicionada como diretrizes propostas, e não como
+controles já implantados. Controlador, operador, encarregado, hipótese legal,
+prazo de retenção, matriz final de perfis e limiar de supressão continuam
+dependentes de homologação. A dependência MG-01 (`#170`) permanece aberta;
+portanto, nenhuma regra de schema ou domínio ainda não inventariada é tratada
+como confirmada.
+
 ## 6.7 Fluxo de Interação Anotado
 
 Esta seção organiza a base do Fluxo de Interação Anotado da Sprint 2 para o
