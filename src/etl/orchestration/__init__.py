@@ -6,6 +6,6 @@ sem dependência do Prefect: a orquestração apenas coordena as etapas já
 implementadas em `extraction/`, `transformation/` e `load/`.
 """
 
-from .flow import ingest_object
+from .flow import backfill, ingest_object
 
-__all__ = ["ingest_object"]
+__all__ = ["backfill", "ingest_object"]
