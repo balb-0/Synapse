@@ -92,6 +92,9 @@ temp/
 *.swo
 *~
 
+# --- Ferramentas locais de desenvolvimento ----------------------------------
+.agents/skills/glab/
+
 # --- Sistema operacional -----------------------------------------------------
 .DS_Store
 .DS_Store?
