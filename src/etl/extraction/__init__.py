@@ -41,6 +41,18 @@ from .questionnaire_extractors import (
     QuestoesExtractor,
     RespostasExtractor,
 )
+from .failures import (
+    FailureCategory,
+    FailureClassification,
+    FailureNature,
+    FailureRecorder,
+    PermanentSourceError,
+    RetryLimitExceededError,
+    SourceAccessError,
+    SourceFailure,
+    classify_source_failure,
+)
+from .resilience import RetryExecutor, RetryPolicy
 
 __all__ = [
     "CONTRACT_VERSION",
@@ -64,18 +76,29 @@ __all__ = [
     "ExtractionCheckpoint",
     "ExtractionSettings",
     "Extractor",
+    "FailureCategory",
+    "FailureClassification",
+    "FailureNature",
+    "FailureRecorder",
     "InvalidCheckpointError",
     "MetadataSink",
     "MalformedSourceError",
     "MinioObjectReader",
     "ObjectReader",
     "ObjectReference",
+    "PermanentSourceError",
     "PesquisasExtractor",
     "QuestoesExtractor",
     "Record",
     "RespondentesExtractor",
     "RespostasExtractor",
+    "RetryExecutor",
+    "RetryLimitExceededError",
+    "RetryPolicy",
     "SecretValue",
+    "SourceAccessError",
+    "SourceFailure",
     "StaleCheckpointError",
+    "classify_source_failure",
     "load_extraction_settings",
 ]

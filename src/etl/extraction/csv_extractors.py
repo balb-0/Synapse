@@ -18,7 +18,9 @@ from .contracts import (
     ExtractionCheckpoint,
     Record,
 )
+from .failures import FailureCategory
 from .object_storage import ObjectReader, ObjectReference
+from .resilience import RetryExecutor
 
 
 PESQUISAS_REQUIRED_COLUMNS = (
@@ -88,6 +90,8 @@ class ExtractionError(RuntimeError):
 class MalformedSourceError(ExtractionError):
     """A fonte não pode ser interpretada segundo seu contrato CSV."""
 
+    failure_category = FailureCategory.MALFORMED
+
 
 class InvalidCheckpointError(ExtractionError):
     """O checkpoint não pode ser aplicado à fonte informada."""
@@ -129,6 +133,7 @@ class CsvObjectExtractor:
         object_reader: ObjectReader,
         object_reference: ObjectReference,
         batch_size: int = DEFAULT_BATCH_SIZE,
+        retry_executor: RetryExecutor | None = None,
     ) -> None:
         if not self.source_name or not self.required_columns:
             raise TypeError(
@@ -142,6 +147,7 @@ class CsvObjectExtractor:
         self._object_reader = object_reader
         self._object_reference = object_reference
         self._batch_size = batch_size
+        self._retry_executor = retry_executor or RetryExecutor()
 
     @property
     def source(self) -> str:
@@ -170,18 +176,35 @@ class CsvObjectExtractor:
             byte_count, source_version = self._buffer_source(buffered_source)
             self._validate_source_version(checkpoint, source_version)
             buffered_source.seek(0)
-            yield from self._read_batches(
-                buffered_source=buffered_source,
-                run_id=run_id,
-                started_at=started_at,
-                byte_count=byte_count,
-                source_version=source_version,
-                resume_row=resume_row,
-                next_sequence=next_sequence,
-                emit_empty_batch=checkpoint is None,
-            )
+            try:
+                yield from self._read_batches(
+                    buffered_source=buffered_source,
+                    run_id=run_id,
+                    started_at=started_at,
+                    byte_count=byte_count,
+                    source_version=source_version,
+                    resume_row=resume_row,
+                    next_sequence=next_sequence,
+                    emit_empty_batch=checkpoint is None,
+                )
+            except MalformedSourceError as exc:
+                self._retry_executor.record_failure(
+                    exc,
+                    source=self.source,
+                    operation_name="parse",
+                )
+                raise
 
     def _buffer_source(self, destination: BinaryIO) -> tuple[int, str]:
+        return self._retry_executor.execute(
+            lambda: self._read_source_once(destination),
+            source=self.source,
+            operation_name="read",
+        )
+
+    def _read_source_once(self, destination: BinaryIO) -> tuple[int, str]:
+        destination.seek(0)
+        destination.truncate(0)
         digest = hashlib.sha256()
         byte_count = 0
 
@@ -275,6 +298,8 @@ class CsvObjectExtractor:
                 )
         except UnicodeDecodeError as exc:
             raise MalformedSourceError("o CSV deve usar codificação UTF-8") from exc
+        except csv.Error as exc:
+            raise MalformedSourceError("o CSV possui estrutura inválida") from exc
         finally:
             text_stream.detach()
 
