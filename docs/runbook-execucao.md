@@ -5,7 +5,7 @@ Como outra pessoa do time sobe e executa o pipeline de ingestão
 repositório. As decisões por trás deste ambiente estão na ADR
 [`adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md)
 e na ADR
-[`adrs/0003-execucao-local-e-integracao-continua.md`](adrs/0003-execucao-local-e-integracao-continua.md).
+[`adrs/0004-execucao-local-e-integracao-continua.md`](adrs/0004-execucao-local-e-integracao-continua.md).
 
 ## Pré-requisitos
 
@@ -92,8 +92,12 @@ docker compose exec runner python scripts/orchestration/run_ingest.py --source e
 ```
 
 - Fontes válidas: `pesquisas`, `empresas`, `clientes`, `respondentes`,
-  `questoes`, `respostas`. Fixtures em `scripts/orchestration/fixtures/`;
-  `--key` e `--fixture` sobrescrevem o destino e o arquivo semeado.
+  `questoes`, `respostas`. O fixture de orquestração versionado em
+  `scripts/orchestration/fixtures/` cobre apenas `empresas` (há também
+  `empresas_malformada.csv` para o cenário de rejeição); para as demais fontes,
+  aponte um arquivo com `--fixture` (e `--key` para o destino). As seis
+  fixtures sintéticas completas existem em `tests/fixtures/` e servem aos
+  testes, não ao `run_ingest.py`.
 - Rodar o mesmo comando duas vezes demonstra a idempotência: a segunda
   execução retorna `status: ignored` (objeto já concluído, controle por hash
   SHA-256 em `_control_object`).
@@ -168,8 +172,9 @@ continua impedindo duplicatas.
 PYTHONPATH=src python -m unittest discover -s tests -v
 ```
 
-Suíte `unittest` em `tests/` (188 testes em 10/09/2026), organizada por camada
-(`extraction`, `transformation`, `load`). Testes que dependem de `duckdb` ou
+Suíte `unittest` em `tests/` (216 testes em 11/09/2026), organizada por camada
+(`extraction`, `transformation`, `load`, `orchestration`, `e2e`, `fixtures`).
+Testes que dependem de `duckdb` ou
 `minio` são pulados quando a dependência não está instalada; o contrato com
 ClickHouse (`tests/transformation/test_clickhouse_contract.py`) é opt-in e só
 roda com `ETL_TEST_CLICKHOUSE=1` e Docker local. Estratégia completa:
@@ -177,16 +182,16 @@ roda com `ETL_TEST_CLICKHOUSE=1` e Docker local. Estratégia completa:
 
 ## Integração contínua
 
-O pipeline do GitLab (`.gitlab-ci.yml` → `.gitlab/ci/transformation.yml`) roda
-em merge requests e pushes, no job `transformation-quality`:
+O pipeline consolidado do GitLab (`.gitlab-ci.yml`, imagem `python:3.12-slim`)
+roda em merge requests e pushes, em dois estágios:
 
-1. `ruff check` e `ruff format --check` (`ruff-transformation.toml`) sobre
-   `src/etl/transformation`, `tests/transformation` e `scripts/transformation`;
-2. `python scripts/transformation/render_schema.py --check` (schema de
-   destino versionado íntegro);
-3. suíte inteira via `coverage run -m unittest discover -s tests -v` com
-   `coverage report --fail-under=90` sobre `etl.transformation`, publicando o
-   relatório Cobertura como artefato.
+1. `lint`: `ruff check` e `ruff format --check` (`ruff.toml`) sobre `src`,
+   `scripts` e `tests`;
+2. `test`: `python scripts/transformation/render_schema.py --check` (schema de
+   destino versionado íntegro), suíte inteira via
+   `coverage run --branch --source=etl -m unittest discover -s tests -v` e
+   `coverage report --fail-under=85` sobre todo o pacote `etl`, publicando o
+   relatório Cobertura (`coverage-etl.xml`) como artefato.
 
 Reproduzir localmente: instalar `requirements-transformation-dev.txt` e rodar
 os mesmos comandos.
