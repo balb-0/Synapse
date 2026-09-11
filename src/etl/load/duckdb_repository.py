@@ -31,11 +31,11 @@ from etl.load.config import DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS
 from etl.load.ddl import (
     BATCH_METADATA_COLUMNS,
     BATCH_METADATA_TABLE,
-    CONTROL_COLUMNS_ADDED,
-    CONTROL_COLUMNS_RELAXED,
     BATCH_STATUS_FAILED,
     BATCH_STATUS_LOADED,
     BATCH_STATUS_LOADED_WITH_REJECTIONS,
+    CONTROL_COLUMNS_ADDED,
+    CONTROL_COLUMNS_RELAXED,
     IDENTITY_COLUMN,
     REJECTED_COLUMNS,
     REJECTED_REASON_COLUMNS,
@@ -175,8 +175,7 @@ class DuckDbLoadRepository:
         """
         for table, column, declaration in CONTROL_COLUMNS_ADDED:
             self._conn.execute(
-                f"ALTER TABLE {quote(table)} "
-                f"ADD COLUMN IF NOT EXISTS {quote(column)} {declaration}"
+                f"ALTER TABLE {quote(table)} ADD COLUMN IF NOT EXISTS {quote(column)} {declaration}"
             )
         for table, column in CONTROL_COLUMNS_RELAXED:
             if column in self._columns(table):
@@ -247,7 +246,12 @@ class DuckDbLoadRepository:
     def commit(self, checkpoint: ExtractionCheckpoint) -> None:
         self._conn.execute(
             "INSERT OR REPLACE INTO _checkpoint VALUES (?, ?, ?, ?)",
-            [checkpoint.source, checkpoint.position, checkpoint.sequence, checkpoint.source_version],
+            [
+                checkpoint.source,
+                checkpoint.position,
+                checkpoint.sequence,
+                checkpoint.source_version,
+            ],
         )
 
     # ---------- carga do lote ----------
@@ -363,7 +367,11 @@ class DuckDbLoadRepository:
             "rejected_reason",
             REJECTED_REASON_COLUMNS,
             [
-                {"rejection_id": record.rejection_id, "code": violation.code, "field": violation.field}
+                {
+                    "rejection_id": record.rejection_id,
+                    "code": violation.code,
+                    "field": violation.field,
+                }
                 for record in rejected
                 for violation in record.violations
             ],
@@ -446,9 +454,7 @@ class DuckDbLoadRepository:
 
     def count(self, source: str) -> int:
         return int(
-            self._conn.execute(
-                f"SELECT count(*) FROM {quote(table_name(source))}"
-            ).fetchone()[0]
+            self._conn.execute(f"SELECT count(*) FROM {quote(table_name(source))}").fetchone()[0]
         )
 
 

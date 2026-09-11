@@ -11,7 +11,6 @@ from pathlib import Path, PurePosixPath
 from typing import TypeAlias
 from urllib.parse import urlsplit
 
-
 REDACTED = "********"
 
 ENVIRONMENT_VARIABLES = {
@@ -89,9 +88,7 @@ def _validate_source_dir(value: ParameterValue) -> Path | None:
     if value is None or (isinstance(value, str) and not value.strip()):
         return None
     if not isinstance(value, (str, Path)):
-        raise ConfigurationError(
-            "ETL_SOURCE_DIR deve apontar para um caminho válido"
-        )
+        raise ConfigurationError("ETL_SOURCE_DIR deve apontar para um caminho válido")
 
     path = Path(value).expanduser().resolve()
     if not path.exists():
@@ -105,9 +102,7 @@ def _validate_object_prefix(value: str) -> str:
     normalized = value.strip().strip("/")
     path = PurePosixPath(normalized)
     if not normalized or path.is_absolute() or ".." in path.parts:
-        raise ConfigurationError(
-            "ETL_MINIO_INPUT_PREFIX deve ser um prefixo relativo sem '..'"
-        )
+        raise ConfigurationError("ETL_MINIO_INPUT_PREFIX deve ser um prefixo relativo sem '..'")
     return normalized
 
 
@@ -119,20 +114,14 @@ def _validate_bucket(value: str) -> str:
 
 def _validate_timeout(value: ParameterValue) -> float:
     if isinstance(value, (bool, Path, SecretValue)) or value is None:
-        raise ConfigurationError(
-            "ETL_REQUEST_TIMEOUT_SECONDS deve ser numérico"
-        )
+        raise ConfigurationError("ETL_REQUEST_TIMEOUT_SECONDS deve ser numérico")
 
     try:
         timeout = float(value)
     except (TypeError, ValueError) as exc:
-        raise ConfigurationError(
-            "ETL_REQUEST_TIMEOUT_SECONDS deve ser numérico"
-        ) from exc
+        raise ConfigurationError("ETL_REQUEST_TIMEOUT_SECONDS deve ser numérico") from exc
     if not math.isfinite(timeout) or timeout <= 0:
-        raise ConfigurationError(
-            "ETL_REQUEST_TIMEOUT_SECONDS deve ser maior que zero"
-        )
+        raise ConfigurationError("ETL_REQUEST_TIMEOUT_SECONDS deve ser maior que zero")
     return timeout
 
 
@@ -153,22 +142,16 @@ def _validate_batch_size(value: ParameterValue) -> int:
 
 def _validate_max_attempts(value: ParameterValue) -> int:
     if isinstance(value, bool):
-        raise ConfigurationError(
-            "ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo"
-        )
+        raise ConfigurationError("ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo")
     if isinstance(value, int):
         max_attempts = value
     elif isinstance(value, str) and re.fullmatch(r"[1-9][0-9]*", value.strip()):
         max_attempts = int(value)
     else:
-        raise ConfigurationError(
-            "ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo"
-        )
+        raise ConfigurationError("ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo")
 
     if max_attempts <= 0:
-        raise ConfigurationError(
-            "ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo"
-        )
+        raise ConfigurationError("ETL_EXTRACTION_MAX_ATTEMPTS deve ser inteiro positivo")
     return max_attempts
 
 
@@ -178,9 +161,7 @@ def _validate_retry_delay(value: ParameterValue, variable: str) -> float:
     try:
         delay = float(value)
     except (TypeError, ValueError) as exc:
-        raise ConfigurationError(
-            f"{variable} deve ser numérico e não negativo"
-        ) from exc
+        raise ConfigurationError(f"{variable} deve ser numérico e não negativo") from exc
     if not math.isfinite(delay) or delay < 0:
         raise ConfigurationError(f"{variable} deve ser numérico e não negativo")
     return delay
@@ -244,9 +225,7 @@ def _required_value(
     value = _configured_value(field_name, parameters, environ)
     if value is None or (isinstance(value, str) and not value.strip()):
         variable = ENVIRONMENT_VARIABLES[field_name]
-        raise ConfigurationError(
-            f"configuração obrigatória ausente: {field_name} ({variable})"
-        )
+        raise ConfigurationError(f"configuração obrigatória ausente: {field_name} ({variable})")
     return value
 
 
@@ -255,9 +234,7 @@ def _secret(value: ParameterValue, field_name: str) -> SecretValue:
         return value
     if not isinstance(value, str) or not value.strip():
         variable = ENVIRONMENT_VARIABLES[field_name]
-        raise ConfigurationError(
-            f"credencial obrigatória ausente: {field_name} ({variable})"
-        )
+        raise ConfigurationError(f"credencial obrigatória ausente: {field_name} ({variable})")
     return SecretValue(value)
 
 
@@ -275,20 +252,12 @@ def load_extraction_settings(
     supplied_parameters = dict(parameters or {})
     unknown = sorted(set(supplied_parameters) - set(ENVIRONMENT_VARIABLES))
     if unknown:
-        raise ConfigurationError(
-            "parâmetros de configuração desconhecidos: " + ", ".join(unknown)
-        )
+        raise ConfigurationError("parâmetros de configuração desconhecidos: " + ", ".join(unknown))
     supplied_environment = os.environ if environ is None else environ
 
-    source_dir = _configured_value(
-        "source_dir", supplied_parameters, supplied_environment
-    )
-    minio_endpoint = _required_value(
-        "minio_endpoint", supplied_parameters, supplied_environment
-    )
-    minio_bucket = _required_value(
-        "minio_bucket", supplied_parameters, supplied_environment
-    )
+    source_dir = _configured_value("source_dir", supplied_parameters, supplied_environment)
+    minio_endpoint = _required_value("minio_endpoint", supplied_parameters, supplied_environment)
+    minio_bucket = _required_value("minio_bucket", supplied_parameters, supplied_environment)
     minio_input_prefix = _required_value(
         "minio_input_prefix", supplied_parameters, supplied_environment
     )
@@ -298,15 +267,9 @@ def load_extraction_settings(
     minio_secret_key = _required_value(
         "minio_secret_key", supplied_parameters, supplied_environment
     )
-    timeout = _required_value(
-        "request_timeout_seconds", supplied_parameters, supplied_environment
-    )
-    batch_size = _required_value(
-        "batch_size", supplied_parameters, supplied_environment
-    )
-    max_attempts = _required_value(
-        "max_attempts", supplied_parameters, supplied_environment
-    )
+    timeout = _required_value("request_timeout_seconds", supplied_parameters, supplied_environment)
+    batch_size = _required_value("batch_size", supplied_parameters, supplied_environment)
+    max_attempts = _required_value("max_attempts", supplied_parameters, supplied_environment)
     retry_initial_delay = _required_value(
         "retry_initial_delay_seconds", supplied_parameters, supplied_environment
     )
@@ -329,9 +292,7 @@ def load_extraction_settings(
         )
 
     return ExtractionSettings(
-        minio_endpoint=_validate_endpoint(
-            str(minio_endpoint), "ETL_MINIO_ENDPOINT"
-        ),
+        minio_endpoint=_validate_endpoint(str(minio_endpoint), "ETL_MINIO_ENDPOINT"),
         minio_bucket=_validate_bucket(str(minio_bucket)),
         minio_access_key=_secret(minio_access_key, "minio_access_key"),
         minio_secret_key=_secret(minio_secret_key, "minio_secret_key"),

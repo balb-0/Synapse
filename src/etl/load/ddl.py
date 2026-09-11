@@ -28,7 +28,6 @@ import re
 
 from etl.transformation.schema import KEYS, SCHEMAS, destination_columns
 
-
 TABLE_PREFIX = "ingestao_"
 CURRENT_VIEW_SUFFIX = "_atual"
 
@@ -381,8 +380,7 @@ def create_legacy_view(source: str) -> str:
     """
 
     return (
-        f"CREATE VIEW IF NOT EXISTS {quote(source)} AS\n"
-        f"SELECT * FROM {quote(table_name(source))}"
+        f"CREATE VIEW IF NOT EXISTS {quote(source)} AS\nSELECT * FROM {quote(table_name(source))}"
     )
 
 

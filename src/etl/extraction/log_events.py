@@ -8,7 +8,6 @@ from typing import Protocol, cast, runtime_checkable
 
 from .contracts import ExtractedBatch
 
-
 EXTRACTION_BATCH_EVENT = "extraction.batch.emitted"
 EXTRACTION_STAGE = "extraction"
 SUCCESS_STATUS = "success"
@@ -79,11 +78,7 @@ class ExtractionBatchLogEvent:
             "checkpoint_sequence": self.checkpoint_sequence,
             "checkpoint_source_version": self.checkpoint_source_version,
         }
-        return {
-            key: value
-            for key, value in attributes.items()
-            if value is not None
-        }
+        return {key: value for key, value in attributes.items() if value is not None}
 
 
 @runtime_checkable

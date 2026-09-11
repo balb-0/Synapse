@@ -27,7 +27,6 @@ from .log_events import (
 from .object_storage import ObjectReader, ObjectReference
 from .resilience import RetryExecutor
 
-
 PESQUISAS_REQUIRED_COLUMNS = (
     "id",
     "titulo",
@@ -116,9 +115,7 @@ def _normalize_headers(headers: list[str]) -> tuple[str, ...]:
         base_name = original_name or f"unnamed_column_{position}"
         occurrences[base_name] = occurrences.get(base_name, 0) + 1
         occurrence = occurrences[base_name]
-        normalized.append(
-            base_name if occurrence == 1 else f"{base_name}__{occurrence}"
-        )
+        normalized.append(base_name if occurrence == 1 else f"{base_name}__{occurrence}")
 
     return tuple(normalized)
 
@@ -142,9 +139,7 @@ class CsvObjectExtractor:
         log_sink: ExtractionLogSink | None = None,
     ) -> None:
         if not self.source_name or not self.required_columns:
-            raise TypeError(
-                "o extrator CSV deve declarar fonte e colunas obrigatórias"
-            )
+            raise TypeError("o extrator CSV deve declarar fonte e colunas obrigatórias")
         if isinstance(batch_size, bool) or not isinstance(batch_size, int):
             raise ValueError("batch_size deve ser um inteiro positivo")
         if batch_size <= 0:
@@ -219,9 +214,7 @@ class CsvObjectExtractor:
             while True:
                 chunk = stream.read(SOURCE_READ_CHUNK_SIZE)
                 if not isinstance(chunk, bytes):
-                    raise MalformedSourceError(
-                        "o objeto de origem deve fornecer bytes"
-                    )
+                    raise MalformedSourceError("o objeto de origem deve fornecer bytes")
                 if not chunk:
                     break
                 destination.write(chunk)
@@ -252,9 +245,7 @@ class CsvObjectExtractor:
         if checkpoint is None:
             return
         if checkpoint.source_version is None:
-            raise InvalidCheckpointError(
-                "checkpoint CSV não informa a versão da fonte"
-            )
+            raise InvalidCheckpointError("checkpoint CSV não informa a versão da fonte")
         if checkpoint.source_version != source_version:
             raise StaleCheckpointError("a fonte mudou desde o checkpoint confirmado")
 
@@ -319,22 +310,16 @@ class CsvObjectExtractor:
         except StopIteration as exc:
             raise MalformedSourceError("o CSV não possui cabeçalho") from exc
 
-        missing_columns = [
-            column for column in self.required_columns if column not in headers
-        ]
+        missing_columns = [column for column in self.required_columns if column not in headers]
         if missing_columns:
-            raise MalformedSourceError(
-                "o CSV não possui todas as colunas obrigatórias"
-            )
+            raise MalformedSourceError("o CSV não possui todas as colunas obrigatórias")
 
         normalized_headers = _normalize_headers(headers)
         for line_number, row in enumerate(reader, start=2):
             if not row:
                 continue
             if len(row) != len(normalized_headers):
-                raise MalformedSourceError(
-                    f"quantidade de campos inválida na linha {line_number}"
-                )
+                raise MalformedSourceError(f"quantidade de campos inválida na linha {line_number}")
             record = dict(zip(normalized_headers, row, strict=True))
             yield self._prepare_record(record)
 
@@ -347,9 +332,7 @@ class CsvObjectExtractor:
             try:
                 next(records)
             except StopIteration as exc:
-                raise InvalidCheckpointError(
-                    "checkpoint está além do fim da fonte"
-                ) from exc
+                raise InvalidCheckpointError("checkpoint está além do fim da fonte") from exc
 
     def _build_batch(
         self,

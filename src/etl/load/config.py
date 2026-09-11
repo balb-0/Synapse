@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TypeAlias
 
-
 ENVIRONMENT_VARIABLES = {
     "database_path": "ETL_DUCKDB_PATH",
     "threads": "ETL_DUCKDB_THREADS",
@@ -73,13 +72,10 @@ def _validate_database_path(value: ParameterValue) -> Path:
     path = Path(text).expanduser()
     if text.endswith(("/", os.sep)) or path.is_dir():
         raise ConfigurationError(
-            "o caminho do banco de ingestão deve apontar para um arquivo, "
-            "não para um diretório"
+            "o caminho do banco de ingestão deve apontar para um arquivo, não para um diretório"
         )
     if ".." in path.parts:
-        raise ConfigurationError(
-            "o caminho do banco de ingestão não pode conter '..'"
-        )
+        raise ConfigurationError("o caminho do banco de ingestão não pode conter '..'")
     return Path(os.path.abspath(path))
 
 
@@ -174,9 +170,7 @@ def load_duckdb_settings(
     supplied_parameters = dict(parameters or {})
     unknown = sorted(set(supplied_parameters) - set(ENVIRONMENT_VARIABLES))
     if unknown:
-        raise ConfigurationError(
-            "parâmetros de configuração desconhecidos: " + ", ".join(unknown)
-        )
+        raise ConfigurationError("parâmetros de configuração desconhecidos: " + ", ".join(unknown))
     supplied_environment = os.environ if environ is None else environ
 
     return DuckDBSettings(

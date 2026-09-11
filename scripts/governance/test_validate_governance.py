@@ -16,7 +16,6 @@ from validate_governance import (
     validate_tracked_inputs,
 )
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 DOCUMENT_PATH = REPOSITORY_ROOT / "docs" / "Governança-de-Dados-do-Projeto.md"
 
@@ -78,18 +77,14 @@ class GovernanceDocumentTests(unittest.TestCase):
             validate_document(document)
 
     def test_duplicate_class_fails(self) -> None:
-        row = next(
-            line for line in self.document.splitlines() if line.startswith("| **Público**")
-        )
+        row = next(line for line in self.document.splitlines() if line.startswith("| **Público**"))
         document = self.document.replace(row, f"{row}\n{row}", 1)
         with self.assertRaisesRegex(GovernanceValidationError, "duplicadas"):
             validate_document(document)
 
     def test_truncated_asset_row_fails(self) -> None:
         row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| **Pessoa/Cliente**")
+            line for line in self.document.splitlines() if line.startswith("| **Pessoa/Cliente**")
         )
         document = self.document.replace(row, "| Pessoa/Cliente | campos | Confidencial |", 1)
         with self.assertRaisesRegex(GovernanceValidationError, "largura inválida"):
@@ -113,25 +108,15 @@ class GovernanceDocumentTests(unittest.TestCase):
 
     def test_person_cannot_be_downgraded_to_internal(self) -> None:
         row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| **Pessoa/Cliente**")
+            line for line in self.document.splitlines() if line.startswith("| **Pessoa/Cliente**")
         )
-        document = self.document.replace(
-            row, row.replace("| Confidencial |", "| Interno |"), 1
-        )
+        document = self.document.replace(row, row.replace("| Confidencial |", "| Interno |"), 1)
         with self.assertRaisesRegex(GovernanceValidationError, "classe mínima"):
             validate_document(document)
 
     def test_company_cannot_be_classified_as_public(self) -> None:
-        row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| **Empresa**")
-        )
-        document = self.document.replace(
-            row, row.replace("| Confidencial |", "| Público |"), 1
-        )
+        row = next(line for line in self.document.splitlines() if line.startswith("| **Empresa**"))
+        document = self.document.replace(row, row.replace("| Confidencial |", "| Público |"), 1)
         with self.assertRaisesRegex(GovernanceValidationError, "classe mínima"):
             validate_document(document)
 
@@ -160,10 +145,7 @@ class GovernanceDocumentTests(unittest.TestCase):
             validate_document(document)
 
     def test_participant_cannot_access_analytics(self) -> None:
-        source = (
-            "| Solicitantes/participantes | — | — | — | "
-            "L da entrega autorizada |"
-        )
+        source = "| Solicitantes/participantes | — | — | — | L da entrega autorizada |"
         document = self.document.replace(
             source,
             "| Solicitantes/participantes | — | — | L | L da entrega autorizada |",
@@ -277,9 +259,7 @@ class GovernanceDocumentTests(unittest.TestCase):
 
     def test_missing_governance_role_fails(self) -> None:
         row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| **Data Steward**")
+            line for line in self.document.splitlines() if line.startswith("| **Data Steward**")
         )
         document = self.document.replace(row, "", 1)
         with self.assertRaisesRegex(GovernanceValidationError, "Data Steward"):
@@ -306,9 +286,7 @@ class GovernanceDocumentTests(unittest.TestCase):
         start = self.document.index("```mermaid\nflowchart LR")
         end = self.document.index("```", start + 3)
         block = self.document[start:end]
-        without_relations = "\n".join(
-            line for line in block.splitlines() if "-->" not in line
-        )
+        without_relations = "\n".join(line for line in block.splitlines() if "-->" not in line)
         document = self.document[:start] + without_relations + self.document[end:]
         with self.assertRaisesRegex(GovernanceValidationError, "relação obrigatória"):
             validate_document(document)
@@ -330,8 +308,7 @@ class GovernanceDocumentTests(unittest.TestCase):
         )
         document = self.document.replace(
             row,
-            "| Definir significado, criticidade e uso de negócio dos metadados "
-            "| | | | | | | |",
+            "| Definir significado, criticidade e uso de negócio dos metadados | | | | | | | |",
             1,
         )
         with self.assertRaisesRegex(GovernanceValidationError, "matriz RACI"):
@@ -405,9 +382,7 @@ class GovernanceDocumentTests(unittest.TestCase):
             validate_document(document)
 
     def test_source_mapping_evidence_is_required(self) -> None:
-        document = self.document.replace(
-            "`confianca_extracao`", "confiança da extração"
-        )
+        document = self.document.replace("`confianca_extracao`", "confiança da extração")
         with self.assertRaisesRegex(GovernanceValidationError, "confianca_extracao"):
             validate_document(document)
 
@@ -455,21 +430,13 @@ class GovernanceDocumentTests(unittest.TestCase):
             validate_document(document)
 
     def test_catalog_dimension_contract_cannot_be_empty(self) -> None:
-        row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| `DIM_AREA` |")
-        )
+        row = next(line for line in self.document.splitlines() if line.startswith("| `DIM_AREA` |"))
         document = self.document.replace(row, "| `DIM_AREA` | | | |", 1)
         with self.assertRaisesRegex(GovernanceValidationError, "dimensões do exemplo"):
             validate_document(document)
 
     def test_catalog_dimension_requires_grain_and_keys(self) -> None:
-        row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| `DIM_AREA` |")
-        )
+        row = next(line for line in self.document.splitlines() if line.startswith("| `DIM_AREA` |"))
         cells = row.split("|")
         cells[2] = " chaves pendentes "
         document = self.document.replace(row, "|".join(cells), 1)
@@ -477,11 +444,7 @@ class GovernanceDocumentTests(unittest.TestCase):
             validate_document(document)
 
     def test_catalog_field_requires_definition_and_origin(self) -> None:
-        row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| `sk_area` |")
-        )
+        row = next(line for line in self.document.splitlines() if line.startswith("| `sk_area` |"))
         cells = row.split("|")
         cells[3] = " — "
         document = self.document.replace(row, "|".join(cells), 1)
@@ -560,12 +523,10 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.document = DOCUMENT_PATH.read_text(encoding="utf-8")
-        cls.dmc = json.loads(
-            (REPOSITORY_ROOT / "docs" / "dmc.json").read_text(encoding="utf-8")
+        cls.dmc = json.loads((REPOSITORY_ROOT / "docs" / "dmc.json").read_text(encoding="utf-8"))
+        cls.architecture = (REPOSITORY_ROOT / "docs" / "arquitetura-de-negocio.md").read_text(
+            encoding="utf-8"
         )
-        cls.architecture = (
-            REPOSITORY_ROOT / "docs" / "arquitetura-de-negocio.md"
-        ).read_text(encoding="utf-8")
         cls.tapi = """
         LÍDER DO PROJETO: Felipe Fernandes Rojas – Analista de Dados Sr.
         PONTO FOCAL BACKUP: Reinaldo Nobrega – Coordenador de Dados
@@ -575,9 +536,7 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
         """
 
     def test_current_roles_are_consistent_with_sources(self) -> None:
-        summary = validate_role_consistency(
-            self.document, self.tapi, self.dmc, self.architecture
-        )
+        summary = validate_role_consistency(self.document, self.tapi, self.dmc, self.architecture)
         self.assertEqual(summary["role_evidence_sources"], 4)
         self.assertEqual(summary["consistent_governance_roles"], 3)
 
@@ -612,12 +571,8 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
                         f"Gestor da Central de Pesquisas, {contradiction}"
                     ),
                 )
-                with self.assertRaisesRegex(
-                    GovernanceValidationError, "líder executivo"
-                ):
-                    validate_role_consistency(
-                        self.document, tapi, self.dmc, self.architecture
-                    )
+                with self.assertRaisesRegex(GovernanceValidationError, "líder executivo"):
+                    validate_role_consistency(self.document, tapi, self.dmc, self.architecture)
 
     def test_tapi_cannot_repeat_analyst_assignment(self) -> None:
         tapi = self.tapi + "\nLucas Andrade – Analista de Dados Jr.\n"
@@ -632,9 +587,7 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
 
     def test_dmc_negated_owner_assignment_fails(self) -> None:
         dmc = json.loads(json.dumps(self.dmc))
-        dmc["governancaCorporativa"]["owner"] = (
-            "Fabio Moreira não é Owner; Maria é Owner."
-        )
+        dmc["governancaCorporativa"]["owner"] = "Fabio Moreira não é Owner; Maria é Owner."
         with self.assertRaisesRegex(GovernanceValidationError, "owner"):
             validate_role_consistency(self.document, self.tapi, dmc, self.architecture)
 
@@ -678,9 +631,7 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
 
     def test_rentalhost_cannot_gain_business_authority(self) -> None:
         row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| **RentalHost** |")
+            line for line in self.document.splitlines() if line.startswith("| **RentalHost** |")
         )
         cells = row.split("|")
         cells[3] = " Decide finalidade, classificação e publicação. "
@@ -702,9 +653,7 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
 
     def test_extra_person_cannot_be_added_to_role_assignment(self) -> None:
         row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| **Data Owner** |")
+            line for line in self.document.splitlines() if line.startswith("| **Data Owner** |")
         )
         document = self.document.replace(
             row, row.replace("Fabio Moreira", "Fabio Moreira e Maria"), 1
@@ -714,9 +663,7 @@ class GovernanceRoleConsistencyTests(unittest.TestCase):
 
     def test_rentalhost_cannot_keep_custody_text_and_add_authority(self) -> None:
         row = next(
-            line
-            for line in self.document.splitlines()
-            if line.startswith("| **RentalHost** |")
+            line for line in self.document.splitlines() if line.startswith("| **RentalHost** |")
         )
         document = self.document.replace(
             row,
@@ -810,9 +757,7 @@ class TapiHashTests(unittest.TestCase):
     def test_matching_tapi_hash_passes(self) -> None:
         content = b"TAPI sintetico para teste\n"
         digest = hashlib.sha256(content).hexdigest()
-        document = re.sub(
-            r"(?<=SHA-256\n`)[0-9a-f]{64}", digest, self.document, count=1
-        )
+        document = re.sub(r"(?<=SHA-256\n`)[0-9a-f]{64}", digest, self.document, count=1)
         with tempfile.TemporaryDirectory() as directory:
             tapi = Path(directory) / "tapi.txt"
             tapi.write_bytes(content)

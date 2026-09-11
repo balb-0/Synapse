@@ -104,4 +104,3 @@ class MinioObjectReader:
                 response.close()
             finally:
                 response.release_conn()
-

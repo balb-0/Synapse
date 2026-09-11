@@ -47,9 +47,7 @@ class RunGatesTest(unittest.TestCase):
         self.assertEqual(Path(gates[-1].command[-1]), Path("docs/dmc.json"))
 
     @mock.patch("run_gates.subprocess.run")
-    def test_execution_stops_at_first_failed_gate(
-        self, run: mock.Mock
-    ) -> None:
+    def test_execution_stops_at_first_failed_gate(self, run: mock.Mock) -> None:
         run.side_effect = [
             subprocess.CompletedProcess(("first",), 0),
             subprocess.CompletedProcess(("second",), 3),
@@ -66,9 +64,7 @@ class RunGatesTest(unittest.TestCase):
         self.assertEqual(run.call_count, 2)
 
     @mock.patch("run_gates.subprocess.run")
-    def test_success_runs_every_gate_from_repository_root(
-        self, run: mock.Mock
-    ) -> None:
+    def test_success_runs_every_gate_from_repository_root(self, run: mock.Mock) -> None:
         run.return_value = subprocess.CompletedProcess(("ok",), 0)
         gates = [
             run_gates.Gate("primeiro", ("first",)),

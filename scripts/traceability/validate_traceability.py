@@ -11,7 +11,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
 EXPECTED_QUESTIONS = tuple(f"PB{number:02d}" for number in range(1, 14))
 EXPECTED_REQUIREMENTS = tuple(f"RF{number:02d}" for number in range(1, 14))
 EXPECTED_INDICATORS = {f"I{number:02d}" for number in range(1, 26)}
@@ -93,9 +92,7 @@ def _normalized_text(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
 
-def validate_primary_sources(
-    manifest: dict[str, Any], sources_dir: Path
-) -> dict[str, int]:
+def validate_primary_sources(manifest: dict[str, Any], sources_dir: Path) -> dict[str, int]:
     sources = manifest.get("primarySources")
     if not isinstance(sources, list) or not sources:
         raise TraceabilityError("o manifesto deve registrar as fontes primárias")
@@ -109,9 +106,10 @@ def validate_primary_sources(
         filename = source.get("filename")
         expected_hash = source.get("sha256")
         claims = source.get("claims")
-        if not all(isinstance(value, str) and value.strip() for value in (
-            source_id, filename, expected_hash
-        )):
+        if not all(
+            isinstance(value, str) and value.strip()
+            for value in (source_id, filename, expected_hash)
+        ):
             raise TraceabilityError("fonte primária sem id, arquivo ou SHA-256")
         if source_id in seen_ids:
             raise TraceabilityError(f"fonte primária duplicada: {source_id}")
@@ -141,9 +139,7 @@ def validate_primary_sources(
                 raise TraceabilityError(f"afirmação duplicada em {source_id}: {claim_id}")
             claim_ids.add(claim_id)
             if _normalized_text(phrase) not in normalized:
-                raise TraceabilityError(
-                    f"a fonte {source_id} não sustenta a afirmação {claim_id}"
-                )
+                raise TraceabilityError(f"a fonte {source_id} não sustenta a afirmação {claim_id}")
             claim_count += 1
 
     return {"sources": len(sources), "claims": claim_count}
@@ -199,9 +195,7 @@ def validate_project_matrix(manifest: dict[str, Any], project_path: Path) -> Non
             ]
         )
     if _project_matrix(project_path) != expected:
-        raise TraceabilityError(
-            "a matriz da §5.4 diverge de scripts/traceability/manifest.json"
-        )
+        raise TraceabilityError("a matriz da §5.4 diverge de scripts/traceability/manifest.json")
 
 
 def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
@@ -237,13 +231,13 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
         requirement = question.get("requirement")
         requirements.append(requirement)
         if requirement != EXPECTED_REQUIREMENTS[position]:
-            raise TraceabilityError(f"{question_id} deve apontar para {EXPECTED_REQUIREMENTS[position]}")
+            raise TraceabilityError(
+                f"{question_id} deve apontar para {EXPECTED_REQUIREMENTS[position]}"
+            )
 
         question_indicators = _string_list(question.get("indicators"), "indicators", question_id)
         question_cubes = _string_list(question.get("cubes"), "cubes", question_id)
-        question_artifacts = _string_list(
-            question.get("artifacts", []), "artifacts", question_id
-        )
+        question_artifacts = _string_list(question.get("artifacts", []), "artifacts", question_id)
         question_dashboards = _string_list(question.get("dashboards"), "dashboards", question_id)
         question_pending = _string_list(
             question.get("pendingIndicators"), "pendingIndicators", question_id
@@ -267,8 +261,13 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
         if question_pending:
             pending_questions.add(question_id)
             pending_indicators.update(question_pending)
-            if not isinstance(pending_cube, dict) or pending_cube.get("dependency") != "Integração futura":
-                raise TraceabilityError(f"{question_id} deve registrar a dependência de integração futura")
+            if (
+                not isinstance(pending_cube, dict)
+                or pending_cube.get("dependency") != "Integração futura"
+            ):
+                raise TraceabilityError(
+                    f"{question_id} deve registrar a dependência de integração futura"
+                )
             if not isinstance(pending_cube.get("name"), str) or not pending_cube["name"].strip():
                 raise TraceabilityError(f"{question_id} deve nomear o cubo pendente")
         elif pending_cube is not None:
@@ -286,7 +285,9 @@ def validate(manifest: dict[str, Any], dmc: dict[str, Any]) -> dict[str, int]:
     if indicators != EXPECTED_INDICATORS:
         missing = sorted(EXPECTED_INDICATORS - indicators)
         extra = sorted(indicators - EXPECTED_INDICATORS)
-        raise TraceabilityError(f"cobertura de indicadores diverge; ausentes={missing}; extras={extra}")
+        raise TraceabilityError(
+            f"cobertura de indicadores diverge; ausentes={missing}; extras={extra}"
+        )
     if dashboards != EXPECTED_DASHBOARDS:
         raise TraceabilityError("a cobertura deve incluir exatamente D01–D04")
     if pending_questions != EXPECTED_PENDING_QUESTIONS:
@@ -322,9 +323,7 @@ def main() -> int:
         summary = validate(manifest, load_json(args.dmc))
         validate_project_matrix(manifest, args.project)
         source_summary = (
-            validate_primary_sources(manifest, args.sources_dir)
-            if args.sources_dir
-            else None
+            validate_primary_sources(manifest, args.sources_dir) if args.sources_dir else None
         )
     except TraceabilityError as error:
         print(f"Rastreabilidade inválida: {error}", file=sys.stderr)
