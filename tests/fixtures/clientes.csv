@@ -1,0 +1,4 @@
+id_cliente;id_empresa;cargo;departamento;e-mail
+1001;101;Analista;Pesquisa;pessoa1@example.invalid
+1002;102;;;
+1003;999;Gerente;Comercial;pessoa3@example.invalid
