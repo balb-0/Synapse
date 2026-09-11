@@ -45,6 +45,11 @@ def normalize_record(source, raw, source_timezone=None):
             continue
         spec = aliases.get(name)
         if spec is None:
+            if source in ("questoes", "respostas") and name in ("estrutura", "conteudo"):
+                # Contêiner auxiliar do contrato de extração dos questionários:
+                # os campos brutos já foram processados; a forma estável é
+                # redundante para a normalização.
+                continue
             # Never reflect attacker-controlled field names into logs.
             problems.append(Violation("UNKNOWN_FIELD", "schema"))
             continue
