@@ -1,4 +1,4 @@
-# ADR 0003 — Execução local e integração contínua do ETL
+# ADR 0004 — Execução local e integração contínua do ETL
 
 - **Status:** Proposto
 - **Data:** 10/09/2026

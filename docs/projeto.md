@@ -634,7 +634,7 @@ plano de dados, Prefect no plano de controle, MinIO como entrada de objetos,
 DuckDB como banco de ingestão tratada e Elastic Stack como plataforma de
 observabilidade, esta última decidida e ainda não integrada. A execução local em
 contêineres e o escopo da integração contínua estão no
-[ADR 0003](adrs/0003-execucao-local-e-integracao-continua.md). Ferramenta de BI
+[ADR 0004](adrs/0004-execucao-local-e-integracao-continua.md). Ferramenta de BI
 e mecanismo de autenticação permanecem decisões futuras.
 
 O inventário de versões, protocolos, formatos e divergências observadas está em
