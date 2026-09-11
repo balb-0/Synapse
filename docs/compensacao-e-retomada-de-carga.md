@@ -9,7 +9,7 @@ A implementação está em
 [`src/etl/orchestration/flow.py`](../src/etl/orchestration/flow.py) — nas
 tarefas `transform` e `load` e no flow `ingest_object`. A decisão está
 registrada em
-[ADR 0004](adrs/0004-checkpoint-confirmado-lote-a-lote-na-retomada.md).
+[ADR 0005](adrs/0005-checkpoint-confirmado-lote-a-lote-na-retomada.md).
 
 ## Escopo
 
@@ -40,7 +40,7 @@ Este documento cobre a retomada de um objeto cuja carga falhou entre lotes:
   este documento não muda o que conta como duplicata.
 - **Uma identidade repetida em dois lotes diferentes da mesma leitura (não
   entre tentativas).** Risco preexistente e aceito, com causa própria — ver a
-  seção "Negativas e riscos" do ADR 0004.
+  seção "Negativas e riscos" do ADR 0005.
 - **Testes gray-box de ponta a ponta contra uma instância real.** Este
   documento descreve o comportamento por trás dos testes da tarefa `load`; um
   roteiro de integração mais amplo é um documento à parte.

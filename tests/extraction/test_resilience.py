@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import BinaryIO
 from unittest.mock import patch
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
@@ -59,11 +58,7 @@ class ControlledObjectReader:
         del reference
         self.attempts += 1
         if self.failures:
-            failure = (
-                self.failures[0]
-                if self.repeat_last_failure
-                else self.failures.pop(0)
-            )
+            failure = self.failures[0] if self.repeat_last_failure else self.failures.pop(0)
             raise failure
         yield BytesIO(self.payload)
 

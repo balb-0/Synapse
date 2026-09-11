@@ -31,11 +31,11 @@ from etl.load.config import DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS
 from etl.load.ddl import (
     BATCH_METADATA_COLUMNS,
     BATCH_METADATA_TABLE,
-    CONTROL_COLUMNS_ADDED,
-    CONTROL_COLUMNS_RELAXED,
     BATCH_STATUS_FAILED,
     BATCH_STATUS_LOADED,
     BATCH_STATUS_LOADED_WITH_REJECTIONS,
+    CONTROL_COLUMNS_ADDED,
+    CONTROL_COLUMNS_RELAXED,
     IDENTITY_COLUMN,
     REJECTED_COLUMNS,
     REJECTED_REASON_COLUMNS,
@@ -175,8 +175,7 @@ class DuckDbLoadRepository:
         """
         for table, column, declaration in CONTROL_COLUMNS_ADDED:
             self._conn.execute(
-                f"ALTER TABLE {quote(table)} "
-                f"ADD COLUMN IF NOT EXISTS {quote(column)} {declaration}"
+                f"ALTER TABLE {quote(table)} ADD COLUMN IF NOT EXISTS {quote(column)} {declaration}"
             )
         for table, column in CONTROL_COLUMNS_RELAXED:
             if column in self._columns(table):
@@ -247,7 +246,12 @@ class DuckDbLoadRepository:
     def commit(self, checkpoint: ExtractionCheckpoint) -> None:
         self._conn.execute(
             "INSERT OR REPLACE INTO _checkpoint VALUES (?, ?, ?, ?)",
-            [checkpoint.source, checkpoint.position, checkpoint.sequence, checkpoint.source_version],
+            [
+                checkpoint.source,
+                checkpoint.position,
+                checkpoint.sequence,
+                checkpoint.source_version,
+            ],
         )
 
     # ---------- carga do lote ----------
@@ -286,6 +290,7 @@ class DuckDbLoadRepository:
                     "INSERT OR REPLACE INTO _loaded_identity VALUES (?, ?, ?)",
                     [[source, row["record_identity"], row["content_checksum"]] for row in rows],
                 )
+            self._converge_previous_rejections(metadata)
             self._record_rejections(result.rejected)
             loaded, rejected_count = self._confirmed_counts(metadata)
             self._record_batch(
@@ -334,14 +339,44 @@ class DuckDbLoadRepository:
 
     # ---------- registro de rejeição ----------
 
+    def _converge_previous_rejections(self, metadata: BatchMetadata) -> None:
+        """Descarta as rejeições que uma tentativa anterior do mesmo lote gravou.
+
+        A retomada retransforma o lote do zero e a classificação pode mudar
+        entre tentativas (as referências de consistência vêm do estado atual do
+        banco), gerando ``rejection_id`` diferentes para a mesma ocorrência da
+        fonte. Sem a limpeza, a tentativa retomada se soma à interrompida e a
+        reconciliação passa a contar rejeitado a mais que extraído
+        (``balanced = False`` permanente). Como roda dentro da transação do
+        ``load_batch``, ou substitui tudo ou não substitui nada. Os motivos são
+        removidos antes por ``rejection_id``, porque ``rejected_reason`` não
+        carrega ``run_id``/``batch_id``. O filtro por ``source_checksum``
+        restringe a limpeza às linhas gravadas por tentativas deste mesmo
+        objeto: uma rejeição inserida por fora (sem o checksum do lote) não é
+        tocada e continua entrando na contagem confirmada.
+        """
+        self._conn.execute(
+            f"DELETE FROM {quote(REJECTED_REASON_TABLE)} WHERE rejection_id IN ("
+            f"SELECT rejection_id FROM {quote(REJECTED_TABLE)} "
+            "WHERE run_id = ? AND batch_id = ? AND source_checksum = ?)",
+            [metadata.run_id, metadata.batch_id, metadata.source_checksum],
+        )
+        self._conn.execute(
+            f"DELETE FROM {quote(REJECTED_TABLE)} "
+            "WHERE run_id = ? AND batch_id = ? AND source_checksum = ?",
+            [metadata.run_id, metadata.batch_id, metadata.source_checksum],
+        )
+
     def _record_rejections(self, rejected: tuple[RejectedRecord, ...]) -> None:
         """Grava as ocorrências rejeitadas e os motivos do lote inteiro em duas escritas em lote.
 
         Duas ``executemany`` para o lote inteiro, não uma por ocorrência: é o
         que torna a escrita "em lotes parametrizados" de fato, em vez de N
         comandos avulsos. A rejeição converge em vez de falhar por chave
-        repetida quando um backfill reprocessa o lote. Lote sem rejeição chega
-        com listas vazias; ``_insert_many`` não emite comando nesse caso.
+        repetida quando um backfill reprocessa o lote: a tentativa anterior é
+        descartada por ``_converge_previous_rejections`` antes desta escrita.
+        Lote sem rejeição chega com listas vazias; ``_insert_many`` não emite
+        comando nesse caso.
         """
         self._insert_many(
             "rejected",
@@ -363,7 +398,11 @@ class DuckDbLoadRepository:
             "rejected_reason",
             REJECTED_REASON_COLUMNS,
             [
-                {"rejection_id": record.rejection_id, "code": violation.code, "field": violation.field}
+                {
+                    "rejection_id": record.rejection_id,
+                    "code": violation.code,
+                    "field": violation.field,
+                }
                 for record in rejected
                 for violation in record.violations
             ],
@@ -446,9 +485,7 @@ class DuckDbLoadRepository:
 
     def count(self, source: str) -> int:
         return int(
-            self._conn.execute(
-                f"SELECT count(*) FROM {quote(table_name(source))}"
-            ).fetchone()[0]
+            self._conn.execute(f"SELECT count(*) FROM {quote(table_name(source))}").fetchone()[0]
         )
 
 

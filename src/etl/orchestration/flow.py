@@ -10,6 +10,7 @@ gatilho normal é o evento `s3:ObjectCreated` do MinIO (adaptador externo chama
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from datetime import datetime, timezone
 
@@ -19,8 +20,8 @@ from prefect.cache_policies import NO_CACHE
 from etl.extraction import (
     ClientesExtractor,
     EmpresasExtractor,
-    MinioObjectReader,
     ExtractionError,
+    MinioObjectReader,
     ObjectReference,
     PesquisasExtractor,
     QuestoesExtractor,
@@ -28,12 +29,11 @@ from etl.extraction import (
     RespostasExtractor,
     load_extraction_settings,
 )
-from etl.transformation.consistency import RELATIONS
-from etl.transformation.pipeline import transform_batch
-from etl.transformation.schema import KEYS
-from etl.transformation.consistency import ReferenceData
 from etl.load import DuckDbLoadRepository
 from etl.load.config import load_duckdb_settings
+from etl.transformation.consistency import RELATIONS, ReferenceData
+from etl.transformation.pipeline import transform_batch
+from etl.transformation.schema import KEYS
 
 EXTRACTORS = {
     "empresas": EmpresasExtractor,
@@ -86,13 +86,29 @@ def _connection_tuning() -> dict:
 
 
 def _build_references(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
-    """Monta as referências dos pais a partir do que já foi carregado no DuckDB."""
+    """Monta as referências dos pais a partir do que já foi carregado no DuckDB.
+
+    Lê todas as colunas de negócio da view de compatibilidade, não só a chave:
+    as checagens de consistência usam mais do que ela — o vínculo cliente ->
+    empresa compara ``empresa_id``, e as respostas validam o domínio contra o
+    tipo e as listas da questão. Listas são persistidas como JSON e voltam a
+    ser listas aqui.
+    """
     sources: dict[str, list[dict]] = {}
     for parent, _fields in RELATIONS[source]:
         keys = KEYS[parent]
-        cols = ", ".join(f'"{k}"' for k in keys)
-        rows = repo._conn.execute(f'SELECT {cols} FROM "{parent}"').fetchall()
-        sources[parent] = [dict(zip(keys, [str(v) for v in row])) for row in rows]
+        cursor = repo._conn.execute(f'SELECT * FROM "{parent}"')
+        columns = [description[0] for description in cursor.description]
+        records = []
+        for row in cursor.fetchall():
+            record = dict(zip(columns, row))
+            for key in keys:
+                record[key] = str(record[key])
+            for name in ("alternativas", "linhas_matriz", "colunas_matriz"):
+                if isinstance(record.get(name), str):
+                    record[name] = json.loads(record[name])
+            records.append(record)
+        sources[parent] = records
     return ReferenceData(sources)
 
 
@@ -151,7 +167,13 @@ def transform(batches: list, source: str, references, previous: dict) -> list:
     return results
 
 
-@task(timeout_seconds=120, cache_policy=NO_CACHE)
+# O timeout do load cobre o objeto inteiro, não um lote: um objeto grande
+# grava N lotes sequenciais na mesma task. 120 s (o mesmo das outras tasks)
+# estourou na prática com ~20 mil registros rejeitados no runner do Compose
+# (~7 s por lote de 1.000), matando a task no meio de um lote e exigindo
+# retomada. Uma hora acomoda objetos na casa das centenas de milhares de
+# registros sem remover o limite, que continua existindo.
+@task(timeout_seconds=3600, cache_policy=NO_CACHE)
 def load(db_path: str, results: list, tuning: dict) -> list:
     """Grava aceitos e rejeitados no DuckDB, reconciliando as contagens lote a lote.
 

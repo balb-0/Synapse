@@ -1,4 +1,4 @@
-# ADR 0004 — Checkpoint confirmado lote a lote na retomada após falha parcial
+# ADR 0005 — Checkpoint confirmado lote a lote na retomada após falha parcial
 
 - **Status:** Aceito
 - **Data:** 10/09/2026

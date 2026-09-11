@@ -5,7 +5,6 @@ from __future__ import annotations
 from .contracts import Record
 from .csv_extractors import CsvObjectExtractor
 
-
 QUESTOES_REQUIRED_COLUMNS = (
     "id_pergunta",
     "pesquisa_id",

@@ -11,7 +11,6 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-
 EXPECTED_CUBES = (
     "Portfólio e Ciclo",
     "Participação e Representatividade",
@@ -173,9 +172,14 @@ def _nonempty_strings(value: Any) -> bool:
 
 
 def _semantically_empty(value: Any) -> bool:
-    return value is None or value == "" or value is False or (
-        isinstance(value, list)
-        and all(item is None or item == "" or item is False for item in value)
+    return (
+        value is None
+        or value == ""
+        or value is False
+        or (
+            isinstance(value, list)
+            and all(item is None or item == "" or item is False for item in value)
+        )
     )
 
 
@@ -188,14 +192,15 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
 
     metadata = document["metadata"]
     if not isinstance(metadata, dict) or not all(
-        isinstance(metadata.get(key), str) and metadata[key].strip()
-        for key in METADATA_KEYS
+        isinstance(metadata.get(key), str) and metadata[key].strip() for key in METADATA_KEYS
     ):
         raise DmcValidationError("metadata deve preservar parceiro, data, versão e grupo")
     try:
         date.fromisoformat(metadata["data"])
     except ValueError as error:
-        raise DmcValidationError("metadata.data deve usar uma data ISO válida (AAAA-MM-DD)") from error
+        raise DmcValidationError(
+            "metadata.data deve usar uma data ISO válida (AAAA-MM-DD)"
+        ) from error
     if not VERSION_PATTERN.fullmatch(metadata["versao"]):
         raise DmcValidationError("metadata.versao deve usar o formato inteiro.inteiro")
 
@@ -204,9 +209,7 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         _nonempty_strings(business.get(key)) for key in CORPORATE_LISTS
     ):
         raise DmcValidationError("Negócio e Consumo Analítico perderam conteúdo obrigatório")
-    user_channel_ids = tuple(
-        item.partition(" — ")[0] for item in business["usuariosCanais"]
-    )
+    user_channel_ids = tuple(item.partition(" — ")[0] for item in business["usuariosCanais"])
     if user_channel_ids != EXPECTED_USER_CHANNELS:
         raise DmcValidationError("usuários e canais devem corresponder a UC01–UC04")
     if not all(
@@ -214,55 +217,43 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
         for item in business["usuariosCanais"]
     ):
         raise DmcValidationError("todo canal deve explicitar sua restrição de acesso")
-    decision_ids = tuple(
-        item.partition(" — ")[0] for item in business["decisoesRiscos"]
-    )
+    decision_ids = tuple(item.partition(" — ")[0] for item in business["decisoesRiscos"])
     if decision_ids != EXPECTED_DECISIONS_RISKS:
         raise DmcValidationError("decisões e riscos devem corresponder a DR01–DR06")
-    if not all(
-        "Impacto:" in item and "Estado:" in item
-        for item in business["decisoesRiscos"]
-    ):
+    if not all("Impacto:" in item and "Estado:" in item for item in business["decisoesRiscos"]):
         raise DmcValidationError("toda decisão ou risco deve informar impacto e estado")
     indicator_ids = tuple(
         indicator.partition(" — ")[0] for indicator in business["indicadoresConsumo"]
     )
     if indicator_ids != EXPECTED_CONSUMPTION_INDICATORS:
         raise DmcValidationError("indicadores de consumo devem corresponder a I01–I25")
-    question_ids = tuple(
-        question.partition(" — ")[0] for question in business["perguntasNegocio"]
-    )
+    question_ids = tuple(question.partition(" — ")[0] for question in business["perguntasNegocio"])
     if question_ids != EXPECTED_BUSINESS_QUESTIONS:
         raise DmcValidationError("perguntas de negócio devem corresponder a PB01–PB13")
     if not all(
-        objective.startswith("Resultado pretendido:")
-        for objective in business["objetivosNegocio"]
+        objective.startswith("Resultado pretendido:") for objective in business["objetivosNegocio"]
     ):
         raise DmcValidationError("objetivos devem ser identificados como resultados pretendidos")
-    if not all(
-        process.startswith("Processo atual:") for process in business["processosNegocio"]
-    ):
+    if not all(process.startswith("Processo atual:") for process in business["processosNegocio"]):
         raise DmcValidationError("processos devem preservar seu estado atual")
 
     governance = document["governancaCorporativa"]
-    if not isinstance(governance, dict) or any(
-        key not in governance for key in GOVERNANCE_KEYS
-    ) or not all(
-        isinstance(governance[key], str) and governance[key].strip()
-        for key in GOVERNANCE_KEYS
+    if (
+        not isinstance(governance, dict)
+        or any(key not in governance for key in GOVERNANCE_KEYS)
+        or not all(
+            isinstance(governance[key], str) and governance[key].strip() for key in GOVERNANCE_KEYS
+        )
     ):
         raise DmcValidationError("Governança Corporativa deve permanecer preenchida")
     if not all(
-        governance[key].startswith("Baseline documental:")
-        and "homologa" in governance[key].lower()
+        governance[key].startswith("Baseline documental:") and "homologa" in governance[key].lower()
         for key in GOVERNANCE_ROLE_KEYS
     ):
         raise DmcValidationError(
             "papéis de governança devem indicar fonte documental e homologação pendente"
         )
-    if "RentalHost" not in governance["custodian"] or "condicional" not in governance[
-        "custodian"
-    ]:
+    if "RentalHost" not in governance["custodian"] or "condicional" not in governance["custodian"]:
         raise DmcValidationError("custódia externa deve permanecer condicional")
 
     cubes = document["cubos"]
@@ -290,8 +281,7 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
             unexpected = [f"fields.{key}" for key in unexpected_fields]
             unexpected.extend(f"lists.{key}" for key in unexpected_lists)
             raise DmcValidationError(
-                f"cubo {cube['id']} contém campos desconhecidos: "
-                f"{', '.join(unexpected)}"
+                f"cubo {cube['id']} contém campos desconhecidos: {', '.join(unexpected)}"
             )
 
         missing_fields = [key for key in DIMENSIONAL_FIELDS if key not in fields]
@@ -359,13 +349,8 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
             "kpiGovernanca",
             "diagramaMermaid",
         )
-        if any(
-            not isinstance(fields[key], str) or not fields[key].strip()
-            for key in text_fields
-        ):
-            raise DmcValidationError(
-                f"cubo {cube['id']} deve preencher todos os campos textuais"
-            )
+        if any(not isinstance(fields[key], str) or not fields[key].strip() for key in text_fields):
+            raise DmcValidationError(f"cubo {cube['id']} deve preencher todos os campos textuais")
 
         name = fields.get("nome")
         if not isinstance(name, str) or not name.strip():
@@ -419,9 +404,10 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
             raise DmcValidationError(f"tática {tactic_id} diverge do esquema oficial")
         if any(type(fields[key]) is not bool for key in TACTIC_BOOLEAN_FIELDS):
             raise DmcValidationError(f"tática {tactic_id} deve usar booleanos nos atributos")
-        if not any(fields[key] for key in TACTIC_BOOLEAN_FIELDS) and not str(
-            fields["qaOutro"]
-        ).strip():
+        if (
+            not any(fields[key] for key in TACTIC_BOOLEAN_FIELDS)
+            and not str(fields["qaOutro"]).strip()
+        ):
             raise DmcValidationError(f"tática {tactic_id} deve selecionar um atributo de qualidade")
         if any(
             not isinstance(fields[key], str) or not fields[key].strip()
@@ -445,8 +431,7 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
     if set(etl_fields) != set(ETL_FIELDS) or set(etl_lists) != set(ETL_LISTS):
         raise DmcValidationError("ETL diverge do esquema oficial")
     if any(
-        not isinstance(etl_fields[key], str) or not etl_fields[key].strip()
-        for key in ETL_FIELDS
+        not isinstance(etl_fields[key], str) or not etl_fields[key].strip() for key in ETL_FIELDS
     ):
         raise DmcValidationError("ETL possui campo obrigatório vazio")
     if any(not _nonempty_strings(etl_lists[key]) for key in ETL_LISTS):
@@ -460,16 +445,12 @@ def validate_document(document: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def validate_preserved_sections(
-    document: dict[str, Any], baseline: dict[str, Any]
-) -> None:
+def validate_preserved_sections(document: dict[str, Any], baseline: dict[str, Any]) -> None:
     changed = sorted(set(document) | set(baseline)) if document != baseline else []
     if changed:
         changed = [key for key in changed if document.get(key) != baseline.get(key)]
     if changed:
-        raise DmcValidationError(
-            f"round-trip alterou o documento nas seções: {', '.join(changed)}"
-        )
+        raise DmcValidationError(f"round-trip alterou o documento nas seções: {', '.join(changed)}")
 
 
 def main() -> int:

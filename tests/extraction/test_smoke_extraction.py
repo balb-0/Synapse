@@ -5,14 +5,12 @@ import sys
 import unittest
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
 from etl.extraction import ExtractionBatchLogEvent, ObjectReference  # noqa: E402
 from tests.extraction.helpers import MemoryObjectReader  # noqa: E402
 from tests.extraction.synthetic_sources import SYNTHETIC_SOURCES  # noqa: E402
-
 
 SMOKE_BATCH_SIZE = 2
 
@@ -46,9 +44,7 @@ class ExtractionSmokeTests(unittest.TestCase):
             )
 
             batches = list(extractor.read(run_id="smoke-extraction-001"))
-            actual_counts[fixture.source] = sum(
-                batch.metadata.record_count for batch in batches
-            )
+            actual_counts[fixture.source] = sum(batch.metadata.record_count for batch in batches)
             actual_batches[fixture.source] = len(batches)
 
             self.assertEqual(len(log_sink.events), len(batches))
@@ -57,20 +53,14 @@ class ExtractionSmokeTests(unittest.TestCase):
                 f"row:{fixture.expected_records}",
             )
             self.assertTrue(
-                all(
-                    event.run_id == "smoke-extraction-001"
-                    for event in log_sink.events
-                )
+                all(event.run_id == "smoke-extraction-001" for event in log_sink.events)
             )
 
         expected_counts = {
-            fixture.source: fixture.expected_records
-            for fixture in SYNTHETIC_SOURCES
+            fixture.source: fixture.expected_records for fixture in SYNTHETIC_SOURCES
         }
         expected_batches = {
-            fixture.source: math.ceil(
-                fixture.expected_records / SMOKE_BATCH_SIZE
-            )
+            fixture.source: math.ceil(fixture.expected_records / SMOKE_BATCH_SIZE)
             for fixture in SYNTHETIC_SOURCES
         }
         self.assertEqual(actual_counts, expected_counts)

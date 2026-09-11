@@ -37,7 +37,7 @@ enquanto não for mesclado.
 | Testes automatizados | LN-10/11, MG-10/11, MC-09/11, OV-09/11, VB-01 a VB-05 | 19 módulos `unittest` em `tests/` cobrindo extração, transformação e carga | Implementado parcialmente |
 | Documentação ISO/IEC 10746 | AN-04 a AN-08 | [`visao-negocio-etl.md`](visao-negocio-etl.md), [`visao-informacao-etl.md`](visao-informacao-etl.md), [`visao-computacional-etl.md`](visao-computacional-etl.md), [`visao-engenharia-etl.md`](visao-engenharia-etl.md), [`visao-tecnologia-etl.md`](visao-tecnologia-etl.md) | Implementado |
 | Diagramas UML | AN-09, AN-10, AN-11, OV-10 | [`assets/uml/`](assets/uml/): casos de uso, componentes e sequência | Implementado |
-| Decisões técnicas | AN-03 | [`adrs/index.md`](adrs/index.md), ADRs 0001, 0002 e 0003 | Implementado |
+| Decisões técnicas | AN-03 | [`adrs/index.md`](adrs/index.md), ADRs 0001 a 0004 | Implementado |
 | Boas práticas de engenharia | Transversal | [`dev-rules.md`](dev-rules.md), [`gestao-configuração.md`](gestao-configuração.md), `ruff-transformation.toml` | Implementado parcialmente |
 
 ## Obrigações do Data Model Canvas
@@ -59,9 +59,9 @@ não corrigidas por este bloco de tarefas.
 | Nome ClickHouse na documentação de transformação | [`schema-transformacao.md`](schema-transformacao.md), [`catalogo-transformacao.md`](catalogo-transformacao.md), [`integracao-transformacao.md`](integracao-transformacao.md), [`inventario-regras-transformacao.md`](inventario-regras-transformacao.md) | MG-* | Leitor pode concluir que o destino é ClickHouse; o ADR 0001 é a fonte que prevalece |
 | Observabilidade não integrada | Branches `task-196-ov-05` a `task-199-ov-08` | OV-* | Não há métricas, telemetria, painel, health check de orquestração nem alerta no `develop`; as branches precedem a camada de carga e vão conflitar na integração |
 | Adaptador de eventos inexistente | Contrato no ADR 0001 | OV-02 | O disparo real é manual (`run_ingest.py`) ou agendado (`deployment.py`); não há ingestão iniciada por evento do MinIO |
-| Fluxo orquestrado sem teste | `src/etl/orchestration/flow.py`; `tests/orchestration/` não existe | OV-09 | Nenhuma evidência automatizada de retry, timeout, retomada ou idempotência no nível do flow; os testes de integração estão na branch `task-200-ov-09` |
-| CI não consolidado | `.gitlab/ci/transformation.yml` cobre só `etl.transformation` | VB-07 | `extraction`, `load` e `orchestration` não passam por lint nem por cobertura no CI |
-| Versão do Python divergente | `Dockerfile` (3.12), `.gitlab/ci/transformation.yml` (3.11), `ruff-transformation.toml` (`py311`), `README.md` (3.12+) | VB-06 | O código é verificado numa versão e executado em outra |
+| Fluxo orquestrado sem teste | `src/etl/orchestration/flow.py`; `tests/orchestration/` não existe | OV-09 | Nenhuma evidência automatizada de retry, timeout, retomada ou idempotência no nível do flow; os testes de integração estão na branch `task-200-ov-09`. Medido na VB-08: `orchestration/flow.py` com 0% de cobertura real (sem testes fake) |
+| CI não consolidado | `.gitlab/ci/transformation.yml` cobre só `etl.transformation` | VB-07 | Resolvido na branch `chore-209-vb-07`: `.gitlab-ci.yml` consolidado com jobs `lint` (ruff check + format sobre `src`, `scripts`, `tests`) e `test` (suite unittest completa + gate de schema), imagem `python:3.12-slim`. Cobertura estendida na VB-08 |
+| Versão do Python divergente | `Dockerfile` (3.12), `.gitlab/ci/transformation.yml` (3.11), `ruff-transformation.toml` (`py311`), `README.md` (3.12+) | VB-06 | Resolvido na branch `chore-208-vb-06`: alinhado para Python 3.12 (versão do Dockerfile/README); o `ruff.toml` geral usa `py312` e o código passa em ruff e nos 188 testes sob essa configuração. O job legado de transformation é atualizado na VB-07 |
 | Dependências de runtime sem pin | `requirements.txt` usa faixas (`prefect>=3,<4`, `duckdb>=1.1`, `minio>=7.2,<8`) | VB-06 | A execução não é reproduzível entre ambientes |
 | Nomes de variável divergentes | `docker-compose.yml` define `DUCKDB_PATH`; `src/etl/load/config.py` lê `ETL_DUCKDB_PATH` | OV-*/MC-* | O tuning do banco e o caminho do arquivo podem vir de fontes diferentes na mesma execução |
 | ADR 0001 ainda proposto | [`adrs/0001-...`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | Grupo | A arquitetura é seguida na prática sem decisão formalmente aceita |

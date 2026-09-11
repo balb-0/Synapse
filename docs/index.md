@@ -16,7 +16,7 @@
 | [`configuracao-extracao.md`](configuracao-extracao.md) | Configuração segura de caminhos, endpoints e credenciais da extração |
 | [`adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | ADR proposto para o ETL orientado a eventos com Python, Prefect, MinIO, DuckDB e Elastic Stack |
 | [`adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md`](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md) | ADR da identidade de registro e das versões na tabela de ingestão tratada |
-| [`adrs/0003-execucao-local-e-integracao-continua.md`](adrs/0003-execucao-local-e-integracao-continua.md) | ADR do ambiente local em contêineres, do escopo do CI e da exclusão do Deploy Contínuo |
+| [`adrs/0004-execucao-local-e-integracao-continua.md`](adrs/0004-execucao-local-e-integracao-continua.md) | ADR do ambiente local em contêineres, do escopo do CI e da exclusão do Deploy Contínuo |
 | [`extratores.md`](extratores.md) | Implementação e limites dos extratores das seis fontes; pesquisas e empresas entregues na LN-04 |
 | [`testes-extracao.md`](testes-extracao.md) | Suíte unitária e de contrato dos seis extratores |
 | [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Inventário técnico das seis fontes do ETL: formato, grão, chaves, volumes, integridade, acesso e disponibilidade |
@@ -42,6 +42,7 @@ documento principal.
 - [Contrato físico das tabelas de ingestão](ddl-ingestao.md): nome, tipo, constraints, metadados técnicos e views de estado atual no DuckDB.
 - [Repositório de carga](repositorio-de-carga.md): escrita em lote no DuckDB, contagens confirmadas pelo banco, serialização de escrita e convergência do lote reexecutado.
 - [Compensação e retomada de execuções com falha parcial](compensacao-e-retomada-de-carga.md): o que uma falha entre lotes deixa registrado e a partir de que ponto a tentativa seguinte retoma.
+- [Runbook de execução do ETL](runbook-execucao.md): pré-requisitos, variáveis de ambiente, ambiente Docker, execução do pipeline, testes, CI e troubleshooting.
 
 ## Arquitetura, decisões e UML — Sprint 3 (Anna)
 

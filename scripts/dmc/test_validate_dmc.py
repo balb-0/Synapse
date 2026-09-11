@@ -11,7 +11,6 @@ from pathlib import Path
 
 import validate_dmc
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -204,9 +203,7 @@ class ValidateDmcTest(unittest.TestCase):
 
     def test_every_channel_must_state_access_restriction(self) -> None:
         changed = copy.deepcopy(self.document)
-        changed["negocioEConsumo"]["usuariosCanais"][0] = (
-            "UC01 — Central de Pesquisas: dashboard."
-        )
+        changed["negocioEConsumo"]["usuariosCanais"][0] = "UC01 — Central de Pesquisas: dashboard."
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "restrição"):
             validate_dmc.validate_document(changed)
 

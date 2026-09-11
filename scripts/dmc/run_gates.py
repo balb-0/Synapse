@@ -10,11 +10,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 JSON_CHECK = (
-    "import json, pathlib, sys; "
-    "json.loads(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))"
+    "import json, pathlib, sys; json.loads(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))"
 )
 
 

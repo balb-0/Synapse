@@ -5,7 +5,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
@@ -100,7 +99,11 @@ class DuckDBSettingsTests(unittest.TestCase):
         self.assertEqual(settings.memory_limit, "2GB")
 
     def test_reads_threads_and_memory_limit_from_environment(self) -> None:
-        environment = {**self.environment, "ETL_DUCKDB_THREADS": "8", "ETL_DUCKDB_MEMORY_LIMIT": "4GB"}
+        environment = {
+            **self.environment,
+            "ETL_DUCKDB_THREADS": "8",
+            "ETL_DUCKDB_MEMORY_LIMIT": "4GB",
+        }
 
         settings = load_duckdb_settings(environ=environment)
 
@@ -111,12 +114,14 @@ class DuckDBSettingsTests(unittest.TestCase):
         for value in ("0", "-1", "1.5", "abc"):
             with self.subTest(value=value):
                 with self.assertRaisesRegex(ConfigurationError, "inteiro positivo"):
-                    load_duckdb_settings(
-                        parameters={"threads": value}, environ=self.environment
-                    )
+                    load_duckdb_settings(parameters={"threads": value}, environ=self.environment)
 
     def test_blank_threads_and_memory_limit_are_treated_as_unset(self) -> None:
-        environment = {**self.environment, "ETL_DUCKDB_THREADS": "  ", "ETL_DUCKDB_MEMORY_LIMIT": "  "}
+        environment = {
+            **self.environment,
+            "ETL_DUCKDB_THREADS": "  ",
+            "ETL_DUCKDB_MEMORY_LIMIT": "  ",
+        }
 
         settings = load_duckdb_settings(environ=environment)
 

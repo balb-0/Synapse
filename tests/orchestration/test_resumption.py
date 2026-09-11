@@ -89,7 +89,9 @@ class LoadCommitsTheCheckpointBatchByBatchTests(unittest.TestCase):
         self.temporary_directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary_directory.cleanup)
         self.database_path = Path(self.temporary_directory.name) / "ingestao.duckdb"
-        logger_patch = mock.patch.object(flow_module, "get_run_logger", return_value=mock.MagicMock())
+        logger_patch = mock.patch.object(
+            flow_module, "get_run_logger", return_value=mock.MagicMock()
+        )
         logger_patch.start()
         self.addCleanup(logger_patch.stop)
 
@@ -169,7 +171,9 @@ class TransformForwardsTheBatchCheckpointTests(unittest.TestCase):
     """`transform` precisa repassar o checkpoint de cada lote para `load` confirmar."""
 
     def setUp(self) -> None:
-        logger_patch = mock.patch.object(flow_module, "get_run_logger", return_value=mock.MagicMock())
+        logger_patch = mock.patch.object(
+            flow_module, "get_run_logger", return_value=mock.MagicMock()
+        )
         logger_patch.start()
         self.addCleanup(logger_patch.stop)
 
