@@ -403,9 +403,10 @@
       },
       "lists": {
         "grao": [
-          "Uma linha por pergunta em uma pesquisa, totalizando 231 linhas no snapshot atual.",
-          "A cobertura atual é de 10 das 366 pesquisas, aproximadamente 2,7% do acervo.",
-          "O fato é de associação, conectando pesquisa e pergunta sem medidas numéricas tradicionais para soma."
+          "Uma linha por pergunta em uma pesquisa, totalizando 231 linhas no snapshot analisado na Sprint 2.",
+          "A cobertura observada naquele snapshot era de 10 das 366 pesquisas, aproximadamente 2,7% do acervo.",
+          "O fato é de associação, conectando pesquisa e pergunta sem medidas numéricas tradicionais para soma.",
+          "Observação da auditoria VB-10 (11/09/2026): os volumes e a cobertura deste cubo foram medidos no snapshot anterior à versão v3 dos arquivos; na v3, questoes.csv passou a 3.297 registros (inventario-fontes-etl.md), e volumes, cobertura do acervo e percentuais de vínculo precisam ser recalculados antes do uso oficial."
         ],
         "fatos": [
           "Associação entre pesquisa e pergunta",
@@ -487,7 +488,7 @@
         "qaCusto": false,
         "qaOutro": "Confiabilidade",
         "tatica": "Validação fail-closed com quarentena auditável e logs sanitizados.",
-        "implementacao": "O módulo etl.transformation aplica schema, conversão e consistência; falha estrutural bloqueia o lote e registros inválidos seguem ao QuarantineStore com motivo e referência à origem, sem payload bruto nos logs.",
+        "implementacao": "O módulo etl.transformation aplica schema, conversão e consistência; falha estrutural bloqueia o lote e registros inválidos são persistidos nas tabelas rejected e rejected_reason do DuckDB, com motivo e referência à origem (source_checksum e source_offset), sem payload bruto nos logs. O QuarantineStore em SQLite de quarantine.py existe apenas como ledger de testes, fora do caminho produtivo.",
         "consequencias": "Requer tratamento operacional dos rejeitados e armazenamento restrito da quarentena. A reversão reduziria a auditabilidade e permitiria que dados inválidos ou identificáveis alcançassem o consumo.",
         "diagramaMermaid": "flowchart LR\n    A[Registro extraido] --> B[Schema e regras]\n    B --> C{Valido?}\n    C -->|Sim| D[Ingestao tratada]\n    C -->|Nao| E[Quarentena restrita]\n    D --> F[Reconciliacao]\n    E --> F"
       },

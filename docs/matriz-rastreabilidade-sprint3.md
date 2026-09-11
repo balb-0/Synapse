@@ -37,7 +37,7 @@ enquanto não for mesclado.
 | Testes automatizados | LN-10/11, MG-10/11, MC-09/11, OV-09/11, VB-01 a VB-05 | 19 módulos `unittest` em `tests/` cobrindo extração, transformação e carga | Implementado parcialmente |
 | Documentação ISO/IEC 10746 | AN-04 a AN-08 | [`visao-negocio-etl.md`](visao-negocio-etl.md), [`visao-informacao-etl.md`](visao-informacao-etl.md), [`visao-computacional-etl.md`](visao-computacional-etl.md), [`visao-engenharia-etl.md`](visao-engenharia-etl.md), [`visao-tecnologia-etl.md`](visao-tecnologia-etl.md) | Implementado |
 | Diagramas UML | AN-09, AN-10, AN-11, OV-10 | [`assets/uml/`](assets/uml/): casos de uso, componentes e sequência | Implementado |
-| Decisões técnicas | AN-03 | [`adrs/index.md`](adrs/index.md), ADRs 0001, 0002 e 0003 | Implementado |
+| Decisões técnicas | AN-03 | [`adrs/index.md`](adrs/index.md), ADRs 0001 a 0004 | Implementado |
 | Boas práticas de engenharia | Transversal | [`dev-rules.md`](dev-rules.md), [`gestao-configuração.md`](gestao-configuração.md), `ruff-transformation.toml` | Implementado parcialmente |
 
 ## Obrigações do Data Model Canvas

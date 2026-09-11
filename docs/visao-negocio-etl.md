@@ -70,7 +70,7 @@ consumo final e implantação automática.
 | Dados pessoais nas fontes | `clientes.csv` traz e-mail, cargo e departamento; `respondentes.csv` liga pessoa, empresa e pesquisa | Conteúdo de registro não aparece em log, métrica ou artefato de CI; os CSVs reais não são versionados |
 | LGPD e finalidade documentada | [`Governança-de-Dados-do-Projeto.md`](Governança-de-Dados-do-Projeto.md) | Tratamento limitado ao mínimo necessário; identidade separada da camada analítica |
 | Arquivos como snapshot | [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Sem frequência de atualização, fuso horário, data de referência ou tipo de carga confirmados |
-| Ambiente acadêmico | [ADR 0003](adrs/0003-execucao-local-e-integracao-continua.md) | Execução local em contêineres, com fixtures sintéticas; sem ambiente produtivo |
+| Ambiente acadêmico | [ADR 0004](adrs/0004-execucao-local-e-integracao-continua.md) | Execução local em contêineres, com fixtures sintéticas; sem ambiente produtivo |
 | Identidades não conciliadas | Inventário de fontes e `dmc.json` | A ponte entre `respostas.respondent_id` e a participação não pode ser criada por semelhança de valores |
 | Ausência de universo de convites | `dmc.json`, decisões DR01 e DR02 | Denominadores de adesão e de participação de mercado permanecem indisponíveis |
 | Registros órfãos conhecidos | Quatro `pesquisa_id` sem correspondência e 55 participações com `id_pesq` 304 | Permanecem classificados e rastreáveis, nunca corrigidos em silêncio |
