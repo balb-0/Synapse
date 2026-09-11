@@ -40,6 +40,8 @@ documento principal.
 - [Inventário de contratos dimensionais](inventario-contratos-dimensionais.md): contratos de fato, dimensão e cubo já existentes (Data Model Canvas) que restringem nomes, tipos e metadados da tabela de ingestão.
 - [Ambiente local do DuckDB](ambiente-duckdb.md): comando que cria o arquivo do banco de ingestão, configuração aceita e health check de consulta e persistência.
 - [Contrato físico das tabelas de ingestão](ddl-ingestao.md): nome, tipo, constraints, metadados técnicos e views de estado atual no DuckDB.
+- [Repositório de carga](repositorio-de-carga.md): escrita em lote no DuckDB, contagens confirmadas pelo banco, serialização de escrita e convergência do lote reexecutado.
+- [Compensação e retomada de execuções com falha parcial](compensacao-e-retomada-de-carga.md): o que uma falha entre lotes deixa registrado e a partir de que ponto a tentativa seguinte retoma.
 
 ## Arquitetura, decisões e UML — Sprint 3 (Anna)
 
