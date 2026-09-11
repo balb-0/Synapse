@@ -8,7 +8,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 EXPECTED_CUBE_COUNT = 4
 REQUIRED_TOP_LEVEL = (
     "schemaVersion",
@@ -78,21 +77,15 @@ def build_inventory(document: dict[str, Any]) -> dict[str, Any]:
                     "id": None,
                     "name": None,
                     "missing_cube_lists": list(REQUIRED_CUBE_LISTS),
-                    "missing_data_governance_fields": list(
-                        REQUIRED_DATA_GOVERNANCE_FIELDS
-                    ),
+                    "missing_data_governance_fields": list(REQUIRED_DATA_GOVERNANCE_FIELDS),
                 }
             )
             continue
 
         fields = cube.get("fields") if isinstance(cube.get("fields"), dict) else {}
         lists = cube.get("lists") if isinstance(cube.get("lists"), dict) else {}
-        missing_lists = [
-            key for key in REQUIRED_CUBE_LISTS if not lists.get(key)
-        ]
-        missing_fields = [
-            key for key in REQUIRED_DATA_GOVERNANCE_FIELDS if key not in fields
-        ]
+        missing_lists = [key for key in REQUIRED_CUBE_LISTS if not lists.get(key)]
+        missing_fields = [key for key in REQUIRED_DATA_GOVERNANCE_FIELDS if key not in fields]
         cube_inventory.append(
             {
                 "position": position,
@@ -107,9 +100,7 @@ def build_inventory(document: dict[str, Any]) -> dict[str, Any]:
     governance = document.get("governancaCorporativa")
     blank_governance = []
     if isinstance(governance, dict):
-        blank_governance = [
-            key for key, value in governance.items() if not str(value).strip()
-        ]
+        blank_governance = [key for key, value in governance.items() if not str(value).strip()]
 
     return {
         "schema_version": document.get("schemaVersion"),
@@ -134,10 +125,7 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
         f"- `schemaVersion`: `{inventory['schema_version']}`",
         f"- Versão declarada: `{metadata.get('versao', 'não informada')}`",
         f"- Data declarada: `{metadata.get('data', 'não informada')}`",
-        (
-            f"- Cubos: `{inventory['cube_count']}` de "
-            f"`{inventory['expected_cube_count']}` esperados"
-        ),
+        (f"- Cubos: `{inventory['cube_count']}` de `{inventory['expected_cube_count']}` esperados"),
         f"- Táticas arquiteturais: `{inventory['tactic_count']}`",
         f"- ETL preenchido: `{'sim' if inventory['etl_present'] else 'não'}`",
         "",
@@ -150,13 +138,10 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
     lines.extend(["", "## Ajustes estruturais identificados", ""])
     adjustment_start = len(lines)
     if inventory["missing_top_level"]:
-        lines.append(
-            "- Seções de topo ausentes: " + ", ".join(inventory["missing_top_level"])
-        )
+        lines.append("- Seções de topo ausentes: " + ", ".join(inventory["missing_top_level"]))
     if inventory["blank_governance_fields"]:
         lines.append(
-            "- Campos de governança vazios: "
-            + ", ".join(inventory["blank_governance_fields"])
+            "- Campos de governança vazios: " + ", ".join(inventory["blank_governance_fields"])
         )
     if inventory["tactic_count"] == 0:
         lines.append("- Nenhuma tática arquitetural preenchida.")
@@ -164,10 +149,7 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
         lines.append("- Seção ETL ausente ou inválida.")
     for cube in inventory["cubes"]:
         if cube["missing_cube_lists"]:
-            lines.append(
-                f"- `{cube['id']}` não preenche: "
-                + ", ".join(cube["missing_cube_lists"])
-            )
+            lines.append(f"- `{cube['id']}` não preenche: " + ", ".join(cube["missing_cube_lists"]))
         if cube["missing_data_governance_fields"]:
             lines.append(
                 f"- `{cube['id']}` não preenche campos de Dados/Governança: "

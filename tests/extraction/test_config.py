@@ -5,7 +5,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
@@ -45,9 +44,7 @@ class ExtractionSettingsTests(unittest.TestCase):
         self.assertEqual(settings.max_attempts, 4)
         self.assertEqual(settings.retry_initial_delay_seconds, 0.25)
         self.assertEqual(settings.retry_max_delay_seconds, 2.0)
-        self.assertEqual(
-            settings.minio_access_key.get_secret_value(), "access-key-for-test"
-        )
+        self.assertEqual(settings.minio_access_key.get_secret_value(), "access-key-for-test")
 
     def test_explicit_parameters_override_environment(self) -> None:
         settings = load_extraction_settings(

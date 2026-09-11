@@ -6,7 +6,6 @@ import unittest
 from io import BytesIO
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
@@ -148,8 +147,7 @@ class CsvObjectExtractorTests(unittest.TestCase):
 
     def test_rejects_rows_with_unexpected_field_count(self) -> None:
         payload = (
-            ";".join(EMPRESAS_REQUIRED_COLUMNS).encode("utf-8")
-            + b"\n1;campos;insuficientes\n"
+            ";".join(EMPRESAS_REQUIRED_COLUMNS).encode("utf-8") + b"\n1;campos;insuficientes\n"
         )
         extractor = EmpresasExtractor(
             object_reader=MemoryObjectReader(payload),
@@ -191,4 +189,3 @@ class CsvObjectExtractorTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

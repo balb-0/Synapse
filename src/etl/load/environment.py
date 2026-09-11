@@ -13,13 +13,11 @@ import duckdb
 
 from .config import DuckDBSettings
 
-
 HEALTH_CHECK_SCHEMA = "health_check"
 HEALTH_CHECK_TABLE = f"{HEALTH_CHECK_SCHEMA}.smoke_test"
 SMOKE_QUERY_VALUE = 42
 LEFTOVER_NOTICE = (
-    f"a tabela {HEALTH_CHECK_TABLE} permaneceu no arquivo; "
-    "a próxima execução a remove"
+    f"a tabela {HEALTH_CHECK_TABLE} permaneceu no arquivo; a próxima execução a remove"
 )
 
 

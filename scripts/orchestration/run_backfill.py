@@ -47,9 +47,7 @@ def main() -> None:
     bucket = os.environ["ETL_MINIO_BUCKET"]
     prefix = os.environ.get("ETL_MINIO_INPUT_PREFIX", "landing")
     _seed(args.sources, bucket, prefix)
-    result = backfill(
-        sources=args.sources, bucket=bucket, prefix=prefix, reprocess=args.reprocess
-    )
+    result = backfill(sources=args.sources, bucket=bucket, prefix=prefix, reprocess=args.reprocess)
     print("BACKFILL:", result)
 
 

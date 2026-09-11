@@ -25,8 +25,7 @@ Result = TypeVar("Result")
 
 
 class Sleep(Protocol):
-    def __call__(self, seconds: float) -> None:
-        ...
+    def __call__(self, seconds: float) -> None: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,9 +68,7 @@ class RetryPolicy:
         """Calcula a espera limitada antes da próxima tentativa."""
 
         try:
-            delay = self.initial_delay_seconds * (
-                self.backoff_multiplier ** (failed_attempt - 1)
-            )
+            delay = self.initial_delay_seconds * (self.backoff_multiplier ** (failed_attempt - 1))
         except OverflowError:
             return self.max_delay_seconds
         return min(delay, self.max_delay_seconds)
@@ -136,8 +133,7 @@ class RetryExecutor:
                 if failure.nature is FailureNature.PERMANENT:
                     raise PermanentSourceError(
                         failure,
-                        "falha permanente de acesso à fonte "
-                        f"{source} ({failure.category.value})",
+                        f"falha permanente de acesso à fonte {source} ({failure.category.value})",
                     ) from exception
                 if not failure.retry_scheduled:
                     raise RetryLimitExceededError(
@@ -147,9 +143,7 @@ class RetryExecutor:
                     ) from exception
                 self._sleep(failure.next_delay_seconds)
 
-        raise AssertionError(
-            "a política de retry deve executar ao menos uma tentativa"
-        )
+        raise AssertionError("a política de retry deve executar ao menos uma tentativa")
 
     def _handle_failed_attempt(
         self,
@@ -160,9 +154,7 @@ class RetryExecutor:
         attempt: int,
     ) -> SourceFailure:
         classification = classify_source_failure(exception)
-        retry_scheduled = (
-            classification.retryable and attempt < self._policy.max_attempts
-        )
+        retry_scheduled = classification.retryable and attempt < self._policy.max_attempts
         delay = self._policy.delay_after(attempt) if retry_scheduled else 0.0
         failure = SourceFailure(
             source=source,

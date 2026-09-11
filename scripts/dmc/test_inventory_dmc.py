@@ -9,7 +9,6 @@ from pathlib import Path
 
 import inventory_dmc
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -39,9 +38,7 @@ class InventoryDmcTest(unittest.TestCase):
 
         inventory = inventory_dmc.build_inventory(changed)
 
-        self.assertEqual(
-            inventory["cubes"][0]["missing_cube_lists"], ["metricas"]
-        )
+        self.assertEqual(inventory["cubes"][0]["missing_cube_lists"], ["metricas"])
 
     def test_markdown_records_source_and_clean_structure(self) -> None:
         inventory = inventory_dmc.build_inventory(self.document)

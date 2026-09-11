@@ -41,8 +41,10 @@ def main() -> None:
     bucket = os.environ["ETL_MINIO_BUCKET"]
     prefix = os.environ.get("ETL_MINIO_INPUT_PREFIX", "landing")
     key = args.key or f"{prefix}/{args.source}.csv"
-    fixture = Path(args.fixture) if args.fixture else (
-        Path(__file__).parent / "fixtures" / f"{args.source}.csv"
+    fixture = (
+        Path(args.fixture)
+        if args.fixture
+        else (Path(__file__).parent / "fixtures" / f"{args.source}.csv")
     )
 
     _upload(fixture, bucket, key)
