@@ -44,7 +44,8 @@ Este documento cobre o caminho de escrita do repositório de carga:
   [ADR 0002](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md)).
 - **Decidir o que retomar depois de uma falha parcial.** O lote perdido já
   fica registrado com status de falha (ver [`ddl-ingestao.md`](ddl-ingestao.md));
-  decidir o que reprocessar e em que ordem é a etapa de compensação.
+  decidir o que reprocessar e em que ordem é a etapa de compensação, coberta em
+  [`compensacao-e-retomada-de-carga.md`](compensacao-e-retomada-de-carga.md).
 - **Bloquear campo incompatível ou migrar uma tabela existente.** As tabelas de
   ingestão usam `CREATE TABLE IF NOT EXISTS`; comparar o contrato atual com o
   que já está gravado, recusar uma alteração incompatível e versionar uma

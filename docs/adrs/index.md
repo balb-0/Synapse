@@ -6,7 +6,7 @@ nenhuma decisão: ele mostra o que já foi decidido, por quem, em que estado, e 
 que ainda falta para cada decisão ser considerada firme.
 
 O enunciado exige justificativa de linguagem, arquitetura, frameworks e
-ferramentas. As quatro ADRs abaixo cobrem esses pontos. Nenhuma delas pressupõe
+ferramentas. As cinco ADRs abaixo cobrem esses pontos. Nenhuma delas pressupõe
 Deploy Contínuo, que está fora do escopo da sprint.
 
 ## Decisões registradas
@@ -17,6 +17,7 @@ Deploy Contínuo, que está fora do escopo da sprint.
 | [0002](0002-identidade-e-versoes-na-tabela-de-ingestao.md) | Identidade e versões na tabela de ingestão tratada | **Aceito para a camada de carga em 10/09/2026; pendente de ratificação pelo grupo** | Grão da tabela de ingestão, chave primária por identidade de idempotência, preservação de versões, views de estado atual |
 | [0003](0003-convergencia-do-insert-no-reprocessamento-do-lote.md) | Convergência do insert principal ao reexecutar um lote já carregado | **Aceito** | Insert da tabela de ingestão com `ON CONFLICT (idempotency_key) DO NOTHING`, preservação da proveniência da primeira gravação |
 | [0004](0004-execucao-local-e-integracao-continua.md) | Execução local e integração contínua do ETL | **Proposto** | Ambiente local em contêineres, agendamento em processo, ferramenta e escopo do CI, framework de testes, exclusão do Deploy Contínuo |
+| [0005](0005-checkpoint-confirmado-lote-a-lote-na-retomada.md) | Checkpoint confirmado lote a lote na retomada após falha parcial | **Aceito** | Confirmação do checkpoint de cada lote assim que ele termina de carregar, em vez de só ao final de todos os lotes do objeto |
 
 ## Cobertura do checklist de decisões técnicas
 
@@ -74,9 +75,20 @@ original (somente a camada de transformação) foi ampliado na Sprint 3: o
 pipeline consolidado (VB-07/VB-08) cobre lint e a suíte inteira com cobertura
 de todo o pacote `etl` (`--fail-under=85`).
 
+## Situação do ADR 0005
+
+Decisão **Aceito** da camada de carga: o checkpoint de cada lote passa a ser
+confirmado assim que o próprio lote termina de carregar, não só depois que
+todos os lotes do objeto tiverem passado — uma falha parcial preserva os
+lotes já confirmados, e a retomada não reextrai nem retransmite o que já foi
+carregado. Está implementada em `src/etl/orchestration/flow.py` e coberta por
+`tests/orchestration/test_resumption.py`.
+
 ## Nota de numeração
 
 Até a auditoria da Sprint 3 (VB-10), este índice e o ADR de convergência do
 insert usavam os dois o número 0003. A colisão foi resolvida renumerando o ADR
 de execução local para 0004; referências em código (`duckdb_repository.py`)
-sempre apontaram para o ADR de convergência e permanecem corretas.
+sempre apontaram para o ADR de convergência e permanecem corretas. O ADR de
+checkpoint por lote nasceu, por sua vez, também como 0004 numa branch paralela
+à renumeração acima; resolvido como 0005 ao integrar as duas.

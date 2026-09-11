@@ -161,8 +161,8 @@ def transform(batches: list, source: str, references, previous: dict) -> list:
             ingested_at=ingested_at,
         )
         offset += len(batch.records)
-        results.append((result, batch.metadata))
-    total = sum(r.metrics["accepted_count"] for r, _ in results)
+        results.append((result, batch.metadata, batch.checkpoint))
+    total = sum(r.metrics["accepted_count"] for r, _, _ in results)
     logger.info("transform concluído: %d registro(s) aceito(s)", total)
     return results
 
@@ -175,12 +175,21 @@ def transform(batches: list, source: str, references, previous: dict) -> list:
 # registros sem remover o limite, que continua existindo.
 @task(timeout_seconds=3600, cache_policy=NO_CACHE)
 def load(db_path: str, results: list, tuning: dict) -> list:
-    """Grava aceitos e rejeitados no DuckDB e reconcilia as contagens."""
+    """Grava aceitos e rejeitados no DuckDB, reconciliando as contagens lote a lote.
+
+    O checkpoint de cada lote é confirmado assim que o próprio lote termina de
+    carregar, não só depois que todos os lotes do objeto tiverem passado. Uma
+    falha no meio interrompe o laço (a exceção do lote propaga) sem confirmar o
+    checkpoint dele nem dos que viriam depois — mas preserva o checkpoint dos
+    lotes já confirmados, que é de onde a próxima tentativa deste objeto
+    retoma a extração.
+    """
     logger = get_run_logger()
     with DuckDbLoadRepository(db_path, **tuning) as repo:
         reconciliations = []
-        for result, metadata in results:
+        for result, metadata, checkpoint in results:
             outcome = repo.load_batch(result, metadata)
+            repo.commit(checkpoint)
             reconciliations.append(outcome.as_dict())
             logger.info("load: %s", outcome.as_dict())
         return reconciliations
@@ -237,9 +246,9 @@ def ingest_object(
     reconciliations = load(db_path, results, tuning)
 
     with DuckDbLoadRepository(db_path, **tuning) as repo:
+        # O checkpoint de cada lote já foi confirmado dentro de `load`, lote a
+        # lote; só falta marcar o objeto inteiro como concluído.
         repo.mark_object_loaded(source, checksum, event_id or checksum[:16])
-        if batches:  # retomada: confirma a posição somente após a carga
-            repo.commit(batches[-1].checkpoint)
 
     loaded = sum(r["loaded"] for r in reconciliations)
     logger.info("ingestão concluída: %d registro(s) carregado(s) de '%s'", loaded, source)
