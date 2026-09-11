@@ -16,6 +16,7 @@ import importlib.util
 import sys
 import tempfile
 import unittest
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
@@ -66,6 +67,20 @@ def _transformed(batch: ExtractedBatch):
     )
 
 
+@contextmanager
+def _failing_on(batch_id: str):
+    """Faz `load_batch` falhar só para `batch_id`; os demais usam o método real."""
+    original_load_batch = DuckDbLoadRepository.load_batch
+
+    def flaky_load_batch(self, result, metadata):
+        if metadata.batch_id == batch_id:
+            raise RuntimeError("falha simulada de carga")
+        return original_load_batch(self, result, metadata)
+
+    with mock.patch.object(DuckDbLoadRepository, "load_batch", flaky_load_batch):
+        yield
+
+
 @unittest.skipUnless(DUCKDB_INSTALLED and PREFECT_INSTALLED, SEM_DEPENDENCIAS)
 class LoadCommitsTheCheckpointBatchByBatchTests(unittest.TestCase):
     """`load` confirma o checkpoint assim que cada lote termina, não só no fim."""
@@ -114,14 +129,7 @@ class LoadCommitsTheCheckpointBatchByBatchTests(unittest.TestCase):
             (_transformed(batch2), batch2.metadata, batch2.checkpoint),
         ]
 
-        original_load_batch = DuckDbLoadRepository.load_batch
-
-        def flaky_load_batch(self, result, metadata):
-            if metadata.batch_id == batch2.metadata.batch_id:
-                raise RuntimeError("falha simulada de carga")
-            return original_load_batch(self, result, metadata)
-
-        with mock.patch.object(DuckDbLoadRepository, "load_batch", flaky_load_batch):
+        with _failing_on(batch2.metadata.batch_id):
             with self.assertRaisesRegex(RuntimeError, "falha simulada de carga"):
                 self._load(results)
 
@@ -138,14 +146,7 @@ class LoadCommitsTheCheckpointBatchByBatchTests(unittest.TestCase):
         batch1 = _batch([{"id": "1", "titulo": "A"}], sequence=1)
         batch2 = _batch([{"id": "2", "titulo": "B"}], sequence=2)
 
-        original_load_batch = DuckDbLoadRepository.load_batch
-
-        def flaky_load_batch(self, result, metadata):
-            if metadata.batch_id == batch2.metadata.batch_id:
-                raise RuntimeError("falha simulada de carga")
-            return original_load_batch(self, result, metadata)
-
-        with mock.patch.object(DuckDbLoadRepository, "load_batch", flaky_load_batch):
+        with _failing_on(batch2.metadata.batch_id):
             with self.assertRaises(RuntimeError):
                 self._load(
                     [
