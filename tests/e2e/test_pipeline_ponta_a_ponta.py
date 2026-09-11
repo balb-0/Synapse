@@ -169,7 +169,7 @@ class PipelinePontaAPontaTests(unittest.TestCase):
 
     def test_duplicados_nao_entram_duas_vezes(self) -> None:
         respostas = self.consulta(
-            'SELECT count(*) FROM "ingestao_respostas" WHERE resposta_id = \'3001\''
+            "SELECT count(*) FROM \"ingestao_respostas\" WHERE resposta_id = '3001'"
         )
         self.assertEqual(respostas, [(1,)])
 
