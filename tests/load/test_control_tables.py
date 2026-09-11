@@ -15,7 +15,6 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
@@ -321,8 +320,7 @@ class ControlTablesWrittenByTheLoadTests(LoadRepositoryTestCase):
 
         self.assertEqual(
             self._rows(
-                f"SELECT rejeitados, rejeitados_registrados, conciliado"
-                f" FROM {RECONCILIATION_VIEW}"
+                f"SELECT rejeitados, rejeitados_registrados, conciliado FROM {RECONCILIATION_VIEW}"
             ),
             [(1, 0, False)],
         )
@@ -453,8 +451,6 @@ def _declared_columns(table: str) -> list[str]:
         for line in lines
         if not line.strip().startswith(("PRIMARY KEY", "UNIQUE"))
     ]
-
-
 
 
 @unittest.skipUnless(DUCKDB_INSTALLED, SEM_DUCKDB)

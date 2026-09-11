@@ -27,6 +27,7 @@ Uso:
 Código de saída: 0 se toda relação tem cobertura de 100% OU órfãos já
 documentados como exceção; 1 se surgir órfão não previsto.
 """
+
 from __future__ import annotations
 
 import csv
@@ -107,10 +108,14 @@ def main(dir_bases: str = "insumos") -> int:
         print(f"{rel:52s} {total:9d} {len(orfas):6d} {cob:8.1f}%  {status}")
 
     print()
-    print("Órfãos documentados (exceção conhecida, reter e reconciliar):",
-          ", ".join(sorted(ORFAOS_DOCUMENTADOS, key=lambda x: (len(x), x))))
-    print("Resultado:", "ALINHAMENTO OK" if not houve_orfao_novo
-          else "ATENÇÃO — órfão não previsto encontrado")
+    print(
+        "Órfãos documentados (exceção conhecida, reter e reconciliar):",
+        ", ".join(sorted(ORFAOS_DOCUMENTADOS, key=lambda x: (len(x), x))),
+    )
+    print(
+        "Resultado:",
+        "ALINHAMENTO OK" if not houve_orfao_novo else "ATENÇÃO — órfão não previsto encontrado",
+    )
     return 0 if not houve_orfao_novo else 1
 
 

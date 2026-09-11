@@ -4,7 +4,6 @@ import sys
 import unittest
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
@@ -70,9 +69,7 @@ class BatchingCheckpointTests(unittest.TestCase):
             [batch.metadata.batch_id for batch in batches],
             ["empresas-000001", "empresas-000002", "empresas-000003"],
         )
-        self.assertTrue(
-            all(batch.metadata.byte_count == len(payload) for batch in batches)
-        )
+        self.assertTrue(all(batch.metadata.byte_count == len(payload) for batch in batches))
         self.assertEqual(
             {batch.checkpoint.source_version for batch in batches},
             {"sha256:" + batches[0].metadata.source_checksum},
@@ -92,20 +89,14 @@ class BatchingCheckpointTests(unittest.TestCase):
             )
         )
 
-        resumed_ids = [
-            record["ID"]
-            for batch in resumed_batches
-            for record in batch.records
-        ]
+        resumed_ids = [record["ID"] for batch in resumed_batches for record in batch.records]
         self.assertEqual(resumed_ids, ["3", "4", "5"])
         self.assertEqual(
             [record["ID"] for record in unconfirmed_batch.records],
             ["3", "4"],
         )
         self.assertTrue(
-            set(record["ID"] for record in confirmed_batch.records).isdisjoint(
-                resumed_ids
-            )
+            set(record["ID"] for record in confirmed_batch.records).isdisjoint(resumed_ids)
         )
         self.assertEqual(
             [batch.checkpoint.sequence for batch in resumed_batches],
@@ -170,9 +161,7 @@ class BatchingCheckpointTests(unittest.TestCase):
 
     def test_rejects_checkpoint_when_source_content_changed(self) -> None:
         original_payload = _empresas_payload("1", "2")
-        checkpoint = next(
-            _extractor(original_payload).read(run_id="run-original")
-        ).checkpoint
+        checkpoint = next(_extractor(original_payload).read(run_id="run-original")).checkpoint
         changed_payload = _empresas_payload("1", "changed")
 
         with self.assertRaisesRegex(StaleCheckpointError, "fonte mudou"):

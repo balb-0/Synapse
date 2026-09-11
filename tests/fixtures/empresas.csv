@@ -1,0 +1,5 @@
+ID;Nome Fantasia;% de mercado;Nacionalidade;Associado;Tipo de Associado;Cidade;Estado;País
+101;Empresa Alfa;12,5;Brasileira;sim;Pleno;São Paulo;sp;brasil
+102;;;;;;;;
+101;Empresa Alfa;12,5;Brasileira;sim;Pleno;São Paulo;sp;brasil
+103;Empresa Beta;0;Estrangeira;não;-;Rio de Janeiro;rj;Brasil

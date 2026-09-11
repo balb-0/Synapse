@@ -25,7 +25,7 @@ As decisões que justificam cada escolha estão em
 | Testes | `unittest` (biblioteca padrão) | Acompanha o Python | `tests/` | Em uso |
 | Cobertura | `coverage` | `==7.16.0` | `requirements-transformation-dev.txt` | Em uso no CI |
 | Lint e formatação | `ruff` | `==0.16.6` | `requirements-transformation-dev.txt` | Em uso no CI |
-| Integração contínua | GitLab CI | — | `.gitlab-ci.yml`, `.gitlab/ci/transformation.yml` | Em uso, escopo parcial |
+| Integração contínua | GitLab CI | — | `.gitlab-ci.yml` | Em uso |
 | Observabilidade | Elastic Stack (Logstash, Elasticsearch, Kibana) | — | [ADR 0001](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | **Decidida, não integrada** |
 | Contêineres | Docker e Docker Compose | — | `Dockerfile`, `docker-compose.yml` | Em uso |
 
@@ -55,38 +55,33 @@ comandos de teste.
 
 ## Integração contínua
 
-`.gitlab-ci.yml` apenas inclui `.gitlab/ci/transformation.yml`, onde está
-declarado um único job.
+`.gitlab-ci.yml` declara o pipeline consolidado (VB-07/VB-08) em dois
+estágios.
 
 | Atributo | Valor |
 | :--- | :--- |
-| Job | `transformation-quality` |
-| Estágio | `test` |
-| Imagem | `python:3.11-slim` |
+| Jobs | `lint` (estágio `lint`) e `test` (estágio `test`) |
+| Imagem | `python:3.12-slim` |
 | Variáveis | `PYTHONPATH: src`, `PIP_DISABLE_PIP_VERSION_CHECK: "1"` |
 | Gatilhos | Eventos de merge request e qualquer branch com commit |
-| Artefato | `coverage-transformation.xml`, publicado como relatório Cobertura |
+| Artefato | `coverage-etl.xml`, publicado como relatório Cobertura |
 
 Passos executados, na ordem:
 
-1. `pip install -r requirements-transformation-dev.txt`
-2. `ruff check --config ruff-transformation.toml` sobre
-   `src/etl/transformation`, `tests/transformation` e `scripts/transformation`
-3. `ruff format --check` sobre os mesmos caminhos
-4. `python scripts/transformation/render_schema.py --check`
-5. `coverage run --branch --source=etl.transformation -m unittest discover -s tests -v`
-6. `coverage report --fail-under=90`
-7. `coverage xml -o coverage-transformation.xml`
+1. `lint`: `pip install -r requirements-transformation-dev.txt`,
+   `ruff check src scripts tests` e `ruff format --check src scripts tests`
+2. `test`: `pip install -r requirements.txt -r requirements-transformation-dev.txt`,
+   `python scripts/transformation/render_schema.py --check`,
+   `coverage run --branch --source=etl -m unittest discover -s tests -v`,
+   `coverage report --fail-under=85` e `coverage xml -o coverage-etl.xml`
 
-A configuração do `ruff` está em `ruff-transformation.toml`:
-`target-version = "py311"`, `line-length = 100` e regras `E4`, `E7`, `E9`, `F` e
-`I`.
+A configuração do `ruff` está em `ruff.toml`:
+`target-version = "py312"` e `line-length = 100`. O lint de transformação
+legado (`ruff-transformation.toml`) foi absorvido pelo pipeline consolidado.
 
-**Escopo real:** embora o passo 5 execute a suíte inteira, a medição de cobertura
-e as verificações de estilo alcançam somente `etl.transformation`. As camadas de
-extração, carga e orquestração não têm lint nem limite de cobertura no CI. O
-próprio cabeçalho do arquivo registra que a consolidação pertence à tarefa
-VB-07, que ainda não tem trabalho no repositório.
+**Escopo real:** a consolidação da VB-07/VB-08 ampliou o gate: lint cobre
+`src`, `scripts` e `tests`, e a cobertura mede todo o pacote `etl` com limite
+de 85% — extração, carga e orquestração incluídas.
 
 **Não há Deploy Contínuo.** Nenhum job publica imagem, aplica migração ou promove
 versão, em conformidade com a exclusão do enunciado.
@@ -98,7 +93,7 @@ discordam entre si.
 
 | Divergência | Declarações conflitantes | Risco |
 | :--- | :--- | :--- |
-| Versão do Python | `Dockerfile` usa 3.12; o CI usa 3.11; `ruff-transformation.toml` mira `py311`; `README.md` registra 3.12+ | O código é verificado numa versão e executado em outra |
+| Versão do Python | resolvida na Sprint 3 (VB-06/VB-07): `Dockerfile`, CI (`python:3.12-slim`), `ruff.toml` (`py312`) e `README.md` (3.12+) alinhados em 3.12 | — |
 | Dependências sem pin | `requirements.txt` usa faixas para `minio`, `urllib3`, `prefect` e `duckdb` | Uma atualização de terceiros altera o comportamento sem mudança no repositório |
 | Dependências de desenvolvimento parciais | `requirements-transformation-dev.txt` cobre apenas o gate de transformação | Não existe um conjunto declarado para rodar a suíte completa |
 | Variável não lida | `docker-compose.yml` define `ETL_MINIO_SECURE` | Sugere um controle de TLS que nenhum módulo consulta |

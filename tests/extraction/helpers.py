@@ -28,4 +28,3 @@ class MemoryObjectReader:
     def open(self, reference: ObjectReference) -> Iterator[BinaryIO]:
         self.opened_references.append(reference)
         yield BytesIO(self.payload)
-

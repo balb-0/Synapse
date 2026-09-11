@@ -8,7 +8,6 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
@@ -94,9 +93,7 @@ class DuckDBEnvironmentTests(unittest.TestCase):
 
         self.assertTrue(first.database_created)
         self.assertFalse(second.database_created)
-        self.assertTrue(
-            second.passed, [check.detail for check in second.checks]
-        )
+        self.assertTrue(second.passed, [check.detail for check in second.checks])
 
     def test_reports_clear_error_when_path_is_a_directory(self) -> None:
         settings = DuckDBSettings(database_path=self.directory)
@@ -111,9 +108,7 @@ class DuckDBEnvironmentTests(unittest.TestCase):
         prepare_database(self.settings)
         falha = DatabaseEnvironmentError("releitura interrompida")
 
-        with mock.patch.object(
-            load_environment, "_persistence_check", side_effect=falha
-        ):
+        with mock.patch.object(load_environment, "_persistence_check", side_effect=falha):
             with self.assertRaises(DatabaseEnvironmentError):
                 run_health_check(self.settings)
 
@@ -131,9 +126,7 @@ class DuckDBEnvironmentTests(unittest.TestCase):
 
         self.assertIn("permaneceu no arquivo", str(context.exception))
         with open_connection(self.settings) as connection:
-            remaining = connection.execute(
-                f"SELECT count(*) FROM {HEALTH_CHECK_TABLE}"
-            ).fetchone()
+            remaining = connection.execute(f"SELECT count(*) FROM {HEALTH_CHECK_TABLE}").fetchone()
         self.assertEqual(remaining, (1,))
 
     def test_reports_lock_when_another_process_holds_the_file(self) -> None:
