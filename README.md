@@ -53,18 +53,33 @@ g05/
 │  ├─ fontes-e-dependencias.md                        # Origem e limitações dos entregáveis
 │  ├─ matriz-evidencias-problem-canvas.md             # Evidências (observação / inferência / proposta)
 │  ├─ dmc.json                                        # Data Model Canvas exportado
+│  ├─ runbook-execucao.md                             # Runbook: subir ambiente, executar ETL, testes e troubleshooting
+│  ├─ estrategia-de-testes.md                         # Estratégia de testes do ETL (baseline e camadas)
+│  ├─ adrs/                                           # Decisões de arquitetura do ETL
 │  ├─ gestao-projeto.md                               # Sprints, riscos e post-mortem
 │  ├─ gestao-configuração.md                          # Políticas de repo, branches e commits
 │  ├─ dev-rules.md                                    # Padrões de código e testes
 │  └─ assets/                                         # Protótipos, diagramas e figuras dos documentos
-│     └─ figuras/                                     # Figuras agregadas geradas pela análise quantitativa
+│     ├─ figuras/                                     # Figuras agregadas geradas pela análise quantitativa
+│     └─ uml/                                         # Diagramas UML da solução
+├─ src/etl/                                           # ETL: extraction, transformation, load e orchestration (Prefect)
+├─ tests/                                             # Suíte unittest por camada (extraction, transformation, load)
+├─ sql/duckdb/                                        # DDL versionada das tabelas de ingestão
 ├─ scripts/
 │  ├─ analysis/                                       # Análise quantitativa e notebooks exploratórios
 │  ├─ dmc/                                            # Validação do dmc.json
+│  ├─ orchestration/                                  # Entrypoints do ETL (run_ingest, run_backfill, deployment)
+│  ├─ transformation/                                 # Auditoria e renderização do schema de transformação
+│  ├─ load/                                           # Health check do DuckDB e renderização da DDL
 │  ├─ prototipos-dashboards/                          # Geração, testes e renderização dos protótipos
 │  ├─ data_quality/                                   # Validação da qualidade dos dados
 │  └─ traceability/                                   # Validação de rastreabilidade às fontes
+├─ docker-compose.yml                                 # Ambiente local: MinIO + runner Prefect/DuckDB
+├─ Dockerfile                                         # Imagem do runner do ETL
+├─ requirements.txt                                   # Dependências de execução (minio, prefect, duckdb)
+├─ .env.example                                       # Modelo das variáveis de ambiente do ETL
 ├─ .gitlab/
+│  ├─ ci/                                             # Jobs do pipeline de CI
 │  └─ merge_request_templates/                        # Template de Merge Request
 ├─ .gitignore
 └─ README.md
@@ -75,7 +90,8 @@ g05/
 Para executar as validações localmente, utilize as versões abaixo (ou superiores compatíveis):
 
 - **Git**: 2.40+
-- **Python**: 3.12+ (análise quantitativa e scripts de validação)
+- **Python**: 3.12+ (ETL, análise quantitativa e scripts de validação)
+- **Docker e Docker Compose** (ambiente local do ETL: MinIO + runner)
 - **matplotlib**: 3.9+ (geração dos gráficos da análise quantitativa)
 - **jq**: 1.6+ (validação estrutural do `dmc.json`)
 
@@ -84,9 +100,26 @@ Para executar as validações localmente, utilize as versões abaixo (ou superio
 ```bash
 git clone https://git.inteli.edu.br/graduacao/2026-2a/t13/g05
 cd g05
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 > As bases brutas (CSV/XLS/XLSX) não fazem parte do repositório por conterem dados pessoais — os scripts de validação que dependem delas exigem as fontes em um diretório externo seguro.
+
+## 🚀 Execução do ETL
+
+O pipeline de ingestão (CSVs → MinIO → Prefect → DuckDB) sobe com Docker
+Compose e é executado pelos entrypoints em `scripts/orchestration/`:
+
+```bash
+docker compose up -d
+docker compose exec runner python scripts/orchestration/run_ingest.py --source empresas
+PYTHONPATH=src python -m unittest discover -s tests -v   # testes
+```
+
+O passo a passo completo — variáveis de ambiente, backfill, orquestração
+Prefect, logs, consulta ao DuckDB, CI e troubleshooting — está em
+[docs/runbook-execucao.md](docs/runbook-execucao.md).
 
 ## 🗃 Histórico de lançamentos
 

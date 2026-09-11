@@ -40,6 +40,7 @@ documento principal.
 - [Inventário de contratos dimensionais](inventario-contratos-dimensionais.md): contratos de fato, dimensão e cubo já existentes (Data Model Canvas) que restringem nomes, tipos e metadados da tabela de ingestão.
 - [Ambiente local do DuckDB](ambiente-duckdb.md): comando que cria o arquivo do banco de ingestão, configuração aceita e health check de consulta e persistência.
 - [Contrato físico das tabelas de ingestão](ddl-ingestao.md): nome, tipo, constraints, metadados técnicos e views de estado atual no DuckDB.
+- [Runbook de execução do ETL](runbook-execucao.md): pré-requisitos, variáveis de ambiente, ambiente Docker, execução do pipeline, testes, CI e troubleshooting.
 
 ## Arquitetura, decisões e UML — Sprint 3 (Anna)
 
