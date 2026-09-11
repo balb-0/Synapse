@@ -12,7 +12,6 @@ from pathlib import Path
 
 import validate_traceability
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -38,7 +37,9 @@ class ValidateTraceabilityTest(unittest.TestCase):
     def test_indicator_gap_fails(self) -> None:
         changed = copy.deepcopy(self.manifest)
         changed["questions"][0]["indicators"].remove("I01")
-        with self.assertRaisesRegex(validate_traceability.TraceabilityError, "cobertura de indicadores"):
+        with self.assertRaisesRegex(
+            validate_traceability.TraceabilityError, "cobertura de indicadores"
+        ):
             validate_traceability.validate(changed, self.dmc)
 
     def test_unknown_cube_fails(self) -> None:
@@ -105,12 +106,8 @@ class ValidateTraceabilityTest(unittest.TestCase):
             path = Path(directory) / "fonte.txt"
             path.write_text("Trecho confirmado", encoding="utf-8")
             manifest = self._primary_source_manifest("0" * 64, "Trecho confirmado")
-            with self.assertRaisesRegex(
-                validate_traceability.TraceabilityError, "SHA-256"
-            ):
-                validate_traceability.validate_primary_sources(
-                    manifest, Path(directory)
-                )
+            with self.assertRaisesRegex(validate_traceability.TraceabilityError, "SHA-256"):
+                validate_traceability.validate_primary_sources(manifest, Path(directory))
 
     def test_primary_source_missing_claim_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -121,12 +118,8 @@ class ValidateTraceabilityTest(unittest.TestCase):
                 hashlib.sha256(content.encode("utf-8")).hexdigest(),
                 "Trecho ausente",
             )
-            with self.assertRaisesRegex(
-                validate_traceability.TraceabilityError, "não sustenta"
-            ):
-                validate_traceability.validate_primary_sources(
-                    manifest, Path(directory)
-                )
+            with self.assertRaisesRegex(validate_traceability.TraceabilityError, "não sustenta"):
+                validate_traceability.validate_primary_sources(manifest, Path(directory))
 
     @staticmethod
     def _primary_source_manifest(expected_hash: str, phrase: str) -> dict:

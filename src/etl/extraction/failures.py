@@ -213,11 +213,7 @@ def _classify_exception_name(
     exception: BaseException,
 ) -> FailureClassification | None:
     category = TRANSIENT_EXCEPTION_CATEGORIES.get(type(exception).__name__)
-    return (
-        _classification(category, FailureNature.TRANSIENT)
-        if category is not None
-        else None
-    )
+    return _classification(category, FailureNature.TRANSIENT) if category is not None else None
 
 
 def _classify_single_exception(exception: BaseException) -> FailureClassification:

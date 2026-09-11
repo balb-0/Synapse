@@ -4,7 +4,6 @@ import sys
 import unittest
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
@@ -15,7 +14,6 @@ from etl.extraction import (  # noqa: E402
 )
 from tests.extraction.helpers import MemoryObjectReader, csv_payload  # noqa: E402
 from tests.extraction.synthetic_sources import SYNTHETIC_SOURCES  # noqa: E402
-
 
 REQUIRED_TECHNICAL_ATTRIBUTES = {
     "source",
@@ -50,14 +48,10 @@ class ExtractorContractSuiteTests(unittest.TestCase):
                     batch_size=2,
                 )
 
-                batches = list(
-                    extractor.read(run_id=f"contract-{fixture.source}")
-                )
+                batches = list(extractor.read(run_id=f"contract-{fixture.source}"))
 
                 self.assertIsInstance(extractor, Extractor)
-                self.assertTrue(
-                    all(isinstance(batch, ExtractedBatch) for batch in batches)
-                )
+                self.assertTrue(all(isinstance(batch, ExtractedBatch) for batch in batches))
                 self.assertEqual(
                     sum(len(batch.records) for batch in batches),
                     fixture.expected_records,
@@ -77,9 +71,7 @@ class ExtractorContractSuiteTests(unittest.TestCase):
                         batch.metadata.record_count,
                         len(batch.records),
                     )
-                    self.assertTrue(
-                        REQUIRED_TECHNICAL_ATTRIBUTES.issubset(attributes)
-                    )
+                    self.assertTrue(REQUIRED_TECHNICAL_ATTRIBUTES.issubset(attributes))
 
     def test_all_extractors_represent_header_only_source_with_empty_batch(self) -> None:
         for fixture in SYNTHETIC_SOURCES:
@@ -93,9 +85,7 @@ class ExtractorContractSuiteTests(unittest.TestCase):
                     ),
                 )
 
-                batches = list(
-                    extractor.read(run_id=f"empty-{fixture.source}")
-                )
+                batches = list(extractor.read(run_id=f"empty-{fixture.source}"))
 
                 self.assertEqual(len(batches), 1)
                 self.assertEqual(batches[0].records, ())

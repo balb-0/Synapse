@@ -23,6 +23,7 @@ Uso:
 Código de saída: 0 se todos os KPIs objetivos atendem à meta (exceto a exceção
 documentada de `data_aprov`), 1 caso contrário.
 """
+
 from __future__ import annotations
 
 import csv
@@ -37,8 +38,8 @@ BASES = ["pesquisas", "empresas", "clientes", "respondentes", "questoes", "respo
 CAMPOS_COMPLETUDE = ["status", "data_solicitacao", "participantes", "data_entrega", "data_aprov"]
 CAMPO_EXCECAO = "data_aprov"
 
-META_DUPLICIDADE = 0.0    # %
-META_COMPLETUDE = 95.0    # %
+META_DUPLICIDADE = 0.0  # %
+META_COMPLETUDE = 95.0  # %
 
 
 def carregar(caminho: Path) -> list[list[str]]:

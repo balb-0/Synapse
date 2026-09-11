@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Protocol, TypeAlias, runtime_checkable
 
-
 CONTRACT_VERSION = "1.0"
 Record: TypeAlias = Mapping[str, Any]
 
@@ -142,9 +141,7 @@ class ExtractedBatch:
         """
 
         metadata = {
-            key: str(value)
-            for key, value in self.metadata.as_dict().items()
-            if value is not None
+            key: str(value) for key, value in self.metadata.as_dict().items() if value is not None
         }
         checkpoint = {
             "checkpoint_position": self.checkpoint.position,

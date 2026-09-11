@@ -25,9 +25,7 @@ class ProfileCsvTest(unittest.TestCase):
             input_dir.mkdir()
             (root / "manifest.json").write_text(
                 json.dumps(
-                    {
-                        "sources": [{"id": "a", "file": "a.csv", "columns": ["id"], "key": ["id"]}]
-                    }
+                    {"sources": [{"id": "a", "file": "a.csv", "columns": ["id"], "key": ["id"]}]}
                 ),
                 encoding="utf-8",
             )
@@ -82,7 +80,9 @@ class ProfileCsvTest(unittest.TestCase):
             (input_dir / "a.csv").write_text("\ufeffid\n1\n", encoding="utf-8")
             dictionary = root / "arbitrario.csv"
             dictionary.write_text("wrong\nvalue\n", encoding="utf-8")
-            with self.assertRaisesRegex(profile_csv.ProfileError, r"\[dicionário\] cabeçalho incompatível"):
+            with self.assertRaisesRegex(
+                profile_csv.ProfileError, r"\[dicionário\] cabeçalho incompatível"
+            ):
                 profile_csv.run(input_dir, root / "out", root / "manifest.json", dictionary)
             self.assertFalse((root / "out").exists())
 
@@ -92,29 +92,63 @@ class ProfileCsvTest(unittest.TestCase):
             input_dir = root / "input"
             input_dir.mkdir()
             columns = [
-                "id_resposta", "pesquisa_id", "id_pergunta", "respondent_id", "id_empresa",
-                "alternativa", "linha_matriz", "coluna_matriz", "valor",
+                "id_resposta",
+                "pesquisa_id",
+                "id_pergunta",
+                "respondent_id",
+                "id_empresa",
+                "alternativa",
+                "linha_matriz",
+                "coluna_matriz",
+                "valor",
             ]
             (root / "manifest.json").write_text(
                 json.dumps(
                     {
                         "dictionary": {
-                            "required_columns": ["Variável", "Unidade de Análise", "Tipo de Variável", "Valores ou Domínio Esperado", "Análises Adequadas"],
+                            "required_columns": [
+                                "Variável",
+                                "Unidade de Análise",
+                                "Tipo de Variável",
+                                "Valores ou Domínio Esperado",
+                                "Análises Adequadas",
+                            ],
                             "required_variables": columns,
-                            "required_nonempty_columns": ["Unidade de Análise", "Tipo de Variável", "Valores ou Domínio Esperado", "Análises Adequadas"],
+                            "required_nonempty_columns": [
+                                "Unidade de Análise",
+                                "Tipo de Variável",
+                                "Valores ou Domínio Esperado",
+                                "Análises Adequadas",
+                            ],
                         },
-                        "sources": [{"id": "respostas", "file": "respostas.csv", "columns": columns, "key": ["id_resposta"], "sentinels": {}}],
+                        "sources": [
+                            {
+                                "id": "respostas",
+                                "file": "respostas.csv",
+                                "columns": columns,
+                                "key": ["id_resposta"],
+                                "sentinels": {},
+                            }
+                        ],
                     }
                 ),
                 encoding="utf-8",
             )
-            with (input_dir / "respostas.csv").open("w", encoding="utf-8-sig", newline="") as stream:
+            with (input_dir / "respostas.csv").open(
+                "w", encoding="utf-8-sig", newline=""
+            ) as stream:
                 writer = csv.writer(stream, delimiter=";")
                 writer.writerow(columns)
                 writer.writerow(["1", "1", "1", "101", "5", "A", "", "", "ok"])
                 writer.writerow(["2", "1", "1", "102", "6", "A", "", "", "ok"])
             dictionary = root / "dicionario.csv"
-            dictionary_columns = ["Variável", "Unidade de Análise", "Tipo de Variável", "Valores ou Domínio Esperado", "Análises Adequadas"]
+            dictionary_columns = [
+                "Variável",
+                "Unidade de Análise",
+                "Tipo de Variável",
+                "Valores ou Domínio Esperado",
+                "Análises Adequadas",
+            ]
             with dictionary.open("w", encoding="utf-8-sig", newline="") as stream:
                 writer = csv.writer(stream)
                 writer.writerow(dictionary_columns)

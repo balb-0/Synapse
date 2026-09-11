@@ -11,7 +11,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
@@ -36,9 +35,7 @@ class ConnectionTuningTests(unittest.TestCase):
         with DuckDbLoadRepository(self.database_path) as repository:
             default_threads = self._setting(repository, "threads")
 
-        with DuckDbLoadRepository(
-            self.database_path, threads=default_threads + 1
-        ) as repository:
+        with DuckDbLoadRepository(self.database_path, threads=default_threads + 1) as repository:
             tuned_threads = self._setting(repository, "threads")
 
         self.assertEqual(tuned_threads, default_threads + 1)

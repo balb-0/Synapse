@@ -34,13 +34,6 @@ from .csv_extractors import (
     RespondentesExtractor,
     StaleCheckpointError,
 )
-from .object_storage import MinioObjectReader, ObjectReader, ObjectReference
-from .questionnaire_extractors import (
-    QUESTOES_REQUIRED_COLUMNS,
-    RESPOSTAS_REQUIRED_COLUMNS,
-    QuestoesExtractor,
-    RespostasExtractor,
-)
 from .failures import (
     FailureCategory,
     FailureClassification,
@@ -59,6 +52,13 @@ from .log_events import (
     ExtractionBatchLogEvent,
     ExtractionLogSink,
     StandardLoggingSink,
+)
+from .object_storage import MinioObjectReader, ObjectReader, ObjectReference
+from .questionnaire_extractors import (
+    QUESTOES_REQUIRED_COLUMNS,
+    RESPOSTAS_REQUIRED_COLUMNS,
+    QuestoesExtractor,
+    RespostasExtractor,
 )
 from .resilience import RetryExecutor, RetryPolicy
 
