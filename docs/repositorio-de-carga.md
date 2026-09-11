@@ -27,14 +27,21 @@ Este documento cobre o caminho de escrita do repositório de carga:
 - como o repositório espera o escritor anterior liberar o arquivo, em vez de
   falhar na primeira tentativa, quando dois processos disputam a mesma carga;
 - os parâmetros de conexão que o ambiente pode ajustar, e o padrão quando
-  nenhum é informado.
+  nenhum é informado;
+- como o insert do lote converge ao ser reexecutado com o mesmo `run_id` e
+  `batch_id`, em vez de violar a chave primária da tabela de ingestão.
 
 ## Fora de escopo
 
-- **Reprocessar sem duplicar.** Este documento cobre a escrita de um lote;
-  convergir para o mesmo estado ao reexecutar o mesmo lote é assunto da
-  deduplicação e da idempotência, que dependem desta etapa mas têm regras
-  próprias.
+- **Reprocessar sob uma execução diferente da que gravou o lote.** Este
+  documento cobre a convergência de uma mesma tentativa repetida (mesmo
+  `run_id`/`batch_id`). Um backfill que reapresenta o mesmo conteúdo sob um
+  `run_id` novo é interceptado antes, pela deduplicação de linha — ver
+  [ADR 0003](adrs/0003-convergencia-do-insert-no-reprocessamento-do-lote.md).
+- **Aceitar a correção do parceiro como versão nova.** Chave de negócio igual
+  com conteúdo diferente continua sendo conflito de identidade na
+  transformação; isso é assunto de issue própria, não desta etapa (ver
+  [ADR 0002](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md)).
 - **Decidir o que retomar depois de uma falha parcial.** O lote perdido já
   fica registrado com status de falha (ver [`ddl-ingestao.md`](ddl-ingestao.md));
   decidir o que reprocessar e em que ordem é a etapa de compensação.
@@ -98,6 +105,35 @@ gravado.
 A quantidade de duplicados continua vindo da transformação: não existe uma
 tabela própria de duplicados para confirmar essa contagem contra o banco.
 
+## Reprocessamento do lote
+
+Chamar `load_batch` de novo para um lote que já tinha sido gravado com
+sucesso — mesmo `run_id` e `batch_id` — converge para o mesmo estado em vez
+de falhar. É o caso, por exemplo, de quem chama o repositório não ter
+confirmado que a tentativa anterior tinha terminado antes de repetir.
+
+O insert das linhas aceitas declara um alvo de conflito explícito na
+identidade de idempotência (`idempotency_key`, ver
+[`ddl-ingestao.md`](ddl-ingestao.md)) e o resolve descartando a tentativa
+repetida:
+
+```sql
+INSERT INTO "ingestao_<fonte>" (...) VALUES (...)
+ON CONFLICT ("idempotency_key") DO NOTHING
+```
+
+Isso não é o mesmo `INSERT OR REPLACE` que as tabelas de controle usam: a
+tabela de ingestão tem, além da chave primária, um `UNIQUE` separado (chave
+de negócio mais conteúdo), e o DuckDB recusa resolver os dois sem um alvo
+explícito. A linha gravada na primeira tentativa não é sobrescrita pela
+repetição — `run_id`, `batch_id`, `task_id` e `ingested_at` continuam sendo
+os de quem gravou a linha primeiro. A razão de ser `DO NOTHING` e não
+`DO UPDATE` está na [ADR 0003](adrs/0003-convergencia-do-insert-no-reprocessamento-do-lote.md).
+
+Um lote que mistura, no mesmo `executemany`, uma linha já gravada com uma
+linha nova também converge: só a linha nova é inserida, a existente não é
+tocada.
+
 ## Serialização de escrita
 
 O arquivo do banco aceita um único processo com acesso de escrita por vez; uma
@@ -143,3 +179,9 @@ contagem vem do banco, não da lista em memória); a aplicação dos parâmetros
 de conexão quando informados e a ausência de efeito quando não informados; e
 a espera pelo escritor anterior — tanto o caso em que ele libera o arquivo a
 tempo quanto o caso em que o tempo limite se esgota primeiro.
+
+`tests/load/test_reprocessing.py` cobre a convergência descrita em
+"Reprocessamento do lote": a tabela não cresce ao reexecutar o mesmo lote, a
+proveniência da primeira gravação sobrevive à repetição, um lote com
+sobreposição parcial só grava a linha nova, e a contagem confirmada continua
+correta depois do replay.
