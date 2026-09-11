@@ -25,9 +25,9 @@ Deploy Contínuo, que está fora do escopo da sprint.
 | Linguagem | 0001 | Python em todas as camadas de dados; o orquestrador apenas coordena |
 | Arquitetura | 0001 | Plano de dados em Python, plano de controle no Prefect, contratos independentes de tecnologia |
 | Substituição de ClickHouse por DuckDB | 0001 | Autorização registrada; evidências e pendências em [`matriz-rastreabilidade-sprint3.md`](../matriz-rastreabilidade-sprint3.md) |
-| Orquestrador | 0001 e 0003 | Prefect como plano de controle (0001); forma de servir o deployment (0003) |
+| Orquestrador | 0001 e 0004 | Prefect como plano de controle (0001); forma de servir o deployment (0004) |
 | Observabilidade | 0001 | Elastic Stack decidida; **não integrada ao `develop`**, conforme a matriz de rastreabilidade |
-| Estratégia de execução local e CI | 0003 | Registra o ambiente declarado e o escopo real do pipeline de CI |
+| Estratégia de execução local e CI | 0004 | Registra o ambiente declarado e o escopo real do pipeline de CI |
 | Modelo de dados da ingestão | 0002 | Grão, identidade e versionamento da tabela de ingestão |
 
 ## Situação do ADR 0001
@@ -44,7 +44,7 @@ estado observado no repositório é o seguinte.
 | Publicação de fixture no MinIO disparar execução automática | **Não cumprido**: o adaptador de eventos não existe |
 | Execução das seis fontes com registro no Prefect e na Elastic Stack | **Não cumprido**: não há observabilidade integrada |
 | Repetição do mesmo conteúdo produzir estado de ignorado | Cumprido no fluxo (`ingest_object` consulta `_control_object`), sem teste automatizado no nível do flow |
-| Retry, rejeição, idempotência e retomada com evidência automatizada | Parcial: coberto em `tests/extraction` e `tests/load`; ausente em `tests/orchestration`, que não existe |
+| Retry, rejeição, idempotência e retomada com evidência automatizada | Parcial: coberto em `tests/extraction` e `tests/load`; coberto também no nível do flow por `tests/orchestration/` (VB-05) e ponta a ponta em `tests/e2e/` (VB-04) |
 | Documento de estimativa de custos com premissas e cenários | **Pendente** |
 
 Enquanto os três itens não cumpridos e a estimativa de custos permanecerem em
@@ -69,9 +69,10 @@ da primeira gravação. Está implementada em
 ## Situação do ADR 0004
 
 É uma decisão nova, proposta junto com esta documentação. Ela registra o
-ambiente e o CI que já existem, e depende da aprovação do grupo, principalmente
-quanto a aceitar — ou não — que o pipeline de CI cubra somente a camada de
-transformação durante esta sprint.
+ambiente e o CI que já existem, e depende da aprovação do grupo. O escopo
+original (somente a camada de transformação) foi ampliado na Sprint 3: o
+pipeline consolidado (VB-07/VB-08) cobre lint e a suíte inteira com cobertura
+de todo o pacote `etl` (`--fail-under=85`).
 
 ## Nota de numeração
 
