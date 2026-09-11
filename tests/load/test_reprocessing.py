@@ -1,6 +1,6 @@
 """Reexecução do mesmo lote na tabela de ingestão.
 
-A MC-05 deixou a escrita do lote atômica, mas o insert principal ainda era um
+A escrita do lote já era atômica, mas o insert principal ainda era um
 ``INSERT INTO`` puro: reexecutar um lote já gravado (mesmo ``run_id`` e
 ``batch_id``, por exemplo um retomada depois de uma falha que o chamador não
 observou) violava a chave primária em vez de convergir. Este arquivo cobre a

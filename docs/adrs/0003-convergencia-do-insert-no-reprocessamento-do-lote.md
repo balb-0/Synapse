@@ -21,7 +21,7 @@ incluindo lotes que já tinham terminado. Nesse caso, o `INSERT` colide com a
 chave primária (`idempotency_key`, ADR 0002) e o lote inteiro falha, em vez de
 convergir para o mesmo estado.
 
-Note-se que isto é distinto da deduplicação de linha (MG-07): uma recarga
+Note-se que isto é distinto da deduplicação de linha: uma recarga
 idêntica só chega a este ponto quando o `previous` passado à transformação
 não reflete o que já está gravado — o que é exatamente o caso de uma
 reexecução do mesmo lote, já que o `previous` é lido antes da tentativa
@@ -71,7 +71,7 @@ Selecionada `DO NOTHING`.
 
 - **Reprocessar sob um `run_id` diferente do original.** Um backfill que
   reintroduz conteúdo idêntico sob um `run_id` novo nem chega a este insert:
-  a deduplicação de linha (MG-07), ao consultar `_loaded_identity`, já
+  a deduplicação de linha, ao consultar `_loaded_identity`, já
   classifica esse conteúdo como duplicado antes da carga. Este ADR cobre
   apenas o caso em que a mesma tentativa é repetida com o mesmo
   `run_id`/`batch_id`.
