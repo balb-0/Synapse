@@ -16,10 +16,20 @@ REQUIRED_TOP_LEVEL = (
     "negocioEConsumo",
     "governancaCorporativa",
     "cubos",
+    "taticas",
+    "etl",
 )
-REQUIRED_DIMENSIONAL_LISTS = ("grao", "fatos", "metricas", "dimensoes")
-SPRINT3_OUT_OF_SCOPE_LISTS = ("fontes", "transformacoes", "qualidade", "scd")
-SPRINT3_OUT_OF_SCOPE_FIELDS = (
+REQUIRED_CUBE_LISTS = (
+    "grao",
+    "fatos",
+    "metricas",
+    "dimensoes",
+    "fontes",
+    "transformacoes",
+    "qualidade",
+    "scd",
+)
+REQUIRED_DATA_GOVERNANCE_FIELDS = (
     "particionamento",
     "materializacoesAgregacoes",
     "indicesClusteringOrdenacao",
@@ -41,6 +51,7 @@ SPRINT3_OUT_OF_SCOPE_FIELDS = (
     "metadadosObrigatorios",
     "kpiQualidade",
     "kpiGovernanca",
+    "diagramaMermaid",
 )
 
 
@@ -54,6 +65,8 @@ def load_document(path: Path) -> dict[str, Any]:
 def build_inventory(document: dict[str, Any]) -> dict[str, Any]:
     cubes = document.get("cubos")
     cube_list = cubes if isinstance(cubes, list) else []
+    tactics = document.get("taticas")
+    tactic_list = tactics if isinstance(tactics, list) else []
     missing_top_level = [key for key in REQUIRED_TOP_LEVEL if key not in document]
 
     cube_inventory: list[dict[str, Any]] = []
@@ -64,28 +77,29 @@ def build_inventory(document: dict[str, Any]) -> dict[str, Any]:
                     "position": position,
                     "id": None,
                     "name": None,
-                    "missing_dimensional_lists": list(REQUIRED_DIMENSIONAL_LISTS),
-                    "sprint3_out_of_scope_keys": [],
+                    "missing_cube_lists": list(REQUIRED_CUBE_LISTS),
+                    "missing_data_governance_fields": list(
+                        REQUIRED_DATA_GOVERNANCE_FIELDS
+                    ),
                 }
             )
             continue
 
         fields = cube.get("fields") if isinstance(cube.get("fields"), dict) else {}
         lists = cube.get("lists") if isinstance(cube.get("lists"), dict) else {}
-        missing_dimensional = [
-            key for key in REQUIRED_DIMENSIONAL_LISTS if not lists.get(key)
+        missing_lists = [
+            key for key in REQUIRED_CUBE_LISTS if not lists.get(key)
         ]
-        out_of_scope = [
-            *(f"lists.{key}" for key in SPRINT3_OUT_OF_SCOPE_LISTS if key in lists),
-            *(f"fields.{key}" for key in SPRINT3_OUT_OF_SCOPE_FIELDS if key in fields),
+        missing_fields = [
+            key for key in REQUIRED_DATA_GOVERNANCE_FIELDS if key not in fields
         ]
         cube_inventory.append(
             {
                 "position": position,
                 "id": cube.get("id"),
                 "name": fields.get("nome"),
-                "missing_dimensional_lists": missing_dimensional,
-                "sprint3_out_of_scope_keys": out_of_scope,
+                "missing_cube_lists": missing_lists,
+                "missing_data_governance_fields": missing_fields,
             }
         )
 
@@ -104,6 +118,8 @@ def build_inventory(document: dict[str, Any]) -> dict[str, Any]:
         "cube_count": len(cube_list),
         "expected_cube_count": EXPECTED_CUBE_COUNT,
         "cube_count_matches": len(cube_list) == EXPECTED_CUBE_COUNT,
+        "tactic_count": len(tactic_list),
+        "etl_present": isinstance(document.get("etl"), dict),
         "blank_governance_fields": blank_governance,
         "cubes": cube_inventory,
     }
@@ -122,6 +138,8 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
             f"- Cubos: `{inventory['cube_count']}` de "
             f"`{inventory['expected_cube_count']}` esperados"
         ),
+        f"- Táticas arquiteturais: `{inventory['tactic_count']}`",
+        f"- ETL preenchido: `{'sim' if inventory['etl_present'] else 'não'}`",
         "",
         "## Cubos",
         "",
@@ -140,16 +158,20 @@ def render_markdown(inventory: dict[str, Any], source: Path) -> str:
             "- Campos de governança vazios: "
             + ", ".join(inventory["blank_governance_fields"])
         )
+    if inventory["tactic_count"] == 0:
+        lines.append("- Nenhuma tática arquitetural preenchida.")
+    if not inventory["etl_present"]:
+        lines.append("- Seção ETL ausente ou inválida.")
     for cube in inventory["cubes"]:
-        if cube["missing_dimensional_lists"]:
+        if cube["missing_cube_lists"]:
             lines.append(
                 f"- `{cube['id']}` não preenche: "
-                + ", ".join(cube["missing_dimensional_lists"])
+                + ", ".join(cube["missing_cube_lists"])
             )
-        if cube["sprint3_out_of_scope_keys"]:
+        if cube["missing_data_governance_fields"]:
             lines.append(
-                f"- `{cube['id']}` ainda contém {len(cube['sprint3_out_of_scope_keys'])} "
-                "campos de Dados/Governança fora do recorte da Sprint 3."
+                f"- `{cube['id']}` não preenche campos de Dados/Governança: "
+                + ", ".join(cube["missing_data_governance_fields"])
             )
 
     if len(lines) == adjustment_start:

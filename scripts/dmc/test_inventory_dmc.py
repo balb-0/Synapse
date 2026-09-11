@@ -23,12 +23,15 @@ class InventoryDmcTest(unittest.TestCase):
         self.assertEqual(inventory["cube_count"], 4)
         self.assertTrue(inventory["cube_count_matches"])
         self.assertEqual(inventory["missing_top_level"], [])
+        self.assertEqual(inventory["tactic_count"], 3)
+        self.assertTrue(inventory["etl_present"])
 
-    def test_current_document_has_no_legacy_cube_sections(self) -> None:
+    def test_current_document_has_complete_data_and_governance_sections(self) -> None:
         inventory = inventory_dmc.build_inventory(self.document)
 
         for cube in inventory["cubes"]:
-            self.assertEqual(cube["sprint3_out_of_scope_keys"], [])
+            self.assertEqual(cube["missing_cube_lists"], [])
+            self.assertEqual(cube["missing_data_governance_fields"], [])
 
     def test_missing_dimensional_list_is_reported(self) -> None:
         changed = copy.deepcopy(self.document)
@@ -37,7 +40,7 @@ class InventoryDmcTest(unittest.TestCase):
         inventory = inventory_dmc.build_inventory(changed)
 
         self.assertEqual(
-            inventory["cubes"][0]["missing_dimensional_lists"], ["metricas"]
+            inventory["cubes"][0]["missing_cube_lists"], ["metricas"]
         )
 
     def test_markdown_records_source_and_clean_structure(self) -> None:

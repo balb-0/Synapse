@@ -22,6 +22,41 @@ class ValidateDmcTest(unittest.TestCase):
     def test_current_export_is_valid(self) -> None:
         summary = validate_dmc.validate_document(self.document)
         self.assertEqual(summary["cubos"], list(validate_dmc.EXPECTED_CUBES))
+        self.assertEqual(summary["taticas"], list(validate_dmc.EXPECTED_TACTIC_IDS))
+        self.assertTrue(summary["etl"])
+
+    def test_missing_tactics_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        del changed["taticas"]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "taticas"):
+            validate_dmc.validate_document(changed)
+
+    def test_tactic_requires_quality_attribute(self) -> None:
+        changed = copy.deepcopy(self.document)
+        fields = changed["taticas"][0]["fields"]
+        for key in validate_dmc.TACTIC_BOOLEAN_FIELDS:
+            fields[key] = False
+        fields["qaOutro"] = ""
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "atributo de qualidade"):
+            validate_dmc.validate_document(changed)
+
+    def test_tactic_requires_evidence(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["taticas"][0]["lists"]["evidencias"] = []
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "evidências"):
+            validate_dmc.validate_document(changed)
+
+    def test_etl_requires_every_official_field(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["etl"]["fields"]["linhagem"] = " "
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "ETL.*vazio"):
+            validate_dmc.validate_document(changed)
+
+    def test_etl_requires_verifications(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["etl"]["lists"]["verificacoes"] = []
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fontes, camadas"):
+            validate_dmc.validate_document(changed)
 
     def test_invalid_json_is_reported(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -48,6 +83,18 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "schemaVersion"):
             validate_dmc.validate_document(changed)
 
+    def test_invalid_metadata_date_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["metadata"]["data"] = "2026-02-30"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "data ISO válida"):
+            validate_dmc.validate_document(changed)
+
+    def test_invalid_metadata_version_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["metadata"]["versao"] = "final"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "inteiro.inteiro"):
+            validate_dmc.validate_document(changed)
+
     def test_multiple_schemas_fail(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["cubos"][0]["fields"]["snowflakeSchema"] = True
@@ -60,22 +107,73 @@ class ValidateDmcTest(unittest.TestCase):
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "tipo de fato"):
             validate_dmc.validate_document(changed)
 
+    def test_missing_dimensional_field_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        del changed["cubos"][0]["fields"]["bridgeTables"]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fields.bridgeTables"):
+            validate_dmc.validate_document(changed)
+
+    def test_non_boolean_selector_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][0]["fields"]["snowflakeSchema"] = "false"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "usar booleanos"):
+            validate_dmc.validate_document(changed)
+
+    def test_cube_requires_exactly_one_classification(self) -> None:
+        changed = copy.deepcopy(self.document)
+        fields = changed["cubos"][0]["fields"]
+        for key in (
+            "classificacaoPublico",
+            "classificacaoInterno",
+            "classificacaoConfidencial",
+            "classificacaoRestrito",
+        ):
+            fields[key] = False
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "classificação"):
+            validate_dmc.validate_document(changed)
+
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][0]["fields"]["classificacaoPublico"] = True
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "classificação"):
+            validate_dmc.validate_document(changed)
+
+    def test_personal_data_requires_restricted_classification(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][1]["fields"]["classificacaoRestrito"] = False
+        changed["cubos"][1]["fields"]["classificacaoInterno"] = True
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "dado pessoal"):
+            validate_dmc.validate_document(changed)
+
+    def test_blank_dimensional_text_field_fails(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][0]["fields"]["dimensoesConformadas"] = "  "
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "campos textuais"):
+            validate_dmc.validate_document(changed)
+
     def test_dimensional_lists_reject_non_string_items(self) -> None:
         changed = copy.deepcopy(self.document)
         changed["cubos"][0]["lists"]["metricas"].append(42)
         with self.assertRaisesRegex(validate_dmc.DmcValidationError, "metricas"):
             validate_dmc.validate_document(changed)
 
-    def test_cube_rejects_field_outside_sprint_3_scope(self) -> None:
+    def test_dimensional_lists_reject_duplicate_items(self) -> None:
         changed = copy.deepcopy(self.document)
-        changed["cubos"][0]["fields"]["controleAcesso"] = "Campo removido"
-        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fora do recorte"):
+        changed["cubos"][0]["lists"]["fatos"].append(
+            changed["cubos"][0]["lists"]["fatos"][0].upper()
+        )
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "duplicados em fatos"):
             validate_dmc.validate_document(changed)
 
-    def test_cube_rejects_list_outside_sprint_3_scope(self) -> None:
+    def test_cube_rejects_unknown_field(self) -> None:
         changed = copy.deepcopy(self.document)
-        changed["cubos"][0]["lists"]["fontes"] = ["Fonte removida"]
-        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "fora do recorte"):
+        changed["cubos"][0]["fields"]["campoInventado"] = "valor"
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "desconhecidos"):
+            validate_dmc.validate_document(changed)
+
+    def test_cube_rejects_unknown_list(self) -> None:
+        changed = copy.deepcopy(self.document)
+        changed["cubos"][0]["lists"]["listaInventada"] = ["valor"]
+        with self.assertRaisesRegex(validate_dmc.DmcValidationError, "desconhecidos"):
             validate_dmc.validate_document(changed)
 
     def test_missing_corporate_governance_key_fails(self) -> None:
