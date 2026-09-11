@@ -10,6 +10,7 @@ gatilho normal é o evento `s3:ObjectCreated` do MinIO (adaptador externo chama
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from datetime import datetime, timezone
 
@@ -86,13 +87,29 @@ def _connection_tuning() -> dict:
 
 
 def _build_references(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
-    """Monta as referências dos pais a partir do que já foi carregado no DuckDB."""
+    """Monta as referências dos pais a partir do que já foi carregado no DuckDB.
+
+    Lê todas as colunas de negócio da view de compatibilidade, não só a chave:
+    as checagens de consistência usam mais do que ela — o vínculo cliente ->
+    empresa compara ``empresa_id``, e as respostas validam o domínio contra o
+    tipo e as listas da questão. Listas são persistidas como JSON e voltam a
+    ser listas aqui.
+    """
     sources: dict[str, list[dict]] = {}
     for parent, _fields in RELATIONS[source]:
         keys = KEYS[parent]
-        cols = ", ".join(f'"{k}"' for k in keys)
-        rows = repo._conn.execute(f'SELECT {cols} FROM "{parent}"').fetchall()
-        sources[parent] = [dict(zip(keys, [str(v) for v in row])) for row in rows]
+        cursor = repo._conn.execute(f'SELECT * FROM "{parent}"')
+        columns = [description[0] for description in cursor.description]
+        records = []
+        for row in cursor.fetchall():
+            record = dict(zip(columns, row))
+            for key in keys:
+                record[key] = str(record[key])
+            for name in ("alternativas", "linhas_matriz", "colunas_matriz"):
+                if isinstance(record.get(name), str):
+                    record[name] = json.loads(record[name])
+            records.append(record)
+        sources[parent] = records
     return ReferenceData(sources)
 
 
