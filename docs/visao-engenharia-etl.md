@@ -6,7 +6,7 @@ recupera de uma falha. A visão descreve o ambiente **declarado no repositório*
 capacidade que existe apenas como decisão está marcada como planejada.
 
 O ambiente e o pipeline de verificação estão registrados no
-[ADR 0003](adrs/0003-execucao-local-e-integracao-continua.md).
+[ADR 0004](adrs/0004-execucao-local-e-integracao-continua.md).
 
 ## Execução
 

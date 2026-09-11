@@ -11,14 +11,15 @@ lacuna, não como intenção.
 - Comando: `python -m unittest discover -s tests -v`, com `PYTHONPATH=src`.
 - Localização: `tests/`, espelhando as camadas de `src/etl/` —
   `tests/extraction/`, `tests/transformation/` e `tests/load/`.
-- Volume atual: 188 testes (`grep -rc "def test" tests/` em 10/09/2026).
+- Volume atual: 216 testes (`grep -rc "def test" tests/` em 11/09/2026).
 - Dependências de teste: `requirements-transformation-dev.txt` (ruff e
-  coverage) para o gate de transformação; os demais testes rodam com as
-  dependências de `requirements.txt`.
-- Gate de CI: o job `transformation-quality` (`.gitlab/ci/transformation.yml`)
-  roda ruff, verificação de schema e cobertura com `coverage --fail-under=90`
-  sobre `etl.transformation`, executando a suíte inteira por
-  `unittest discover`.
+  coverage) para lint e cobertura locais, iguais ao CI; os demais testes rodam
+  com as dependências de `requirements.txt`.
+- Gate de CI: o pipeline consolidado (`.gitlab-ci.yml`) roda `ruff check` e
+  `ruff format --check` sobre `src`, `scripts` e `tests` (job `lint`) e a
+  suíte inteira por `unittest discover` com verificação de schema e cobertura
+  `coverage --branch --source=etl --fail-under=85` sobre todo o pacote `etl`
+  (job `test`).
 
 Documentos relacionados: [`testes-extracao.md`](testes-extracao.md) (suíte de
 extração) e [`smoke-test-extracao.md`](smoke-test-extracao.md) (resultado do
@@ -35,12 +36,10 @@ correta nas tabelas de destino, sem conhecimento do código interno.
   executa os seis extratores sobre fixtures sintéticas em memória e compara
   contagens de registros e lotes com valores esperados (resultado registrado em
   [`smoke-test-extracao.md`](smoke-test-extracao.md)).
-- **Lacuna:** não há teste black-box ponta a ponta do pipeline orquestrado
-  (objeto no MinIO → flow `ingest_object` → linhas consultadas no DuckDB). O
-  fluxo completo só pode ser exercido manualmente via
-  `scripts/orchestration/run_ingest.py`. Um teste E2E automatizado do flow está
-  previsto nas tarefas de integração da Sprint 3, mas ainda não existe em
-  `tests/`.
+- **Existe hoje:** `tests/e2e/test_pipeline_ponta_a_ponta.py` — teste black-box
+  ponta a ponta do pipeline orquestrado (fixture → flow `ingest_object` →
+  linhas consultadas no DuckDB), adicionado na Sprint 3 (VB-04) sobre as
+  fixtures sintéticas versionadas de `tests/fixtures/`.
 
 ### Gray-box — integração e contratos entre camadas
 
@@ -53,6 +52,10 @@ lado.
   extratores pelo mesmo protocolo e validam lote, checkpoint e metadados
   entregues à transformação (contrato em
   [`contrato-lote-extraido.md`](contrato-lote-extraido.md)).
+- **Orquestração (camadas ↔ flow):**
+  `tests/orchestration/test_gray_box_orquestracao.py` exercita o flow
+  `ingest_object` com camadas instrumentadas, cobrindo idempotência, retry,
+  retomada e reconciliação no nível da orquestração (VB-05).
 - **Reprocessamento (transformação → carga):**
   `tests/load/test_reprocessing.py` reexecuta o mesmo lote pelo pipeline de
   transformação e pela carga real em um DuckDB temporário, verificando que a
@@ -98,6 +101,9 @@ consistência referencial, deduplicação e quarentena.
 
 | Lacuna | Impacto |
 | :--- | :--- |
-| Sem teste E2E automatizado do flow `ingest_object`/`backfill` | Integração orquestração↔camadas só é exercida manualmente |
 | Contrato ClickHouse desligado por padrão | Divergência de schema com o destino final só aparece em execução opt-in |
-| Sem gate de cobertura para extração e carga | O `--fail-under=90` do CI cobre apenas `etl.transformation` |
+
+Lacunas resolvidas na Sprint 3: o teste E2E automatizado do flow passou a
+existir em `tests/e2e/` (VB-04) e o gate de cobertura do CI consolidado
+(`--fail-under=85` sobre todo o pacote `etl`, VB-08) cobre extração, carga e
+orquestração, não só `etl.transformation`.
