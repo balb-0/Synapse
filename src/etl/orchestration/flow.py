@@ -167,7 +167,13 @@ def transform(batches: list, source: str, references, previous: dict) -> list:
     return results
 
 
-@task(timeout_seconds=120, cache_policy=NO_CACHE)
+# O timeout do load cobre o objeto inteiro, não um lote: um objeto grande
+# grava N lotes sequenciais na mesma task. 120 s (o mesmo das outras tasks)
+# estourou na prática com ~20 mil registros rejeitados no runner do Compose
+# (~7 s por lote de 1.000), matando a task no meio de um lote e exigindo
+# retomada. Uma hora acomoda objetos na casa das centenas de milhares de
+# registros sem remover o limite, que continua existindo.
+@task(timeout_seconds=3600, cache_policy=NO_CACHE)
 def load(db_path: str, results: list, tuning: dict) -> list:
     """Grava aceitos e rejeitados no DuckDB e reconcilia as contagens."""
     logger = get_run_logger()

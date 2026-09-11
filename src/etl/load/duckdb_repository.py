@@ -286,6 +286,7 @@ class DuckDbLoadRepository:
                     "INSERT OR REPLACE INTO _loaded_identity VALUES (?, ?, ?)",
                     [[source, row["record_identity"], row["content_checksum"]] for row in rows],
                 )
+            self._converge_previous_rejections(metadata)
             self._record_rejections(result.rejected)
             loaded, rejected_count = self._confirmed_counts(metadata)
             self._record_batch(
@@ -334,14 +335,40 @@ class DuckDbLoadRepository:
 
     # ---------- registro de rejeição ----------
 
+    def _converge_previous_rejections(self, metadata: BatchMetadata) -> None:
+        """Descarta as rejeições que uma tentativa anterior do mesmo lote gravou.
+
+        A retomada retransforma o lote do zero e a classificação pode mudar
+        entre tentativas (as referências de consistência vêm do estado atual do
+        banco), gerando ``rejection_id`` diferentes para a mesma ocorrência da
+        fonte. Sem a limpeza, a tentativa retomada se soma à interrompida e a
+        reconciliação passa a contar rejeitado a mais que extraído
+        (``balanced = False`` permanente). Como roda dentro da transação do
+        ``load_batch``, ou substitui tudo ou não substitui nada. Os motivos são
+        removidos antes por ``rejection_id``, porque ``rejected_reason`` não
+        carrega ``run_id``/``batch_id``.
+        """
+        self._conn.execute(
+            f"DELETE FROM {quote(REJECTED_REASON_TABLE)} WHERE rejection_id IN ("
+            f"SELECT rejection_id FROM {quote(REJECTED_TABLE)} "
+            "WHERE run_id = ? AND batch_id = ?)",
+            [metadata.run_id, metadata.batch_id],
+        )
+        self._conn.execute(
+            f"DELETE FROM {quote(REJECTED_TABLE)} WHERE run_id = ? AND batch_id = ?",
+            [metadata.run_id, metadata.batch_id],
+        )
+
     def _record_rejections(self, rejected: tuple[RejectedRecord, ...]) -> None:
         """Grava as ocorrências rejeitadas e os motivos do lote inteiro em duas escritas em lote.
 
         Duas ``executemany`` para o lote inteiro, não uma por ocorrência: é o
         que torna a escrita "em lotes parametrizados" de fato, em vez de N
         comandos avulsos. A rejeição converge em vez de falhar por chave
-        repetida quando um backfill reprocessa o lote. Lote sem rejeição chega
-        com listas vazias; ``_insert_many`` não emite comando nesse caso.
+        repetida quando um backfill reprocessa o lote: a tentativa anterior é
+        descartada por ``_converge_previous_rejections`` antes desta escrita.
+        Lote sem rejeição chega com listas vazias; ``_insert_many`` não emite
+        comando nesse caso.
         """
         self._insert_many(
             "rejected",
