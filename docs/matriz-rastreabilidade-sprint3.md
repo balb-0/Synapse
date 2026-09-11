@@ -64,15 +64,14 @@ não corrigidas por este bloco de tarefas.
 | Versão do Python divergente | `Dockerfile` (3.12), `.gitlab/ci/transformation.yml` (3.11), `ruff-transformation.toml` (`py311`), `README.md` (3.12+) | VB-06 | Resolvido na branch `chore-208-vb-06`: alinhado para Python 3.12 (versão do Dockerfile/README); o `ruff.toml` geral usa `py312` e o código passa em ruff e nos 188 testes sob essa configuração. O job legado de transformation é atualizado na VB-07 |
 | Dependências de runtime sem pin | `requirements.txt` usa faixas (`prefect>=3,<4`, `duckdb>=1.1`, `minio>=7.2,<8`) | VB-06 | A execução não é reproduzível entre ambientes |
 | Nomes de variável divergentes | `docker-compose.yml` define `DUCKDB_PATH`; `src/etl/load/config.py` lê `ETL_DUCKDB_PATH` | OV-*/MC-* | O tuning do banco e o caminho do arquivo podem vir de fontes diferentes na mesma execução |
-| ADR 0001 ainda proposto | [`adrs/0001-...`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | Grupo | A arquitetura é seguida na prática sem decisão formalmente aceita |
-| ADR 0002 pendente de ratificação | [`adrs/0002-...`](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md) | Grupo | A semântica de versões vale para a carga, mas não foi ratificada pelo grupo |
+| ADR 0001 e 0002 ratificados | [`adrs/0001-...`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md), [`adrs/0002-...`](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md) | Grupo | Resolvido em 11/09/2026: os dois ADRs passaram para status Aceito. Os critérios ainda não cumpridos de cada um (ver `adrs/index.md`) seguem como acompanhamento, não como bloqueio da ratificação |
 
 ## Substituição ClickHouse por DuckDB
 
-A troca está autorizada e registrada no ADR 0001, que exige, como condição para
-o ADR passar de **Proposto** a **Aceito**, que a autorização apareça na matriz de
-rastreabilidade, nos diagramas e nos critérios de aceite. Esta seção cumpre a
-parte da matriz.
+A troca está autorizada e registrada no ADR 0001. Entre os critérios que o
+próprio ADR listava para a ratificação estava a autorização aparecer na matriz
+de rastreabilidade, nos diagramas e nos critérios de aceite. Esta seção cumpre
+a parte da matriz.
 
 | Ponto exigido pelo ADR 0001 | Situação |
 | :--- | :--- |
@@ -83,8 +82,10 @@ parte da matriz.
 | Fluxo mínimo subindo por comando documentado | Cumprido por `docker-compose.yml` e `scripts/orchestration/run_ingest.py` |
 | Publicação de fixture disparando execução automática | Não cumprido: não há adaptador de eventos |
 | Execução das seis fontes com registro na Elastic Stack | Não cumprido: não há observabilidade integrada |
-| Evidência automatizada de retry, rejeição, idempotência e retomada | Parcial: coberto em `tests/extraction` e `tests/load`, ausente no nível do flow |
+| Evidência automatizada de retry, rejeição, idempotência e retomada | Cumprido: `tests/extraction`, `tests/load` e `tests/orchestration` cobrem os cenários |
 | Documento de estimativa de custos | Pendente |
 
-Enquanto os pontos não cumpridos permanecerem, o ADR 0001 continua com status
-**Proposto**. A lista completa está em [`adrs/index.md`](adrs/index.md).
+O grupo ratificou o ADR 0001 em 11/09/2026 sem exigir que todos os pontos
+acima estivessem cumpridos — o que ainda falta (adaptador de eventos,
+observabilidade integrada, estimativa de custos) segue como acompanhamento. A
+lista completa está em [`adrs/index.md`](adrs/index.md).

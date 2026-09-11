@@ -1,6 +1,6 @@
 # ADR 0001 — Arquitetura do ETL com Python, Prefect, MinIO e DuckDB
 
-- **Status:** Proposto
+- **Status:** Aceito em 11/09/2026, por decisão da equipe
 - **Data:** 09/09/2026
 - **Responsáveis pela decisão:** equipe do projeto
 
@@ -258,20 +258,29 @@ sem custo de licença não será apresentado como infraestrutura sem custo.
 - Configurações, scripts e documentação específicos do NiFi não serão usados na
   execução principal.
 
-## Critérios para aceitar a decisão
+## Critérios considerados na ratificação
 
-Este ADR poderá mudar de **Proposto** para **Aceito** quando:
+A equipe ratificou este ADR em 11/09/2026 sem exigir que todos os critérios
+abaixo estivessem cumpridos — eles continuam registrados como o padrão de
+referência da arquitetura, e o que ainda não está cumprido vira trabalho de
+acompanhamento, não uma condição bloqueando a aceitação:
 
-- a equipe aprovar a divisão de responsabilidades;
-- a autorização para uso do DuckDB estiver registrada;
-- tarefas e critérios que citam ClickHouse ou NiFi forem atualizados;
-- o fluxo mínimo subir localmente por comando documentado;
-- a publicação de uma fixture no MinIO disparar automaticamente uma execução;
+- a equipe aprovar a divisão de responsabilidades — cumprido;
+- a autorização para uso do DuckDB estiver registrada — cumprido;
+- tarefas e critérios que citam ClickHouse ou NiFi forem atualizados — parcial;
+- o fluxo mínimo subir localmente por comando documentado — cumprido;
+- a publicação de uma fixture no MinIO disparar automaticamente uma execução —
+  pendente, sem adaptador de eventos implementado;
 - uma execução com fixtures das seis fontes concluir extração, transformação,
-  carga, reconciliação e registro de estado no Prefect e na Elastic Stack;
-- a repetição do mesmo conteúdo produzir estado de ignorado sem duplicar dados;
-- retry, rejeição, idempotência e retomada tiverem evidências automatizadas;
-- o documento de estimativa de custos declarar premissas e cenários comparáveis.
+  carga, reconciliação e registro de estado no Prefect e na Elastic Stack —
+  parcial: Prefect cobre o registro de estado, a Elastic Stack ainda não está
+  integrada;
+- a repetição do mesmo conteúdo produzir estado de ignorado sem duplicar dados
+  — cumprido;
+- retry, rejeição, idempotência e retomada tiverem evidências automatizadas —
+  cumprido;
+- o documento de estimativa de custos declarar premissas e cenários
+  comparáveis — pendente.
 
 ## Referências
 
