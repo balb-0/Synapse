@@ -137,7 +137,11 @@ class GrayBoxOrquestracaoTests(unittest.TestCase):
                 duplicado = sum(r["duplicates"] for r in resultado["reconciliation"])
                 self.assertEqual(
                     (carregado, rejeitado, duplicado),
-                    (esperado["aceitos"], esperado["rejeitados"], esperado["duplicados"]),
+                    (
+                        esperado["aceitos"],
+                        esperado["rejeitados"],
+                        esperado["duplicados"],
+                    ),
                 )
                 total = self.consulta(f'SELECT count(*) FROM "{table_name(source)}"')
                 self.assertEqual(total, [(esperado["aceitos"],)])
@@ -161,9 +165,7 @@ class GrayBoxOrquestracaoTests(unittest.TestCase):
         self.assertEqual(total, [(fixtures.ESPERADO["empresas"]["aceitos"],)])
 
     def test_csv_malformado_falha_sem_marcar_o_objeto(self) -> None:
-        self.payloads["empresas"] = csv_payload(
-            ("ID", "Nome Fantasia"), [["101", "Empresa Alfa"]]
-        )
+        self.payloads["empresas"] = csv_payload(("ID", "Nome Fantasia"), [["101", "Empresa Alfa"]])
 
         with self.assertRaises(MalformedSourceError):
             self.ingestir("empresas")
