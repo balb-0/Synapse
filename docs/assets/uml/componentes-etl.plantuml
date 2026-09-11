@@ -1,0 +1,124 @@
+@startuml
+
+skinparam shadowing false
+skinparam nodesep 30
+skinparam ranksep 50
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #666666
+  BackgroundColor<<planejado>> #F2F2F2
+  BorderColor<<planejado>> #AAAAAA
+  FontColor<<planejado>> #666666
+}
+skinparam database {
+  BackgroundColor #FFFFFF
+  BorderColor #666666
+}
+skinparam node {
+  BackgroundColor #FBFBFB
+  BorderColor #666666
+}
+
+actor "Publicador da fonte" as PUB
+
+node "MinIO" as MINIO {
+  component "Área landing/raw" as LANDING
+  component "Área bronze" as BRONZE <<planejado>>
+  port "S3 API" as S3PORT
+}
+
+component "Adaptador de eventos" as ADAPTER <<planejado>>
+
+node "Prefect" as PREFECT {
+  component "Flow ingest-object" as FLOWINGEST
+  component "Flow backfill" as FLOWBACKFILL
+  component "Deployment agendado" as DEPLOYMENT
+}
+
+node "Plano de dados em Python" as PYTHON {
+  component "MinioObjectReader\n(etl.extraction.object_storage)" as READER
+  component "Extratores\n(etl.extraction.csv_extractors)" as EXTRACTORS
+  component "Resiliência\n(resilience.py, failures.py)" as RESILIENCE
+  component "Configuração\n(etl.extraction.config)" as CONFIG
+  component "Transformação\n(etl.transformation.pipeline)" as TRANSFORM
+  component "Consistência\n(etl.transformation.consistency)" as REFERENCES
+  component "Repositório de carga\n(etl.load.duckdb_repository)" as REPOSITORY
+  component "Contrato físico\n(etl.load.ddl)" as DDL
+  component "Log estruturado\n(etl.extraction.log_events)" as LOGEVENTS
+}
+
+database "DuckDB" as DUCKDB {
+  component "Tabelas ingestao_ (uma por fonte)" as TABLES
+  component "rejected / rejected_reason" as REJECTED
+  component "_control_object / _loaded_identity\n_checkpoint / _batch_metadata" as CONTROL
+  component "execucao / reconciliacao_execucao" as VIEWS
+}
+
+node "Elastic Stack" as ELASTIC <<planejado>> {
+  component "Logstash" as LOGSTASH <<planejado>>
+  database "Elasticsearch" as ES <<planejado>>
+  component "Kibana" as KIBANA <<planejado>>
+}
+
+interface "ObjectReader" as IREADER
+interface "Extractor" as IEXTRACTOR
+interface "CheckpointStore" as ICHECKPOINT
+interface "MetadataSink" as ISINK
+interface "ExtractionLogSink" as ILOGSINK
+
+READER -up- IREADER
+EXTRACTORS -up- IEXTRACTOR
+REPOSITORY -up- ICHECKPOINT
+LOGEVENTS -up- ILOGSINK
+ISINK .. REPOSITORY : não implementado
+
+PUB --> S3PORT : publica objeto
+S3PORT -- LANDING
+LANDING ..> ADAPTER : s3:ObjectCreated
+ADAPTER ..> FLOWINGEST : bucket, key, version_id, event_id
+DEPLOYMENT --> FLOWINGEST : cron 0 3 * * *
+FLOWBACKFILL --> FLOWINGEST : uma execução por fonte
+
+FLOWINGEST --> IEXTRACTOR
+FLOWINGEST --> TRANSFORM
+FLOWINGEST --> REPOSITORY
+FLOWINGEST --> ICHECKPOINT
+
+READER --> S3PORT : lê objeto
+EXTRACTORS --> IREADER
+EXTRACTORS --> RESILIENCE
+EXTRACTORS --> CONFIG
+EXTRACTORS --> LOGEVENTS
+EXTRACTORS --> TRANSFORM : ExtractedBatch
+REFERENCES --> TRANSFORM : ReferenceData
+TRANSFORM --> REPOSITORY : TransformationResult
+REPOSITORY --> DDL : statements()
+REPOSITORY --> TABLES
+REPOSITORY --> REJECTED
+REPOSITORY --> CONTROL
+CONTROL --> VIEWS
+EXTRACTORS ..> BRONZE : representação intermediária
+
+LOGEVENTS ..> LOGSTASH : log JSON
+FLOWINGEST ..> LOGSTASH : log JSON
+LOGSTASH ..> ES
+ES ..> KIBANA
+
+note bottom of ADAPTER
+  Contrato do ADR 0001.
+  Sem módulo correspondente no develop.
+end note
+
+note bottom of ELASTIC
+  Decidida no ADR 0001.
+  Código nas branches OV-05 a OV-08,
+  não integradas ao develop.
+end note
+
+note right of REFERENCES
+  Montada por _build_references,
+  que hoje consulta o DuckDB pelo
+  atributo privado do repositório.
+end note
+
+@enduml

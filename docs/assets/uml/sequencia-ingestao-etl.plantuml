@@ -1,0 +1,106 @@
+@startuml
+
+skinparam shadowing false
+skinparam sequenceMessageAlign first
+skinparam participant {
+  BackgroundColor #FFFFFF
+  BorderColor #666666
+}
+skinparam note {
+  BackgroundColor #FBFBFB
+  BorderColor #AAAAAA
+}
+
+actor "Operador de dados" as OPE
+participant "Adaptador de eventos\n(planejado)" as ADAPTER
+participant "Flow ingest-object\n(Prefect)" as FLOW
+participant "MinioObjectReader" as READER
+participant "Extrator" as EXTRACTOR
+participant "transform_batch" as TRANSFORM
+participant "DuckDbLoadRepository" as REPO
+database "DuckDB" as DB
+participant "Logstash\n(planejado)" as LOGS
+
+group Execução normal
+  OPE -> FLOW : ingest_object(source, bucket, key)
+  FLOW -> READER : open(reference)
+  READER -> FLOW : fluxo de bytes
+  FLOW -> FLOW : SHA-256 do objeto
+  FLOW -> REPO : object_already_loaded(checksum)
+  REPO -> DB : SELECT em _control_object
+  DB --> REPO : nenhuma linha
+  REPO --> FLOW : false
+  FLOW -> REPO : loaded_identities(source) e load(source)
+  REPO --> FLOW : identidades e checkpoint
+  FLOW -> EXTRACTOR : read(run_id, checkpoint)
+  EXTRACTOR -> READER : open(reference)
+  EXTRACTOR --> FLOW : ExtractedBatch
+  EXTRACTOR -->> LOGS : evento JSON do lote
+  FLOW -> TRANSFORM : transform_batch(batch, references, previous)
+  TRANSFORM --> FLOW : TransformationResult
+  FLOW -> REPO : load_batch(result, metadata)
+  REPO -> DB : BEGIN TRANSACTION
+  REPO -> DB : INSERT nas tabelas de ingestão
+  REPO -> DB : INSERT em rejected e rejected_reason
+  REPO -> DB : contagem por run_id e batch_id
+  DB --> REPO : carregados e rejeitados
+  REPO -> DB : INSERT em _batch_metadata (carregado)
+  REPO -> DB : COMMIT
+  REPO --> FLOW : LoadResult balanceado
+  FLOW -> REPO : mark_object_loaded(source, checksum, run_id)
+  FLOW -> REPO : commit(checkpoint)
+  FLOW -->> LOGS : estado final da execução
+  FLOW --> OPE : status loaded
+end
+
+group Falha transitória com retry limitado
+  OPE -> FLOW : ingest_object(source, bucket, key)
+  FLOW -> EXTRACTOR : read(run_id, checkpoint)
+  EXTRACTOR -> READER : open(reference)
+  READER --> EXTRACTOR : falha de rede
+  EXTRACTOR -> EXTRACTOR : classify_source_failure -> transitória
+  loop até max_attempts, com espera progressiva
+    EXTRACTOR -> READER : nova tentativa
+  end
+  alt tentativa bem-sucedida
+    EXTRACTOR --> FLOW : ExtractedBatch
+  else limite esgotado
+    EXTRACTOR --> FLOW : RetryLimitExceededError
+    FLOW -> FLOW : _should_retry devolve false
+    FLOW --> OPE : execução falha sem nova tentativa
+    note right of FLOW
+      Checkpoint e hash não são confirmados.
+      A posição anterior permanece válida
+      e a próxima execução relê o trecho.
+    end note
+  end
+end
+
+group Falha permanente
+  OPE -> FLOW : ingest_object(source, bucket, key)
+  FLOW -> EXTRACTOR : read(run_id, checkpoint)
+  EXTRACTOR -> READER : open(reference)
+  READER --> EXTRACTOR : credencial inválida ou objeto ausente
+  EXTRACTOR -> EXTRACTOR : classify_source_failure -> permanente
+  EXTRACTOR --> FLOW : PermanentSourceError
+  FLOW -> FLOW : _should_retry devolve false
+  FLOW --> OPE : execução falha imediatamente
+end
+
+group Reenvio do mesmo conteúdo
+  OPE -> FLOW : ingest_object(source, bucket, key)
+  FLOW -> READER : open(reference)
+  FLOW -> FLOW : SHA-256 do objeto
+  FLOW -> REPO : object_already_loaded(checksum)
+  REPO -> DB : SELECT em _control_object
+  DB --> REPO : linha encontrada
+  REPO --> FLOW : true
+  FLOW --> OPE : status ignored
+  note right of FLOW
+    Nenhuma leitura de registro,
+    nenhuma escrita e nenhum
+    avanço de checkpoint.
+  end note
+end
+
+@enduml
