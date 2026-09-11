@@ -36,6 +36,7 @@ from etl.load.ddl import (
     BATCH_STATUS_FAILED,
     BATCH_STATUS_LOADED,
     BATCH_STATUS_LOADED_WITH_REJECTIONS,
+    IDENTITY_COLUMN,
     REJECTED_COLUMNS,
     REJECTED_REASON_COLUMNS,
     REJECTED_REASON_TABLE,
@@ -259,13 +260,20 @@ class DuckDbLoadRepository:
         reconciliação não fecha só porque as duas pontas nasceram do mesmo lote
         transformado, e sim porque o que está gravado bate com o que se
         pretendia gravar.
+
+        Reexecutar o mesmo lote (mesmo ``run_id``/``batch_id``) não pode violar
+        a chave primária: ``ON CONFLICT ... DO NOTHING`` faz o insert convergir
+        em vez de falhar. Não é ``INSERT OR REPLACE`` — a tabela tem PK e
+        UNIQUE separados, e o DuckDB recusa resolver os dois sem um alvo de
+        conflito explícito. Ver ADR 0003.
         """
         source = metadata.source
         columns = list(destination_columns(source))
         placeholders = ", ".join("?" for _ in columns)
         insert_sql = (
             f"INSERT INTO {quote(table_name(source))} "
-            f"({', '.join(quote(c) for c in columns)}) VALUES ({placeholders})"
+            f"({', '.join(quote(c) for c in columns)}) VALUES ({placeholders}) "
+            f"ON CONFLICT ({quote(IDENTITY_COLUMN)}) DO NOTHING"
         )
         rows = [record.as_clickhouse_row() for record in result.accepted]
         self._conn.execute("BEGIN TRANSACTION")
