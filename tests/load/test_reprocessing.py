@@ -114,22 +114,29 @@ class ReloadingTheSameBatchTests(unittest.TestCase):
         self.assertEqual(stored_task_id, "tentativa-1")
 
     def test_partial_overlap_only_inserts_the_new_rows(self) -> None:
-        already_loaded = _metadata(1)
-        self._load([{"id": "1", "titulo": "Faturamento 2025"}], already_loaded)
+        # Mesmo run_id/batch_id nas duas chamadas: é uma retomada do mesmo
+        # lote, não um lote diferente. Cenário plausível quando a extração
+        # recomeça de um pouco antes do checkpoint confirmado e o lote
+        # retomado carrega uma linha a mais além das que já tinham sido
+        # aceitas. Uma sobreposição entre run_id/batch_id diferentes é
+        # cenário à parte, fora do que esta ADR cobre (ver ADR 0003).
+        metadata = _metadata(1)
+        self._load([{"id": "1", "titulo": "Faturamento 2025"}], metadata)
 
-        mixed_batch = _metadata(2, batch_id="pesquisas-000002")
+        retry_with_one_more_row = _metadata(2)
         outcome = self._load(
             [
-                {"id": "1", "titulo": "Faturamento 2025"},  # já gravada no lote anterior
+                {"id": "1", "titulo": "Faturamento 2025"},  # já gravada na tentativa anterior
                 {"id": "2", "titulo": "Novo registro"},
             ],
-            mixed_batch,
+            retry_with_one_more_row,
         )
 
         self.assertEqual(self._count(), 2)
-        # Só a linha nova pertence a este batch_id; a que já existia foi
-        # ignorada, não regravada sob a identidade deste lote.
-        self.assertEqual(outcome.loaded, 1)
+        # As duas linhas pertencem a este run_id/batch_id — a que já existia
+        # inclusive, gravada nele desde a tentativa anterior — então a
+        # contagem confirmada soma as duas, sem lacuna de reconciliação.
+        self.assertEqual(outcome.loaded, 2)
 
     def test_confirmed_loaded_count_matches_after_replay(self) -> None:
         rows = [{"id": "1", "titulo": "A"}, {"id": "2", "titulo": "B"}]

@@ -98,6 +98,17 @@ Selecionada `DO NOTHING`.
   de ingestão preserva a primeira versão (`DO NOTHING`). Um leitor que
   assumir que o comportamento é uniforme entre as tabelas erra a suposição;
   é por isso que a razão de cada uma está registrada aqui.
+- **Uma identidade repetida em dois lotes da mesma execução deixa de derrubar
+  a carga com erro claro, e passa a convergir em silêncio.** Isto já era
+  possível antes desta ADR — o `previous` que decide o que é novo é lido uma
+  vez só, no início da execução, e não é atualizado lote a lote — mas antes
+  o segundo lote violava a chave primária e caía com `status` de falha,
+  visível na hora. Agora esse mesmo cenário converge: a linha repetida não é
+  contada como aceita, rejeitada nem duplicada em lote nenhum, e o único
+  sinal que sobra é `conciliado = false` em `reconciliacao_execucao` — que
+  hoje nada consulta automaticamente. Risco aceito nesta ADR; a causa raiz
+  (`previous` desatualizado entre lotes da mesma execução) é da orquestração,
+  não desta camada, e fica registrada para uma correção própria.
 
 ## Alternativas consideradas
 
