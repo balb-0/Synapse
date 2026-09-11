@@ -97,3 +97,33 @@ Observações que acompanham os MRs (não bloqueiam):
    mas não entram na medição.
 3. Python local do gate (3.14) ≠ CI (3.12): a versão de referência declarada
    pela VB-06/VB-07 é 3.12.
+
+## Rodada pós-validação Docker (11/09/2026, final)
+
+Após a validação do ambiente Docker real, quatro correções entraram nas
+branches antes desta rodada: a `test-207-vb-05` recebeu dois fixes de código
+encontrados pela execução real — convergência das rejeições na retomada via
+`_checkpoint` (sem ela, a reconciliação contava rejeitado a mais que extraído,
+`balanced: False` permanente) e ampliação do timeout da task `load` de 120 s
+para 3600 s (estourava com o `respostas.csv` real, ~20 mil registros, no
+runner do Compose) — com dois testes de regressão em
+`tests/load/test_reprocessing.py`; e as branches `docs-204-vb-02`,
+`docs-211-vb-09`, `test-212-vb-10` e `chore-210-vb-08` receberam correções de
+documentação (links do ADR reenumerado, descrição do CI consolidado, volume da
+suíte e lacunas já resolvidas). Um conflito add/add entre `chore-208-vb-06` e
+`docs-204-vb-02` em `docs/estrategia-de-testes.md` foi resolvido na integração
+local ficando com a versão da `docs-204-vb-02` (dona do documento).
+
+Resultado do `scripts/gate_final.sh` neste estado (mesmo ambiente da rodada
+válida):
+
+| Etapa | Resultado |
+| :--- | :--- |
+| `ruff check` + `ruff format --check` | OK, 0 erros |
+| Suíte `unittest` completa | **218 testes, 22,1 s, OK (1 skip)** |
+| `validate_dmc.py` / `run_gates.py` | DMC válido (schema 1; 4 cubos; 3 táticas); 5 gates aprovados |
+| Cobertura (`--branch --source=etl`) | **TOTAL 93%** (1735 stmts, 516 branches) |
+| Veredicto do script | `GATE FINAL: OK` |
+
+A suíte cresceu de 216 para 218 testes pelos dois testes de regressão da
+retomada; a cobertura permanece em 93%.
