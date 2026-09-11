@@ -622,23 +622,36 @@ As chaves de origem são preservadas; qualquer identidade canônica ou ponte
 entre `respondent_id` e participação depende de reconciliação aprovada. Os
 grãos, fatos, métricas e dimensões resultantes estão na §5.2.
 
+A cadeia completa da informação no pipeline da Sprint 3 — fontes, schema
+canônico, metadados técnicos, rejeições e persistência no DuckDB — está em
+[`visao-informacao-etl.md`](visao-informacao-etl.md).
+
 ## 4.2 Visão de Tecnologia (Technology Viewpoint)
 
-O projeto versiona documentação, scripts de perfilamento, protótipos e o
-`dmc.json`. Banco ou data warehouse, serviço de nuvem, ferramenta de BI,
-orquestrador e mecanismo de autenticação não foram aprovados em fonte
-auditável. Essas escolhas permanecem decisões futuras; os contratos desta
-Sprint evitam depender de um fornecedor específico.
+A pilha do pipeline foi decidida na Sprint 3 e registrada no
+[ADR 0001](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md): Python no
+plano de dados, Prefect no plano de controle, MinIO como entrada de objetos,
+DuckDB como banco de ingestão tratada e Elastic Stack como plataforma de
+observabilidade, esta última decidida e ainda não integrada. A execução local em
+contêineres e o escopo da integração contínua estão no
+[ADR 0003](adrs/0003-execucao-local-e-integracao-continua.md). Ferramenta de BI
+e mecanismo de autenticação permanecem decisões futuras.
+
+O inventário de versões, protocolos, formatos e divergências observadas está em
+[`visao-tecnologia-etl.md`](visao-tecnologia-etl.md).
 
 ## 4.3 Visão de Engenharia (Engineering Viewpoint)
 
-A engenharia alvo propõe receber snapshots identificados por hash, validar
-schema e encoding, preservar valores de origem, criar uma camada tipada,
-classificar anomalias, reconciliar identidades e publicar somente agregados
-autorizados. Falhas de schema interrompem a carga; nulos condicionais,
-sentinelas e chaves órfãs seguem regras distintas. O perfilador reproduz a
-etapa de diagnóstico quando as fontes externas estão disponíveis, mas o
-pipeline automatizado ainda não foi implantado.
+A engenharia recebe snapshots identificados por hash, valida schema e encoding,
+preserva valores de origem, cria uma camada tipada, classifica anomalias e
+confirma checkpoint somente depois da carga e da reconciliação. Falhas de schema
+interrompem a carga; nulos condicionais, sentinelas e chaves órfãs seguem regras
+distintas. O pipeline está implementado até a tabela de ingestão e é executado
+localmente por contêineres; o disparo por evento e a telemetria centralizada
+permanecem como contrato não implementado.
+
+Execução, rede, armazenamento, orquestração, recuperação e métricas estão em
+[`visao-engenharia-etl.md`](visao-engenharia-etl.md).
 
 ## 4.4 Aspectos Não Funcionais
 
@@ -648,6 +661,31 @@ confiabilidade, desempenho de consulta, usabilidade e manutenção. As metas da
 Não há SLA, latência de carga, disponibilidade ou volume futuro confirmados;
 por isso, o documento não promete tempo real nem apresenta meta aspiracional
 como resultado obtido.
+
+## 4.5 Visão de Negócio (Enterprise Viewpoint)
+
+O objetivo, as partes interessadas, o escopo de negócio, as restrições e o
+limite da entrega do pipeline estão em
+[`visao-negocio-etl.md`](visao-negocio-etl.md). A entrega termina na tabela de
+ingestão tratada: cubos, indicadores e painéis descritos na §5 permanecem fora
+do escopo da Sprint 3 e funcionam apenas como contrato de destino.
+
+## 4.6 Visão Computacional (Computational Viewpoint)
+
+Os componentes do pipeline, suas interfaces, o que cada um recusa como
+responsabilidade e as divergências observadas entre contrato e implementação
+estão em [`visao-computacional-etl.md`](visao-computacional-etl.md).
+
+## 4.7 Diagramas UML e decisões arquiteturais
+
+| Artefato | Onde |
+| :--- | :--- |
+| Casos de uso | [`assets/uml/casos-de-uso-etl.plantuml`](assets/uml/casos-de-uso-etl.plantuml) |
+| Componentes | [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) |
+| Sequência da ingestão | [`assets/uml/sequencia-ingestao-etl.plantuml`](assets/uml/sequencia-ingestao-etl.plantuml) |
+| Decisões arquiteturais | [`adrs/index.md`](adrs/index.md) |
+| Escopo da sprint | [`checklist-entregaveis-sprint3.md`](checklist-entregaveis-sprint3.md) |
+| Rastreabilidade | [`matriz-rastreabilidade-sprint3.md`](matriz-rastreabilidade-sprint3.md) |
 
 # 5. Modelagem Dimensional e Cubos OLAP
 
