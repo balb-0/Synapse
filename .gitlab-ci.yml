@@ -20,6 +20,12 @@ lint:
     - ruff check src scripts tests
     - ruff format --check src scripts tests
 
+# Cobertura estendida a todo o ETL (VB-08). Medida original em 2026-09-10 com a
+# suite do develop (188 testes, --branch): extraction 91%, load 92%,
+# transformation 95%, orchestration 0% (sem testes no develop), TOTAL 87%.
+# Threshold 85%: multiplo de 5 logo abaixo do medido, sem excluir modulos.
+# Apos a integracao da VB-05 (tests/orchestration), flow.py passou a ~88% e o
+# TOTAL integrado a 93% (registro em docs/gate-final-sprint3.md).
 test:
   stage: test
   image: python:3.12-slim
@@ -29,4 +35,15 @@ test:
   script:
     - pip install -r requirements.txt -r requirements-transformation-dev.txt
     - python scripts/transformation/render_schema.py --check
-    - python -m unittest discover -s tests -v
+    - coverage run --branch --source=etl -m unittest discover -s tests -v
+    - coverage report --fail-under=85
+    - coverage xml -o coverage-etl.xml
+  coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+  artifacts:
+    when: always
+    paths:
+      - coverage-etl.xml
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage-etl.xml
