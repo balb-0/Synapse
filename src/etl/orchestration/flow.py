@@ -20,8 +20,8 @@ from prefect.cache_policies import NO_CACHE
 from etl.extraction import (
     ClientesExtractor,
     EmpresasExtractor,
-    MinioObjectReader,
     ExtractionError,
+    MinioObjectReader,
     ObjectReference,
     PesquisasExtractor,
     QuestoesExtractor,
@@ -29,12 +29,11 @@ from etl.extraction import (
     RespostasExtractor,
     load_extraction_settings,
 )
-from etl.transformation.consistency import RELATIONS
-from etl.transformation.pipeline import transform_batch
-from etl.transformation.schema import KEYS
-from etl.transformation.consistency import ReferenceData
 from etl.load import DuckDbLoadRepository
 from etl.load.config import load_duckdb_settings
+from etl.transformation.consistency import RELATIONS, ReferenceData
+from etl.transformation.pipeline import transform_batch
+from etl.transformation.schema import KEYS
 
 EXTRACTORS = {
     "empresas": EmpresasExtractor,
