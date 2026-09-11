@@ -13,8 +13,8 @@ Deploy Contínuo, que está fora do escopo da sprint.
 
 | ADR | Título | Status | Decisões que cobre |
 | :--- | :--- | :--- | :--- |
-| [0001](0001-arquitetura-etl-python-prefect-minio-duckdb.md) | Arquitetura do ETL com Python, Prefect, MinIO e DuckDB | **Proposto** | Linguagem (Python), arquitetura geral, substituição de ClickHouse por DuckDB, orquestrador (Prefect), armazenamento de objetos (MinIO), observabilidade (Elastic Stack), rejeição do NiFi na arquitetura principal |
-| [0002](0002-identidade-e-versoes-na-tabela-de-ingestao.md) | Identidade e versões na tabela de ingestão tratada | **Aceito para a camada de carga em 10/09/2026; pendente de ratificação pelo grupo** | Grão da tabela de ingestão, chave primária por identidade de idempotência, preservação de versões, views de estado atual |
+| [0001](0001-arquitetura-etl-python-prefect-minio-duckdb.md) | Arquitetura do ETL com Python, Prefect, MinIO e DuckDB | **Aceito em 11/09/2026** | Linguagem (Python), arquitetura geral, substituição de ClickHouse por DuckDB, orquestrador (Prefect), armazenamento de objetos (MinIO), observabilidade (Elastic Stack), rejeição do NiFi na arquitetura principal |
+| [0002](0002-identidade-e-versoes-na-tabela-de-ingestao.md) | Identidade e versões na tabela de ingestão tratada | **Aceito em 11/09/2026** | Grão da tabela de ingestão, chave primária por identidade de idempotência, preservação de versões, views de estado atual |
 | [0003](0003-convergencia-do-insert-no-reprocessamento-do-lote.md) | Convergência do insert principal ao reexecutar um lote já carregado | **Aceito** | Insert da tabela de ingestão com `ON CONFLICT (idempotency_key) DO NOTHING`, preservação da proveniência da primeira gravação |
 | [0004](0004-execucao-local-e-integracao-continua.md) | Execução local e integração contínua do ETL | **Proposto** | Ambiente local em contêineres, agendamento em processo, ferramenta e escopo do CI, framework de testes, exclusão do Deploy Contínuo |
 | [0005](0005-checkpoint-confirmado-lote-a-lote-na-retomada.md) | Checkpoint confirmado lote a lote na retomada após falha parcial | **Aceito** | Confirmação do checkpoint de cada lote assim que ele termina de carregar, em vez de só ao final de todos os lotes do objeto |
@@ -33,32 +33,29 @@ Deploy Contínuo, que está fora do escopo da sprint.
 
 ## Situação do ADR 0001
 
-O ADR 0001 lista nove critérios para passar de **Proposto** a **Aceito**. O
-estado observado no repositório é o seguinte.
+A equipe ratificou o ADR em 11/09/2026 sem exigir que os nove critérios
+listados nele estivessem todos cumpridos — o que segue em aberto vira
+acompanhamento, não condição para a aceitação já registrada.
 
 | Critério do ADR 0001 | Situação |
 | :--- | :--- |
-| Equipe aprovar a divisão de responsabilidades | Pendente de registro |
+| Equipe aprovar a divisão de responsabilidades | Cumprido pela ratificação |
 | Autorização do DuckDB registrada | Cumprido no próprio ADR e na matriz de rastreabilidade |
 | Tarefas e critérios que citam ClickHouse ou NiFi atualizados | Parcial: código e documentação de transformação ainda usam o nome ClickHouse |
 | Fluxo mínimo subir localmente por comando documentado | Cumprido por `docker-compose.yml` e `scripts/orchestration/run_ingest.py` |
-| Publicação de fixture no MinIO disparar execução automática | **Não cumprido**: o adaptador de eventos não existe |
-| Execução das seis fontes com registro no Prefect e na Elastic Stack | **Não cumprido**: não há observabilidade integrada |
+| Publicação de fixture no MinIO disparar execução automática | **Ainda não cumprido**: o adaptador de eventos não existe |
+| Execução das seis fontes com registro no Prefect e na Elastic Stack | **Ainda não cumprido**: não há observabilidade integrada |
 | Repetição do mesmo conteúdo produzir estado de ignorado | Cumprido no fluxo (`ingest_object` consulta `_control_object`), sem teste automatizado no nível do flow |
 | Retry, rejeição, idempotência e retomada com evidência automatizada | Parcial: coberto em `tests/extraction` e `tests/load`; coberto também no nível do flow por `tests/orchestration/` (VB-05) e ponta a ponta em `tests/e2e/` (VB-04) |
-| Documento de estimativa de custos com premissas e cenários | **Pendente** |
-
-Enquanto os três itens não cumpridos e a estimativa de custos permanecerem em
-aberto, alterar o status para **Aceito** registraria como decidido algo que a
-execução ainda não sustenta. A mudança de status é uma decisão do grupo.
+| Documento de estimativa de custos com premissas e cenários | **Ainda pendente** |
 
 ## Situação do ADR 0002
 
-A ratificação depende do grupo e de uma mudança de comportamento que ainda não
-aconteceu: a classificação de duplicidade continua rejeitando correção do
-parceiro como conflito de identidade. Os dois testes de
-`tests/load/test_identity_coupling.py` funcionam como canário desse acoplamento
-e apontam para o ADR na mensagem de falha.
+O grupo ratificou o ADR em 11/09/2026. Uma mudança de comportamento segue
+pendente como acompanhamento, não como condição: a classificação de
+duplicidade continua rejeitando correção do parceiro como conflito de
+identidade. Os dois testes de `tests/load/test_identity_coupling.py` funcionam
+como canário desse acoplamento e apontam para o ADR na mensagem de falha.
 
 ## Situação do ADR 0003
 

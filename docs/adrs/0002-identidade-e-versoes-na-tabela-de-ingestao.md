@@ -1,7 +1,6 @@
 # ADR 0002 — Identidade e versões na tabela de ingestão tratada
 
-- **Status:** Aceito para a camada de carga em 10/09/2026; pendente de
-  ratificação pelo grupo
+- **Status:** Aceito em 11/09/2026, por decisão da equipe
 - **Data:** 10/09/2026
 - **Responsável pela decisão:** responsável pela camada de carga
 - **Complementa:** [ADR 0001](0001-arquitetura-etl-python-prefect-minio-duckdb.md)
@@ -126,12 +125,19 @@ orquestrado, que consulta `empresas` pelo nome antigo.
 | Uma linha por chave, correção substitui (upsert) | Mantém a tabela no estado corrente e dispensa as views. Não foi selecionada porque descarta o histórico que o versionamento de dimensão previsto exige, e porque a substituição pertence à etapa de idempotência e reprocessamento. |
 | Uma linha por chave e versão, com proveniência | Selecionada. Preserva o histórico, mantém a idempotência por conteúdo e permite derivar o estado corrente por view. |
 
-## Critérios para ratificar a decisão
+## Critérios considerados na ratificação
 
-- o grupo aprovar a semântica de versões na camada de ingestão;
+O grupo ratificou este ADR em 11/09/2026. O que ainda não está cumprido segue
+como trabalho de acompanhamento, não como condição bloqueando a aceitação:
+
+- o grupo aprovar a semântica de versões na camada de ingestão — cumprido;
 - a classificação de duplicidade aceitar correção como versão nova, com a
-  tabela de controle chaveada pela identidade de idempotência;
-- a matriz regra–teste da transformação registrar a nova classificação;
-- uma execução com reprocessamento explícito concluir sem violar constraint;
+  tabela de controle chaveada pela identidade de idempotência — pendente:
+  `classify_duplicates` ainda rejeita correção do parceiro como conflito de
+  identidade (canário em `tests/load/test_identity_coupling.py`);
+- a matriz regra–teste da transformação registrar a nova classificação —
+  pendente, decorre do item anterior;
+- uma execução com reprocessamento explícito concluir sem violar constraint —
+  cumprido;
 - a política de retenção das versões ser definida ou registrada como pendência
-  aceita.
+  aceita — registrada como pendência aceita, ainda sem definição.
