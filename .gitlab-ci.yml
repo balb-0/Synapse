@@ -1,2 +1,32 @@
-include:
-  - local: .gitlab/ci/transformation.yml
+# Pipeline de CI consolidado (VB-07): valida o projeto inteiro.
+# Imagem alinhada ao Dockerfile/README (Python 3.12); ver docs/matriz-rastreabilidade-sprint3.md.
+# Depende do ruff.toml geral introduzido na VB-06 (merge da MR !171 antes desta).
+stages:
+  - lint
+  - test
+
+variables:
+  PYTHONPATH: src
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+lint:
+  stage: lint
+  image: python:3.12-slim
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+  script:
+    - pip install -r requirements-transformation-dev.txt
+    - ruff check src scripts tests
+    - ruff format --check src scripts tests
+
+test:
+  stage: test
+  image: python:3.12-slim
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+  script:
+    - pip install -r requirements.txt -r requirements-transformation-dev.txt
+    - python scripts/transformation/render_schema.py --check
+    - python -m unittest discover -s tests -v
