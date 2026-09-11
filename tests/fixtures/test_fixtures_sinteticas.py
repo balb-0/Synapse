@@ -60,7 +60,7 @@ class EstruturaDasFixturesTests(unittest.TestCase):
         for source in fixtures.ORDEM_CARGA:
             with self.subTest(fonte=source):
                 self.assertLess(len(fixtures.payload(source)), 2048)
-                emails = [l.get("e-mail", "") for l in _linhas(source)]
+                emails = [linha.get("e-mail", "") for linha in _linhas(source)]
                 for email in emails:
                     if email:
                         self.assertTrue(email.endswith("@example.invalid"))
@@ -70,9 +70,9 @@ class CenariosCobertosTests(unittest.TestCase):
     """Cada categoria exigida aparece ao menos uma vez no conjunto."""
 
     def test_duplicados_dentro_do_mesmo_arquivo(self) -> None:
-        ids_empresas = [l["ID"] for l in _linhas("empresas")]
+        ids_empresas = [linha["ID"] for linha in _linhas("empresas")]
         self.assertEqual(ids_empresas.count("101"), 2)
-        ids_respostas = [l["id_resposta"] for l in _linhas("respostas")]
+        ids_respostas = [linha["id_resposta"] for linha in _linhas("respostas")]
         self.assertEqual(ids_respostas.count("3001"), 2)
 
     def test_nulos_e_sentinelas(self) -> None:
@@ -85,7 +85,10 @@ class CenariosCobertosTests(unittest.TestCase):
 
     def test_casos_invalidos_presentes(self) -> None:
         gama = _linhas("pesquisas")[2]
-        inverte = lambda d: tuple(reversed(d.split("/")))
+
+        def inverte(d):
+            return tuple(reversed(d.split("/")))
+
         self.assertGreater(inverte(gama["data_solicitacao"]), inverte(gama["data_entrega"]))
         respondente = _linhas("respondentes")[2]
         self.assertGreater(respondente["hora_inicio"], respondente["hora_termino"])
@@ -99,10 +102,10 @@ class CenariosCobertosTests(unittest.TestCase):
 
 class RelacionamentosEntreArquivosTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.empresas = {l["ID"] for l in _linhas("empresas")}
-        self.pesquisas = {l["id"] for l in _linhas("pesquisas")}
-        self.clientes = {l["id_cliente"]: l for l in _linhas("clientes")}
-        self.questoes = {l["id_pergunta"] for l in _linhas("questoes")}
+        self.empresas = {linha["ID"] for linha in _linhas("empresas")}
+        self.pesquisas = {linha["id"] for linha in _linhas("pesquisas")}
+        self.clientes = {linha["id_cliente"]: linha for linha in _linhas("clientes")}
+        self.questoes = {linha["id_pergunta"] for linha in _linhas("questoes")}
 
     def test_clientes_referenciam_empresas(self) -> None:
         validos = {"1001", "1002"}
