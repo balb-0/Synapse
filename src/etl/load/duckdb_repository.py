@@ -346,17 +346,21 @@ class DuckDbLoadRepository:
         (``balanced = False`` permanente). Como roda dentro da transação do
         ``load_batch``, ou substitui tudo ou não substitui nada. Os motivos são
         removidos antes por ``rejection_id``, porque ``rejected_reason`` não
-        carrega ``run_id``/``batch_id``.
+        carrega ``run_id``/``batch_id``. O filtro por ``source_checksum``
+        restringe a limpeza às linhas gravadas por tentativas deste mesmo
+        objeto: uma rejeição inserida por fora (sem o checksum do lote) não é
+        tocada e continua entrando na contagem confirmada.
         """
         self._conn.execute(
             f"DELETE FROM {quote(REJECTED_REASON_TABLE)} WHERE rejection_id IN ("
             f"SELECT rejection_id FROM {quote(REJECTED_TABLE)} "
-            "WHERE run_id = ? AND batch_id = ?)",
-            [metadata.run_id, metadata.batch_id],
+            "WHERE run_id = ? AND batch_id = ? AND source_checksum = ?)",
+            [metadata.run_id, metadata.batch_id, metadata.source_checksum],
         )
         self._conn.execute(
-            f"DELETE FROM {quote(REJECTED_TABLE)} WHERE run_id = ? AND batch_id = ?",
-            [metadata.run_id, metadata.batch_id],
+            f"DELETE FROM {quote(REJECTED_TABLE)} "
+            "WHERE run_id = ? AND batch_id = ? AND source_checksum = ?",
+            [metadata.run_id, metadata.batch_id, metadata.source_checksum],
         )
 
     def _record_rejections(self, rejected: tuple[RejectedRecord, ...]) -> None:
