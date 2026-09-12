@@ -1,0 +1,85 @@
+@startuml
+
+left to right direction
+
+skinparam shadowing false
+skinparam nodesep 40
+skinparam ranksep 60
+skinparam actorStyle awesome
+skinparam rectangle {
+  BackgroundColor #FBFBFB
+  BorderColor #666666
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #666666
+  BackgroundColor<<planejado>> #F2F2F2
+  BorderColor<<planejado>> #AAAAAA
+  FontColor<<planejado>> #666666
+}
+
+actor "Publicador da fonte" as PUB
+actor "Operador de dados" as OPE
+actor "MinIO" as MINIO <<sistema>>
+actor "Prefect" as PREFECT <<sistema>>
+actor "Elastic Stack" as ELASTIC <<sistema planejado>>
+
+rectangle "Pipeline de ingestão do ETL" {
+  usecase "Publicar objeto na área de entrada" as UC01
+  usecase "Disparar execução por evento s3:ObjectCreated" as UC02 <<planejado>>
+  usecase "Executar ingestão de um objeto" as UC03
+  usecase "Executar backfill por fonte e janela" as UC04
+  usecase "Verificar SHA-256 do objeto" as UC05
+  usecase "Registrar entrada já concluída como ignorada" as UC06
+  usecase "Extrair a fonte em lotes" as UC07
+  usecase "Transformar, validar e tipar os registros" as UC08
+  usecase "Separar registros rejeitados com motivo" as UC09
+  usecase "Carregar o lote na tabela de ingestão" as UC10
+  usecase "Reconciliar contagens do lote" as UC11
+  usecase "Confirmar checkpoint e hash" as UC12
+  usecase "Repetir falha transitória com limite" as UC13
+  usecase "Encerrar falha permanente sem repetição" as UC14
+  usecase "Retomar a partir do checkpoint confirmado" as UC15
+  usecase "Consultar histórico de execuções" as UC16
+  usecase "Monitorar execução, saúde e alertas" as UC17 <<planejado>>
+}
+
+PUB --> UC01
+MINIO --> UC02
+OPE --> UC03
+OPE --> UC04
+OPE --> UC16
+OPE --> UC17
+PREFECT --> UC03
+PREFECT --> UC04
+PREFECT --> UC13
+PREFECT --> UC14
+ELASTIC --> UC17
+
+UC02 ..> UC03 : <<include>>
+UC03 ..> UC05 : <<include>>
+UC03 ..> UC07 : <<include>>
+UC03 ..> UC08 : <<include>>
+UC03 ..> UC10 : <<include>>
+UC03 ..> UC11 : <<include>>
+UC03 ..> UC12 : <<include>>
+UC04 ..> UC03 : <<include>>
+UC08 ..> UC09 : <<include>>
+UC06 ..> UC05 : <<extend>>
+UC13 ..> UC07 : <<extend>>
+UC14 ..> UC07 : <<extend>>
+UC15 ..> UC07 : <<extend>>
+
+note right of UC02
+  Contrato do ADR 0001.
+  Não implementado no develop:
+  o disparo real é manual ou agendado.
+end note
+
+note right of UC17
+  Depende da Elastic Stack,
+  decidida no ADR 0001 e
+  ainda não integrada.
+end note
+
+@enduml

@@ -622,23 +622,36 @@ As chaves de origem são preservadas; qualquer identidade canônica ou ponte
 entre `respondent_id` e participação depende de reconciliação aprovada. Os
 grãos, fatos, métricas e dimensões resultantes estão na §5.2.
 
+A cadeia completa da informação no pipeline da Sprint 3 — fontes, schema
+canônico, metadados técnicos, rejeições e persistência no DuckDB — está em
+[`visao-informacao-etl.md`](visao-informacao-etl.md).
+
 ## 4.2 Visão de Tecnologia (Technology Viewpoint)
 
-O projeto versiona documentação, scripts de perfilamento, protótipos e o
-`dmc.json`. Banco ou data warehouse, serviço de nuvem, ferramenta de BI,
-orquestrador e mecanismo de autenticação não foram aprovados em fonte
-auditável. Essas escolhas permanecem decisões futuras; os contratos desta
-Sprint evitam depender de um fornecedor específico.
+A pilha do pipeline foi decidida na Sprint 3 e registrada no
+[ADR 0001](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md): Python no
+plano de dados, Prefect no plano de controle, MinIO como entrada de objetos,
+DuckDB como banco de ingestão tratada e Elastic Stack como plataforma de
+observabilidade, esta última decidida e ainda não integrada. A execução local em
+contêineres e o escopo da integração contínua estão no
+[ADR 0004](adrs/0004-execucao-local-e-integracao-continua.md). Ferramenta de BI
+e mecanismo de autenticação permanecem decisões futuras.
+
+O inventário de versões, protocolos, formatos e divergências observadas está em
+[`visao-tecnologia-etl.md`](visao-tecnologia-etl.md).
 
 ## 4.3 Visão de Engenharia (Engineering Viewpoint)
 
-A engenharia alvo propõe receber snapshots identificados por hash, validar
-schema e encoding, preservar valores de origem, criar uma camada tipada,
-classificar anomalias, reconciliar identidades e publicar somente agregados
-autorizados. Falhas de schema interrompem a carga; nulos condicionais,
-sentinelas e chaves órfãs seguem regras distintas. O perfilador reproduz a
-etapa de diagnóstico quando as fontes externas estão disponíveis, mas o
-pipeline automatizado ainda não foi implantado.
+A engenharia recebe snapshots identificados por hash, valida schema e encoding,
+preserva valores de origem, cria uma camada tipada, classifica anomalias e
+confirma checkpoint somente depois da carga e da reconciliação. Falhas de schema
+interrompem a carga; nulos condicionais, sentinelas e chaves órfãs seguem regras
+distintas. O pipeline está implementado até a tabela de ingestão e é executado
+localmente por contêineres; o disparo por evento e a telemetria centralizada
+permanecem como contrato não implementado.
+
+Execução, rede, armazenamento, orquestração, recuperação e métricas estão em
+[`visao-engenharia-etl.md`](visao-engenharia-etl.md).
 
 ## 4.4 Aspectos Não Funcionais
 
@@ -648,6 +661,31 @@ confiabilidade, desempenho de consulta, usabilidade e manutenção. As metas da
 Não há SLA, latência de carga, disponibilidade ou volume futuro confirmados;
 por isso, o documento não promete tempo real nem apresenta meta aspiracional
 como resultado obtido.
+
+## 4.5 Visão de Negócio (Enterprise Viewpoint)
+
+O objetivo, as partes interessadas, o escopo de negócio, as restrições e o
+limite da entrega do pipeline estão em
+[`visao-negocio-etl.md`](visao-negocio-etl.md). A entrega termina na tabela de
+ingestão tratada: cubos, indicadores e painéis descritos na §5 permanecem fora
+do escopo da Sprint 3 e funcionam apenas como contrato de destino.
+
+## 4.6 Visão Computacional (Computational Viewpoint)
+
+Os componentes do pipeline, suas interfaces, o que cada um recusa como
+responsabilidade e as divergências observadas entre contrato e implementação
+estão em [`visao-computacional-etl.md`](visao-computacional-etl.md).
+
+## 4.7 Diagramas UML e decisões arquiteturais
+
+| Artefato | Onde |
+| :--- | :--- |
+| Casos de uso | [`assets/uml/casos-de-uso-etl.plantuml`](assets/uml/casos-de-uso-etl.plantuml) |
+| Componentes | [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) |
+| Sequência da ingestão | [`assets/uml/sequencia-ingestao-etl.plantuml`](assets/uml/sequencia-ingestao-etl.plantuml) |
+| Decisões arquiteturais | [`adrs/index.md`](adrs/index.md) |
+| Escopo da sprint | [`checklist-entregaveis-sprint3.md`](checklist-entregaveis-sprint3.md) |
+| Rastreabilidade | [`matriz-rastreabilidade-sprint3.md`](matriz-rastreabilidade-sprint3.md) |
 
 # 5. Modelagem Dimensional e Cubos OLAP
 
@@ -662,15 +700,18 @@ uma carga de data warehouse já implementada.
 O Data Model Canvas versionado em [`docs/dmc.json`](dmc.json) usa o schema 1 da
 ferramenta oficial e organiza o escopo em Negócio, Consumo Analítico,
 Governança Corporativa e quatro cards de cubo. Negócio, Consumo Analítico e
-Governança Corporativa preservam o baseline do JSON. Os quatro cubos foram
-preenchidos como contratos técnicos propostos, mantendo a distinção entre
-evidência observada no snapshot e desenho ainda sujeito a homologação.
+Governança foram reconciliados com as definições canônicas deste documento. Os
+quatro cubos foram preenchidos como contratos técnicos propostos, incluindo
+Modelo Dimensional, Dados e Governança, e mantêm a distinção entre evidência
+observada no snapshot e desenho ainda sujeito a homologação.
 
 ### Síntese do negócio
 
-Os três arrays de Negócio são a única ampliação de conteúdo em relação ao
-baseline do PDF. Eles consolidam o objetivo geral e os objetivos específicos da
-§3, as PB01–PB13 da §6.3 e os macroprocessos observados na §4.0.2.
+Os três arrays de Negócio consolidam o objetivo geral e os objetivos
+específicos da §3, as PB01–PB13 da §6.3 e os macroprocessos observados na
+§4.0.2. No JSON, objetivos são marcados como resultados pretendidos e processos
+como atuais; assim, uma capacidade futura não é apresentada como resultado já
+alcançado.
 
 **Objetivos de negócio.** O objetivo geral é construir a espinha dorsal de dados
 da Central de Pesquisas, com os seguintes resultados pretendidos:
@@ -717,9 +758,10 @@ de cada indicador segue a §5.6: **calculável agora** descreve o que o snapshot
 permite calcular, não uma entrega produtiva; **exige normalização ou
 mapeamento** identifica uma regra ou reconciliação pendente; e **depende de
 integração futura** indica que falta uma fonte ou metadado. O JSON preserva o
-baseline de consumo preenchido pelo orientador; os quatro eixos abaixo são a
-leitura analítica usada neste documento, sem mudar essas classificações de
-disponibilidade.
+baseline documental e reconcilia a lista de consumo com I01–I25. Cada item
+informa a unidade ou o denominador necessário e explicita quando o cálculo
+depende de regra, reconciliação, fonte ou metadado futuro. Os quatro eixos
+abaixo agrupam essa leitura sem mudar as classificações de disponibilidade.
 
 | Eixo de consumo | Indicadores | Usuário e forma de consumo propostos | Decisões apoiadas |
 | :--- | :--- | :--- | :--- |
@@ -728,11 +770,13 @@ disponibilidade.
 | Resultados e questionários | I12–I14 calculáveis; I15 aguarda versão e decisão de validação | Áreas técnicas, Central e gestores; D03, filtros por questão e resultados agregados | Interpretar distribuições, avaliar a composição do instrumento e verificar validação sem tratar elemento de resposta como pessoa |
 | Qualidade, rastreabilidade e publicação | I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança ainda a designar; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções, investigar órfãos, avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
 
-Os públicos de consumo são distintos. A **Central de Pesquisas** acompanha o
-fluxo operacional; as **áreas técnicas** validam instrumentos e interpretam
-resultados agregados; os **gestores** usam recortes consolidados para priorizar
-portfólio e capacidade; e **solicitantes ou participantes externos** acessam
-apenas resultados autorizados no acervo. Data Owner, Data Steward, Data
+Os públicos de consumo são distintos e aparecem no canvas como UC01–UC04. A
+**Central de Pesquisas (UC01)** acompanha o fluxo operacional com detalhe
+condicionado ao perfil; as **áreas técnicas (UC02)** validam instrumentos e
+interpretam resultados agregados; os **gestores (UC03)** usam recortes
+consolidados, sem drill-down pessoal presumido; e **solicitantes, participantes
+ou público externo (UC04)** acessam apenas resultados autorizados no acervo,
+sem acesso aos dashboards internos. Data Owner, Data Steward, Data
 Custodian/TI e auditor são papéis de governança propostos, ainda sem designação
 formal confirmada. Dashboards D01–D04, relatórios, tabelas equivalentes, filtros,
 drill-down agregado e downloads autorizados são formas propostas de consumo;
@@ -743,19 +787,19 @@ As seguintes decisões permanecem abertas e limitam o consumo:
 
 | Decisão ou risco | Efeito analítico | Estado |
 | :--- | :--- | :--- |
-| Universo de empresas e pessoas convidadas/elegíveis | Sem denominador, I08 e I11 ficam indisponíveis | Pendente de fonte e regra |
-| Fonte autoritativa de participação de mercado | Divergências impedem homologar I09 | Pendente de decisão do parceiro |
-| Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes | Pendente de reconciliação |
-| Timestamp de carga, catálogo, versões, autorização e logs | Limita I15 e I21–I25 | Depende de integração futura |
-| Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação, sem alterar o contrato analítico | Proposta da equipe a validar |
-| Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controles antes de detalhar ou exportar | Risco observado no snapshot e condicionado à governança |
+| DR01 — Universo de empresas e pessoas convidadas/elegíveis | Sem denominador, I08 e I11 ficam indisponíveis | Pendente de fonte e regra |
+| DR02 — Fonte autoritativa de participação de mercado | Divergências impedem homologar I09 | Pendente de decisão do parceiro |
+| DR03 — Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes | Pendente de reconciliação |
+| DR04 — Timestamp de carga, catálogo, versões, autorização e logs | Limita I15 e I21–I25 | Depende de integração futura |
+| DR05 — Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação, sem alterar o contrato analítico | Proposta da equipe a validar |
+| DR06 — Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controles antes de detalhar ou exportar | Risco observado no snapshot e condicionado à governança |
 
 ### Evidência e proposta
 
 | Elemento do canvas | Evidência disponível | Proposta ainda a validar ou implementar |
 | :--- | :--- | :--- |
 | Negócio | TAPI, Arquitetura de Negócio, JTBD e Problem Canvas registram a fragmentação das fontes, os públicos, as necessidades de decisão e o ciclo atual [<sup>[1]</sup>](#ref-1), [<sup>[2]</sup>](#ref-2), [<sup>[13]</sup>](#ref-13), [<sup>[14]</sup>](#ref-14). O snapshot confirma campos e limitações descritos nas §§4.0.1 e 5.3. | Os objetivos são resultados pretendidos, não resultados medidos. PB01–PB13 são contratos de decisão; a disponibilidade de cálculo de cada resposta segue §§5.6 e 6.4. Representar todo o ciclo de forma integrada no DW é TO-BE. |
-| Consumo Analítico | O JSON preserva os indicadores, usuários/canais, decisões e riscos preenchidos pelo orientador como baseline documental [<sup>[3]</sup>](#ref-3). | A interpretação de dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanece condicionada às limitações das §§5.6–6.5. |
+| Consumo Analítico | O JSON registra I01–I25 em correspondência com o catálogo da §5.6 e preserva usuários/canais, decisões e riscos como baseline documental [<sup>[3]</sup>](#ref-3). | Dashboards automáticos, taxas sem denominador disponível, atualização em tempo real e integração automática permanecem condicionados às limitações das §§5.6–6.5; indicador indisponível não recebe valor zero. |
 | Governança Corporativa | O JSON preserva os nomes e textos preenchidos pelo orientador como baseline documental [<sup>[3]</sup>](#ref-3). | A formalização jurídica e operacional dos papéis ainda deve ser validada pelo parceiro; política de acesso, retenção, auditoria e publicação também requer aprovação antes da produção. |
 | Cubos | O JSON define quatro recortes: portfólio e ciclo, participação e representatividade, pipeline mensal e resultados/questionários. | Os quatro modelos foram preenchidos como contratos propostos; grãos, fatos e dimensões ainda exigem homologação do grupo e do parceiro antes da implantação produtiva. |
 
@@ -775,6 +819,16 @@ Os cubos abaixo são contratos analíticos propostos a partir do snapshot dos se
 No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da ocorrência registrada. O C03 complementa essa visão ao registrar o pipeline mensal de status a partir do go-live, sem reconstruir histórico que não foi recebido. O C04 fica restrito ao conteúdo dos questionários, conectando pesquisas e perguntas, sem substituir indicadores de qualidade, publicação ou governança que dependem de regras e integrações futuras.
 
 Os quatro cubos não criam uma ponte observada entre participação e resposta. Os 542 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem contrato aprovado. Por isso, o C04 documenta o instrumento de pesquisa e permanece como ponto de extensão para um futuro `FATO_RESPOSTA`, mas não afirma a existência de respostas individuais conciliadas.
+
+**Registro da revisão KP-09.** A conferência entre esta seção e
+`docs/dmc.json` preservou quatro cubos. C01 mantém uma linha por pesquisa e
+explicita a cobertura de aprovação de 20/366; C02 separa participação de
+resposta e bloqueia a representatividade até homologar a fonte; C03 trata o
+estoque como semi-aditivo e condiciona entradas e saídas ao histórico de
+transições; C04 permanece fato de associação pesquisa–pergunta, com contagens
+derivadas e sem ponte presumida para pessoa. `DIM_TEMPO` é conformada nos quatro
+cubos; `DIM_PESQUISA`, em C01, C02 e C04; e Status, Área, Tipo e Perfil, em C01
+e C03. Nenhuma dimensão futura foi declarada como compartilhamento atual.
 
 ### 5.2.1 C01 — Portfólio e Ciclo
 
@@ -796,7 +850,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: inteiro
 - Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
 - Aditividade: aditiva
-- Observação: Cobertura de 97,8% das pesquisas
+- Observação: Cobertura de 5,5% das pesquisas; o indicador deve informar o denominador válido e não sustenta uma leitura geral do ciclo
 
 **dias_uteis_coleta**
 - Tipo: inteiro
@@ -819,7 +873,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: inteiro
 - Fonte ou regra de cálculo: coluna `participantes` do CSV
 - Aditividade: não aditiva
-- Observação: Só pode ser lida no nível da pesquisa, pois a mesma empresa pode participar de múltiplas pesquisas. Somar essa métrica ao longo do tempo resultaria em uma contagem inflada
+- Observação: É uma contagem declarada pela origem e só pode ser lida no nível da pesquisa; não substitui a contagem distinta observada no C02 e não pode ser somada entre pesquisas
 
 **qtd_respondentes_na_pesquisa**
 - Tipo: inteiro
@@ -897,7 +951,7 @@ As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é um
 
 Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
 
-A data de aprovação (`data_aprov`) tem cobertura de aproximadamente 5,2% das pesquisas. As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem tratar esses valores adequadamente. Uma abordagem possível é exibir a métrica apenas quando houver dados suficientes no período.
+A data de aprovação (`data_aprov`) tem cobertura de 5,5% das pesquisas (20 de 366). As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem informar o denominador válido e exibir indisponibilidade quando o recorte não sustentar a comparação.
 
 A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
 
@@ -907,7 +961,7 @@ Este cubo não armazena dados individuais de respondentes, respeitando a políti
 
 ### 5.2.2 C02 — Participação e Representatividade
 
-Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um evento de resposta, permitindo análises de adesão, engajamento e representatividade de mercado. O objetivo é responder perguntas como quais empresas participaram, qual a taxa de adesão por área, quem são os respondentes mais frequentes e como a cobertura de mercado evolui.
+Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um registro de participação de `respondentes.csv`, não uma resposta individual a uma questão. O cubo permite análises de alcance observado, engajamento e representatividade de mercado, sem afirmar taxa de adesão quando o universo elegível não estiver disponível.
 
 O grão do cubo é uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual. A fonte de dados principal é o arquivo `respondentes.csv`, complementado por `pesquisas.csv` para a data de divulgação da pesquisa, `clientes.csv` para atributos da pessoa respondente e `empresas.csv` para atributos da empresa. O tipo de fato é uma transação (transaction fact), pois cada linha representa um evento único e não acumula estados. A estrutura do cubo pode ser visualizada abaixo.
 
@@ -925,7 +979,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: inteiro
 - Fonte ou regra de cálculo: sempre 1, pois cada linha é uma participação
 - Aditividade: aditiva
-- Observação: Representa o volume de respostas
+- Observação: Representa o volume de registros de participação; não deve ser rotulada como quantidade de respostas a questões
 
 **seq_ocorrencia**
 - Tipo: inteiro
@@ -943,7 +997,7 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Tipo: decimal
 - Fonte ou regra de cálculo: Coluna `market_share` do `respondentes.csv` no momento da participação
 - Aditividade: não aditiva
-- Observação: Só pode ser lida no nível da participação, pois representa o share da empresa naquela pesquisa específica. Para agregações, deve-se usar a média ponderada ou o share atual da empresa em `DIM_EMPRESA`
+- Observação: Só pode ser lida no nível da participação enquanto a fonte autoritativa não for homologada. Depois da homologação, I09 soma uma vez por pesquisa o valor normalizado de cada empresa participante distinta; conflito entre as duas fontes bloqueia o recorte
 
 #### Dimensões
 
@@ -977,7 +1031,7 @@ A data da resposta (`hora_inicio`) tem cobertura reduzida, de aproximadamente 4,
 
 O campo `minutos_preenchimento`, calculado a partir de `hora_inicio` e `hora_termino`, também tem cobertura baixa, de aproximadamente 4,3%, e deve ser usado com cautela. Para métricas de tempo médio de preenchimento, recomenda-se filtrar apenas as linhas com ambos os campos preenchidos.
 
-A coluna `market_share` em `respondentes.csv` representa o percentual de mercado da empresa no momento da participação. Esse valor pode diferir do campo `% de mercado` em `empresas.csv`, que é o valor atual. Para análises de representatividade histórica, deve-se usar o valor da participação; para análises do perfil atual da empresa, usa-se o valor da dimensão.
+A coluna `market_share` em `respondentes.csv` e o campo `% de mercado` em `empresas.csv` divergem. O projeto não presume precedência entre eles: a fonte autoritativa deve ser homologada antes de calcular I09, e o recorte permanece bloqueado quando houver conflito.
 
 A dimensão `DIM_PESSOA` contém cargo e departamento em seus valores brutos, mas esses campos são classificados como restritos. Na camada externa, eles devem ser substituídos por níveis hierárquicos (Diretoria, Gerência, Especialista, Analista, etc.) e agrupamentos de departamento (ex.: Recursos Humanos, Jurídico, etc.), garantindo que nenhuma célula com menos de 5 pessoas seja publicada, conforme a política de k-anonimato. O e-mail foi removido da dimensão por ser um pseudônimo reversível (`cliente<N>@empresa<M>.com`), e nenhum dos relatórios previstos o exige.
 
@@ -998,25 +1052,25 @@ O grão do cubo é uma linha por combinação de mês, status, área, tipo e per
 
 #### Métricas
 
-As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações. No caso deste cubo, algumas métricas podem ser somadas no tempo, mas não entre status diferentes.
+As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define em quais dimensões o número pode ser somado. Medidas de estoque do snapshot não podem ser somadas entre meses; medidas de fluxo podem ser acumuladas no tempo.
 
 **qtd_pesquisas_no_status**
 - Tipo: inteiro
 - Fonte ou regra de cálculo: Contagem de pesquisas que estavam naquele status no último dia do mês
 - Aditividade: semi-aditiva
-- Observação: Pode ser somada ao longo do tempo (ex.: total de pesquisas finalizadas em um ano), mas não pode ser somada entre status diferentes (ex.: "Em andamento" + "Finalizada" não faz sentido)
+- Observação: Pode ser agregada entre categorias disjuntas no mesmo fechamento, mas não entre meses. Para contar finalizações no ano, deve-se usar o fluxo de entradas no status terminal, não somar estoques mensais
 
 **qtd_entradas_no_mes**
 - Tipo: inteiro
 - Fonte ou regra de cálculo: Quantidade de pesquisas que chegaram àquele status durante o mês
 - Aditividade: aditiva
-- Observação: Representa o fluxo de entrada no status
+- Observação: Representa o fluxo de entrada no status e exige histórico de transições; diferenças entre dois snapshots capturam apenas a mudança líquida, não todas as transições do mês
 
 **qtd_saidas_no_mes**
 - Tipo: inteiro
 - Fonte ou regra de cálculo: Quantidade de pesquisas que saíram daquele status durante o mês
 - Aditividade: aditiva
-- Observação: Representa o fluxo de saída do status
+- Observação: Representa o fluxo de saída do status e exige histórico de transições; fica indisponível enquanto esse histórico não existir
 
 #### Dimensões
 
@@ -1068,21 +1122,21 @@ O grão do cubo é uma linha por pergunta em uma pesquisa, totalizando 231 linha
   <p><b>Fonte:</b> Material elaborado pela equipe.</p>
 </div>
 
-#### Métricas
+#### Métricas derivadas
 
-As métricas são os números calculados e armazenados no cubo. A coluna Aditividade define se o número pode ser somado em agregações, como somar o número total de perguntas de uma pesquisa.
+Como este é um fato de associação, o fato não armazena medidas numéricas tradicionais. As contagens abaixo são derivadas das linhas e dos atributos dimensionais no momento da consulta.
 
 qtd_pergunta
 - Tipo: inteiro
-- Fonte ou regra de cálculo: sempre 1, pois cada linha representa uma pergunta
-- Aditividade: aditiva
-- Observação: representa o volume de perguntas por pesquisa
+- Fonte ou regra de cálculo: `COUNT(*)` das associações distintas entre pesquisa e pergunta
+- Aditividade: derivada no grão consultado
+- Observação: representa o volume de perguntas cobertas por pesquisa sem persistir uma medida constante no fato
 
 qtd_alternativas
 - Tipo: inteiro
-- Fonte ou regra de cálculo: coluna qtd_alternativas do questoes.csv
-- Aditividade: aditiva
-- Observação: soma total de alternativas de uma pesquisa ou grupo de pesquisas
+- Fonte ou regra de cálculo: atributo `qtd_alternativas` da `DIM_PERGUNTA`
+- Aditividade: não se aplica como medida do fato
+- Observação: somas e médias devem considerar perguntas distintas no recorte para não repetir o atributo em associações duplicadas
 
 #### Dimensões
 
@@ -1106,11 +1160,30 @@ O arquivo questoes.csv contém 10 pesquisas distintas, mas quatro delas (IDs 424
 
 A base de questões cobre apenas 2,7% do acervo total de pesquisas (10 de 366). Os relatórios que dependem deste cubo, como o Relatório #07 (Resultados da Pesquisa) e o Relatório #10 (Benchmark Setorial), só funcionarão plenamente para essas 10 pesquisas. Para as demais, os painéis mostrarão "Dados não disponíveis" ou uma mensagem similar, a menos que a extração de questões seja estendida para todo o acervo.
 
-O cubo é um ponto de extensão para um futuro FATO_RESPOSTA. Hoje não há dados de respostas individuais (o que cada respondente escolheu), e os relatórios que dependem desses dados (Resultados da Pesquisa, Benchmark Setorial e Comparativo Anual) estão bloqueados por essa ausência. O modelo está preparado para receber o FATO_RESPOSTA quando os dados forem disponibilizados, sem necessidade de reestruturação.
+O cubo é um ponto de extensão para uma futura `FATO_RESPOSTA` conciliada. O projeto possui `respostas.csv`, mas a ponte entre `respondent_id` e a identidade de `respondentes.csv` não está comprovada. Distribuições agregadas no grão questão podem ser calculadas quando válidas; análises por pessoa, participação ou segmento permanecem bloqueadas até a reconciliação, sem união por similaridade.
 
 A dimensão DIM_PERGUNTA contém metadados adicionais que podem ser úteis para análises futuras: o formato do arquivo de origem, a coluna de origem no arquivo bruto e um campo de confiança que indica o nível de certeza sobre a extração da pergunta.
 
-A métrica qtd_alternativas é aditiva e pode ser usada para responder perguntas como "quantas alternativas no total uma pesquisa possui" ou "qual a média de alternativas por pesquisa em um determinado tipo".
+`qtd_alternativas` é atributo da `DIM_PERGUNTA`. Totais ou médias podem ser derivados sobre perguntas distintas, deixando explícitos o conjunto coberto e o denominador; o atributo não transforma o fato de associação em um fato com medida armazenada.
+
+#### Dimensões conformadas entre os cubos
+
+Uma dimensão é classificada como conformada somente quando é compartilhada por
+mais de um cubo com o mesmo significado e contrato de chave.
+
+| Dimensão conformada | Cubos |
+| :--- | :--- |
+| `DIM_TEMPO` | C01, C02, C03 e C04 |
+| `DIM_PESQUISA` | C01, C02 e C04 |
+| `DIM_STATUS_PESQUISA` | C01 e C03 |
+| `DIM_AREA` | C01 e C03 |
+| `DIM_TIPO_PESQUISA` | C01 e C03 |
+| `DIM_PERFIL_PESQUISA` | C01 e C03 |
+
+`DIM_EMPRESA` e `DIM_PESSOA` são próprias do C02; `DIM_PERGUNTA`, do C04;
+`DIM_FAMILIA_PESQUISA`, `DIM_FONTE_DADO` e `DIM_EXECUCAO_CARGA`, do C01 no
+recorte atualmente documentado. Elas não são chamadas de conformadas apenas por
+serem dimensões ou por poderem ser reutilizadas numa evolução futura.
 
 ### 5.2.5 Matriz de Rastreabilidade (PB → RF → Indicador → Cubo → Dashboard)
 
@@ -2168,9 +2241,15 @@ encarregado ainda dependem da realidade de cada tratamento.
 | :--- | :--- | :--- |
 | Data Owner | Fabio Moreira, conforme baseline do DMC | Aprovar finalidades, classificações, acesso por perfil, indicadores e publicação; decidir sobre exceções e risco residual. |
 | Data Steward | Felipe Rojas, Reinaldo Nobrega e Lucas Andrade, conforme grafia do baseline do DMC | Manter o catálogo e o dicionário, definir significado e regras de qualidade, acompanhar origem, linhagem, minimização e atendimento operacional das solicitações. |
-| Data Custodian | Rodrigo Giorgetto/TI e RentalHost, conforme baseline do DMC | Administrar infraestrutura, credenciais, cópias, logs e segregação técnica segundo instruções aprovadas; não decidir finalidade por conta própria. |
+| Data Custodian | Rodrigo Giorgetto/TI, conforme baseline do DMC; RentalHost apenas de forma condicional ao ambiente e contrato | Administrar infraestrutura, credenciais, cópias, logs e segregação técnica segundo instruções aprovadas; não decidir finalidade por conta própria. |
 | Controlador | A definir pelo Sindusfarma para cada fluxo | Decidir finalidades e meios, validar bases legais, instruir operadores, aprovar compartilhamentos e coordenar respostas e comunicações quando aplicável. |
 | Encarregado | A indicar pelo controlador | Atuar como canal entre titulares, controlador e ANPD, receber reclamações e comunicações, orientar as equipes e apoiar o atendimento dos direitos e incidentes. |
+
+Na revisão KP-06, os quatro campos de papéis do `docs/dmc.json` foram alinhados
+a esta tabela. Todos permanecem identificados como baseline documental e com
+homologação pendente. A responsabilidade técnica não cria autoridade de
+negócio ou papel jurídico; a custódia externa da RentalHost não é afirmada fora
+de um ambiente e contrato confirmados.
 
 As áreas envolvidas na governança combinam operação, negócio, tecnologia e consumo dos resultados. A Central de Pesquisas é a área principal, pois opera o ciclo completo das pesquisas e valida o valor dos indicadores. As áreas técnicas do Sindusfarma participam da revisão de questionários, da interpretação de resultados e do acompanhamento da adesão nas pesquisas relacionadas aos seus temas. A TI sustenta armazenamento, segurança, disponibilidade e integrações. A RentalHost entra como custódia externa quando houver dados ou componentes mantidos no sistema interno ou no repositório público. Gestores, empresas participantes, solicitantes e respondentes consomem ou fornecem informações, mas devem acessar apenas os recortes autorizados para sua finalidade.
 
@@ -2348,6 +2427,25 @@ Se um fornecedor, suporte ou infraestrutura permitir acesso a dados pessoais a p
 | Entrega acadêmica | Confusão entre protótipo da sprint e sistema produtivo | Tratar a entrega como ambiente acadêmico independente; não prometer conformidade operacional nem reproduzir controles não verificados. |
 
 Assim, a governança proposta atende ao ciclo completo — coleta, integração, análise, publicação, atendimento e descarte — sem afirmar que os controles já existem. A passagem para produção deve ser condicionada ao fechamento do inventário, à validação das bases legais e papéis, à revisão do RIPD, ao teste de acesso e de reidentificação, à confirmação de retenção/backups e à aprovação da publicação pelo parceiro.
+
+**Registro da revisão KP-07.** As regras corporativas de `docs/dmc.json` foram
+conferidas contra esta seção. O canvas passou a registrar minimização,
+segregação de ambientes, retenção por finalidade, menor privilégio, quarentena
+de rejeitados e publicação condicionada como diretrizes propostas, e não como
+controles já implantados. Controlador, operador, encarregado, hipótese legal,
+prazo de retenção, matriz final de perfis e limiar de supressão continuam
+dependentes de homologação. A dependência MG-01 (`#170`) permanece aberta;
+portanto, nenhuma regra de schema ou domínio ainda não inventariada é tratada
+como confirmada.
+
+**Registro da revisão KP-08.** O catálogo proposto no `docs/dmc.json` passou a
+exigir, por fonte e campo, versão, classificação, responsável, regra e estado.
+Os KPIs I16–I20 conservam contrato mensurável; I21–I25 continuam indisponíveis
+enquanto não houver timestamp, linhagem, autorização, catálogo de execuções,
+política e logs. A maturidade observada permanece caracterizada por fontes
+fragmentadas, operação manual e linhagem parcial. Fonte integrada, governada e
+auditável é estado-alvo, condicionado aos gates incrementais de catálogo,
+pipeline, acesso e publicação, e não capacidade já implantada.
 
 ## 6.7 Fluxo de Interação Anotado
 
@@ -3333,8 +3431,8 @@ ou funcionamento de uma plataforma produtiva.
 | Volume do snapshot analisado | 46.148 registros em seis CSVs | soma das contagens reproduzidas pelo perfilador da §5.3 |
 | Duplicidade de linha e das chaves declaradas | 0 ocorrência nas seis bases | `scripts/data_quality/profile_csv.py` e manifesto versionado |
 | Relações pesquisa ausentes | 55 participações, 43 questões e 3.592 elementos de resposta órfãos | relatório `relacionamentos.csv` descrito na §5.3 |
-| Modelo dimensional exportado | 4 cubos com Modelo Dimensional, Dados e Governança preenchidos | `scripts/dmc/validate_dmc.py docs/dmc.json` |
-| Testes estruturais do DMC | 17 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
+| Data Model Canvas exportado | 4 cubos com Modelo Dimensional, Dados e Governança preenchidos, além das seções corporativas de Negócio, Consumo Analítico e Governança | `scripts/dmc/validate_dmc.py docs/dmc.json` |
+| Testes estruturais do DMC | 47 testes aprovados | `python3 -m unittest discover -s scripts/dmc -p 'test_*.py'` |
 | Testes do perfilamento | 5 testes aprovados | `python3 -m unittest discover -s scripts/data_quality -p 'test_*.py'` |
 | Testes de rastreabilidade | 13 testes aprovados, incluindo 2 fontes primárias e 12 afirmações conferidas | `SINDUSFARMA_SOURCE_DIR=/caminho/seguro/das/fontes python3 -m unittest discover -s scripts/traceability -p 'test_*.py'` |
 | Reabertura na ferramenta oficial | 4 cards renderizados, sem erro de aplicação ou resposta HTTP falha | importação e reexportação em sessão nova, com comparação semântica do JSON |
@@ -3354,8 +3452,11 @@ ou funcionamento de uma plataforma produtiva.
 O trabalho torna reproduzíveis o diagnóstico de qualidade, a validação
 estrutural do canvas e a distinção entre métrica disponível e dependência
 futura. O modelo cobre portfólio e ciclo, participação, pipeline mensal e
-resultados/questionários, com Dados e Governança preenchidos como proposta
-técnica sujeita a homologação.
+resultados/questionários. A Governança Corporativa está preenchida como proposta
+técnica sujeita a homologação. Após a ampliação da ferramenta oficial em 10 de
+setembro de 2026, cada cubo também voltou a registrar Dados e Governança:
+fontes, transformações, qualidade, SCD, otimização, classificação, acesso,
+auditoria, ciclo de vida, catálogo e KPIs.
 
 As principais lacunas analíticas passam a ser a ausência de metadados de versão,
 validação e publicação, além da falta de ponte observada entre participação e
@@ -3422,7 +3523,7 @@ afirmações exigidos nesta Sprint:
 | RF01–RF13 e PB01–PB13 | TAPI [<sup>[1]</sup>](#ref-1), Arquitetura [<sup>[2]</sup>](#ref-2), estrutura observada e síntese do grupo | contrato proposto sustentado por fonte | **OK com limitação:** contratos são da equipe; campos e dependências observáveis são citados diretamente |
 | I01–I25 | CSVs, perfilamento e dependências declaradas nas §§5.6 e 6.4 | observado, mapeamento ou integração futura | **OK:** cada indicador explicita disponibilidade e denominador; indisponível nunca vira zero |
 | Atualização automática, acesso e publicação | ausência de timestamp, política, logs e decisão no snapshot | proposta futura | **Correção aplicada:** removidas afirmações de capacidade atual ou tempo real |
-| Quatro cards dimensionais do DMC | §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional, Dados e Governança preenchidos; C03 é Pipeline Mensal e C04 é Resultados e Questionários |
+| Quatro cards do DMC | §5.2 e `docs/dmc.json` | observado no artefato | **OK:** Modelo Dimensional, Dados e Governança preenchidos nos quatro cubos; C03 é Pipeline Mensal e C04 é Resultados e Questionários |
 
 Nenhuma referência complementar deve ser usada, isoladamente, para classificar
 uma afirmação como confirmada pelo parceiro. TAPI e Arquitetura só sustentam os

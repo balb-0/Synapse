@@ -1,0 +1,7 @@
+# Configuração geral de lint/formatação do projeto (ruff).
+# Versão alinhada com Dockerfile e README (Python 3.12); ver docs/matriz-rastreabilidade-sprint3.md.
+target-version = "py312"
+line-length = 100
+
+[lint]
+select = ["E4", "E7", "E9", "F", "I"]

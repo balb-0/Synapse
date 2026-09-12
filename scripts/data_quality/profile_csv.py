@@ -16,10 +16,9 @@ import re
 import sys
 from collections import Counter
 from datetime import datetime
-from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Iterable
-
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_MANIFEST = SCRIPT_DIR / "manifest.json"
@@ -38,43 +37,114 @@ OUTPUT_NAMES = (
     "manifesto_aplicado.json",
 )
 RELATION_FIELDS = [
-    "relacao", "origem", "chave_origem", "referencia", "chave_referencia",
-    "linhas_origem", "comparaveis", "encontradas", "orfãs", "percentual_orfas",
-    "chaves_origem_distintas", "chaves_orfas_distintas", "status", "interpretação",
+    "relacao",
+    "origem",
+    "chave_origem",
+    "referencia",
+    "chave_referencia",
+    "linhas_origem",
+    "comparaveis",
+    "encontradas",
+    "orfãs",
+    "percentual_orfas",
+    "chaves_origem_distintas",
+    "chaves_orfas_distintas",
+    "status",
+    "interpretação",
 ]
 DATE_FIELDS = [
-    "source", "column", "nulos", "nao_nulos", "parseaveis", "nao_parseaveis",
-    "pct_parseaveis_sobre_nao_nulos", "minimo", "maximo",
+    "source",
+    "column",
+    "nulos",
+    "nao_nulos",
+    "parseaveis",
+    "nao_parseaveis",
+    "pct_parseaveis_sobre_nao_nulos",
+    "minimo",
+    "maximo",
 ]
 TEMPORAL_FIELDS = [
-    "checagem", "fonte", "coluna_a", "coluna_b", "comparaveis", "violacoes",
-    "percentual_violacoes", "status", "limiar",
+    "checagem",
+    "fonte",
+    "coluna_a",
+    "coluna_b",
+    "comparaveis",
+    "violacoes",
+    "percentual_violacoes",
+    "status",
+    "limiar",
 ]
 IDENTITY_FIELDS = [
-    "checagem", "sistema_a", "sistema_b", "distintos_a", "distintos_b",
-    "intersecao", "somente_a", "somente_b", "observacao",
+    "checagem",
+    "sistema_a",
+    "sistema_b",
+    "distintos_a",
+    "distintos_b",
+    "intersecao",
+    "somente_a",
+    "somente_b",
+    "observacao",
 ]
 CONDITIONAL_FIELDS = [
-    "source", "column", "tipo_questao", "total", "aplicavel", "nao_aplicavel",
-    "presentes_aplicavel", "ausentes_aplicavel", "ausencias_inesperadas",
-    "ausencias_condicionais", "preenchidos_nao_aplicavel", "percentual_inesperadas",
+    "source",
+    "column",
+    "tipo_questao",
+    "total",
+    "aplicavel",
+    "nao_aplicavel",
+    "presentes_aplicavel",
+    "ausentes_aplicavel",
+    "ausencias_inesperadas",
+    "ausencias_condicionais",
+    "preenchidos_nao_aplicavel",
+    "percentual_inesperadas",
     "status",
 ]
 PERCENT_FIELDS = [
-    "source", "column", "total", "nao_nulos", "sentinelas", "parseaveis",
-    "invalidos", "fora_0_100", "pct_parseaveis", "pct_invalidos", "pct_fora_0_100",
+    "source",
+    "column",
+    "total",
+    "nao_nulos",
+    "sentinelas",
+    "parseaveis",
+    "invalidos",
+    "fora_0_100",
+    "pct_parseaveis",
+    "pct_invalidos",
+    "pct_fora_0_100",
     "status",
 ]
 DENORMALIZED_FIELDS = [
-    "checagem", "origem", "referencia", "chave", "comparaveis", "coincidentes",
-    "divergencias", "percentual_divergencias", "ids_divergentes", "status", "observacao",
+    "checagem",
+    "origem",
+    "referencia",
+    "chave",
+    "comparaveis",
+    "coincidentes",
+    "divergencias",
+    "percentual_divergencias",
+    "ids_divergentes",
+    "status",
+    "observacao",
 ]
 DICTIONARY_FIELDS = [
-    "arquivo", "variavel", "status", "cardinalidade_dicionario", "cardinalidade_medida",
-    "divergencia_cardinalidade", "nulos_dicionario", "nulos_fisicos", "sentinelas",
-    "nulos_semanticos", "divergencia_dicionario_vs_fisico",
-    "divergencia_dicionario_vs_semantico", "minimo_dicionario", "maximo_dicionario",
-    "minimo_medido", "maximo_medido", "observacao",
+    "arquivo",
+    "variavel",
+    "status",
+    "cardinalidade_dicionario",
+    "cardinalidade_medida",
+    "divergencia_cardinalidade",
+    "nulos_dicionario",
+    "nulos_fisicos",
+    "sentinelas",
+    "nulos_semanticos",
+    "divergencia_dicionario_vs_fisico",
+    "divergencia_dicionario_vs_semantico",
+    "minimo_dicionario",
+    "maximo_dicionario",
+    "minimo_medido",
+    "maximo_medido",
+    "observacao",
 ]
 
 
@@ -217,7 +287,10 @@ def header_names(raw_header: list[str]) -> list[str]:
 
 def read_source(input_dir: Path, source: dict[str, Any]) -> dict[str, Any]:
     candidates = [source["file"], *source.get("aliases", [])]
-    file_path = next((input_dir / candidate for candidate in candidates if (input_dir / candidate).is_file()), None)
+    file_path = next(
+        (input_dir / candidate for candidate in candidates if (input_dir / candidate).is_file()),
+        None,
+    )
     if file_path is None:
         expected = ", ".join(candidates)
         raise fail(f"[arquivo] fonte {source['id']} ausente; esperado um de: {expected}")
@@ -234,14 +307,18 @@ def read_source(input_dir: Path, source: dict[str, Any]) -> dict[str, Any]:
             expected_columns = list(source.get("columns", []))
             missing = sorted(set(expected_columns) - set(names))
             unexpected = sorted(
-                set(names) - set(expected_columns) - {name for name in names if name.startswith("__empty_")}
+                set(names)
+                - set(expected_columns)
+                - {name for name in names if name.startswith("__empty_")}
             )
             expected_empty = int(source.get("empty_header_columns", 0))
             actual_empty = sum(name.startswith("__empty_") for name in names)
             if missing:
                 raise fail(f"[schema] {file_path.name}: colunas ausentes: {', '.join(missing)}")
             if unexpected:
-                raise fail(f"[schema] {file_path.name}: colunas inesperadas: {', '.join(unexpected)}")
+                raise fail(
+                    f"[schema] {file_path.name}: colunas inesperadas: {', '.join(unexpected)}"
+                )
             if actual_empty != expected_empty:
                 raise fail(
                     f"[schema] {file_path.name}: esperado {expected_empty} cabeçalho(s) vazio(s), "
@@ -269,7 +346,9 @@ def read_source(input_dir: Path, source: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def key_tuple(row: dict[str, str], key_columns: list[str], source: dict[str, Any]) -> tuple[str, ...] | None:
+def key_tuple(
+    row: dict[str, str], key_columns: list[str], source: dict[str, Any]
+) -> tuple[str, ...] | None:
     values = tuple(comparison_key(row.get(column), source, column) for column in key_columns)
     if any(value is None for value in values):
         return None
@@ -294,7 +373,8 @@ def profile_summary(data: dict[str, Any]) -> dict[str, Any]:
     key_extras = sum(count - 1 for count in key_counts.values() if count > 1)
     empty_data = [column for column in columns if all(is_null(row.get(column)) for row in rows)]
     semantic_empty = [
-        column for column in columns
+        column
+        for column in columns
         if all(semantic_missing(row.get(column), data["config"], column) for row in rows)
     ]
     incomplete_keys = sum(value is None for value in key_values)
@@ -342,8 +422,7 @@ def profile_fields(data: dict[str, Any]) -> list[dict[str, Any]]:
         sentinels = sum(is_sentinel(value, data["config"], column) for value in values)
         semantic_nulls = physical_nulls + sentinels
         comparable = [
-            value for value in values
-            if not semantic_missing(value, data["config"], column)
+            value for value in values if not semantic_missing(value, data["config"], column)
         ]
         result.append(
             {
@@ -415,7 +494,9 @@ def profile_dates(data: dict[str, Any]) -> list[dict[str, Any]]:
     return result
 
 
-def relation_rows(data_by_id: dict[str, dict[str, Any]], manifest: dict[str, Any]) -> list[dict[str, Any]]:
+def relation_rows(
+    data_by_id: dict[str, dict[str, Any]], manifest: dict[str, Any]
+) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
     for relation in manifest.get("relations", []):
         child = data_by_id[relation["child"]]
@@ -457,7 +538,9 @@ def relation_rows(data_by_id: dict[str, dict[str, Any]], manifest: dict[str, Any
                 "chaves_origem_distintas": len(child_values),
                 "chaves_orfas_distintas": len(orphan_values),
                 "status": "OK" if orphan == 0 else "ORFAOS_DETECTADOS",
-                "interpretação": relation.get("interpretation", "Conferir a chave antes de agregar."),
+                "interpretação": relation.get(
+                    "interpretation", "Conferir a chave antes de agregar."
+                ),
             }
         )
     return result
@@ -589,11 +672,15 @@ def conditional_null_rows(
                     "aplicavel": counter["applicable"],
                     "nao_aplicavel": counter["not_applicable"],
                     "presentes_aplicavel": counter["present_applicable"],
-                    "ausentes_aplicavel": counter["unexpected_missing"] + counter["conditional_missing"],
+                    "ausentes_aplicavel": counter["unexpected_missing"]
+                    + counter["conditional_missing"],
                     "ausencias_inesperadas": counter["unexpected_missing"],
-                    "ausencias_condicionais": counter["conditional_missing"] + counter["not_applicable_missing"],
+                    "ausencias_condicionais": counter["conditional_missing"]
+                    + counter["not_applicable_missing"],
                     "preenchidos_nao_aplicavel": counter["present_not_applicable"],
-                    "percentual_inesperadas": pct(counter["unexpected_missing"], counter["applicable"]),
+                    "percentual_inesperadas": pct(
+                        counter["unexpected_missing"], counter["applicable"]
+                    ),
                     "status": "OK" if counter["unexpected_missing"] == 0 else "AUSENCIA_INESPERADA",
                 }
             )
@@ -607,12 +694,14 @@ def percentage_rows(data_by_id: dict[str, dict[str, Any]]) -> list[dict[str, Any
             values = [row.get(column, "") for row in data["rows"]]
             sentinel_count = sum(is_sentinel(value, data["config"], column) for value in values)
             candidates = [
-                value for value in values
-                if not semantic_missing(value, data["config"], column)
+                value for value in values if not semantic_missing(value, data["config"], column)
             ]
             parsed = [parse_number(value) for value in candidates]
             invalid = sum(number is None for number in parsed)
-            out_of_range = sum(number is not None and not Decimal("0") <= number <= Decimal("100") for number in parsed)
+            out_of_range = sum(
+                number is not None and not Decimal("0") <= number <= Decimal("100")
+                for number in parsed
+            )
             result.append(
                 {
                     "source": data["id"],
@@ -664,7 +753,9 @@ def denormalized_rows(data_by_id: dict[str, dict[str, Any]]) -> list[dict[str, A
             "coincidentes": matching,
             "divergencias": divergences,
             "percentual_divergencias": pct(divergences, comparable),
-            "ids_divergentes": ",".join(sorted(divergent_ids, key=lambda value: int(value) if value.isdigit() else value)),
+            "ids_divergentes": ",".join(
+                sorted(divergent_ids, key=lambda value: int(value) if value.isdigit() else value)
+            ),
             "status": "OK" if divergences == 0 else "DIVERGENCIAS_DETECTADAS",
             "observacao": "Título denormalizado não substitui a dimensão canônica da pesquisa.",
         }
@@ -727,9 +818,7 @@ def validate_dictionary(
         physical = sum(is_null(value) for value in values)
         sentinels = sum(is_sentinel(value, response["config"], variable) for value in values)
         semantic = physical + sentinels
-        comparable = [
-            normalized(value) for value in values if not is_null(value)
-        ]
+        comparable = [normalized(value) for value in values if not is_null(value)]
         measured_cardinality = len(set(value for value in comparable if value is not None))
 
         range_start = parse_claim_integer(claim_text, r"(?:sequencial,|de)\s*([0-9.]+)\s+a")
@@ -767,7 +856,9 @@ def validate_dictionary(
                 "arquivo": dictionary_path.name,
                 "variavel": variable,
                 "status": "OK" if not mismatch else "INCOMPATIVEL",
-                "cardinalidade_dicionario": cardinality_claim if cardinality_claim is not None else "",
+                "cardinalidade_dicionario": cardinality_claim
+                if cardinality_claim is not None
+                else "",
                 "cardinalidade_medida": measured_cardinality,
                 "divergencia_cardinalidade": cardinality_delta,
                 "nulos_dicionario": null_claim if null_claim is not None else "",
@@ -831,7 +922,9 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None
         writer.writerows({field: row.get(field, "") for field in fields} for row in rows)
 
 
-def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path: Path | None = None) -> dict[str, Any]:
+def run(
+    input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path: Path | None = None
+) -> dict[str, Any]:
     input_dir = input_dir.resolve()
     output_dir = output_dir.resolve()
     if not input_dir.is_dir():
@@ -840,29 +933,33 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
         raise fail("[segurança] diretório de saída não pode estar dentro do diretório de entrada")
     manifest = read_manifest(manifest_path)
     sources = source_by_id(manifest)
-    data_by_id = {source_id: read_source(input_dir, source) for source_id, source in sources.items()}
+    data_by_id = {
+        source_id: read_source(input_dir, source) for source_id, source in sources.items()
+    }
     dictionary_result = (
         validate_dictionary(dictionary_path, manifest, data_by_id)
         if dictionary_path is not None
-        else [{
-            "arquivo": "",
-            "variavel": "__manifesto__",
-            "status": "NAO_INFORMADO",
-            "cardinalidade_dicionario": "",
-            "cardinalidade_medida": "",
-            "divergencia_cardinalidade": "",
-            "nulos_dicionario": "",
-            "nulos_fisicos": "",
-            "sentinelas": "",
-            "nulos_semanticos": "",
-            "divergencia_dicionario_vs_fisico": "",
-            "divergencia_dicionario_vs_semantico": "",
-            "minimo_dicionario": "",
-            "maximo_dicionario": "",
-            "minimo_medido": "",
-            "maximo_medido": "",
-            "observacao": "Forneça --dictionary para validar o contrato semântico.",
-        }]
+        else [
+            {
+                "arquivo": "",
+                "variavel": "__manifesto__",
+                "status": "NAO_INFORMADO",
+                "cardinalidade_dicionario": "",
+                "cardinalidade_medida": "",
+                "divergencia_cardinalidade": "",
+                "nulos_dicionario": "",
+                "nulos_fisicos": "",
+                "sentinelas": "",
+                "nulos_semanticos": "",
+                "divergencia_dicionario_vs_fisico": "",
+                "divergencia_dicionario_vs_semantico": "",
+                "minimo_dicionario": "",
+                "maximo_dicionario": "",
+                "minimo_medido": "",
+                "maximo_medido": "",
+                "observacao": "Forneça --dictionary para validar o contrato semântico.",
+            }
+        ]
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -879,7 +976,11 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
 
     write_csv(output_dir / "resumo.csv", summary, list(summary[0]))
     write_csv(output_dir / "campos.csv", fields, list(fields[0]))
-    write_csv(output_dir / "dominios.csv", domains, ["source", "column", "dominio", "ocorrencias", "percentual"])
+    write_csv(
+        output_dir / "dominios.csv",
+        domains,
+        ["source", "column", "dominio", "ocorrencias", "percentual"],
+    )
     write_csv(output_dir / "relacionamentos.csv", relations, RELATION_FIELDS)
     write_csv(output_dir / "datas.csv", dates, DATE_FIELDS)
     write_csv(output_dir / "coerencia_temporal.csv", temporal, TEMPORAL_FIELDS)
@@ -919,10 +1020,29 @@ def run(input_dir: Path, output_dir: Path, manifest_path: Path, dictionary_path:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input-dir", "--input", dest="input_dir", type=Path, required=True, help="diretório somente leitura com os CSVs")
-    parser.add_argument("--output-dir", "--output", dest="output_dir", type=Path, required=True, help="diretório novo/temporário para agregados")
+    parser.add_argument(
+        "--input-dir",
+        "--input",
+        dest="input_dir",
+        type=Path,
+        required=True,
+        help="diretório somente leitura com os CSVs",
+    )
+    parser.add_argument(
+        "--output-dir",
+        "--output",
+        dest="output_dir",
+        type=Path,
+        required=True,
+        help="diretório novo/temporário para agregados",
+    )
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST, help="manifesto JSON")
-    parser.add_argument("--dictionary", type=Path, required=True, help="dicionário local a validar (CSV separado por vírgula)")
+    parser.add_argument(
+        "--dictionary",
+        type=Path,
+        required=True,
+        help="dicionário local a validar (CSV separado por vírgula)",
+    )
     return parser
 
 

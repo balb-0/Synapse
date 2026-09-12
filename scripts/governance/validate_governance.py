@@ -289,17 +289,13 @@ def load_document(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except (OSError, UnicodeError) as error:
-        raise GovernanceValidationError(
-            f"não foi possível ler o documento: {path}"
-        ) from error
+        raise GovernanceValidationError(f"não foi possível ler o documento: {path}") from error
 
 
 def extract_section(markdown: str, heading: str) -> str:
     matches = list(re.finditer(rf"^{re.escape(heading)}\s*$", markdown, re.MULTILINE))
     if len(matches) != 1:
-        raise GovernanceValidationError(
-            f"heading obrigatório deve aparecer uma vez: {heading}"
-        )
+        raise GovernanceValidationError(f"heading obrigatório deve aparecer uma vez: {heading}")
 
     start = matches[0].end()
     next_root = re.search(r"^# \d+\.", markdown[start:], re.MULTILINE)
@@ -330,10 +326,7 @@ def table_rows(
         if (
             not header
             or header[0] != first_header
-            or (
-                second_header is not None
-                and (len(header) < 2 or header[1] != second_header)
-            )
+            or (second_header is not None and (len(header) < 2 or header[1] != second_header))
         ):
             continue
         if expected_headers is not None and tuple(header) != expected_headers:
@@ -370,9 +363,7 @@ def _require_first_column(rows: list[list[str]], expected: tuple[str, ...]) -> N
         )
 
 
-def _rows_by_first_column(
-    rows: list[list[str]], *, label: str, width: int
-) -> dict[str, list[str]]:
+def _rows_by_first_column(rows: list[list[str]], *, label: str, width: int) -> dict[str, list[str]]:
     malformed = [row[0] if row else "<vazia>" for row in rows if len(row) != width]
     if malformed:
         raise GovernanceValidationError(
@@ -394,21 +385,15 @@ def _rows_by_first_column(
 
 def _require_terms(text: str, expected: tuple[str, ...], *, label: str) -> None:
     missing = [
-        value
-        for value in expected
-        if not re.search(rf"(?<![\w]){re.escape(value)}(?![\w])", text)
+        value for value in expected if not re.search(rf"(?<![\w]){re.escape(value)}(?![\w])", text)
     ]
     if missing:
-        raise GovernanceValidationError(
-            f"{label} obrigatórios ausentes: " + ", ".join(missing)
-        )
+        raise GovernanceValidationError(f"{label} obrigatórios ausentes: " + ", ".join(missing))
 
 
 def _require_single_headings(section: str, headings: tuple[str, ...]) -> None:
     for heading in headings:
-        occurrences = len(
-            re.findall(rf"^{re.escape(heading)}\s*$", section, re.MULTILINE)
-        )
+        occurrences = len(re.findall(rf"^{re.escape(heading)}\s*$", section, re.MULTILINE))
         if occurrences != 1:
             raise GovernanceValidationError(
                 f"subseção obrigatória deve aparecer uma vez: {heading}"
@@ -423,8 +408,7 @@ def _require_nonempty_rows(rows: list[list[str]], *, label: str) -> None:
     ]
     if incomplete:
         raise GovernanceValidationError(
-            f"linhas com campo obrigatório vazio em {label}: "
-            + ", ".join(incomplete)
+            f"linhas com campo obrigatório vazio em {label}: " + ", ".join(incomplete)
         )
 
 
@@ -443,19 +427,13 @@ def validate_section_one(section: str) -> dict[str, int]:
             "Limites do papel",
         ),
     )
-    role_by_name = _rows_by_first_column(
-        role_rows, label="papéis de governança", width=4
-    )
+    role_by_name = _rows_by_first_column(role_rows, label="papéis de governança", width=4)
     _require_first_column(role_rows, REQUIRED_GOVERNANCE_ROLES)
     for role in REQUIRED_GOVERNANCE_ROLES:
         if any(not cell.strip() for cell in role_by_name[role][1:]):
-            raise GovernanceValidationError(
-                f"papel de governança possui campo vazio: {role}"
-            )
+            raise GovernanceValidationError(f"papel de governança possui campo vazio: {role}")
 
-    map_match = re.search(
-        r"```mermaid\s+flowchart\b(?P<body>[\s\S]*?)```", section
-    )
+    map_match = re.search(r"```mermaid\s+flowchart\b(?P<body>[\s\S]*?)```", section)
     if not map_match:
         raise GovernanceValidationError("mapa funcional Mermaid ausente na seção 1")
     _require_terms(
@@ -486,9 +464,7 @@ def validate_section_one(section: str) -> dict[str, int]:
             map_match.group("body"),
             re.MULTILINE,
         ):
-            raise GovernanceValidationError(
-                f"nó obrigatório ausente no mapa funcional: {label}"
-            )
+            raise GovernanceValidationError(f"nó obrigatório ausente no mapa funcional: {label}")
     required_relations = (
         ("CENTRAL", "STEWARD"),
         ("STEWARD", "OWNER"),
@@ -556,9 +532,7 @@ def validate_section_one(section: str) -> dict[str, int]:
             "Evidência mínima exigida",
         ),
     )
-    custody_by_name = _rows_by_first_column(
-        custody_rows, label="interfaces de custódia", width=5
-    )
+    custody_by_name = _rows_by_first_column(custody_rows, label="interfaces de custódia", width=5)
     _require_nonempty_rows(custody_rows, label="interfaces de custódia")
     for row in custody_rows:
         if any(cell.strip() == "—" for cell in row[1:]):
@@ -573,9 +547,7 @@ def validate_section_one(section: str) -> dict[str, int]:
         "Correção, incidente ou direito do titular",
     ):
         if not any(prefix in name for name in custody_by_name):
-            raise GovernanceValidationError(
-                f"interface de custódia obrigatória ausente: {prefix}"
-            )
+            raise GovernanceValidationError(f"interface de custódia obrigatória ausente: {prefix}")
 
     plain = re.sub(r"[*`]", "", section)
     _require_terms(
@@ -618,9 +590,7 @@ def validate_section_three(section: str) -> dict[str, int]:
     )
 
     type_rows = table_rows(section, "Tipo", "Metadados adicionais obrigatórios")
-    type_by_name = _rows_by_first_column(
-        type_rows, label="requisitos por tipo de ativo", width=3
-    )
+    type_by_name = _rows_by_first_column(type_rows, label="requisitos por tipo de ativo", width=3)
     _require_first_column(type_rows, REQUIRED_CATALOG_ASSET_TYPES)
     type_requirements = {
         "Fato": (
@@ -680,9 +650,7 @@ def validate_section_three(section: str) -> dict[str, int]:
         )
 
     example_rows = table_rows(section, "Metadado", "Valor catalogado")
-    example_by_name = _rows_by_first_column(
-        example_rows, label="exemplo de catálogo", width=2
-    )
+    example_by_name = _rows_by_first_column(example_rows, label="exemplo de catálogo", width=2)
     _require_nonempty_rows(example_rows, label="exemplo de catálogo")
     _require_first_column(
         example_rows,
@@ -706,9 +674,7 @@ def validate_section_three(section: str) -> dict[str, int]:
     )
     technical_name = example_by_name["Nome técnico"][1]
     if "FATO_CICLO_PESQUISA" not in technical_name or "C01" not in technical_name:
-        raise GovernanceValidationError(
-            "exemplo FATO_CICLO_PESQUISA não está ligado ao C01"
-        )
+        raise GovernanceValidationError("exemplo FATO_CICLO_PESQUISA não está ligado ao C01")
     example_semantics = {
         "Tipo de ativo": ("fato", "snapshot acumulado"),
         "Fonte principal": ("pesquisas.csv", "origem"),
@@ -733,24 +699,16 @@ def validate_section_three(section: str) -> dict[str, int]:
                 )
 
     dimension_rows = table_rows(section, "Dimensão", "Grão e chaves")
-    _rows_by_first_column(
-        dimension_rows, label="dimensões do exemplo", width=4
-    )
+    _rows_by_first_column(dimension_rows, label="dimensões do exemplo", width=4)
     _require_nonempty_rows(dimension_rows, label="dimensões do exemplo")
     _require_first_column(dimension_rows, REQUIRED_EXAMPLE_DIMENSIONS)
     for row in dimension_rows:
         grain_and_keys = row[1].lower()
-        if "linha por" not in grain_and_keys or not re.search(
-            r"\bsk_|\bchave", grain_and_keys
-        ):
-            raise GovernanceValidationError(
-                f"grão ou chave ausente na dimensão: {row[0]}"
-            )
+        if "linha por" not in grain_and_keys or not re.search(r"\bsk_|\bchave", grain_and_keys):
+            raise GovernanceValidationError(f"grão ou chave ausente na dimensão: {row[0]}")
 
     measure_rows = table_rows(section, "Medida", "Fórmula, unidade e janela")
-    measure_by_name = _rows_by_first_column(
-        measure_rows, label="contrato das medidas", width=4
-    )
+    measure_by_name = _rows_by_first_column(measure_rows, label="contrato das medidas", width=4)
     _require_nonempty_rows(measure_rows, label="contrato das medidas")
     _require_first_column(measure_rows, REQUIRED_EXAMPLE_MEASURES)
     measure_formula_terms = {
@@ -769,18 +727,14 @@ def validate_section_three(section: str) -> dict[str, int]:
             label=f"fórmula, unidade e janela de {measure}",
         )
         if not re.search(r"Aditiva|Não aditiva|Indicador/filtro", row_text):
-            raise GovernanceValidationError(
-                f"aditividade ou uso ausente para a medida: {measure}"
-            )
+            raise GovernanceValidationError(f"aditividade ou uso ausente para a medida: {measure}")
         if not re.search(r"NULL|Nulo|nulo|cobertura", row_text):
             raise GovernanceValidationError(
                 f"tratamento de nulos ou cobertura ausente para a medida: {measure}"
             )
 
     cube_rows = table_rows(section, "Cubo", "Grão e fontes")
-    cube_by_name = _rows_by_first_column(
-        cube_rows, label="escopo dos cubos", width=4
-    )
+    cube_by_name = _rows_by_first_column(cube_rows, label="escopo dos cubos", width=4)
     _require_nonempty_rows(cube_rows, label="escopo dos cubos")
     cube_grain_source_patterns = {
         "C01": r"uma linha por pesquisa[\s\S]*pesquisas\.csv",
@@ -799,9 +753,7 @@ def validate_section_three(section: str) -> dict[str, int]:
             cube_by_name[expected_label][1],
             re.IGNORECASE,
         ):
-            raise GovernanceValidationError(
-                f"grão ou fonte obrigatória ausente no cubo: {cube}"
-            )
+            raise GovernanceValidationError(f"grão ou fonte obrigatória ausente no cubo: {cube}")
 
     plain = re.sub(r"[*`]", "", section)
     required_statements = {
@@ -812,9 +764,7 @@ def validate_section_three(section: str) -> dict[str, int]:
     }
     for label, pattern in required_statements.items():
         if not re.search(pattern, plain, re.IGNORECASE):
-            raise GovernanceValidationError(
-                f"regra obrigatória ausente no catálogo: {label}"
-            )
+            raise GovernanceValidationError(f"regra obrigatória ausente no catálogo: {label}")
 
     return {
         "catalog_common_fields": len(REQUIRED_COMMON_METADATA_FIELDS),
@@ -850,35 +800,29 @@ def validate_section_four(section: str) -> dict[str, int]:
     lowered = asset_text.lower()
     missing_fields = [field for field in REQUIRED_RISK_FIELDS if field.lower() not in lowered]
     if missing_fields:
-        raise GovernanceValidationError(
-            "campos de risco ausentes: " + ", ".join(missing_fields)
-        )
+        raise GovernanceValidationError("campos de risco ausentes: " + ", ".join(missing_fields))
 
     for row in asset_rows:
         joined = " | ".join(row)
-        if any(source in joined for source in ("clientes.csv", "respondentes.csv", "respostas.csv")):
+        if any(
+            source in joined for source in ("clientes.csv", "respondentes.csv", "respostas.csv")
+        ):
             if len(row) > 2 and row[2] == "Público":
                 raise GovernanceValidationError(
                     "fonte com dado identificável não pode ser classificada como Público"
                 )
 
     for asset_prefix, (expected_class, marker_pattern) in EXPECTED_ASSETS.items():
-        matches = [
-            row for name, row in asset_by_name.items() if name.startswith(asset_prefix)
-        ]
+        matches = [row for name, row in asset_by_name.items() if name.startswith(asset_prefix)]
         if len(matches) != 1:
             raise GovernanceValidationError(
                 f"ativo obrigatório deve aparecer uma vez: {asset_prefix}"
             )
         row = matches[0]
         if row[2] != expected_class:
-            raise GovernanceValidationError(
-                f"classe mínima inválida para {asset_prefix}: {row[2]}"
-            )
+            raise GovernanceValidationError(f"classe mínima inválida para {asset_prefix}: {row[2]}")
         if not re.search(marker_pattern, row[3]):
-            raise GovernanceValidationError(
-                f"marcador de proteção inválido para {asset_prefix}"
-            )
+            raise GovernanceValidationError(f"marcador de proteção inválido para {asset_prefix}")
 
     plain = re.sub(r"[*_`]", "", section)
     required_statements = {
@@ -906,15 +850,9 @@ def validate_section_five(section: str) -> dict[str, int]:
     profile_rows = table_rows(section, "Perfil", "Necessidade de acesso")
     object_rows = table_rows(section, "Perfil", "Pesquisa e metadados")
     layer_rows = table_rows(section, "Perfil ou serviço")
-    profile_by_name = _rows_by_first_column(
-        profile_rows, label="perfis", width=3
-    )
-    object_by_profile = _rows_by_first_column(
-        object_rows, label="permissões por objeto", width=8
-    )
-    layer_by_profile = _rows_by_first_column(
-        layer_rows, label="permissões por camada", width=5
-    )
+    profile_by_name = _rows_by_first_column(profile_rows, label="perfis", width=3)
+    object_by_profile = _rows_by_first_column(object_rows, label="permissões por objeto", width=8)
+    layer_by_profile = _rows_by_first_column(layer_rows, label="permissões por camada", width=5)
     _require_first_column(list(profile_by_name.values()), REQUIRED_ACCESS_PROFILES)
     _require_first_column(list(object_by_profile.values()), REQUIRED_ACCESS_PROFILES)
     _require_first_column(list(layer_by_profile.values()), REQUIRED_ACCESS_PROFILES)
@@ -963,9 +901,7 @@ def validate_section_five(section: str) -> dict[str, int]:
             "Data Custodian precisa de administração técnica explícita por camada"
         )
     if not all("L excepcional" in cell for cell in custodian[1:4]):
-        raise GovernanceValidationError(
-            "leitura do Data Custodian deve permanecer excepcional"
-        )
+        raise GovernanceValidationError("leitura do Data Custodian deve permanecer excepcional")
 
     plain = re.sub(r"[*_`]", "", section)
     required_statements = {
@@ -983,12 +919,8 @@ def validate_section_five(section: str) -> dict[str, int]:
             raise GovernanceValidationError(f"regra de acesso ausente: {label}")
 
     for symbol in ("L", "G", "A", "—"):
-        if not re.search(
-            rf"^[-*] \*\*{re.escape(symbol)}\*\*", section, re.MULTILINE
-        ):
-            raise GovernanceValidationError(
-                f"legenda da matriz de acesso ausente: {symbol}"
-            )
+        if not re.search(rf"^[-*] \*\*{re.escape(symbol)}\*\*", section, re.MULTILINE):
+            raise GovernanceValidationError(f"legenda da matriz de acesso ausente: {symbol}")
 
     return {
         "profiles": len(REQUIRED_ACCESS_PROFILES),
@@ -1015,9 +947,7 @@ def validate_role_consistency(
     """Confronta os papéis documentados com as quatro fontes de evidência."""
     section = extract_section(document, SECTION_ONE)
     role_rows = table_rows(section, "Papel", "Referência documental")
-    role_by_name = _rows_by_first_column(
-        role_rows, label="papéis de governança", width=4
-    )
+    role_by_name = _rows_by_first_column(role_rows, label="papéis de governança", width=4)
 
     tapi_assignments = {
         "líder do projeto": (
@@ -1045,9 +975,7 @@ def validate_role_consistency(
     tapi_unique_assignments = {
         "líder do projeto": r"(?:●[ \t]*)?LÍDER DO PROJETO[ \t]*:[^\n]*",
         "ponto focal backup": r"(?:●[ \t]*)?PONTO FOCAL BACKUP[ \t]*:[^\n]*",
-        "analista de dados": (
-            r"Lucas Andrade[ \t]*[–-][ \t]*Analista de Dados Jr\.[^\n]*"
-        ),
+        "analista de dados": (r"Lucas Andrade[ \t]*[–-][ \t]*Analista de Dados Jr\.[^\n]*"),
         "líder executivo": (
             r"(?:●[ \t]*)?LÍDER EXECUTIVO(?: \[Onboarding Executivo\])?"
             r"[ \t]*:[^\n]*"
@@ -1071,17 +999,23 @@ def validate_role_consistency(
 
     governance = dmc.get("governancaCorporativa")
     if not isinstance(governance, dict):
-        raise GovernanceValidationError(
-            "governancaCorporativa ausente ou inválida no DMC"
-        )
+        raise GovernanceValidationError("governancaCorporativa ausente ou inválida no DMC")
     dmc_requirements = {
-        "owner": "Fabio Moreira.",
-        "steward": "Felipe Rojas, Reinaldo Nobrega e Lucas Andrade.",
+        "owner": (
+            "Baseline documental: Fabio Moreira como Data Owner para decisões de "
+            "negócio, acesso, indicadores, publicação, exceções e risco residual; "
+            "autoridade formal sujeita à homologação e sem inferência de papel "
+            "jurídico na LGPD."
+        ),
+        "steward": (
+            "Baseline documental: Felipe Rojas, Reinaldo Nobrega e Lucas Andrade "
+            "como Data Stewards de semântica, catálogo, qualidade e linhagem; "
+            "atribuição e grafia final sujeitas à homologação."
+        ),
         "custodian": (
-            "Rodrigo Giorgetto (TI) para armazenamento e infraestrutura dos dados "
-            "na rede interna ou na nuvem do Sindusfarma + empresa RentalHost "
-            "(fornecedora do sistema interno) para custódia dos dados hospedados "
-            "no repositório público."
+            "Baseline documental: Rodrigo Giorgetto e TI como Data Custodian de "
+            "infraestrutura e controles técnicos; participação da RentalHost é "
+            "condicional ao ambiente e contrato, ambos sujeitos à homologação."
         ),
     }
     for field, expected in dmc_requirements.items():
@@ -1102,9 +1036,7 @@ def validate_role_consistency(
         r"[\s\S]{0,120}RentalHost na custódia externa"
     )
     if not re.search(architecture_pattern, architecture):
-        raise GovernanceValidationError(
-            "atribuições canônicas ausentes na Arquitetura de Negócio"
-        )
+        raise GovernanceValidationError("atribuições canônicas ausentes na Arquitetura de Negócio")
     architecture_role_pairs = (
         (r"Fabio Moreira", r"Data Owner"),
         (r"(?:Felipe Rojas|Reinaldo Nobrega|Lucas Andrade)", r"Data Stewards?"),
@@ -1149,9 +1081,7 @@ def validate_role_consistency(
     )
     custodian_actor = actor_by_name.get("Rodrigo Giorgetto / TI / Data Custodian")
     rentalhost_actor = actor_by_name.get("RentalHost")
-    tools_actor = actor_by_name.get(
-        "SurveyMonkey, Trello, Outlook, n8n e provedor de nuvem"
-    )
+    tools_actor = actor_by_name.get("SurveyMonkey, Trello, Outlook, n8n e provedor de nuvem")
     required_actors = {
         "Fabio Moreira": owner_actor,
         "Stewards": steward_actor,
@@ -1162,8 +1092,7 @@ def validate_role_consistency(
     missing_actors = [name for name, row in required_actors.items() if row is None]
     if missing_actors:
         raise GovernanceValidationError(
-            "atores obrigatórios ausentes na cadeia de custódia: "
-            + ", ".join(missing_actors)
+            "atores obrigatórios ausentes na cadeia de custódia: " + ", ".join(missing_actors)
         )
 
     assert owner_actor and steward_actor and custodian_actor
@@ -1184,25 +1113,19 @@ def validate_role_consistency(
             "Rodrigo Giorgetto não pode ser atribuído ao TAPI sem evidência"
         )
     if not re.search(r"Executar custódia técnica", rentalhost_actor[2]):
-        raise GovernanceValidationError(
-            "RentalHost deve permanecer limitada à custódia técnica"
-        )
+        raise GovernanceValidationError("RentalHost deve permanecer limitada à custódia técnica")
     if not re.search(
         r"Participação condicional[\s\S]{0,180}Não decide finalidade",
         rentalhost_actor[3],
     ):
-        raise GovernanceValidationError(
-            "RentalHost não pode receber autoridade de negócio"
-        )
+        raise GovernanceValidationError("RentalHost não pode receber autoridade de negócio")
     if re.search(
         r"\b(?:decidir|decide|aprovar|aprova|definir)\b[\s\S]{0,80}"
         r"(?:finalidade|classificação|publicação)",
         rentalhost_actor[2],
         re.IGNORECASE,
     ):
-        raise GovernanceValidationError(
-            "RentalHost não pode receber autoridade de negócio"
-        )
+        raise GovernanceValidationError("RentalHost não pode receber autoridade de negócio")
     if not all(tool in tools_actor[0] for tool in ("Trello", "Outlook")) or not re.search(
         r"dependem de inventário e contrato", tools_actor[3]
     ):
@@ -1218,9 +1141,7 @@ def validate_role_consistency(
             "Trello e Outlook não podem receber papel ou autoridade de governança"
         )
 
-    legal_actor = actor_by_name.get(
-        "Controlador, operadores, suboperadores e encarregado"
-    )
+    legal_actor = actor_by_name.get("Controlador, operadores, suboperadores e encarregado")
     if legal_actor is None or re.search(
         r"\bEquivalem?\s+(?:ao|aos)\s+(?:Data )?(?:Owner|Steward|Custodian)",
         " | ".join(legal_actor[1:]),
@@ -1231,9 +1152,7 @@ def validate_role_consistency(
         )
 
     if re.search(r"já (?:está )?homologad", owner_actor[3], re.IGNORECASE):
-        raise GovernanceValidationError(
-            "autoridade do Data Owner contém homologação contraditória"
-        )
+        raise GovernanceValidationError("autoridade do Data Owner contém homologação contraditória")
     if len(re.findall(r"confirmad", steward_actor[3], re.IGNORECASE)) != 1 or re.search(
         r"não (?:corresponde|é a mesma)|já está confirmada|"
         r"\bpessoas?\s+(?:diferentes?|distintas?)\b|\bhomologad\w*\b",
@@ -1264,9 +1183,7 @@ def validate_tapi_hash(document: str, tapi_path: Path) -> str:
     section_four = extract_section(document, SECTION_FOUR)
     matches = re.findall(r"SHA-256[\s\S]{0,160}?([0-9a-fA-F]{64})", section_four)
     if len(matches) != 1:
-        raise GovernanceValidationError(
-            "a seção 4 deve conter exatamente um hash SHA-256 do TAPI"
-        )
+        raise GovernanceValidationError("a seção 4 deve conter exatamente um hash SHA-256 do TAPI")
 
     try:
         actual = hashlib.sha256(tapi_path.read_bytes()).hexdigest()
@@ -1353,9 +1270,7 @@ def main(argv: list[str] | None = None) -> int:
         summary = validate_document(document)
         validate_tapi_hash(document, args.tapi)
         tapi = load_document(args.tapi)
-        architecture_path = _resolve_repository_path(
-            args.architecture, args.repository_root
-        )
+        architecture_path = _resolve_repository_path(args.architecture, args.repository_root)
         try:
             architecture = load_document(architecture_path)
         except GovernanceValidationError as error:
@@ -1366,9 +1281,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             dmc = json.loads(dmc_path.read_text(encoding="utf-8"))
         except (OSError, UnicodeError, json.JSONDecodeError) as error:
-            raise GovernanceValidationError(
-                f"não foi possível ler o DMC: {dmc_path}"
-            ) from error
+            raise GovernanceValidationError(f"não foi possível ler o DMC: {dmc_path}") from error
         if not isinstance(dmc, dict):
             raise GovernanceValidationError("a raiz do DMC deve ser um objeto JSON")
         summary |= validate_role_consistency(document, tapi, dmc, architecture)
