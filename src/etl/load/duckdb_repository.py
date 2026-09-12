@@ -83,7 +83,14 @@ class LoadResult:
 # O DuckDB já recusa uma segunda conexão de escrita ao mesmo arquivo com este
 # erro, nomeando o processo concorrente. Só distinguimos essa mensagem de
 # outro IOException (ex.: permissão negada) para saber quando vale esperar.
-WRITE_LOCK_CONFLICT_MARKER = "Could not set lock"
+# A mensagem mudou entre versões do DuckDB. A forma nova no Windows, por
+# exemplo, informa que o arquivo "is being used by another process". Todas
+# descrevem a mesma condição transitória: outro escritor mantém o arquivo.
+WRITE_LOCK_CONFLICT_MARKERS = (
+    "Could not set lock",
+    "being used by another process",
+    "sendo usado por outro processo",
+)
 WRITE_LOCK_POLL_INTERVAL_SECONDS = 0.05
 
 
@@ -103,7 +110,7 @@ def _connect_with_retry(database: str, timeout_seconds: float) -> duckdb.DuckDBP
         try:
             return duckdb.connect(database)
         except duckdb.IOException as error:
-            if WRITE_LOCK_CONFLICT_MARKER not in str(error):
+            if not any(marker in str(error) for marker in WRITE_LOCK_CONFLICT_MARKERS):
                 raise
             if time.monotonic() >= deadline:
                 raise WriteLockTimeoutError(
@@ -287,7 +294,7 @@ class DuckDbLoadRepository:
             f"({', '.join(quote(c) for c in columns)}) VALUES ({placeholders}) "
             f"ON CONFLICT ({quote(IDENTITY_COLUMN)}) DO NOTHING"
         )
-        rows = [record.as_clickhouse_row() for record in result.accepted]
+        rows = [record.as_duckdb_row() for record in result.accepted]
         self._conn.execute("BEGIN TRANSACTION")
         try:
             if rows:

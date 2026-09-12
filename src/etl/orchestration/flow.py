@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import time
 from datetime import datetime, timezone
 
@@ -269,7 +268,10 @@ def ingest_object(
     started = time.monotonic()
     if source not in EXTRACTORS:
         raise ValueError(f"fonte desconhecida: {source!r}")
-    db_path = db_path or os.environ.get("DUCKDB_PATH", "warehouse.duckdb")
+    # Um único contrato de configuração para o caminho e tuning da conexão.
+    # Antes o flow lia DUCKDB_PATH, enquanto o repositório lia
+    # ETL_DUCKDB_PATH, permitindo que os dois apontassem para arquivos distintos.
+    db_path = db_path or str(load_duckdb_settings().database_path)
 
     settings = load_extraction_settings()
     reader = MinioObjectReader(_minio_client(settings))

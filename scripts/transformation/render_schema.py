@@ -23,7 +23,7 @@ def render():
             [
                 f"## {source}",
                 "",
-                "| Origem | Destino | Tipo ClickHouse | Ausência | Regra |",
+                "| Origem | Destino | Tipo DuckDB | Ausência | Regra |",
                 "| --- | --- | --- | --- | --- |",
             ]
         )
@@ -31,7 +31,7 @@ def render():
             null = "rejeitar" if f.required else "[]" if f.kind == "list" else "null"
             rule = f.kind + (("; sentinelas: " + ", ".join(f.sentinels)) if f.sentinels else "")
             lines.append(
-                f"| `{f.origin}` | `ingestao_{source}.{f.name}` | `{f.clickhouse_type}` | {null} | {rule} |"
+                f"| `{f.origin}` | `ingestao_{source}.{f.name}` | `{f.duckdb_type}` | {null} | {rule} |"
             )
         lines.append("")
     lines.extend(["## Metadados comuns", "", "| Campo | Tipo |", "| --- | --- |"])
@@ -42,12 +42,18 @@ def render():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--write", action="store_true", help="Atualiza o catálogo versionado")
     args = parser.parse_args()
+    if args.check and args.write:
+        parser.error("--check e --write são mutuamente exclusivos")
     document = render()
+    path = Path(__file__).resolve().parents[2] / "docs/catalogo-transformacao.md"
     if args.check:
-        path = Path(__file__).resolve().parents[2] / "docs/catalogo-transformacao.md"
         if path.read_text(encoding="utf-8") != document:
             parser.exit(1, "Catálogo desatualizado.\n")
+    elif args.write:
+        path.write_text(document, encoding="utf-8")
+        print(f"{path} atualizado")
     else:
         print(document, end="")
 

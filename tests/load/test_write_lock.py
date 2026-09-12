@@ -80,12 +80,11 @@ class WriteLockSerializationTests(unittest.TestCase):
         holder.wait(timeout=5)
 
     def test_does_not_wait_for_an_error_that_is_not_a_lock_conflict(self) -> None:
-        # Permissão negada é um IOException do mesmo tipo, mas não é disputa
-        # de arquivo: esperar o timeout inteiro não o resolveria.
-        directory = Path(self.temporary_directory.name) / "sem_permissao"
-        directory.mkdir(mode=0o555)
-        self.addCleanup(directory.chmod, 0o755)
-        blocked_path = directory / "ingestao.duckdb"
+        # Um diretório no lugar do arquivo causa IOException, mas não é
+        # disputa de lock. Isso é portável: permissões POSIX (o caso
+        # anterior) não bloqueiam administradores no Windows.
+        blocked_path = Path(self.temporary_directory.name) / "diretorio_no_lugar_do_banco"
+        blocked_path.mkdir()
 
         started = time.monotonic()
         with self.assertRaises(duckdb.IOException) as context:

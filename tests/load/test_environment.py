@@ -102,7 +102,7 @@ class DuckDBEnvironmentTests(unittest.TestCase):
             run_health_check(settings)
 
         self.assertIn(str(self.directory), str(context.exception))
-        self.assertIn("Is a directory", str(context.exception))
+        self.assertIn("não foi possível abrir", str(context.exception))
 
     def test_interrupted_health_check_removes_the_marker(self) -> None:
         prepare_database(self.settings)

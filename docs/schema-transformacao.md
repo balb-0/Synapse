@@ -3,24 +3,24 @@
 MG-02, relacionado ao card #171. O contrato executável está em
 [`schema.py`](../src/etl/transformation/schema.py), versão `1.0`. Cada `Field`
 declara nome recebido, nome canônico, tipo, obrigatoriedade e sentinelas.
-`clickhouse_type` especifica o tipo esperado pelo consumidor MC-03.
+`duckdb_type` especifica o tipo da tabela de ingestão no DuckDB.
 
 ## Contrato de tipos
 
-| Tipo | Representação Python | Destino ClickHouse | Regra |
+| Tipo | Representação Python | Destino DuckDB | Regra |
 | --- | --- | --- | --- |
-| id | str de dígitos normalizados | String | Inteiro não negativo, sem float intermediário; não interpretar como medida |
-| integer | int | Int64 | Sem parte fracionária; intervalo do destino |
-| decimal | Decimal | Decimal(18, 6) | Finito, no máximo seis casas; não arredondar silenciosamente |
-| percent | Decimal | Decimal(18, 6) | Pontos percentuais em 0..100, inclusive |
-| date | date | Date32 | Data civil preservada, sem inventar hora; 1900..2299 |
-| datetime | datetime UTC | DateTime64(6, 'UTC') | Offset explícito ou fuso de origem configurado; rejeitar horário ambíguo/inexistente |
-| boolean | bool | Bool | Mapa fechado de sim/não e true/false |
-| text | str | String | Unicode NFC e espaços externos removidos; conteúdo interno preservado |
-| list | list[str] | Array(String) | JSON array ou lista legada separada por `|`; ausência produz [] |
+| id | str de dígitos normalizados | VARCHAR | Inteiro não negativo, sem float intermediário; não interpretar como medida |
+| integer | int | BIGINT | Sem parte fracionária; intervalo do destino |
+| decimal | Decimal | DECIMAL(18, 6) | Finito, no máximo seis casas; não arredondar silenciosamente |
+| percent | Decimal | DECIMAL(18, 6) | Pontos percentuais em 0..100, inclusive |
+| date | date | DATE | Data civil preservada, sem inventar hora; 1900..2299 |
+| datetime | datetime UTC | TIMESTAMP | Offset explícito ou fuso de origem configurado; rejeitar horário ambíguo/inexistente |
+| boolean | bool | BOOLEAN | Mapa fechado de sim/não e true/false |
+| text | str | VARCHAR | Unicode NFC e espaços externos removidos; conteúdo interno preservado |
+| list | list[str] | VARCHAR (JSON) | JSON array ou lista legada separada por `|`; ausência produz [] |
 
-Campos opcionais usam `Nullable(T)`, exceto listas, pois ClickHouse não aceita
-`Nullable(Array)`. A origem permite distinguir lista ausente de lista vazia na
+O DuckDB aceita nulos nas colunas opcionais; listas são serializadas como JSON
+em `VARCHAR`. A origem permite distinguir lista ausente de lista vazia na
 auditoria protegida. Campo obrigatório ausente impede a aceitação do registro.
 Ausências opcionais não recebem zero, string vazia ou data corrente.
 

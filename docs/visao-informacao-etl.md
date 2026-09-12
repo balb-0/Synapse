@@ -71,8 +71,8 @@ Sentinelas observadas e tratadas como ausência: `s/i` em `clientes.id_cliente` 
 `respondentes.id_cliente`, `-` em `empresas.Associado`, `na` e `n/a` em
 `respondentes.market_share` e `respostas.valor`.
 
-O vocabulário de tipos declarado no contrato canônico ainda é o do ClickHouse
-(`Field.clickhouse_type`), traduzido para o DuckDB por `duckdb_type()` em
+O contrato canônico declara diretamente os tipos DuckDB
+(`Field.duckdb_type`), validado por `duckdb_type()` em
 [`ddl.py`](../src/etl/load/ddl.py). O destino efetivo é o DuckDB; o nome
 remanescente é a pendência registrada na
 [matriz de rastreabilidade](matriz-rastreabilidade-sprint3.md).

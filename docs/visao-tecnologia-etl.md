@@ -50,7 +50,7 @@ comandos de teste.
 | CSV com separador `;`, UTF-8 com BOM | As seis fontes de origem |
 | JSON | Log estruturado, serialização de listas na carga e [`dmc.json`](dmc.json) |
 | SQL | Contrato físico versionado em `sql/duckdb/001_ingestao_tratada.sql` |
-| Cobertura Cobertura (XML) | Artefato `coverage-transformation.xml` do CI |
+| Cobertura (XML) | Artefato `coverage-transformation.xml` do CI |
 | PlantUML e Mermaid | Diagramas em [`assets/uml/`](assets/uml/) e embutidos nas visões |
 
 ## Integração contínua
@@ -94,17 +94,14 @@ discordam entre si.
 | Divergência | Declarações conflitantes | Risco |
 | :--- | :--- | :--- |
 | Versão do Python | resolvida na Sprint 3 (VB-06/VB-07): `Dockerfile`, CI (`python:3.12-slim`), `ruff.toml` (`py312`) e `README.md` (3.12+) alinhados em 3.12 | — |
-| Dependências sem pin | `requirements.txt` usa faixas para `minio`, `urllib3`, `prefect` e `duckdb` | Uma atualização de terceiros altera o comportamento sem mudança no repositório |
-| Dependências de desenvolvimento parciais | `requirements-transformation-dev.txt` cobre apenas o gate de transformação | Não existe um conjunto declarado para rodar a suíte completa |
-| Variável não lida | `docker-compose.yml` define `ETL_MINIO_SECURE` | Sugere um controle de TLS que nenhum módulo consulta |
-| Caminho do banco | `docker-compose.yml` define `DUCKDB_PATH`; `load_duckdb_settings` lê `ETL_DUCKDB_PATH` | Caminho e tuning podem divergir na mesma execução |
+| Dependências sem pin | `requirements.txt` usa faixas para `minio`, `urllib3`, `prefect` e `duckdb` | Uma atualização de terceiros pode alterar o comportamento sem mudança no repositório |
 
 ## Tecnologias consideradas e não adotadas
 
 | Tecnologia | Papel avaliado | Decisão |
 | :--- | :--- | :--- |
 | ClickHouse | Banco de ingestão | Substituído por DuckDB, com autorização registrada no ADR 0001 |
-| Apache NiFi | Dataflow e coordenação | Fora da arquitetura principal; reavaliável se as fontes se diversificarem. Existe um exercício isolado em `ponderada/`, que não faz parte do pipeline |
+| Apache NiFi | Dataflow e coordenação | Fora da arquitetura principal; reavaliável se as fontes se diversificarem. Não adotado na arquitetura principal |
 | Apache Airflow | Orquestração | Não selecionado; o Prefect foi escolhido no ADR 0001 |
 | Prometheus e Grafana | Observabilidade | Não selecionados; a orientação da sprint direcionou à Elastic Stack |
 | `pytest` | Testes | Não adotado; a suíte usa `unittest` e o CI o invoca diretamente |

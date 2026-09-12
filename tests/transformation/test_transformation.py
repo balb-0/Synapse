@@ -130,8 +130,7 @@ class SchemaTests(unittest.TestCase):
         for fields in SCHEMAS.values():
             self.assertEqual(len({f.name for f in fields}), len(fields))
             for f in fields:
-                self.assertTrue(f.origin and f.clickhouse_type)
-                self.assertNotIn("Nullable(Array", f.clickhouse_type)
+                self.assertTrue(f.origin and f.duckdb_type)
 
     def test_all_six_valid_sources(self):
         for source, row in RAW.items():
@@ -139,7 +138,7 @@ class SchemaTests(unittest.TestCase):
                 result = run(source, [row])
                 self.assertEqual(len(result.accepted), 1, result.rejected)
                 self.assertEqual(set(result.accepted[0].data), {f.name for f in SCHEMAS[source]})
-                json.dumps(result.accepted[0].as_clickhouse_row(), allow_nan=False)
+                json.dumps(result.accepted[0].as_duckdb_row(), allow_nan=False)
 
     def test_unknown_names_collision_and_export_columns(self):
         cases = [

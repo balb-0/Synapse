@@ -66,11 +66,7 @@ lado.
   duplicidade da transformação e a tabela de controle `_loaded_identity` da
   carga (ver ADR
   [`adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md`](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md)).
-- **Contrato físico de destino (opt-in):**
-  `tests/transformation/test_clickhouse_contract.py` insere linhas
-  transformadas em um ClickHouse real via Docker e confere os seis schemas.
-  Está desabilitado por padrão (`skipUnless`) e roda somente com
-  `ETL_TEST_CLICKHOUSE=1` e Docker local disponível.
+- **Contrato físico de destino:** `tests/transformation/test_duckdb_contract.py` insere as linhas transformadas em um DuckDB real e confere os seis schemas.
 - **DDL, tabelas de controle e ambiente de carga:** `tests/load/test_ddl.py`,
   `tests/load/test_control_tables.py`, `tests/load/test_config.py`,
   `tests/load/test_connection_tuning.py` e `tests/load/test_environment.py`
@@ -101,8 +97,6 @@ consistência referencial, deduplicação e quarentena.
 
 | Lacuna | Impacto |
 | :--- | :--- |
-| Contrato ClickHouse desligado por padrão | Divergência de schema com o destino final só aparece em execução opt-in |
-
 Lacunas resolvidas na Sprint 3: o teste E2E automatizado do flow passou a
 existir em `tests/e2e/` (VB-04) e o gate de cobertura do CI consolidado
 (`--fail-under=85` sobre todo o pacote `etl`, VB-08) cobre extração, carga e

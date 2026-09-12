@@ -55,14 +55,6 @@ TECHNICAL_NOT_NULL = (
     "schema_version",
 )
 
-_BASE_TYPES = {
-    "String": "VARCHAR",
-    "Int64": "BIGINT",
-    "UInt64": "UBIGINT",
-    "Bool": "BOOLEAN",
-    "Date32": "DATE",
-}
-
 # Status de um lote de carga. `falha` não é derivável das contagens — um lote
 # revertido grava zero em todas elas, igual a um lote vazio bem-sucedido — por
 # isso o status é gravado, não calculado.
@@ -209,24 +201,12 @@ def quote(identifier: str) -> str:
 
 
 def duckdb_type(canonical_type: str) -> str:
-    """Traduz o tipo declarado pelo contrato da transformação para o DuckDB.
+    """Valida o tipo DuckDB declarado no contrato de transformação."""
 
-    O contrato nomeia os tipos na convenção do ClickHouse, destino anterior à
-    ADR 0001. A tradução acontece aqui, uma vez, em vez de em cada consulta.
-    """
-
-    inner = canonical_type
-    if inner.startswith("Nullable(") and inner.endswith(")"):
-        inner = inner[len("Nullable(") : -1]
-    if inner.startswith("FixedString"):
-        return "VARCHAR"
-    if inner.startswith("Decimal"):
-        return "DECIMAL(18, 6)"
-    if inner.startswith("DateTime64"):
-        return "TIMESTAMP"
-    if inner.startswith("Array"):
-        return "VARCHAR"  # lista serializada como JSON
-    return _BASE_TYPES.get(inner, "VARCHAR")
+    accepted = {"VARCHAR", "BIGINT", "UBIGINT", "BOOLEAN", "DATE", "TIMESTAMP", "DECIMAL(18, 6)"}
+    if canonical_type not in accepted:
+        raise ValueError(f"tipo DuckDB desconhecido: {canonical_type!r}")
+    return canonical_type
 
 
 def table_name(source: str) -> str:
