@@ -39,7 +39,7 @@ externo, com as 19 suítes de `tests/`.
 | Repositório de carga | [`duckdb_repository.py`](../src/etl/load/duckdb_repository.py) | `load_batch(result, metadata) -> LoadResult`, `object_already_loaded(checksum)`, `loaded_identities(source)`, `load(source)`, `commit(checkpoint)` | Gravar aceitos e rejeitados em transação e reconciliar contagens | Decidir quando o pipeline executa | Implementado |
 | Contrato físico | [`ddl.py`](../src/etl/load/ddl.py) | `statements()`, `render_ddl()`, `table_name(source)` | Declarar tabelas, constraints e views | Executar carga | Implementado |
 | Ambiente do banco | [`environment.py`](../src/etl/load/environment.py) | `prepare_database(settings) -> bool`, `run_health_check(settings) -> HealthCheckReport` | Criar o arquivo do banco e verificar escrita e persistência | Monitorar a execução do pipeline | Implementado |
-| Orquestração | [`flow.py`](../src/etl/orchestration/flow.py) | Flows `ingest_object` e `backfill`; tasks `extract`, `transform`, `load` | Coordenar etapas, parâmetros, retries, timeout e estados | Conter regra de transformação | Implementado sem teste |
+| Orquestração | [`flow.py`](../src/etl/orchestration/flow.py) | Flows `ingest_object` e `backfill`; tasks `extract`, `transform`, `load` | Coordenar etapas, parâmetros, retries, timeout e estados | Conter regra de transformação | Implementado e exercitado em `tests/orchestration/` |
 | Banco de ingestão | DuckDB | SQL | Persistir dados conformes, rejeições e controles | Substituir a cópia imutável da origem | Implementado |
 | Log estruturado | [`log_events.py`](../src/etl/extraction/log_events.py) | `ExtractionLogSink.emit(event)`, `StandardLoggingSink` | Emitir o evento JSON do lote extraído | Transportar telemetria a um coletor | Implementado parcialmente |
 | Telemetria | — | Logstash, Elasticsearch, Kibana | Centralizar logs, métricas e painéis | Controlar o estado do pipeline | **Planejado** (ADR 0001) |
@@ -121,7 +121,6 @@ código, e não ao contrato idealizado.
 | `MetadataSink` não tem implementação | `contracts.py` declara o protocolo; nenhum módulo o implementa | Os metadados de lote são gravados diretamente em `_batch_metadata` pela carga, sem passar por um sink; o protocolo permanece como ponto de extensão não exercitado |
 | `QuarantineStore` fora do caminho produtivo | `quarantine.py`; usado apenas em `tests/transformation/test_transformation.py` | As rejeições reais vão para as tabelas `rejected` e `rejected_reason` do DuckDB; só o dataclass `RejectedRecord` é compartilhado |
 | Acesso a atributo privado | `_build_references` em `flow.py` executa SQL por `repo._conn` | A orquestração contorna a interface pública do repositório; qualquer mudança interna na conexão quebra o flow |
-| Origem do caminho do banco | `ingest_object` lê `DUCKDB_PATH`; `load_duckdb_settings()` lê `ETL_DUCKDB_PATH` | Caminho do arquivo e parâmetros de tuning podem vir de variáveis diferentes na mesma execução |
 | Disparo por evento ausente | Contrato no ADR 0001 | A ingestão é iniciada manualmente ou por cron, não pela criação do objeto |
 
 ## Diagrama de componentes

@@ -73,15 +73,13 @@ declaravam.
 
 ## Tipos
 
-O contrato canônico nomeia os tipos na convenção do ClickHouse, destino
-anterior à [ADR 0001](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md).
-A tradução acontece uma vez, no contrato físico:
+O contrato canônico nomeia diretamente os tipos DuckDB, conforme a [ADR 0001](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md). O contrato físico os valida em um único ponto:
 
 | Tipo declarado | Tipo DuckDB | Observação |
 | :--- | :--- | :--- |
-| `String` | `VARCHAR` | |
-| `Int64` | `BIGINT` | |
-| `UInt64` | `UBIGINT` | |
+| `VARCHAR` | `VARCHAR` | |
+| `BIGINT` | `BIGINT` | |
+| `UBIGINT` | `UBIGINT` | |
 | `Bool` | `BOOLEAN` | |
 | `Date32` | `DATE` | |
 | `Decimal(18, 6)` | `DECIMAL(18, 6)` | mesma precisão e escala |

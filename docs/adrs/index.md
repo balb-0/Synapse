@@ -41,7 +41,7 @@ acompanhamento, não condição para a aceitação já registrada.
 | :--- | :--- |
 | Equipe aprovar a divisão de responsabilidades | Cumprido pela ratificação |
 | Autorização do DuckDB registrada | Cumprido no próprio ADR e na matriz de rastreabilidade |
-| Tarefas e critérios que citam ClickHouse ou NiFi atualizados | Parcial: código e documentação de transformação ainda usam o nome ClickHouse |
+| Tarefas e critérios que citam ClickHouse ou NiFi atualizados | Cumprido: referências restantes são históricas ou do enunciado |
 | Fluxo mínimo subir localmente por comando documentado | Cumprido por `docker-compose.yml` e `scripts/orchestration/run_ingest.py` |
 | Publicação de fixture no MinIO disparar execução automática | **Ainda não cumprido**: o adaptador de eventos não existe |
 | Execução das seis fontes com registro no Prefect e na Elastic Stack | **Ainda não cumprido**: não há observabilidade integrada |

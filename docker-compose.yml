@@ -38,8 +38,7 @@ services:
       ETL_MINIO_ACCESS_KEY: minioadmin
       ETL_MINIO_SECRET_KEY: minioadmin
       ETL_MINIO_INPUT_PREFIX: landing
-      ETL_MINIO_SECURE: "false"
-      DUCKDB_PATH: /data/warehouse.duckdb
+      ETL_DUCKDB_PATH: /data/warehouse.duckdb
     volumes:
       - duck-data:/data
       - ./src:/app/src

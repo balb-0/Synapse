@@ -25,7 +25,7 @@ result = transform_batch(
 )
 quarantine = QuarantineStore(restricted_quarantine_path)
 quarantine.persist(result.rejected)
-rows_to_load = [record.as_clickhouse_row() for record in result.accepted]
+rows_to_load = [record.as_duckdb_row() for record in result.accepted]
 operational_metrics = result.safe_summary()
 ```
 
@@ -40,9 +40,9 @@ o lote completo usando o estado confirmado, nunca um cache de tentativas.
 | Frente | Entrada/saída necessária |
 | --- | --- |
 | LN | source canônico sem extensão, SHA-256 do arquivo, offset absoluto zero-based e registros que preservam todas as colunas |
-| MC | `destination_columns(source)` define colunas de negócio e técnicas; usar leitura de datas best_effort para JSONEachRow |
+| MC | `destination_columns(source)` define colunas de negócio e técnicas DuckDB; listas são serializadas como JSON |
 | MC | Obter `previous: record_identity → content_checksum` do estado confirmado e serializar a decisão/carga por identidade |
-| OV | Publicar `safe_summary()`: source/run/task/batch, status, duração, bytes de entrada e contagens; não publicar `.data` ou `.as_clickhouse_row()` |
+| OV | Publicar `safe_summary()`: source/run/task/batch, status, duração, bytes de entrada e contagens; não publicar `.data` ou `.as_duckdb_row()` |
 | VB | Importar os testes e o job `.gitlab/ci/transformation.yml` na suíte integrada; executar teste real de carga da frente MC |
 
 Integração LN→MG comprovada nos testes usa a implementação real do contrato
@@ -54,7 +54,7 @@ consolidar indicadores ou inferir correspondências entre sistemas.
 
 Python e biblioteca padrão mantêm compatibilidade com LN-02. Decimal evita
 perda binária nos percentuais; IDs são strings normalizadas sem float. Datas
-civis usam Date32 e horários usam UTC somente com informação explícita de
+civis usam DATE e horários usam UTC somente com informação explícita de
 fuso. `zoneinfo` identifica horários inválidos/ambíguos. As dependências de
 qualidade são fixadas separadamente e não entram no runtime.
 
@@ -62,7 +62,7 @@ Schema, conversões, validação, identidade, quarentena e adaptação de lotes 
 módulos separados. A identidade e a classificação de duplicatas são funções
 puras; não alteram estado antes da carga. O SQLite local fornece transação e
 chave única para rejeições por referência, com arquivo 0600. É um adaptador
-local de quarentena, não substituto do ClickHouse ou do armazenamento central.
+local de quarentena, não substituto do DuckDB ou do armazenamento central.
 
 Participações não têm chave de evento homologada. Por isso, sua identidade é
 a ocorrência identificada por checksum e posição absoluta. Reentrega do mesmo

@@ -52,13 +52,7 @@ variáveis reais, lidas por `src/etl/extraction/config.py` e
 | `ETL_DUCKDB_THREADS` / `ETL_DUCKDB_MEMORY_LIMIT` | — | Tuning da conexão DuckDB (ausente = padrão do DuckDB) |
 | `ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS` | `300` | Espera pelo lock de escrita do arquivo |
 
-Duas variáveis adicionais existem fora do `.env.example`:
-
-- `DUCKDB_PATH`: lida diretamente pelo flow `ingest_object`
-  (`src/etl/orchestration/flow.py`) para decidir o arquivo de destino; sem ela,
-  o flow grava em `warehouse.duckdb` no diretório de execução. No runner do
-  Compose ela é `/data/warehouse.duckdb`.
-- `ETL_MINIO_SECURE`: presente no ambiente do runner no `docker-compose.yml`.
+No runner do Compose, `ETL_DUCKDB_PATH` é `/data/warehouse.duckdb`, em volume persistente. Flow e repositório usam esse mesmo contrato de configuração; o TLS do MinIO é derivado do esquema do endpoint.
 
 Detalhes e regras de validação: [`configuracao-extracao.md`](configuracao-extracao.md).
 
@@ -175,9 +169,7 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 Suíte `unittest` em `tests/` (216 testes em 11/09/2026), organizada por camada
 (`extraction`, `transformation`, `load`, `orchestration`, `e2e`, `fixtures`).
 Testes que dependem de `duckdb` ou
-`minio` são pulados quando a dependência não está instalada; o contrato com
-ClickHouse (`tests/transformation/test_clickhouse_contract.py`) é opt-in e só
-roda com `ETL_TEST_CLICKHOUSE=1` e Docker local. Estratégia completa:
+`minio` são pulados quando a dependência não está instalada; o contrato `tests/transformation/test_duckdb_contract.py` valida os seis schemas em um DuckDB real. Estratégia completa:
 [`estrategia-de-testes.md`](estrategia-de-testes.md).
 
 ## Integração contínua
@@ -203,7 +195,7 @@ os mesmos comandos.
 | `connection refused` no runner | MinIO ainda não está saudável | `docker compose ps`; aguardar o healthcheck do `minio` e o log do `createbucket` |
 | `bucket does not exist` | `createbucket` falhou | `docker compose logs createbucket`; o bucket é criado com `--ignore-existing`, basta `docker compose up -d` de novo |
 | Erro de credencial no MinIO | `ETL_MINIO_ACCESS_KEY`/`SECRET_KEY` erradas | conferir `.env` e o ambiente do runner (`minioadmin`/`minioadmin` no Compose) |
-| `ETL_DUCKDB_PATH`/`DUCKDB_PATH` recusado | caminho aponta para diretório, contém `..` ou é `:memory:` | apontar para um arquivo; caminhos relativos partem do diretório de execução |
+| `ETL_DUCKDB_PATH` recusado | caminho aponta para diretório, contém `..` ou é `:memory:` | apontar para um arquivo; caminhos relativos partem do diretório de execução |
 | Lock de escrita no DuckDB | outro processo com o arquivo aberto | o arquivo aceita um escritor por vez; fechar a outra conexão ou aguardar `ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS` |
 | CSV malformado | linhas inválidas da fonte | a transformação rejeita por linha com motivo em `rejected`/`rejected_reason`; o lote não cai — a reconciliação em `_batch_metadata` mostra quantos foram rejeitados |
 | Objeto reenviado é ignorado (`status: ignored`) | idempotência por hash do objeto | comportamento esperado; para forçar, use `run_backfill.py --reprocess` (a dedup por linha protege) |

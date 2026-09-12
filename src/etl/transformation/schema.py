@@ -5,22 +5,22 @@ from dataclasses import dataclass
 SCHEMA_VERSION = "1.0"
 
 TECHNICAL_COLUMNS = {
-    "source": "String",
-    "run_id": "String",
-    "task_id": "String",
-    "batch_id": "String",
-    "source_checksum": "FixedString(64)",
-    "source_offset": "UInt64",
-    "content_checksum": "FixedString(64)",
-    "record_identity": "FixedString(64)",
-    "idempotency_key": "FixedString(64)",
-    "ingested_at": "DateTime64(6, 'UTC')",
-    "schema_version": "String",
+    "source": "VARCHAR",
+    "run_id": "VARCHAR",
+    "task_id": "VARCHAR",
+    "batch_id": "VARCHAR",
+    "source_checksum": "VARCHAR",
+    "source_offset": "UBIGINT",
+    "content_checksum": "VARCHAR",
+    "record_identity": "VARCHAR",
+    "idempotency_key": "VARCHAR",
+    "ingested_at": "TIMESTAMP",
+    "schema_version": "VARCHAR",
 }
 
 
 def destination_columns(source):
-    return {**{f.name: f.clickhouse_type for f in SCHEMAS[source]}, **TECHNICAL_COLUMNS}
+    return {**{f.name: f.duckdb_type for f in SCHEMAS[source]}, **TECHNICAL_COLUMNS}
 
 
 @dataclass(frozen=True)
@@ -32,20 +32,21 @@ class Field:
     sentinels: tuple[str, ...] = ()
 
     @property
-    def clickhouse_type(self) -> str:
+    def duckdb_type(self) -> str:
         base = {
-            "text": "String",
-            "id": "String",
-            "integer": "Int64",
-            "decimal": "Decimal(18, 6)",
-            "percent": "Decimal(18, 6)",
-            "date": "Date32",
-            "datetime": "DateTime64(6, 'UTC')",
-            "boolean": "Bool",
-            "list": "Array(String)",
+            "text": "VARCHAR",
+            "id": "VARCHAR",
+            "integer": "BIGINT",
+            "decimal": "DECIMAL(18, 6)",
+            "percent": "DECIMAL(18, 6)",
+            "date": "DATE",
+            "datetime": "TIMESTAMP",
+            "boolean": "BOOLEAN",
+            # A carga serializa listas como JSON para preservar o contrato
+            # enquanto a camada de ingestão permanece tabular.
+            "list": "VARCHAR",
         }[self.kind]
-        # Nullable(Array) is not a ClickHouse type: absent lists become [].
-        return base if self.required or self.kind == "list" else f"Nullable({base})"
+        return base
 
 
 def field(origin, name=None, kind="text", required=False, sentinels=()):

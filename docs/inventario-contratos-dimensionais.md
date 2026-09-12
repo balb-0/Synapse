@@ -36,10 +36,7 @@ A partir dessa fronteira, este documento cobre:
   e o contrato de transformação já declara que nenhuma agregação é produzida
   na ingestão. Propor essa definição fica pra uma etapa de modelagem
   analítica.
-- **Traduzir tipo ClickHouse → DuckDB.** O contrato de transformação declara
-  tipo por campo com destino ClickHouse, desatualizado desde a adoção do
-  DuckDB (ADR 0001). A tradução para o tipo físico DuckDB é decisão de quem
-  implementar a tabela de ingestão, não deste inventário.
+- **Traduzir tipos.** Não é necessário: o contrato de transformação declara diretamente tipos DuckDB.
 - **Resolver os achados de nomenclatura e derivação** listados nas tabelas
   abaixo (`ano_edicao`, `regiao`, "cliente" vs. "pessoa"). Ficam registrados
   como constatação; a decisão acontece na implementação da tabela de
@@ -69,19 +66,17 @@ branch principal do repositório.
 
 | Tipo lógico | Representação Python | Destino declarado | Regra |
 | :--- | :--- | :--- | :--- |
-| `id` | str de dígitos normalizados | `String` | Inteiro não negativo, sem float intermediário |
-| `integer` | `int` | `Int64` | Sem parte fracionária |
-| `decimal` | `Decimal` | `Decimal(18, 6)` | Máximo seis casas, sem arredondamento silencioso |
-| `percent` | `Decimal` | `Decimal(18, 6)` | Pontos percentuais em 0..100 |
-| `date` | `date` | `Date32` | Data civil, sem hora inventada |
-| `datetime` | `datetime` UTC | `DateTime64(6, 'UTC')` | Fuso explícito obrigatório |
-| `boolean` | `bool` | `Bool` | Mapa fechado sim/não, true/false |
-| `text` | `str` | `String` | Unicode NFC, sem espaços externos |
-| `list` | `list[str]` | `Array(String)` | Ausência produz `[]`, não nulo |
+| `id` | str de dígitos normalizados | `VARCHAR` | Inteiro não negativo, sem float intermediário |
+| `integer` | `int` | `BIGINT` | Sem parte fracionária |
+| `decimal` | `Decimal` | `DECIMAL(18, 6)` | Máximo seis casas, sem arredondamento silencioso |
+| `percent` | `Decimal` | `DECIMAL(18, 6)` | Pontos percentuais em 0..100 |
+| `date` | `date` | `DATE` | Data civil, sem hora inventada |
+| `datetime` | `datetime` UTC | `TIMESTAMP` | Fuso explícito obrigatório |
+| `boolean` | `bool` | `BOOLEAN` | Mapa fechado sim/não, true/false |
+| `text` | `str` | `VARCHAR` | Unicode NFC, sem espaços externos |
+| `list` | `list[str]` | `VARCHAR (JSON)` | Ausência produz `[]`, não nulo |
 
-A coluna "Destino declarado" é ClickHouse (`clickhouse_type`, literal no
-código), desatualizado desde a ADR 0001. A tradução está listada em "Fora de
-escopo" acima.
+A coluna "Destino declarado" é DuckDB (`duckdb_type`, literal no código) e corresponde ao schema físico de ingestão.
 
 ## Nomes que a ingestão precisa preservar
 

@@ -21,7 +21,7 @@ class AcceptedRecord:
     data: dict = field(repr=False)
     metadata: dict = field(repr=False)
 
-    def as_clickhouse_row(self):
+    def as_duckdb_row(self):
         return {**json_value(self.data), **self.metadata}
 
 

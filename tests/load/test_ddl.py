@@ -76,14 +76,13 @@ class DdlContractTests(unittest.TestCase):
             with self.subTest(term=term):
                 self.assertNotIn(term, ddl)
 
-    def test_translates_canonical_types_to_duckdb(self) -> None:
-        self.assertEqual(duckdb_type("String"), "VARCHAR")
-        self.assertEqual(duckdb_type("Int64"), "BIGINT")
-        self.assertEqual(duckdb_type("Decimal(18, 6)"), "DECIMAL(18, 6)")
-        self.assertEqual(duckdb_type("DateTime64(6, 'UTC')"), "TIMESTAMP")
-        self.assertEqual(duckdb_type("FixedString(64)"), "VARCHAR")
-        self.assertEqual(duckdb_type("Array(String)"), "VARCHAR")
-        self.assertEqual(duckdb_type("Nullable(Bool)"), "BOOLEAN")
+    def test_accepts_only_duckdb_types_from_the_canonical_contract(self) -> None:
+        self.assertEqual(duckdb_type("VARCHAR"), "VARCHAR")
+        self.assertEqual(duckdb_type("BIGINT"), "BIGINT")
+        self.assertEqual(duckdb_type("DECIMAL(18, 6)"), "DECIMAL(18, 6)")
+        self.assertEqual(duckdb_type("TIMESTAMP"), "TIMESTAMP")
+        with self.assertRaises(ValueError):
+            duckdb_type("String")
 
     def test_rejects_unexpected_identifier(self) -> None:
         with self.assertRaisesRegex(ValueError, "identificador inválido"):

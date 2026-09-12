@@ -91,14 +91,7 @@ ingestão nem para os objetos da área de entrada. É pendência registrada no A
 | `ETL_DUCKDB_THREADS` | `load_duckdb_settings` | Padrão do DuckDB |
 | `ETL_DUCKDB_MEMORY_LIMIT` | `load_duckdb_settings` | Padrão do DuckDB |
 | `ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS` | `load_duckdb_settings` | 300 |
-| `DUCKDB_PATH` | `ingest_object`, diretamente | `warehouse.duckdb` |
-
-**Divergência observada:** o `docker-compose.yml` define `DUCKDB_PATH` e
-`ETL_MINIO_SECURE`. O primeiro é lido apenas por `ingest_object`, enquanto
-`load_duckdb_settings()` — que fornece os parâmetros de tuning da mesma
-conexão — lê `ETL_DUCKDB_PATH`. O segundo não é lido por nenhum módulo, já que o
-TLS é derivado do esquema do endpoint. Na prática, caminho do arquivo e tuning
-podem vir de origens diferentes na mesma execução.
+O flow e o repositório leem o mesmo `ETL_DUCKDB_PATH`; no Compose ele aponta para `/data/warehouse.duckdb`. O TLS do MinIO é derivado do esquema do endpoint.
 
 ## Orquestração
 
@@ -202,10 +195,10 @@ reconciliação no DuckDB e o histórico de runs do Prefect.
 
 | Camada | Testes locais | Coberta pelo CI |
 | :--- | :--- | :--- |
-| Extração | 10 módulos em `tests/extraction/` | Não |
-| Transformação | 2 módulos em `tests/transformation/` | Sim, com cobertura mínima de 90% |
-| Carga | 7 módulos em `tests/load/` | Não |
-| Orquestração | Nenhum | Não |
+| Extração | Módulos em `tests/extraction/` | Sim |
+| Transformação | Módulos em `tests/transformation/` | Sim |
+| Carga | Módulos em `tests/load/` | Sim |
+| Orquestração | Módulos em `tests/orchestration/` e `tests/e2e/` | Sim |
 
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests
@@ -217,6 +210,7 @@ PYTHONPATH=src python -m unittest discover -s tests
   implementação.
 - A observabilidade prevista no ADR 0001 não pode ser exercitada no ambiente
   declarado, que não inclui a Elastic Stack.
-- O fluxo orquestrado não tem teste automatizado: retry, timeout, retomada e
-  idempotência são verificados nas camadas inferiores, não no flow.
+- Os testes do flow substituem apenas o armazenamento de objetos por leitor em
+  memória; a integração real com MinIO requer Docker e permanece como smoke
+  operacional documentado.
 - O agendamento não sobrevive à parada do processo que o serve.

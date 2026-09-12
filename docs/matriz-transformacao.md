@@ -28,7 +28,7 @@ confundida com a quantidade de registros rejeitados.
 | R13 participação sem chave de evento | source_checksum + source_offset | `test_participation_occurrences_are_not_collapsed` | Ocorrências diferentes preservadas; mesma ocorrência gera mesma chave |
 | R14 quarentena e privacidade | ledger de rejeições | `test_logs_and_quarantine_do_not_contain_raw_values`, `test_quarantine_failure_does_not_consume_batch`, `test_quarantine_rejects_unsafe_paths` | Falha de persistência propagada; checkpoint não confirmado |
 | R15 ingestão separada | ingested_at, run_id, batch_id, checksums | `test_configuration_errors_fail_before_processing`, `test_participation_occurrences_are_not_collapsed` | Configuração inválida interrompe o lote |
-| R16 compatibilidade | seis schemas + metadados | `test_six_schemas_accept_transformed_rows` em `test_clickhouse_contract.py` | Erro real de leitura pelo ClickHouse falha o teste |
+| R16 compatibilidade | seis schemas + metadados | `test_six_schemas_accept_transformed_rows` em `test_duckdb_contract.py` | Erro real de inserção no DuckDB falha o teste |
 | Domínio booleano | empresas.associado | `test_boolean_closed_domain` | `INVALID_BOOLEAN` |
 | JSON/listas | questoes.alternativas/linhas_matriz/colunas_matriz | `test_lists_and_unicode` | `INVALID_JSON_LIST`, `EMPTY_LIST_ITEM` |
 | Tipo e número de alternativas | questoes.tipo/qtd_alternativas | `test_question_schema_errors`, `test_matrix_count_is_cells_not_alternatives` | `UNKNOWN_QUESTION_TYPE`, `ALTERNATIVE_COUNT_MISMATCH` |
@@ -47,19 +47,7 @@ PYTHONPATH=src .venv/bin/coverage run --branch --source=etl.transformation -m un
 PYTHONPATH=src python scripts/transformation/render_schema.py --check
 ```
 
-Teste de compatibilidade real, isolado e sem rede, exige Docker e a imagem
-ClickHouse identificada por digest no arquivo de teste:
-
-```bash
-docker pull clickhouse/clickhouse-server@sha256:800e82865530eb2f1c4bc1b960e43b435fd9b2d83b4bd04a2564a5cfd88fdb6e
-PYTHONPATH=src ETL_TEST_CLICKHOUSE=1 .venv/bin/python -m unittest tests.transformation.test_clickhouse_contract -v
-```
-
-O teste real usa ClickHouse local 26.7.5.10. Valida leitura tipada das seis
-saídas JSONEachRow, incluindo Decimal, Date32, DateTime64, Nullable e Array.
-Não é uma prova de persistência, de carga concorrente ou de orquestração.
-No CI padrão esse teste é explicitamente opt-in; os demais testes são
-obrigatórios. A carga integrada e seus testes pertencem a MC/VB.
+O teste de compatibilidade real usa DuckDB em memória, sem Docker ou rede. Ele valida a inserção tipada das seis saídas, incluindo DECIMAL, DATE, TIMESTAMP e listas serializadas como JSON. A persistência, concorrência e orquestração são verificadas nas suítes de carga e orquestração.
 
 ## Evidência sobre o snapshot local anterior à v3
 
