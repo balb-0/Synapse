@@ -46,6 +46,7 @@ from etl.load.ddl import (
     table_statements,
     view_statements,
 )
+from etl.load.log_events import LoadBatchLogEvent, LoadLogSink, StandardLoggingSink
 from etl.transformation.pipeline import TransformationResult
 from etl.transformation.quarantine import RejectedRecord
 from etl.transformation.schema import destination_columns
@@ -122,9 +123,11 @@ class DuckDbLoadRepository:
         threads: int | None = None,
         memory_limit: str | None = None,
         write_lock_timeout_seconds: float = DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS,
+        log_sink: LoadLogSink | None = None,
     ) -> None:
         self._database = str(database)
         self._conn = _connect_with_retry(self._database, write_lock_timeout_seconds)
+        self._log_sink = log_sink or StandardLoggingSink()
         self._apply_connection_tuning(threads, memory_limit)
         self._ensure_schema()
 
@@ -270,7 +273,12 @@ class DuckDbLoadRepository:
         em vez de falhar. Não é ``INSERT OR REPLACE`` — a tabela tem PK e
         UNIQUE separados, e o DuckDB recusa resolver os dois sem um alvo de
         conflito explícito. Ver ADR 0003.
+
+        Ao final, publica um log técnico do lote no mesmo formato que a
+        extração já usa (ADR 0001): um evento, sem os registros. A duração
+        cobre a transação inteira, não só o insert principal.
         """
+        started = time.monotonic()
         source = metadata.source
         columns = list(destination_columns(source))
         placeholders = ", ".join("?" for _ in columns)
@@ -293,11 +301,10 @@ class DuckDbLoadRepository:
             self._converge_previous_rejections(metadata)
             self._record_rejections(result.rejected)
             loaded, rejected_count = self._confirmed_counts(metadata)
+            status = BATCH_STATUS_LOADED_WITH_REJECTIONS if result.rejected else BATCH_STATUS_LOADED
             self._record_batch(
                 metadata,
-                status=(
-                    BATCH_STATUS_LOADED_WITH_REJECTIONS if result.rejected else BATCH_STATUS_LOADED
-                ),
+                status=status,
                 accepted=loaded,
                 rejected=rejected_count,
                 duplicated=len(result.duplicates),
@@ -306,8 +313,9 @@ class DuckDbLoadRepository:
         except Exception:
             self._conn.execute("ROLLBACK")
             self._record_failed_batch(metadata)
+            self._log_failed_batch(result, metadata, started)
             raise
-        return LoadResult(
+        outcome = LoadResult(
             source=source,
             run_id=metadata.run_id,
             batch_id=metadata.batch_id,
@@ -316,6 +324,11 @@ class DuckDbLoadRepository:
             rejected=rejected_count,
             duplicates=len(result.duplicates),
         )
+        duration_ms = round((time.monotonic() - started) * 1000, 3)
+        self._emit_log(
+            LoadBatchLogEvent.from_result(outcome, metadata, status=status, duration_ms=duration_ms)
+        )
+        return outcome
 
     def _confirmed_counts(self, metadata: BatchMetadata) -> tuple[int, int]:
         """Conta o que o banco tem para este lote, não o que ficou em memória.
@@ -457,6 +470,45 @@ class DuckDbLoadRepository:
             # falhado; preserva-se o motivo do lote ter falhado, que é o que
             # permite agir. O `status` do lote fica ausente, e a execução
             # aparece como não conciliada pela diferença de contagem.
+            pass
+
+    def _log_failed_batch(
+        self, result: TransformationResult, metadata: BatchMetadata, started: float
+    ) -> None:
+        """Publica o evento técnico do lote perdido.
+
+        Mesmas contagens zeradas de :meth:`_record_failed_batch`: sem isto, a
+        falha nunca chega à plataforma de observabilidade como um evento — só
+        como a linha ``falha`` em ``_batch_metadata``, e a ADR 0001 pede o
+        estado final de cada lote no log, não só na tabela de controle.
+        """
+        outcome = LoadResult(
+            source=metadata.source,
+            run_id=metadata.run_id,
+            batch_id=metadata.batch_id,
+            extracted=result.metrics["extracted_count"],
+            loaded=0,
+            rejected=0,
+            duplicates=0,
+        )
+        duration_ms = round((time.monotonic() - started) * 1000, 3)
+        self._emit_log(
+            LoadBatchLogEvent.from_result(
+                outcome, metadata, status=BATCH_STATUS_FAILED, duration_ms=duration_ms
+            )
+        )
+
+    def _emit_log(self, event: LoadBatchLogEvent) -> None:
+        """Publica no sink sem deixar uma falha de telemetria virar falha da carga.
+
+        A mesma garantia do ADR 0001 vale para o log que vale para o registro em
+        ``_batch_metadata``: o mecanismo de observabilidade não pode corromper
+        nem confirmar uma carga incompleta — aqui, isso quer dizer não impedir o
+        retorno (ou a propagação do erro real) por um sink fora do ar.
+        """
+        try:
+            self._log_sink.emit(event)
+        except Exception:
             pass
 
     def _insert(self, table: str, columns: tuple[str, ...], values: dict[str, Any]) -> None:

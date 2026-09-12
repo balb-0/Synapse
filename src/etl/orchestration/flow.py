@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import time
 from datetime import datetime, timezone
 
 from prefect import flow, get_run_logger, task
@@ -43,6 +44,25 @@ EXTRACTORS = {
     "respondentes": RespondentesExtractor,
     "respostas": RespostasExtractor,
 }
+
+ORCHESTRATION_STAGE = "orchestration"
+EXTRACT_TASK_EVENT = "orchestration.extract.emitted"
+TRANSFORM_TASK_EVENT = "orchestration.transform.emitted"
+LOAD_TASK_EVENT = "orchestration.load.emitted"
+INGEST_OBJECT_EVENT = "orchestration.ingest_object.emitted"
+BACKFILL_EVENT = "orchestration.backfill.emitted"
+
+
+def _log_event(logger, event: str, **attributes: object) -> None:
+    """Publica um marco no mesmo formato técnico da extração e da carga (ADR 0001).
+
+    A mensagem é o próprio nome do evento — nada interpolado nela — e os
+    atributos de correlação e contagem vão em ``extra``, consultáveis por
+    campo depois que o log chegar à plataforma de observabilidade. ``None``
+    fica de fora, como em ``ExtractionBatchLogEvent.as_dict``/``LoadBatchLogEvent.as_dict``.
+    """
+    payload = {"event": event, "stage": ORCHESTRATION_STAGE, **attributes}
+    logger.info(event, extra={key: value for key, value in payload.items() if value is not None})
 
 
 def _minio_client(settings):
@@ -140,16 +160,26 @@ def _should_retry(task, task_run, state) -> bool:
 def extract(reader, reference, source: str, run_id: str, checkpoint=None) -> list:
     """Lê o objeto do MinIO (retomando do checkpoint, se houver) e emite os lotes."""
     logger = get_run_logger()
+    started = time.monotonic()
     extractor = EXTRACTORS[source](object_reader=reader, object_reference=reference)
     batches = list(extractor.read(run_id=run_id, checkpoint=checkpoint))
-    logger.info("extract concluído: %d lote(s) de '%s'", len(batches), source)
+    _log_event(
+        logger,
+        EXTRACT_TASK_EVENT,
+        status="success",
+        source=source,
+        run_id=run_id,
+        batch_count=len(batches),
+        duration_ms=round((time.monotonic() - started) * 1000, 3),
+    )
     return batches
 
 
 @task(timeout_seconds=120, cache_policy=NO_CACHE)
-def transform(batches: list, source: str, references, previous: dict) -> list:
+def transform(batches: list, source: str, references, previous: dict, run_id: str) -> list:
     """Transforma cada lote; acumula o offset absoluto entre lotes."""
     logger = get_run_logger()
+    started = time.monotonic()
     ingested_at = datetime.now(timezone.utc)
     results, offset = [], 0
     for batch in batches:
@@ -163,7 +193,15 @@ def transform(batches: list, source: str, references, previous: dict) -> list:
         offset += len(batch.records)
         results.append((result, batch.metadata, batch.checkpoint))
     total = sum(r.metrics["accepted_count"] for r, _, _ in results)
-    logger.info("transform concluído: %d registro(s) aceito(s)", total)
+    _log_event(
+        logger,
+        TRANSFORM_TASK_EVENT,
+        status="success",
+        source=source,
+        run_id=run_id,
+        accepted_count=total,
+        duration_ms=round((time.monotonic() - started) * 1000, 3),
+    )
     return results
 
 
@@ -174,7 +212,7 @@ def transform(batches: list, source: str, references, previous: dict) -> list:
 # retomada. Uma hora acomoda objetos na casa das centenas de milhares de
 # registros sem remover o limite, que continua existindo.
 @task(timeout_seconds=3600, cache_policy=NO_CACHE)
-def load(db_path: str, results: list, tuning: dict) -> list:
+def load(db_path: str, results: list, tuning: dict, *, source: str, run_id: str) -> list:
     """Grava aceitos e rejeitados no DuckDB, reconciliando as contagens lote a lote.
 
     O checkpoint de cada lote é confirmado assim que o próprio lote termina de
@@ -183,16 +221,32 @@ def load(db_path: str, results: list, tuning: dict) -> list:
     checkpoint dele nem dos que viriam depois — mas preserva o checkpoint dos
     lotes já confirmados, que é de onde a próxima tentativa deste objeto
     retoma a extração.
+
+    O evento técnico de cada lote já é publicado pelo próprio repositório
+    (``etl.load.log_events``); aqui só o resumo da task, um marco por
+    execução, não por lote.
     """
     logger = get_run_logger()
+    started = time.monotonic()
     with DuckDbLoadRepository(db_path, **tuning) as repo:
         reconciliations = []
         for result, metadata, checkpoint in results:
             outcome = repo.load_batch(result, metadata)
             repo.commit(checkpoint)
             reconciliations.append(outcome.as_dict())
-            logger.info("load: %s", outcome.as_dict())
-        return reconciliations
+    _log_event(
+        logger,
+        LOAD_TASK_EVENT,
+        status="success",
+        source=source,
+        run_id=run_id,
+        batch_count=len(reconciliations),
+        loaded_count=sum(r["loaded"] for r in reconciliations),
+        rejected_count=sum(r["rejected"] for r in reconciliations),
+        duplicate_count=sum(r["duplicates"] for r in reconciliations),
+        duration_ms=round((time.monotonic() - started) * 1000, 3),
+    )
+    return reconciliations
 
 
 @flow(name="ingest-object")
@@ -212,6 +266,7 @@ def ingest_object(
     controlado); a deduplicação por linha continua protegendo contra duplicata.
     """
     logger = get_run_logger()
+    started = time.monotonic()
     if source not in EXTRACTORS:
         raise ValueError(f"fonte desconhecida: {source!r}")
     db_path = db_path or os.environ.get("DUCKDB_PATH", "warehouse.duckdb")
@@ -221,37 +276,64 @@ def ingest_object(
     reference = ObjectReference(bucket=bucket, key=key, version_id=version_id)
 
     checksum = _object_checksum(reader, reference)
+    run_id = event_id or checksum[:16]
     tuning = _connection_tuning()
     with DuckDbLoadRepository(db_path, **tuning) as repo:
         if repo.object_already_loaded(checksum):
             if not reprocess:
-                logger.info("objeto %s já concluído (hash %s) — ignorado", key, checksum[:12])
+                _log_event(
+                    logger,
+                    INGEST_OBJECT_EVENT,
+                    status="ignored",
+                    source=source,
+                    run_id=run_id,
+                    object_key=key,
+                    source_checksum=checksum,
+                    duration_ms=round((time.monotonic() - started) * 1000, 3),
+                )
                 return {"status": "ignored", "source": source, "source_checksum": checksum}
             # A proteção por linha depende de a deduplicação e a tabela
             # `_loaded_identity` concordarem sobre o que é identidade. Ao
             # aceitar correção como versão nova, rechavear o controle pela
             # identidade de idempotência antes de confiar nesta linha:
             # docs/adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md
-            logger.info("reprocess: ignorando controle de objeto %s; dedup por linha protege", key)
+            _log_event(
+                logger,
+                INGEST_OBJECT_EVENT,
+                status="reprocess",
+                source=source,
+                run_id=run_id,
+                object_key=key,
+                source_checksum=checksum,
+                duration_ms=round((time.monotonic() - started) * 1000, 3),
+            )
         references = _build_references(repo, source)
         previous = repo.loaded_identities(source)
         checkpoint = repo.load(source)  # retomada: posição confirmada anterior
         if checkpoint and checkpoint.source_version != f"sha256:{checksum}":
             checkpoint = None  # checkpoint é de outra versão do objeto: lê do início
 
-    batches = extract(
-        reader, reference, source, run_id=event_id or checksum[:16], checkpoint=checkpoint
-    )
-    results = transform(batches, source, references, previous)
-    reconciliations = load(db_path, results, tuning)
+    batches = extract(reader, reference, source, run_id=run_id, checkpoint=checkpoint)
+    results = transform(batches, source, references, previous, run_id)
+    reconciliations = load(db_path, results, tuning, source=source, run_id=run_id)
 
     with DuckDbLoadRepository(db_path, **tuning) as repo:
         # O checkpoint de cada lote já foi confirmado dentro de `load`, lote a
         # lote; só falta marcar o objeto inteiro como concluído.
-        repo.mark_object_loaded(source, checksum, event_id or checksum[:16])
+        repo.mark_object_loaded(source, checksum, run_id)
 
     loaded = sum(r["loaded"] for r in reconciliations)
-    logger.info("ingestão concluída: %d registro(s) carregado(s) de '%s'", loaded, source)
+    _log_event(
+        logger,
+        INGEST_OBJECT_EVENT,
+        status="loaded",
+        source=source,
+        run_id=run_id,
+        object_key=key,
+        source_checksum=checksum,
+        loaded_count=loaded,
+        duration_ms=round((time.monotonic() - started) * 1000, 3),
+    )
     return {
         "status": "loaded",
         "source": source,
@@ -275,7 +357,14 @@ def backfill(
     no histórico do run do Prefect. Cada fonte roda como um subflow `ingest-object`.
     """
     logger = get_run_logger()
-    logger.info("backfill: fontes=%s prefixo=%s reprocess=%s", sources, prefix, reprocess)
+    _log_event(
+        logger,
+        BACKFILL_EVENT,
+        status="started",
+        sources=list(sources),
+        prefix=prefix,
+        reprocess=reprocess,
+    )
     resultados = []
     for source in sources:
         key = f"{prefix}/{source}.csv"

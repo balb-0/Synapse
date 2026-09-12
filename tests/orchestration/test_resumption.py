@@ -96,7 +96,9 @@ class LoadCommitsTheCheckpointBatchByBatchTests(unittest.TestCase):
         self.addCleanup(logger_patch.stop)
 
     def _load(self, results: list) -> list:
-        return flow_module.load.fn(str(self.database_path), results, {})
+        return flow_module.load.fn(
+            str(self.database_path), results, {}, source="pesquisas", run_id="run-1"
+        )
 
     def _checkpoint(self):
         with DuckDbLoadRepository(self.database_path) as repo:
@@ -180,7 +182,7 @@ class TransformForwardsTheBatchCheckpointTests(unittest.TestCase):
     def test_each_result_carries_its_own_batch_checkpoint(self) -> None:
         batch = _batch([{"id": "1", "titulo": "A"}], sequence=1)
 
-        results = flow_module.transform.fn([batch], "pesquisas", ReferenceData({}), {})
+        results = flow_module.transform.fn([batch], "pesquisas", ReferenceData({}), {}, "run-1")
 
         self.assertEqual(len(results), 1)
         _, metadata, checkpoint = results[0]
