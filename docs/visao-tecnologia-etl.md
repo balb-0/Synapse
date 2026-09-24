@@ -120,6 +120,20 @@ de 85% — extração, carga e orquestração incluídas.
 **Não há Deploy Contínuo.** Nenhum job publica imagem, aplica migração ou promove
 versão, em conformidade com a exclusão do enunciado.
 
+### Artefatos tecnológicos verificáveis
+
+| Artefato | Produtor | Consumidor | Retenção/publicação |
+| :--- | :--- | :--- | :--- |
+| `coverage-etl.xml` | job `test` | relatório de cobertura do GitLab | artefato do pipeline |
+| DDL de ingestão | `scripts/load/render_ddl.py` | DuckDB e revisão de schema | versionado em `sql/duckdb/` |
+| Logs JSON de lote | sinks padrão do ETL | stdout e futuro coletor | sem retenção central configurada |
+| Histórico de flow runs | Prefect servido | operador pela UI/CLI | depende da persistência do servidor |
+| Imagens Docker | build local/CI | runner ETL | não publicadas por este pipeline |
+
+O gate automatiza lint, testes, schema e cobertura. Ele não valida preço de
+infraestrutura, disponibilidade do servidor, retenção de logs nem promoção para
+produção; esses limites pertencem ao runbook e à estimativa de custos.
+
 ## Divergências observadas
 
 Registradas porque a visão precisa refletir os arquivos, inclusive quando eles
