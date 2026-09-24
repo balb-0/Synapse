@@ -29,4 +29,20 @@ As classificações usadas são:
 | D04 | `visao-engenharia-etl.md` descreve execução local e não apresenta servidor Prefect servido. | `scripts/orchestration/deployment.py` usa `ingest_object.serve()` com cron `0 3 * * *`; o Compose não inicia esse script automaticamente. | Defasagem documental com limite operacional. | AR-04 deve registrar o modo servido e explicitar que o operador ainda o inicia. |
 | D05 | A visão de engenharia trata telemetria centralizada como planejada. | Há eventos estruturados em `extraction/log_events.py` e `load/log_events.py`, mas nenhum coletor está configurado no Compose. | Implementação parcial. | AR-04 deve separar emissão local de coleta, painel e alertas. |
 | D06 | A visão de tecnologia registra intervalos de versão como se fossem uma pilha reprodutível. | `requirements.txt` usa `minio>=7.2,<8`, `prefect>=3,<4` e `duckdb>=1.1`. | Lacuna de reprodutibilidade dependente de OQ-09. | AR-05 deve citar a política real e não declarar versões exatas antes da fixação. |
+| D07 | `visao-negocio-etl.md` limita o resultado à ingestão tratada e não descreve o consumo por BI. | Não há adaptador de publicação analítica na base; os cubos existem como contrato em `docs/dmc.json`. | Lacuna de implementação dependente de CB-08/CB-09. | AR-06 deve separar valor pretendido, indicador publicável e dado ainda indisponível. |
+| D08 | `casos-de-uso-etl.plantuml` não contém acompanhamento de execução servida nem consumo analítico. | `deployment.py` expõe execução agendada/manual; não existe consumo BI executável em `develop`. | Defasagem documental e lacuna parcial. | AR-07 deve acrescentar a operação servida e representar BI com a condição correta. |
+| D09 | `componentes-etl.plantuml` não evidencia o sink de logs da carga nem a fronteira do deployment servido. | `DuckDbLoadRepository` aceita `LoadLogSink`; `deployment.py` serve `ingest_object`. | Defasagem documental. | AR-07 deve mostrar interfaces de telemetria e a entrada do servidor Prefect. |
+| D10 | `sequencia-ingestao-etl.plantuml` confirma o checkpoint apenas ao fim do objeto, sem explicitar a relação com cada lote persistido. | O fluxo chama `load_batch()` por lote e somente depois `repository.commit(batch.checkpoint)`; falhas impedem a confirmação do lote atual. | Defasagem de granularidade do diagrama. | AR-08 deve mostrar o ciclo carregar → reconciliar → confirmar para cada lote. |
+| D11 | Os diagramas são referenciados apenas como fontes PlantUML. | `docs/assets/uml/` não contém renderizações PNG ou SVG dos três diagramas. | Lacuna de publicação. | AR-07/AR-08 devem versionar imagens renderizadas e manter os fontes. |
+| D12 | A visão computacional afirma “19 suítes de testes”. | A árvore `tests/` muda ao longo da sprint e a contagem não é derivada automaticamente. | Defasagem documental recorrente. | AR-03 deve evitar contagem volátil ou vinculá-la a um comando reproduzível. |
 
+## Itens coerentes verificados
+
+- A separação `extraction` → `transformation` → `load` → `orchestration`
+  corresponde à estrutura real de pacotes em `src/etl/`.
+- O destino operacional é DuckDB e o repositório grava aceitos, rejeitados,
+  metadados de lote e checkpoint em transações explícitas.
+- O fluxo ignora objeto já concluído pelo checksum, salvo quando `reprocess` é
+  verdadeiro, de acordo com `_control_object`.
+- O agendamento documentado no script é diário às 03:00; ele não deve ser
+  confundido com um serviço já iniciado pelo Compose.
