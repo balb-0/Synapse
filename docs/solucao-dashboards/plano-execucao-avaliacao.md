@@ -31,3 +31,26 @@ Toda tarefa tem situação real, passos esperados, critério de sucesso
 observável e tempo aceitável; as métricas coletadas são conclusão, tempo,
 desvio de caminho, erros e a justificativa do número (blocos C/D).
 
+## 2. Execução
+
+**Estado em 23/09/2026:** as sessões **ainda não foram executadas**. A
+execução depende das telas dos reports (RP-08); as fichas de registro estão
+prontas nas frentes de execução
+(`docs/usabilidade/execucao-navegacao-detalhamento.md` e
+`docs/usabilidade/execucao-comparacao-segmentacao.md`, nas branches de
+US-06/US-07), com a identificação da rodada, tabelas por sessão e a
+conferência de precisão valor exibido × referência.
+
+Regras já fixadas para a execução (roteiro, §6):
+
+- fichas preenchidas **durante** a sessão, nunca de memória;
+- indisponibilidade das telas finais na janela → **piloto sobre o protótipo
+  D01–D04**, identificado como piloto na ficha, com reexecução nas telas
+  finais registrada separadamente;
+- nenhuma célula de resultado vazia, presumida ou copiada entre sessões.
+
+Esta seção será atualizada com a síntese das rodadas (taxa de conclusão por
+bloco, tarefas fora do tempo, desvios recorrentes, precisão dos valores)
+quando as fichas forem preenchidas — os números finais entram aqui **somente
+vindos das fichas**.
+
