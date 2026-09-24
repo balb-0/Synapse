@@ -76,6 +76,7 @@ g05/
 │  └─ traceability/                                   # Validação de rastreabilidade às fontes
 ├─ docker-compose.yml                                 # Ambiente local: MinIO + runner Prefect/DuckDB + Elastic Stack
 ├─ observability/logstash/pipeline/                   # Pipeline do coletor (GELF → Elasticsearch, OB-07)
+├─ observability/kibana/                              # Saved objects do painel operacional (OB-08)
 ├─ Dockerfile                                         # Imagem do runner do ETL
 ├─ requirements.txt                                   # Dependências de execução (minio, prefect, duckdb)
 ├─ .env.example                                       # Modelo das variáveis de ambiente do ETL

@@ -74,6 +74,8 @@ Serviços definidos em `docker-compose.yml`:
 - `logstash`: coletor (OB-07/ADR 0001); recebe UDP/GELF na porta 12201, decodifica
   o JSON de cada linha de log e grava em `etl-logs-YYYY.MM.dd` no Elasticsearch.
   Pipeline em `observability/logstash/pipeline/etl.conf`.
+- `kibana`: painel operacional (OB-08) na porta 5601, sem autenticação — mesmo
+  padrão de desenvolvimento local do Elasticsearch acima.
 
 O `runner` nunca fala com o Logstash: quem envia é o próprio driver de log
 `gelf` do Docker (configurado no serviço `runner`), por UDP — se o Logstash ou
@@ -84,6 +86,41 @@ coletados:
 ```bash
 curl -s 'http://localhost:9200/etl-logs-*/_search?pretty&size=5&sort=@timestamp:desc'
 ```
+
+### Painel operacional (Kibana, OB-08)
+
+O índice `etl-logs-*` já reúne os eventos das quatro camadas (extração, carga,
+transformação, orquestração — OB-06/OB-07). O painel só consulta esse índice;
+nenhuma camada do ETL fala com o Kibana. Objetos salvos (index pattern, 5
+visualizações e o dashboard) estão versionados em
+`observability/kibana/painel-operacional.ndjson`, gerados uma vez a partir do
+mapeamento de campos dos eventos (não foi possível confirmar a importação
+neste ambiente, sem Docker disponível — ver seção "O que não foi verificado").
+Para importar, com a stack no ar:
+
+```bash
+curl -s -X POST http://localhost:5601/api/saved_objects/_import?overwrite=true \
+  -H "kbn-xsrf: true" \
+  --form file=@observability/kibana/painel-operacional.ndjson
+```
+
+Abrir http://localhost:5601, ir em **Analytics → Dashboard → "ETL - Painel
+operacional de execucao (OB-08)"**. O painel mostra, por execução:
+
+- **status por etapa** (`etl-viz-status`: `stage` × `status`, contagem);
+- **duração por etapa** (`etl-viz-duracao`: média e máximo de `duration_ms`
+  agrupados por `stage`);
+- **volumes por fonte** (`etl-viz-volumes`: soma de `byte_count`,
+  `record_count`, `extracted_count`, `loaded_count`);
+- **rejeições e duplicatas** (`etl-viz-rejeicoes`: soma de `rejected_count` e
+  `duplicate_count` por fonte e etapa);
+- **tentativas de repetição** (`etl-viz-retries`: contagem e tentativa média
+  dos eventos `extraction.retry.emitted`/`load.connect_retry.emitted`, por
+  categoria/status).
+
+Se um painel aparecer vazio, é porque ainda não há eventos daquele tipo no
+índice (ex.: nenhuma tentativa de retry ocorreu ainda) — não é falha do
+painel.
 
 Verificar o banco de ingestão local (cria o arquivo se não existir e roda
 consulta smoke + verificação de persistência):
@@ -218,3 +255,4 @@ os mesmos comandos.
 | Falha transitória de leitura | timeout/instabilidade do MinIO | a extração já retenta (`ETL_EXTRACTION_MAX_ATTEMPTS`); o Prefect retenta só erro inesperado (`retries=2` na task `extract`) |
 | `DDL_DESATUALIZADA` no CI | contrato físico mudou sem regerar o SQL | `python scripts/load/render_ddl.py` e commitar `sql/duckdb/001_ingestao_tratada.sql` |
 | Nenhum log aparece no Elasticsearch | Logstash/Elasticsearch ainda subindo, ou pipeline com erro | `docker compose logs logstash`; a carga continua normalmente mesmo assim — o coletor é best-effort (ADR 0001) |
+| Painel do Kibana vazio ou import falha | Kibana ainda subindo, ou índice `etl-logs-*` sem dados ainda | aguardar o healthcheck do `kibana`; conferir se já existe pelo menos um log via `curl` no Elasticsearch antes de abrir o painel |

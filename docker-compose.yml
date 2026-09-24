@@ -1,5 +1,5 @@
 # Ambiente local do ETL orquestrado (OV-02): MinIO como entrada, o runner
-# Prefect/DuckDB e a Elastic Stack (observabilidade, OB-07/ADR 0001).
+# Prefect/DuckDB e a Elastic Stack (observabilidade, OB-07/OB-08/ADR 0001).
 #
 # O runner nunca fala com o Logstash diretamente: ele só escreve JSON
 # estruturado no stdout (etl.orchestration.logging_config, OB-03). O driver
@@ -95,6 +95,28 @@ services:
       - ./observability/logstash/pipeline:/usr/share/logstash/pipeline:ro
     ports:
       - "12201:12201/udp"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    # Sem autenticação, mesmo padrão do Elasticsearch acima
+    # (`xpack.security.enabled=false`): aceitável só neste ambiente local de
+    # desenvolvimento. Não copiar para um host compartilhado ou produção sem
+    # habilitar autenticação.
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+    ports:
+      - "5601:5601"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s http://localhost:5601/api/status | grep -Eq '\"level\":\"available\"'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
 volumes:
   minio-data:
