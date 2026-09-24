@@ -19,12 +19,12 @@ comportamento verificável. Nada marcado pendente é apresentado como entregue.
 | Operação (D01) | Cartões de portfólio (total, por status) | C01 | Contagem de pesquisas (I01) | Status, tipo, área, complexidade |
 | Operação (D01) | Evolução temporal de solicitações | C01 | Contagem por período (I02) | Tempo (papel: `data_solicitacao`) |
 | Operação (D01) | Marcos e prorrogações | C01 | Contagem de prorrogações (I05); tempos entre marcos (I03–I04) | Papéis de tempo por marco, status |
-| Operação (D01) | Fluxo mensal do pipeline | C03 | Estoque por status (semiaditiva), entradas e saídas do mês | Tempo, status, área, tipo, perfil |
+| Operação (D01) | Fluxo mensal do pipeline | C03 | Estoque por status (semiaditiva); entradas e saídas indisponíveis sem histórico de transições | Tempo, status, área, tipo, perfil |
 | Participação (D02) | Total de participações observadas | C02 | Contagem de participações (I07) | Pesquisa, tempo, empresa |
 | Participação (D02) | Distribuição por empresa (agregada) | C02 | Contagem por empresa | Empresa (sem identificação nominal na tela) |
 | Participação (D02) | Engajamento por cargo/departamento | C02 | Contagens agrupadas | Cargo, departamento — **[pendente: reconciliação DR03]** |
-| Resultados (D03) | Distribuição por tipo de questão | C04 | Quantidade de perguntas, de alternativas | Pesquisa, pergunta, tipo de questão |
-| Resultados (D03) | Exemplos fechados autorizados | C04 | — (amostra rotulada) | Sem IDs de pesquisa/questão (limite LGPD) |
+| Resultados (D03) | Distribuição por tipo de questão | C04 | Contagem de associações; número de alternativas é atributo da pergunta | Pesquisa, pergunta, tipo de questão |
+| Resultados (D03) | Exemplos fechados do protótipo, para uso interno | Protótipo D03; publicação pendente de autorização | — (amostra rotulada) | Sem IDs de pesquisa/questão (limite LGPD) |
 | Qualidade (D04) | Matriz de regras de completude/validade | Perfilamento (§5.3) | Numerador/denominador por regra (I16–I20) | Fonte, campo, regra, natureza do nulo |
 | Qualidade (D04) | Integridade e órfãos | Perfilamento (§5.3) | Contagens de órfãos e elos em reconciliação | Relação, fonte |
 
@@ -82,8 +82,9 @@ semântico, com a regra estatística correspondente (§ regras DX-03):
 
 ## 5. Rastreabilidade e pendências
 
-- Cada visual da Tabela 1 rastreia a um cubo (C01–C04) ou ao perfilamento
-  (§5.3) — nenhuma visualização órfã de origem.
+- Cada visual analítico da Tabela 1 rastreia a um cubo (C01–C04) ou ao
+  perfilamento (§5.3). Os exemplos fechados pertencem somente ao protótipo
+  interno; sua publicação depende de autorização específica.
 - Pendências abertas nesta seção: DX-05/06 (relacionamentos e hierarquias no
   modelo), DX-07/08/09/10 (medidas), RP-07 (filtros entre telas). Quando
   essas entregas ocorrerem, os marcadores **[pendente]** são resolvidos e
