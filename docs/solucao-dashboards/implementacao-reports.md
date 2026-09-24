@@ -59,3 +59,33 @@ Estrutura em estrela conforme os contratos: **[contrato]**
 - Hierarquias de classificação: área → tipo → perfil da pesquisa; e a
   hierarquia de qualidade fonte → campo → regra na D04. **[pendente: DX-06]**
 
+## 4. Medidas personalizadas
+
+Medidas que não são coluna direta dos cubos e precisam ser criadas no modelo
+semântico, com a regra estatística correspondente (§ regras DX-03):
+
+<div align="center">
+<sub>Tabela 2 - Medidas personalizadas, fórmula e tratamento de nulo</sub><br>
+
+| Medida | Fórmula (contrato) | Nulo/indisponível | Estado |
+| :--- | :--- | :--- | :--- |
+| Participações observadas | contagem de linhas de C02 (sem afirmar pessoa única) | — | [contrato] |
+| % participação por empresa | contagem da empresa ÷ total de participações do recorte | denominador zero → indisponível (nunca 0%) | [pendente: DX-08] |
+| Tempo de ciclo entre marcos | diferença entre pares de datas nomeados (RF03) | par incompleto → indisponível (nunca zero dias) | [pendente: DX-07] |
+| Estoque mensal do pipeline | último valor do período (semiaditiva — **não** soma entre meses) | mês sem snapshot → indisponível | [pendente: DX-07] |
+| Completude por campo | válidos ÷ avaliados, por regra, com ausência permitida separada | regra sem avaliação → indisponível | [pendente: DX-09] |
+| Indicador bloqueado | rótulo "indisponível" + motivo textual | nunca exibido como zero | [pendente: DX-10] |
+
+<sup>Material produzido pelos autores (2026), conforme contratos dos cubos e regras estatísticas</sup>
+
+</div><br>
+
+## 5. Rastreabilidade e pendências
+
+- Cada visual da Tabela 1 rastreia a um cubo (C01–C04) ou ao perfilamento
+  (§5.3) — nenhuma visualização órfã de origem.
+- Pendências abertas nesta seção: DX-05/06 (relacionamentos e hierarquias no
+  modelo), DX-07/08/09/10 (medidas), RP-07 (filtros entre telas). Quando
+  essas entregas ocorrerem, os marcadores **[pendente]** são resolvidos e
+  esta seção passa a afirmar comportamento verificado — a conferência final
+  é objeto do [checklist de avaliação](checklist-avaliacao.md).
