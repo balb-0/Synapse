@@ -21,7 +21,8 @@ são alcançadas por adaptadores que implementam protocolos declarados em
 - `etl.orchestration` conhece os três, e nenhuma regra de negócio vive nele.
 
 É essa separação que permite testar extração, transformação e carga sem serviço
-externo, com as 19 suítes de `tests/`.
+externo. A quantidade de testes é obtida pela coleta do runner, e não mantida
+como número fixo neste documento.
 
 ## Componentes
 
@@ -145,6 +146,18 @@ arquivo do DuckDB e, esgotado o prazo, levanta `WriteLockTimeoutError`. Um erro
 que não seja de lock propaga na primeira tentativa.
 
 ## Divergências entre contrato e implementação
+
+O estado abaixo é deliberadamente explícito para não confundir dependência de
+Sprint 4 com componente já integrado:
+
+| Capacidade | Implementação verificável | Situação |
+| :--- | :--- | :--- |
+| Execução manual parametrizada | `ingest_object(...)` e scripts `run_ingest.py`/`run_backfill.py` | Disponível |
+| Deployment servido e agendado | `deployment.py` chama `ingest_object.serve()` | Disponível, iniciado pelo operador |
+| Logs estruturados de extração e carga | `StandardLoggingSink` nos dois pacotes | Disponível localmente |
+| Métricas/traces exportados | Nenhum exportador na base auditada | Dependência OB-06/OB-07 |
+| Coletor, painel e alerta | Nenhum serviço correspondente no Compose | Dependência OB-08/OB-09 |
+| Publicação dos cubos para BI | Nenhum adaptador analítico integrado | Dependência CB-09 |
 
 Registradas aqui porque o critério de avaliação exige que a visão corresponda ao
 código, e não ao contrato idealizado.
