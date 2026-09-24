@@ -375,6 +375,11 @@ class CsvObjectExtractor:
             # source_checksum é o hash puro (contrato técnico FixedString(64));
             # o rótulo de algoritmo permanece apenas no source_version do checkpoint.
             source_checksum=source_version.removeprefix("sha256:"),
+            # Posição absoluta zero-based do primeiro registro deste lote na
+            # fonte inteira — inclui o que uma retomada já confirmou antes
+            # (``current_row`` parte de ``resume_row``, não de zero). É o que
+            # a transformação usa como `source_offset`; ver transform_batch.
+            source_offset=current_row - len(records),
         )
         batch = ExtractedBatch(
             records=records,

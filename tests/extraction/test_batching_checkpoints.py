@@ -66,6 +66,10 @@ class BatchingCheckpointTests(unittest.TestCase):
             [1, 2, 3],
         )
         self.assertEqual(
+            [batch.metadata.source_offset for batch in batches],
+            [0, 2, 4],
+        )
+        self.assertEqual(
             [batch.metadata.batch_id for batch in batches],
             ["empresas-000001", "empresas-000002", "empresas-000003"],
         )
@@ -104,6 +108,12 @@ class BatchingCheckpointTests(unittest.TestCase):
         self.assertEqual(
             [batch.checkpoint.sequence for batch in resumed_batches],
             [2, 3],
+        )
+        # A posição absoluta continua contando a partir do que o checkpoint já
+        # confirmou (2 linhas), não reinicia em zero na retomada.
+        self.assertEqual(
+            [batch.metadata.source_offset for batch in resumed_batches],
+            [2, 4],
         )
 
     def test_fully_confirmed_source_emits_no_duplicate_batch(self) -> None:
