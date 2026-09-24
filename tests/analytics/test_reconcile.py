@@ -4,8 +4,8 @@ import unittest
 from datetime import datetime
 
 import duckdb
-from etl.analytics.load import load_analytics
 
+from etl.analytics.load import load_analytics
 from etl.analytics.reconcile import reconcile_analytics
 from etl.load.ddl import table_statements, view_statements
 

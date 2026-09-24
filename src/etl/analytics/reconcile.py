@@ -7,6 +7,7 @@ import json
 from dataclasses import asdict, dataclass
 
 import duckdb
+
 from etl.analytics.dimensions_ddl import unknown_key
 from etl.analytics.load import current_source_digests, selected_respondentes
 
