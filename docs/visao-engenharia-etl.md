@@ -10,6 +10,21 @@ O ambiente e o pipeline de verificação estão registrados no
 
 ## Execução
 
+### Topologia servida da Sprint 4
+
+| Unidade de implantação | Processo/serviço | Porta ou volume | Inicialização | Estado na base auditada |
+| :--- | :--- | :--- | :--- | :--- |
+| Armazenamento de objetos | `minio/minio` | `9000`, `9001`, `minio-data:/data` | Docker Compose | Configurado |
+| Preparação do bucket | `minio/mc` | rede interna | Após MinIO | Configurado |
+| Runner ETL | imagem do `Dockerfile` | `duck-data:/data`, `src` e `scripts` | Docker Compose | Configurado |
+| Servidor Prefect | `python scripts/orchestration/deployment.py` | API/UI conforme configuração Prefect | Comando do operador | Implementado, não iniciado pelo Compose |
+| Coletor e painel | Logstash/Elasticsearch/Kibana | não definido | — | Não configurado em `develop` |
+
+O deployment servido mantém o flow disponível para agendamento e disparo
+manual, mas não equivale a uma instalação produtiva. A persistência local fica
+nos volumes nomeados do Compose; credenciais de exemplo destinam-se somente ao
+ambiente de desenvolvimento.
+
 O ambiente local é declarado em `docker-compose.yml`, na raiz do repositório.
 
 | Serviço | Imagem | Papel | Portas |
