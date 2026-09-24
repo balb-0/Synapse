@@ -42,7 +42,11 @@ class ReconciliationReport:
             self.load_id is not None
             and self.source_digests_match
             and cubes_ok
-            and all(row["expected"] == row["logged"] for row in self.orphan_audit)
+            and all(
+                row["expected"] == row["logged"]
+                and row["missing_ids"] == row["unexpected_ids"] == 0
+                for row in self.orphan_audit
+            )
         )
 
     def as_dict(self) -> dict:
@@ -51,6 +55,45 @@ class ReconciliationReport:
 
 def _scalar(con: duckdb.DuckDBPyConnection, sql: str, params: tuple = ()) -> int:
     return int(con.execute(sql, params).fetchone()[0])
+
+
+def _orphan_identity_audit(
+    con: duckdb.DuckDBPyConnection,
+    source: str,
+    target: str,
+    reason: str,
+    expected_sql: str,
+    logged_sql: str,
+    expected_params: tuple = (),
+) -> dict[str, str | int]:
+    """Compare source IDs and multiplicity without exposing those IDs in output."""
+    expected_count = _scalar(con, f"SELECT count(*) FROM ({expected_sql})", expected_params)
+    logged_count = _scalar(con, f"SELECT count(*) FROM ({logged_sql})")
+    expected_groups = (
+        f"SELECT source_id, count(*) AS occurrences FROM ({expected_sql}) GROUP BY source_id"
+    )
+    logged_groups = (
+        f"SELECT source_id, count(*) AS occurrences FROM ({logged_sql}) GROUP BY source_id"
+    )
+    missing = _scalar(
+        con,
+        f"SELECT count(*) FROM (({expected_groups}) EXCEPT ({logged_groups}))",
+        expected_params,
+    )
+    unexpected = _scalar(
+        con,
+        f"SELECT count(*) FROM (({logged_groups}) EXCEPT ({expected_groups}))",
+        expected_params,
+    )
+    return {
+        "source": source,
+        "target": target,
+        "reason": reason,
+        "expected": expected_count,
+        "logged": logged_count,
+        "missing_ids": missing,
+        "unexpected_ids": unexpected,
+    }
 
 
 def _current_cube(
@@ -273,63 +316,49 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
     )
     orphan_audit = []
     for source, target, reason, table, column in checks:
-        expected = _scalar(
-            con, f'SELECT count(*) FROM "{table}" WHERE "{column}" = ?', (unknown_key(target),)
-        )
-        logged = _scalar(
-            con,
-            """SELECT count(*) FROM "analytics_reconciliation"
-            WHERE source = ? AND target = ? AND reason = ?""",
-            (source, target, reason),
-        )
         orphan_audit.append(
-            {
-                "source": source,
-                "target": target,
-                "reason": reason,
-                "expected": expected,
-                "logged": logged,
-            }
+            _orphan_identity_audit(
+                con,
+                source,
+                target,
+                reason,
+                f'''SELECT source_checksum || ':' || CAST(source_offset AS VARCHAR) AS source_id
+                    FROM "{table}" WHERE "{column}" = ?''',
+                f"""SELECT source_id FROM "analytics_reconciliation"
+                    WHERE source = '{source}' AND target = '{target}' AND reason = '{reason}' """,
+                (unknown_key(target),),
+            )
         )
-    question_unknown = _scalar(
-        con,
-        'SELECT count(*) FROM "FATO_PESQUISA_PERGUNTA" WHERE sk_pesquisa = ?',
-        (unknown_key("DIM_PESQUISA"),),
-    )
-    question_logged = _scalar(
-        con,
-        """SELECT count(*) FROM "analytics_reconciliation"
-        WHERE source = 'questoes' AND target = 'DIM_PESQUISA'
-        AND reason IN ('titulo_ambiguo', 'pesquisa_nao_encontrada')""",
+    orphan_audit.append(
+        _orphan_identity_audit(
+            con,
+            "questoes",
+            "DIM_PESQUISA",
+            "sem_vinculo_unico",
+            """SELECT '[' || CAST(to_json(pesquisa_id_origem) AS VARCHAR) || ', ' ||
+                       CAST(to_json(pergunta_id_origem) AS VARCHAR) || ']' AS source_id
+                FROM "FATO_PESQUISA_PERGUNTA"
+                WHERE sk_pesquisa = ?""",
+            """SELECT source_id FROM "analytics_reconciliation"
+                WHERE source = 'questoes' AND target = 'DIM_PESQUISA'
+                  AND reason IN ('titulo_ambiguo', 'pesquisa_nao_encontrada')""",
+            (unknown_key("DIM_PESQUISA"),),
+        )
     )
     orphan_audit.append(
-        {
-            "source": "questoes",
-            "target": "DIM_PESQUISA",
-            "reason": "sem_vinculo_unico",
-            "expected": question_unknown,
-            "logged": question_logged,
-        }
-    )
-    title_matched = _scalar(
-        con,
-        """SELECT count(*) FROM "FATO_PESQUISA_PERGUNTA"
-        WHERE metodo_vinculo = 'titulo_unico' """,
-    )
-    title_logged = _scalar(
-        con,
-        """SELECT count(*) FROM "analytics_reconciliation"
-        WHERE source = 'questoes' AND target = 'DIM_PESQUISA'
-        AND reason = 'id_divergente' AND method = 'titulo_exato_unico' """,
-    )
-    orphan_audit.append(
-        {
-            "source": "questoes",
-            "target": "DIM_PESQUISA",
-            "reason": "id_divergente",
-            "expected": title_matched,
-            "logged": title_logged,
-        }
+        _orphan_identity_audit(
+            con,
+            "questoes",
+            "DIM_PESQUISA",
+            "id_divergente",
+            """SELECT '[' || CAST(to_json(pesquisa_id_origem) AS VARCHAR) || ', ' ||
+                       CAST(to_json(pergunta_id_origem) AS VARCHAR) || ']' AS source_id
+                FROM "FATO_PESQUISA_PERGUNTA"
+                WHERE metodo_vinculo = 'titulo_unico' """,
+            """SELECT source_id FROM "analytics_reconciliation"
+                WHERE source = 'questoes' AND target = 'DIM_PESQUISA'
+                  AND reason = 'id_divergente' AND method = 'titulo_exato_unico' """,
+        )
     )
     return ReconciliationReport(
         manifest[0] if manifest else None,

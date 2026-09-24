@@ -81,6 +81,17 @@ class ReconciliationTests(unittest.TestCase):
         self.assertTrue(all(row["expected"] == row["logged"] for row in report.orphan_audit))
         self.assertEqual(report, reconcile_analytics(self.con))
 
+        self.con.execute("""UPDATE "analytics_reconciliation" SET source_id = 'file1:999'
+            WHERE reason = 'empresa_id_ausente' """)
+        swapped = reconcile_analytics(self.con)
+        self.assertFalse(swapped.reconciled)
+        self.assertEqual(
+            (swapped.orphan_audit[1]["expected"], swapped.orphan_audit[1]["logged"]), (1, 1)
+        )
+        self.assertEqual(
+            (swapped.orphan_audit[1]["missing_ids"], swapped.orphan_audit[1]["unexpected_ids"]),
+            (1, 1),
+        )
         self.con.execute("""DELETE FROM "analytics_reconciliation"
             WHERE reason = 'empresa_id_ausente' """)
         damaged = reconcile_analytics(self.con)
@@ -158,6 +169,17 @@ class ReconciliationTests(unittest.TestCase):
         self.assertTrue(report.reconciled)
         self.assertEqual(report.orphan_audit[-1]["expected"], 1)
         self.assertEqual(report.orphan_audit[-1]["logged"], 1)
+        self.con.execute("""UPDATE "analytics_reconciliation"
+            SET source_id = '["outro", "q2"]' WHERE reason = 'id_divergente' """)
+        swapped = reconcile_analytics(self.con)
+        self.assertFalse(swapped.reconciled)
+        self.assertEqual(
+            (swapped.orphan_audit[-1]["expected"], swapped.orphan_audit[-1]["logged"]), (1, 1)
+        )
+        self.assertEqual(
+            (swapped.orphan_audit[-1]["missing_ids"], swapped.orphan_audit[-1]["unexpected_ids"]),
+            (1, 1),
+        )
         self.con.execute("""DELETE FROM "analytics_reconciliation"
             WHERE reason = 'id_divergente' """)
         self.assertFalse(reconcile_analytics(self.con).reconciled)
