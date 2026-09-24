@@ -10,6 +10,7 @@ from etl.extraction.contracts import ExtractedBatch
 
 from .consistency import ReferenceData, validate_consistency
 from .identity import classify_duplicates, digest, json_value, record_identity
+from .log_events import StandardLoggingSink, TransformationBatchLogEvent, TransformationLogSink
 from .normalization import normalize_record
 from .quarantine import RejectedRecord
 from .schema import SCHEMA_VERSION, SCHEMAS
@@ -44,6 +45,7 @@ def transform_batch(
     source_offset: int,
     ingested_at: datetime,
     source_timezone: str | None = None,
+    log_sink: TransformationLogSink | None = None,
 ):
     """Transforma sem escrever dados nem confirmar checkpoint.
 
@@ -141,4 +143,12 @@ def transform_batch(
         "input_bytes": meta.byte_count,
         "duration_seconds": perf_counter() - started,
     }
+    sink = log_sink or StandardLoggingSink()
+    try:
+        sink.emit(TransformationBatchLogEvent.from_metrics(metrics))
+    except Exception:
+        # Mesma garantia da ADR 0001 já aplicada em extraction/load: o
+        # transporte de observabilidade fora do ar não pode corromper nem
+        # bloquear o resultado da transformação.
+        pass
     return TransformationResult(tuple(accepted), tuple(rejected), tuple(duplicates), metrics)

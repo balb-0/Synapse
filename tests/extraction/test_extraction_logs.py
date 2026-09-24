@@ -63,7 +63,7 @@ class ExtractionLogTests(unittest.TestCase):
             log_sink=sink,
         )
 
-        batches = list(extractor.read(run_id="run-log-batches"))
+        batches = list(extractor.read(run_id="run-log-batches", task_id="task-run-log-batches"))
 
         self.assertEqual(len(batches), 2)
         self.assertEqual(len(sink.events), 2)
@@ -87,7 +87,7 @@ class ExtractionLogTests(unittest.TestCase):
             self.assertEqual(attributes["status"], "success")
             self.assertEqual(attributes["source"], "empresas")
             self.assertEqual(attributes["run_id"], "run-log-batches")
-            self.assertEqual(attributes["task_id"], "extract-empresas")
+            self.assertEqual(attributes["task_id"], "task-run-log-batches")
             self.assertEqual(attributes["byte_count"], len(payload))
             self.assertGreaterEqual(attributes["duration_ms"], 0)
             self.assertTrue(str(attributes["started_at"]).endswith("Z"))
@@ -122,7 +122,7 @@ class ExtractionLogTests(unittest.TestCase):
             log_sink=sink,
         )
 
-        next(extractor.read(run_id="run-without-pii"))
+        next(extractor.read(run_id="run-without-pii", task_id="task-without-pii"))
 
         rendered_event = str(sink.events[0].as_dict())
         self.assertNotIn(sensitive_email, rendered_event)
@@ -151,7 +151,7 @@ class ExtractionLogTests(unittest.TestCase):
             log_sink=StandardLoggingSink(logger),
         )
 
-        next(extractor.read(run_id="run-standard-logging"))
+        next(extractor.read(run_id="run-standard-logging", task_id="task-standard-logging"))
 
         self.assertEqual(len(collector.records), 1)
         record = collector.records[0]
@@ -159,7 +159,7 @@ class ExtractionLogTests(unittest.TestCase):
         self.assertEqual(record.event, EXTRACTION_BATCH_EVENT)
         self.assertEqual(record.source, "empresas")
         self.assertEqual(record.run_id, "run-standard-logging")
-        self.assertEqual(record.task_id, "extract-empresas")
+        self.assertEqual(record.task_id, "task-standard-logging")
         self.assertEqual(record.status, "success")
         self.assertEqual(record.checkpoint_position, "row:3")
 
@@ -175,7 +175,7 @@ class ExtractionLogTests(unittest.TestCase):
             log_sink=sink,
         )
 
-        next(extractor.read(run_id="run-empty-log"))
+        next(extractor.read(run_id="run-empty-log", task_id="task-empty-log"))
 
         self.assertEqual(len(sink.events), 1)
         self.assertEqual(sink.events[0].record_count, 0)

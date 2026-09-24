@@ -20,6 +20,7 @@ from typing import TextIO
 
 OBSERVED_LOGGERS = (
     "etl.extraction",
+    "etl.transformation",
     "etl.load",
     "prefect.task_runs",
     "prefect.flow_runs",
@@ -33,8 +34,8 @@ class StructuredJsonFormatter(logging.Formatter):
 
     Não assume nada sobre quais atributos técnicos existem — copia todo
     atributo que não é bookkeeping padrão do ``LogRecord`` (ou seja, tudo
-    que chegou via ``extra``). Isso faz o formatter servir extração, carga,
-    orquestração e qualquer evento futuro (transformação, OB-04) sem precisar
+    que chegou via ``extra``). Isso faz o formatter servir extração,
+    transformação, carga, orquestração e qualquer evento futuro sem precisar
     conhecer o formato de cada um.
     """
 

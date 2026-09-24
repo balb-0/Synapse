@@ -174,14 +174,16 @@ def extract(reader, reference, source: str, run_id: str, checkpoint=None) -> lis
     """Lê o objeto do MinIO (retomando do checkpoint, se houver) e emite os lotes."""
     logger = get_run_logger()
     started = time.monotonic()
+    task_id = _current_task_id()
     extractor = EXTRACTORS[source](object_reader=reader, object_reference=reference)
-    batches = list(extractor.read(run_id=run_id, checkpoint=checkpoint))
+    batches = list(extractor.read(run_id=run_id, task_id=task_id, checkpoint=checkpoint))
     _log_event(
         logger,
         EXTRACT_TASK_EVENT,
         status="success",
         source=source,
         run_id=run_id,
+        task_id=task_id,
         batch_count=len(batches),
         duration_ms=round((time.monotonic() - started) * 1000, 3),
     )

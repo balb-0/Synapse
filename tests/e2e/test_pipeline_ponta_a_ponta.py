@@ -93,7 +93,7 @@ def _ingestar(repo: DuckDbLoadRepository, source: str) -> list[dict]:
         object_reader=MemoryObjectReader(fixtures.payload(source)),
         object_reference=ObjectReference(BUCKET, f"landing/{source}.csv"),
     )
-    batches = list(extractor.read(run_id=f"e2e-{source}"))
+    batches = list(extractor.read(run_id=f"e2e-{source}", task_id=f"e2e-task-{source}"))
     references = _referencias(repo._conn, source)
     previous = repo.loaded_identities(source)
 

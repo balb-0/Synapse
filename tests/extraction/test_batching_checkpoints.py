@@ -51,7 +51,7 @@ class BatchingCheckpointTests(unittest.TestCase):
     def test_splits_records_into_ordered_batches(self) -> None:
         payload = _empresas_payload("1", "2", "3", "4", "5")
 
-        batches = list(_extractor(payload).read(run_id="run-batches"))
+        batches = list(_extractor(payload).read(run_id="run-batches", task_id="task-batches"))
 
         self.assertEqual(
             [[record["ID"] for record in batch.records] for batch in batches],
@@ -77,7 +77,9 @@ class BatchingCheckpointTests(unittest.TestCase):
 
     def test_resumes_after_confirmed_batch_without_repeating_its_rows(self) -> None:
         payload = _empresas_payload("1", "2", "3", "4", "5")
-        first_attempt = _extractor(payload).read(run_id="run-before-interruption")
+        first_attempt = _extractor(payload).read(
+            run_id="run-before-interruption", task_id="task-before-interruption"
+        )
         confirmed_batch = next(first_attempt)
         unconfirmed_batch = next(first_attempt)
         first_attempt.close()
@@ -85,6 +87,7 @@ class BatchingCheckpointTests(unittest.TestCase):
         resumed_batches = list(
             _extractor(payload).read(
                 run_id="run-after-interruption",
+                task_id="task-after-interruption",
                 checkpoint=confirmed_batch.checkpoint,
             )
         )
@@ -105,11 +108,12 @@ class BatchingCheckpointTests(unittest.TestCase):
 
     def test_fully_confirmed_source_emits_no_duplicate_batch(self) -> None:
         payload = _empresas_payload("1", "2", "3")
-        batches = list(_extractor(payload).read(run_id="run-complete"))
+        batches = list(_extractor(payload).read(run_id="run-complete", task_id="task-complete"))
 
         resumed = list(
             _extractor(payload).read(
                 run_id="run-already-complete",
+                task_id="task-already-complete",
                 checkpoint=batches[-1].checkpoint,
             )
         )
@@ -129,6 +133,7 @@ class BatchingCheckpointTests(unittest.TestCase):
             list(
                 _extractor(payload).read(
                     run_id="run-wrong-source",
+                    task_id="task-wrong-source",
                     checkpoint=checkpoint,
                 )
             )
@@ -155,19 +160,23 @@ class BatchingCheckpointTests(unittest.TestCase):
                     list(
                         _extractor(payload).read(
                             run_id="run-invalid-checkpoint",
+                            task_id="task-invalid-checkpoint",
                             checkpoint=checkpoint,
                         )
                     )
 
     def test_rejects_checkpoint_when_source_content_changed(self) -> None:
         original_payload = _empresas_payload("1", "2")
-        checkpoint = next(_extractor(original_payload).read(run_id="run-original")).checkpoint
+        checkpoint = next(
+            _extractor(original_payload).read(run_id="run-original", task_id="task-original")
+        ).checkpoint
         changed_payload = _empresas_payload("1", "changed")
 
         with self.assertRaisesRegex(StaleCheckpointError, "fonte mudou"):
             list(
                 _extractor(changed_payload).read(
                     run_id="run-changed-source",
+                    task_id="task-changed-source",
                     checkpoint=checkpoint,
                 )
             )
@@ -175,7 +184,7 @@ class BatchingCheckpointTests(unittest.TestCase):
     def test_rejects_checkpoint_beyond_end_of_source(self) -> None:
         payload = _empresas_payload("1", "2")
         source_version = next(
-            _extractor(payload).read(run_id="run-version")
+            _extractor(payload).read(run_id="run-version", task_id="task-version")
         ).checkpoint.source_version
         checkpoint = ExtractionCheckpoint(
             source="empresas",
@@ -188,6 +197,7 @@ class BatchingCheckpointTests(unittest.TestCase):
             list(
                 _extractor(payload).read(
                     run_id="run-beyond-end",
+                    task_id="task-beyond-end",
                     checkpoint=checkpoint,
                 )
             )

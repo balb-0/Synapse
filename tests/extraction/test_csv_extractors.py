@@ -62,7 +62,7 @@ class CsvObjectExtractorTests(unittest.TestCase):
             PesquisasExtractor(
                 object_reader=reader,
                 object_reference=reference,
-            ).read(run_id="run-001")
+            ).read(run_id="run-001", task_id="task-001")
         )
 
         self.assertEqual(len(batches), 1)
@@ -107,13 +107,13 @@ class CsvObjectExtractorTests(unittest.TestCase):
                     bucket="sindusfarma-data",
                     key="landing/empresas.csv",
                 ),
-            ).read(run_id="run-002")
+            ).read(run_id="run-002", task_id="task-002")
         )
 
         self.assertEqual(batch.records[0]["ID"], "60")
         self.assertEqual(batch.records[0]["% de mercado"], "8,25%")
         self.assertEqual(batch.records[0]["Nome Fantasia"], "Empresa sintética")
-        self.assertEqual(batch.metadata.task_id, "extract-empresas")
+        self.assertEqual(batch.metadata.task_id, "task-002")
 
     def test_emits_empty_batch_when_csv_has_only_header(self) -> None:
         payload = csv_payload(EMPRESAS_REQUIRED_COLUMNS, [])
@@ -125,7 +125,7 @@ class CsvObjectExtractorTests(unittest.TestCase):
                     bucket="sindusfarma-data",
                     key="landing/empresas.csv",
                 ),
-            ).read(run_id="run-empty")
+            ).read(run_id="run-empty", task_id="task-empty")
         )
 
         self.assertEqual(batch.records, ())
@@ -143,7 +143,7 @@ class CsvObjectExtractorTests(unittest.TestCase):
         )
 
         with self.assertRaisesRegex(MalformedSourceError, "colunas obrigatórias"):
-            list(extractor.read(run_id="run-invalid"))
+            list(extractor.read(run_id="run-invalid", task_id="task-invalid"))
 
     def test_rejects_rows_with_unexpected_field_count(self) -> None:
         payload = (
@@ -158,7 +158,7 @@ class CsvObjectExtractorTests(unittest.TestCase):
         )
 
         with self.assertRaisesRegex(MalformedSourceError, "linha 2"):
-            list(extractor.read(run_id="run-invalid-row"))
+            list(extractor.read(run_id="run-invalid-row", task_id="task-invalid-row"))
 
     def test_minio_reader_passes_version_and_releases_connection(self) -> None:
         response = TrackingResponse(b"conteudo")

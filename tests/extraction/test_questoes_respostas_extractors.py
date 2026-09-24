@@ -50,7 +50,7 @@ class QuestoesRespostasExtractorTests(unittest.TestCase):
                     bucket="sindusfarma-data",
                     key="landing/questoes.csv",
                 ),
-            ).read(run_id="run-questoes")
+            ).read(run_id="run-questoes", task_id="task-questoes")
         )
 
         record = batch.records[0]
@@ -65,7 +65,7 @@ class QuestoesRespostasExtractorTests(unittest.TestCase):
             },
         )
         self.assertEqual(batch.metadata.source, "questoes")
-        self.assertEqual(batch.metadata.task_id, "extract-questoes")
+        self.assertEqual(batch.metadata.task_id, "task-questoes")
 
     def test_questoes_uses_empty_sequences_for_non_applicable_fields(self) -> None:
         payload = csv_payload(
@@ -86,7 +86,7 @@ class QuestoesRespostasExtractorTests(unittest.TestCase):
                     bucket="sindusfarma-data",
                     key="landing/questoes.csv",
                 ),
-            ).read(run_id="run-questao-aberta")
+            ).read(run_id="run-questao-aberta", task_id="task-questao-aberta")
         )
 
         self.assertEqual(
@@ -123,7 +123,7 @@ class QuestoesRespostasExtractorTests(unittest.TestCase):
                     bucket="sindusfarma-data",
                     key="landing/respostas.csv",
                 ),
-            ).read(run_id="run-respostas")
+            ).read(run_id="run-respostas", task_id="task-respostas")
         )
 
         record = batch.records[0]
@@ -139,7 +139,7 @@ class QuestoesRespostasExtractorTests(unittest.TestCase):
             },
         )
         self.assertEqual(batch.metadata.source, "respostas")
-        self.assertEqual(batch.metadata.task_id, "extract-respostas")
+        self.assertEqual(batch.metadata.task_id, "task-respostas")
 
     def test_respostas_represents_non_applicable_fields_as_none(self) -> None:
         sensitive_value = "conteúdo sintético reservado"
@@ -163,7 +163,7 @@ class QuestoesRespostasExtractorTests(unittest.TestCase):
                     bucket="sindusfarma-data",
                     key="landing/respostas.csv",
                 ),
-            ).read(run_id="run-resposta-aberta")
+            ).read(run_id="run-resposta-aberta", task_id="task-resposta-aberta")
         )
 
         self.assertEqual(
@@ -190,7 +190,7 @@ class QuestoesRespostasExtractorTests(unittest.TestCase):
         )
 
         with self.assertRaisesRegex(MalformedSourceError, "colunas obrigatórias"):
-            list(extractor.read(run_id="run-invalid-respostas"))
+            list(extractor.read(run_id="run-invalid-respostas", task_id="task-invalid-respostas"))
 
 
 if __name__ == "__main__":

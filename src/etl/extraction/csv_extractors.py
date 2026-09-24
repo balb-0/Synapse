@@ -163,10 +163,13 @@ class CsvObjectExtractor:
         self,
         *,
         run_id: str,
+        task_id: str,
         checkpoint: ExtractionCheckpoint | None = None,
     ) -> Iterator[ExtractedBatch]:
         if not run_id or not run_id.strip():
             raise ValueError("run_id não pode ser vazio")
+        if not task_id or not task_id.strip():
+            raise ValueError("task_id não pode ser vazio")
 
         started_at = datetime.now(UTC)
         resume_row, next_sequence = self._checkpoint_position(checkpoint)
@@ -182,6 +185,7 @@ class CsvObjectExtractor:
                 yield from self._read_batches(
                     buffered_source=buffered_source,
                     run_id=run_id,
+                    task_id=task_id,
                     started_at=started_at,
                     byte_count=byte_count,
                     source_version=source_version,
@@ -254,6 +258,7 @@ class CsvObjectExtractor:
         *,
         buffered_source: BinaryIO,
         run_id: str,
+        task_id: str,
         started_at: datetime,
         byte_count: int,
         source_version: str,
@@ -276,6 +281,7 @@ class CsvObjectExtractor:
                 yield self._build_batch(
                     records=batch_records,
                     run_id=run_id,
+                    task_id=task_id,
                     started_at=started_at,
                     byte_count=byte_count,
                     source_version=source_version,
@@ -288,6 +294,7 @@ class CsvObjectExtractor:
                 yield self._build_batch(
                     records=(),
                     run_id=run_id,
+                    task_id=task_id,
                     started_at=started_at,
                     byte_count=byte_count,
                     source_version=source_version,
@@ -339,6 +346,7 @@ class CsvObjectExtractor:
         *,
         records: tuple[Record, ...],
         run_id: str,
+        task_id: str,
         started_at: datetime,
         byte_count: int,
         source_version: str,
@@ -354,7 +362,7 @@ class CsvObjectExtractor:
         metadata = BatchMetadata(
             source=self.source,
             run_id=run_id,
-            task_id=f"extract-{self.source}",
+            task_id=task_id,
             batch_id=f"{self.source}-{sequence:06d}",
             started_at=started_at,
             finished_at=datetime.now(UTC),

@@ -153,7 +153,7 @@ class ExtractionResilienceTests(unittest.TestCase):
             [TimeoutError("endpoint-secreto"), TimeoutError("endpoint-secreto")],
         )
 
-        batches = list(_extractor(reader, executor).read(run_id="run-retry"))
+        batches = list(_extractor(reader, executor).read(run_id="run-retry", task_id="task-retry"))
 
         self.assertEqual(reader.attempts, 3)
         self.assertEqual(delays, [0.1, 0.2])
@@ -186,7 +186,7 @@ class ExtractionResilienceTests(unittest.TestCase):
             retry_executor=executor,
         )
 
-        batch = next(extractor.read(run_id="run-partial-read"))
+        batch = next(extractor.read(run_id="run-partial-read", task_id="task-partial-read"))
 
         self.assertEqual(reader.attempts, 2)
         self.assertEqual(batch.metadata.byte_count, len(payload))
@@ -211,7 +211,9 @@ class ExtractionResilienceTests(unittest.TestCase):
         )
 
         with self.assertRaises(RetryLimitExceededError) as context:
-            list(_extractor(reader, executor).read(run_id="run-exhausted"))
+            list(
+                _extractor(reader, executor).read(run_id="run-exhausted", task_id="task-exhausted")
+            )
 
         self.assertEqual(reader.attempts, 3)
         self.assertEqual(delays, [0.25, 0.5])
@@ -234,7 +236,7 @@ class ExtractionResilienceTests(unittest.TestCase):
         )
 
         with self.assertRaises(PermanentSourceError) as context:
-            list(_extractor(reader, executor).read(run_id="run-auth"))
+            list(_extractor(reader, executor).read(run_id="run-auth", task_id="task-auth"))
 
         self.assertEqual(reader.attempts, 1)
         self.assertEqual(delays, [])
@@ -252,7 +254,9 @@ class ExtractionResilienceTests(unittest.TestCase):
         reader = ControlledObjectReader(malformed_payload, [])
 
         with self.assertRaises(MalformedSourceError):
-            list(_extractor(reader, executor).read(run_id="run-malformed"))
+            list(
+                _extractor(reader, executor).read(run_id="run-malformed", task_id="task-malformed")
+            )
 
         self.assertEqual(reader.attempts, 1)
         self.assertEqual(len(recorder.failures), 1)
@@ -279,7 +283,11 @@ class ExtractionResilienceTests(unittest.TestCase):
         )
 
         with self.assertRaises(RetryLimitExceededError):
-            list(_extractor(reader, executor).read(run_id="run-safe-record"))
+            list(
+                _extractor(reader, executor).read(
+                    run_id="run-safe-record", task_id="task-safe-record"
+                )
+            )
 
         attributes = str(recorder.failures[0].as_dict())
         self.assertNotIn("token=nao-pode-aparecer", attributes)
