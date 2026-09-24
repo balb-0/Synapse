@@ -71,8 +71,6 @@ Serviços definidos em `docker-compose.yml`:
   http://localhost:4200 e health check em http://localhost:4200/api/health
   (volume `prefect-data`: agendamentos e histórico sobrevivem a
   `docker compose down/up`).
-- `scheduler`: serve o deployment `ingest-object/agendado` (cron `0 3 * * *`)
-  e reinicia sozinho (`restart: unless-stopped`).
 - `runner`: contêiner Python com Prefect e DuckDB (`Dockerfile`), com `src/` e
   `scripts/` montados; permanece ativo (`sleep infinity`) para executar comandos.
 
