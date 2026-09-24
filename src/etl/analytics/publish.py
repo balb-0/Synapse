@@ -21,13 +21,13 @@ PUBLICATIONS = {
     "PUB_C01_CICLO": """
         SELECT a.area, s.status, t.tipo,
                COUNT(*)::BIGINT AS qtd_pesquisas,
-               SUM(f.dias_corridos_validacao)::HUGEINT AS soma_dias_validacao,
+               SUM(f.dias_corridos_validacao)::BIGINT AS soma_dias_validacao,
                COUNT(f.dias_corridos_validacao)::BIGINT AS qtd_validacao_disponivel,
-               SUM(f.dias_corridos_coleta)::HUGEINT AS soma_dias_coleta,
+               SUM(f.dias_corridos_coleta)::BIGINT AS soma_dias_coleta,
                COUNT(f.dias_corridos_coleta)::BIGINT AS qtd_coleta_disponivel,
-               SUM(f.dias_corridos_tabulacao)::HUGEINT AS soma_dias_tabulacao,
+               SUM(f.dias_corridos_tabulacao)::BIGINT AS soma_dias_tabulacao,
                COUNT(f.dias_corridos_tabulacao)::BIGINT AS qtd_tabulacao_disponivel,
-               SUM(f.dias_corridos_ciclo_total)::HUGEINT AS soma_dias_ciclo_total,
+               SUM(f.dias_corridos_ciclo_total)::BIGINT AS soma_dias_ciclo_total,
                COUNT(f.dias_corridos_ciclo_total)::BIGINT AS qtd_ciclo_total_disponivel
           FROM FATO_CICLO_PESQUISA f
           LEFT JOIN DIM_AREA a ON a.sk_area = f.sk_area
@@ -38,7 +38,7 @@ PUBLICATIONS = {
     "PUB_C02_PARTICIPACAO": """
         SELECT a.area, t.tipo, date_trunc('month', tempo.data)::DATE AS mes_resposta,
                COUNT(*)::BIGINT AS qtd_participacoes,
-               SUM(f.minutos_preenchimento)::HUGEINT AS soma_minutos_preenchimento,
+               SUM(f.minutos_preenchimento)::BIGINT AS soma_minutos_preenchimento,
                COUNT(f.minutos_preenchimento)::BIGINT AS qtd_preenchimento_disponivel
           FROM FATO_PARTICIPACAO f
           LEFT JOIN FATO_CICLO_PESQUISA ciclo ON ciclo.sk_pesquisa = f.sk_pesquisa
@@ -94,8 +94,7 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
     if Path(output).is_symlink():
         raise ValueError("diretório de publicação simbólico não é permitido")
     output = Path(output).resolve()
-    repo = Path(__file__).resolve().parents[3]
-    if output == repo or repo in output.parents:
+    if any((directory / ".git").exists() for directory in (output, *output.parents)):
         raise ValueError("a publicação deve ficar fora do repositório")
     if not database.is_file():
         raise ValueError("a origem deve ser um arquivo DuckDB existente")
@@ -107,9 +106,11 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
     generation = uuid.uuid4().hex
     staging = output / f".pending-{generation}"
     final = output / generation
+    pointer = output / f".current-{generation}.json"
     staging.mkdir(mode=0o700)
     conn = None
     in_transaction = False
+    published = False
     try:
         conn = duckdb.connect(str(database), read_only=True)
         conn.execute("BEGIN TRANSACTION")
@@ -154,15 +155,18 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
         manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
         manifest_path.chmod(0o600)
         staging.rename(final)
-        pointer = output / f".current-{generation}.json"
         pointer.write_text(json.dumps({"generation": generation}) + "\n")
         pointer.chmod(0o600)
         os.replace(pointer, output / "current.json")
+        published = True
         return manifest
     except Exception:
         if conn is not None and in_transaction:
             conn.execute("ROLLBACK")
         shutil.rmtree(staging, ignore_errors=True)
+        pointer.unlink(missing_ok=True)
+        if not published:
+            shutil.rmtree(final, ignore_errors=True)
         raise
     finally:
         if conn is not None:
