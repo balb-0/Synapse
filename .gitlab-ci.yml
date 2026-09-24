@@ -35,13 +35,11 @@ test:
   script:
     - pip install -r requirements.txt -r requirements-transformation-dev.txt
     - python scripts/transformation/render_schema.py --check
-    - coverage run --branch --source=etl -m unittest discover -s tests -v
+    # Passada única: cobertura + JUnit juntos. Se um teste falhar, os XMLs
+    # dos demais já foram gerados e o job falha (bloqueio mantido).
+    - coverage run --branch --source=etl -m xmlrunner discover -s tests -o test-reports -v
     - coverage report --fail-under=85
     - coverage xml -o coverage-etl.xml
-    # Relatório JUnit por teste: segunda execução da suíte via xmlrunner,
-    # sem cobertura, só para gerar o XML por caso de teste. O gate de
-    # cobertura acima continua bloqueante (`--fail-under=85`).
-    - python -m xmlrunner discover -s tests -o test-reports -v
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
   artifacts:
     when: always

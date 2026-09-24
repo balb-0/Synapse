@@ -88,6 +88,9 @@ temp/
 *.tmp
 *.bak
 *.orig
+# Relatórios gerados pelo CI localmente (também publicados como artefatos).
+test-reports/
+coverage-etl.xml
 
 # --- Editores / IDE ----------------------------------------------------------
 .vscode/*
