@@ -2,8 +2,8 @@
 
 Este levantamento consolida o que o projeto **já documentou** sobre quem usa a
 solução analítica, o que cada perfil precisa responder e como isso é aceito e
-testado. Nada aqui é criação nova: cada linha cita a seção de origem no
-[`projeto.md`](../projeto.md). O objetivo é servir de base única para as
+testado. Nada aqui é criação nova: as seções de origem no
+[`projeto.md`](../projeto.md) são indicadas antes de cada tabela. O objetivo é servir de base única para as
 tarefas de usabilidade (documentos seguintes desta pasta), garantindo que toda
 tarefa nasça ligada a um perfil real, a uma pergunta de negócio (PB) e a um
 critério de aceite já validado.
