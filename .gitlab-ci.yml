@@ -38,12 +38,18 @@ test:
     - coverage run --branch --source=etl -m unittest discover -s tests -v
     - coverage report --fail-under=85
     - coverage xml -o coverage-etl.xml
+    # Relatório JUnit por teste: segunda execução da suíte via xmlrunner,
+    # sem cobertura, só para gerar o XML por caso de teste. O gate de
+    # cobertura acima continua bloqueante (`--fail-under=85`).
+    - python -m xmlrunner discover -s tests -o test-reports -v
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
   artifacts:
     when: always
     paths:
       - coverage-etl.xml
+      - test-reports/
     reports:
+      junit: test-reports/*.xml
       coverage_report:
         coverage_format: cobertura
         path: coverage-etl.xml
