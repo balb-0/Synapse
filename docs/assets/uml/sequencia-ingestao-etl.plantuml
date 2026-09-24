@@ -77,6 +77,7 @@ group Falha transitória com retry limitado
   else limite esgotado
     EXTRACTOR --> FLOW : RetryLimitExceededError
     FLOW -> FLOW : _should_retry devolve false
+    FLOW -->> LOGS : erro correlacionado e tentativas esgotadas
     FLOW --> OPE : execução falha sem nova tentativa
     note right of FLOW
       Checkpoint e hash não são confirmados.
@@ -84,6 +85,23 @@ group Falha transitória com retry limitado
       e a próxima execução relê o trecho.
     end note
   end
+end
+
+group Falha durante carga ou reconciliação
+  FLOW -> REPO : load_batch(result, metadata)
+  REPO -> DB : BEGIN + escritas do lote
+  DB --> REPO : erro de escrita ou contagem divergente
+  REPO -> DB : ROLLBACK
+  REPO -> DB : INSERT _batch_metadata (falha, contagens zero)
+  REPO -->> LOADLOG : evento status=failed
+  LOADLOG -->> LOGS : lote falho com run_id e batch_id
+  REPO --> FLOW : exceção
+  FLOW --> OPE : flow run failed
+  note right of REPO
+    Não há commit do checkpoint.
+    O lote será relido desde a última
+    posição confirmada.
+  end note
 end
 
 group Falha permanente
@@ -94,6 +112,7 @@ group Falha permanente
   EXTRACTOR -> EXTRACTOR : classify_source_failure -> permanente
   EXTRACTOR --> FLOW : PermanentSourceError
   FLOW -> FLOW : _should_retry devolve false
+  FLOW -->> LOGS : falha permanente correlacionada
   FLOW --> OPE : execução falha imediatamente
 end
 
