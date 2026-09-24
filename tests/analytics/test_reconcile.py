@@ -137,6 +137,10 @@ class ReconciliationTests(unittest.TestCase):
         self.assertIsNone(report.cubes[2].eligible)
         self.assertFalse(report.reconciled)
 
+    def test_ingestion_only_database_reports_missing_analytic_layer(self):
+        with self.assertRaisesRegex(RuntimeError, "execute load_analytics"):
+            reconcile_analytics(self.con)
+
     def test_failed_reload_leaves_detectable_current_source_difference(self):
         self.insert("pesquisas", "p1", 1, pesquisa_id="p1", titulo="Primeira")
         load_analytics(self.con)

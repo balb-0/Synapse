@@ -37,9 +37,7 @@ class ReconciliationReport:
 
     @property
     def reconciled(self) -> bool:
-        cubes_ok = all(
-            cube.status in {"ok", "historical_snapshot", "not_observed"} for cube in self.cubes
-        )
+        cubes_ok = all(cube.status in {"ok", "not_observed"} for cube in self.cubes)
         return (
             self.load_id is not None
             and self.source_digests_match
@@ -112,8 +110,29 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
     """Check persisted fact membership and report the limits of monthly history.
 
     Run after ``load_analytics`` on the same database. This function never
-    modifies data and raises when the analytical schema has not been created.
+    modifies data and reports a clear error if the analytical schema is absent.
     """
+    required = {
+        "analytics_load_run",
+        "analytics_reconciliation",
+        "analytics_pipeline_membership",
+        "FATO_CICLO_PESQUISA",
+        "FATO_PARTICIPACAO",
+        "FATO_PIPELINE_MENSAL",
+        "FATO_PESQUISA_PERGUNTA",
+        "DIM_PESQUISA",
+    }
+    existing = {
+        row[0]
+        for row in con.execute("""SELECT table_name FROM information_schema.tables
+            WHERE table_schema = current_schema()""").fetchall()
+    }
+    missing_tables = sorted(required - existing)
+    if missing_tables:
+        raise RuntimeError(
+            "camada analítica ausente; execute load_analytics antes da reconciliação: "
+            + ", ".join(missing_tables)
+        )
     selected = selected_respondentes(con)
     manifest = con.execute("""SELECT load_id, loaded_at, pesquisas_digest,
         empresas_digest, clientes_digest, questoes_digest, respondentes_checksum

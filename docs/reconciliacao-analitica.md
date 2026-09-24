@@ -1,6 +1,6 @@
 # Reconciliação dos cubos analíticos
 
-`PYTHONPATH=src python -m etl.analytics.reconcile /caminho/para/analitico.duckdb` abre o banco somente para leitura, emite um JSON por consulta e retorna código 1 se encontrar diferença ou se não houver snapshot conciliado de `respondentes`. Execute depois de `load_analytics` no mesmo arquivo DuckDB. O relatório não publica identificadores de pesquisa, cliente, empresa ou participante; `respondent_checksum` identifica o arquivo selecionado e permite ligar o resultado ao controle de ingestão.
+`PYTHONPATH=src python -m etl.analytics.reconcile /caminho/para/analitico.duckdb` abre o banco somente para leitura, emite um JSON por consulta e retorna código 1 se encontrar diferença ou se não houver snapshot conciliado de `respondentes`. Execute depois de `load_analytics` no mesmo arquivo DuckDB. Se houver apenas ingestão, a função informa quais tabelas analíticas faltam e pede a carga antes da reconciliação. O relatório não publica identificadores de pesquisa, cliente, empresa ou participante; `respondent_checksum` identifica o arquivo selecionado e permite ligar o resultado ao controle de ingestão.
 
 ## População e equação
 
