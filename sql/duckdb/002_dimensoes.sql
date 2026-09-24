@@ -1,6 +1,6 @@
 -- Dimensoes analiticas v1. Gerado de src/etl/analytics/dimensions_ddl.py.
 -- Confira com PYTHONPATH=src python -m etl.analytics.dimensions_ddl --check.
--- A carga fornece natural_key via canonical_key; o banco confere o SHA-256.
+-- O banco confere natural_key contra a identidade e recalcula o SHA-256.
 -- is_unknown reserva uma linha por dimensao para vinculos orfaos.
 
 CREATE TABLE IF NOT EXISTS "DIM_TEMPO" (
@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS "DIM_TEMPO" (
     CHECK ("is_unknown" = ("sk_tempo" = 'e65c0f359f7b8950941ba138f0248eaf216f828478cbd6920055c3deac2b87b9')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_tempo" = sha256('v1|DIM_TEMPO|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "data" IS NULL THEN '-1:' ELSE CAST(length(CAST("data" AS VARCHAR)) AS VARCHAR) || ':' || CAST("data" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "data" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "data" IS NULL),
     CHECK ("is_unknown" OR ("ano" IS NOT NULL AND "ano" = (year("data")))),
@@ -46,6 +47,7 @@ CREATE TABLE IF NOT EXISTS "DIM_PESQUISA" (
     CHECK ("is_unknown" = ("sk_pesquisa" = '28d61d4b6a9c57493f0424e34934c028d7d3865f655bfeaf2d11a471d0ed8da3')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_pesquisa" = sha256('v1|DIM_PESQUISA|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "pesquisa_id" IS NULL THEN '-1:' ELSE CAST(length(CAST("pesquisa_id" AS VARCHAR)) AS VARCHAR) || ':' || CAST("pesquisa_id" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "pesquisa_id" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "pesquisa_id" IS NULL),
     UNIQUE ("pesquisa_id")
@@ -64,6 +66,7 @@ CREATE TABLE IF NOT EXISTS "DIM_STATUS_PESQUISA" (
     CHECK ("is_unknown" = ("sk_status" = '843cdd81627069c60e170fb410d81667c4684d157b3bd09688d7d8d480505dd9')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_status" = sha256('v1|DIM_STATUS_PESQUISA|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "status" IS NULL THEN '-1:' ELSE CAST(length(CAST("status" AS VARCHAR)) AS VARCHAR) || ':' || CAST("status" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "status" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "status" IS NULL),
     UNIQUE ("status")
@@ -79,6 +82,7 @@ CREATE TABLE IF NOT EXISTS "DIM_AREA" (
     CHECK ("is_unknown" = ("sk_area" = '0c6e3d4fca3079a7d67204b539f383131b9169784c2dbe9cbcefbb571fde5ac5')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_area" = sha256('v1|DIM_AREA|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "area" IS NULL THEN '-1:' ELSE CAST(length(CAST("area" AS VARCHAR)) AS VARCHAR) || ':' || CAST("area" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "area" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "area" IS NULL),
     UNIQUE ("area")
@@ -94,6 +98,7 @@ CREATE TABLE IF NOT EXISTS "DIM_TIPO_PESQUISA" (
     CHECK ("is_unknown" = ("sk_tipo" = '7fd33fd52a0029d989e3fb27db2caca1ff04359d846b830e89799312344d4db6')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_tipo" = sha256('v1|DIM_TIPO_PESQUISA|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "tipo" IS NULL THEN '-1:' ELSE CAST(length(CAST("tipo" AS VARCHAR)) AS VARCHAR) || ':' || CAST("tipo" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "tipo" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "tipo" IS NULL),
     UNIQUE ("tipo")
@@ -110,7 +115,11 @@ CREATE TABLE IF NOT EXISTS "DIM_PERFIL_PESQUISA" (
     CHECK ("is_unknown" = ("sk_perfil" = 'e70c48afed032784d97267e356fd623530b4e7e070246778bcb993a7429eaaa9')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_perfil" = sha256('v1|DIM_PERFIL_PESQUISA|K|' || "natural_key")),
-    CHECK ("is_unknown" = ("complexidade" IS NULL AND "tipo_resposta" IS NULL))
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "complexidade" IS NULL THEN '-1:' ELSE CAST(length(CAST("complexidade" AS VARCHAR)) AS VARCHAR) || ':' || CAST("complexidade" AS VARCHAR) END) || (CASE WHEN "tipo_resposta" IS NULL THEN '-1:' ELSE CAST(length(CAST("tipo_resposta" AS VARCHAR)) AS VARCHAR) || ':' || CAST("tipo_resposta" AS VARCHAR) END))),
+    CHECK (NOT "is_unknown" OR "complexidade" IS NULL),
+    CHECK (NOT "is_unknown" OR "tipo_resposta" IS NULL),
+    CHECK ("is_unknown" = ("complexidade" IS NULL AND "tipo_resposta" IS NULL)),
+    UNIQUE ("complexidade", "tipo_resposta")
 );
 
 INSERT INTO "DIM_PERFIL_PESQUISA" ("sk_perfil", "natural_key", "is_unknown") VALUES ('e70c48afed032784d97267e356fd623530b4e7e070246778bcb993a7429eaaa9', NULL, TRUE) ON CONFLICT ("sk_perfil") DO NOTHING;
@@ -131,6 +140,7 @@ CREATE TABLE IF NOT EXISTS "DIM_EMPRESA" (
     CHECK ("is_unknown" = ("sk_empresa" = '42863741238d53a0f676593060a13668a8f8ac5c8d153eaf67583049eb4813af')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_empresa" = sha256('v1|DIM_EMPRESA|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "empresa_id" IS NULL THEN '-1:' ELSE CAST(length(CAST("empresa_id" AS VARCHAR)) AS VARCHAR) || ':' || CAST("empresa_id" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "empresa_id" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "empresa_id" IS NULL),
     UNIQUE ("empresa_id")
@@ -151,6 +161,7 @@ CREATE TABLE IF NOT EXISTS "DIM_PESSOA" (
     CHECK ("is_unknown" = ("sk_pessoa" = 'a4fdb4acc2bbec798dbb7cc016f6ae3ed04bad5d7317b4388258d5b6174ad64f')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_pessoa" = sha256('v1|DIM_PESSOA|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "cliente_id" IS NULL THEN '-1:' ELSE CAST(length(CAST("cliente_id" AS VARCHAR)) AS VARCHAR) || ':' || CAST("cliente_id" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "cliente_id" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "cliente_id" IS NULL),
     UNIQUE ("cliente_id")
@@ -177,6 +188,7 @@ CREATE TABLE IF NOT EXISTS "DIM_PERGUNTA" (
     CHECK ("is_unknown" = ("sk_pergunta" = 'ee6147b1a5fef4f50dd667eaee37d5196717055722dee71c6335dc3c888a0f42')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_pergunta" = sha256('v1|DIM_PERGUNTA|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "pesquisa_id" IS NULL THEN '-1:' ELSE CAST(length(CAST("pesquisa_id" AS VARCHAR)) AS VARCHAR) || ':' || CAST("pesquisa_id" AS VARCHAR) END) || (CASE WHEN "pergunta_id" IS NULL THEN '-1:' ELSE CAST(length(CAST("pergunta_id" AS VARCHAR)) AS VARCHAR) || ':' || CAST("pergunta_id" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "pesquisa_id" IS NOT NULL),
     CHECK ("is_unknown" OR "pergunta_id" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "pesquisa_id" IS NULL),
@@ -195,6 +207,7 @@ CREATE TABLE IF NOT EXISTS "DIM_FAMILIA_PESQUISA" (
     CHECK ("is_unknown" = ("sk_familia" = 'de83de21770f2237f4a34e24fc1a60db070e875c321169010eacabf820668bf8')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_familia" = sha256('v1|DIM_FAMILIA_PESQUISA|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "titulo_normalizado" IS NULL THEN '-1:' ELSE CAST(length(CAST("titulo_normalizado" AS VARCHAR)) AS VARCHAR) || ':' || CAST("titulo_normalizado" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "titulo_normalizado" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "titulo_normalizado" IS NULL),
     UNIQUE ("titulo_normalizado")
@@ -210,6 +223,7 @@ CREATE TABLE IF NOT EXISTS "DIM_FONTE_DADO" (
     CHECK ("is_unknown" = ("sk_fonte" = 'ce6f988ab46f22f90db12e52f06273e68e61cf8d010fab7665f3b346c43aa0aa')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_fonte" = sha256('v1|DIM_FONTE_DADO|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "source" IS NULL THEN '-1:' ELSE CAST(length(CAST("source" AS VARCHAR)) AS VARCHAR) || ':' || CAST("source" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "source" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "source" IS NULL),
     UNIQUE ("source")
@@ -228,6 +242,7 @@ CREATE TABLE IF NOT EXISTS "DIM_EXECUCAO_CARGA" (
     CHECK ("is_unknown" = ("sk_carga" = '2c21ccdca460bee3065df8dbfc07a4c98d8b17b081309dfded8f9d1909142182')),
     CHECK ("is_unknown" = ("natural_key" IS NULL)),
     CHECK ("is_unknown" OR "sk_carga" = sha256('v1|DIM_EXECUCAO_CARGA|K|' || "natural_key")),
+    CHECK ("is_unknown" OR "natural_key" = ((CASE WHEN "source" IS NULL THEN '-1:' ELSE CAST(length(CAST("source" AS VARCHAR)) AS VARCHAR) || ':' || CAST("source" AS VARCHAR) END) || (CASE WHEN "run_id" IS NULL THEN '-1:' ELSE CAST(length(CAST("run_id" AS VARCHAR)) AS VARCHAR) || ':' || CAST("run_id" AS VARCHAR) END))),
     CHECK ("is_unknown" OR "source" IS NOT NULL),
     CHECK ("is_unknown" OR "run_id" IS NOT NULL),
     CHECK (NOT "is_unknown" OR "source" IS NULL),

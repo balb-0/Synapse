@@ -76,13 +76,44 @@ class DimensionDuckDbTests(unittest.TestCase):
         with self.assertRaises(duckdb.ConstraintException):
             self.con.execute(
                 "INSERT INTO DIM_PESQUISA (sk_pesquisa, natural_key, pesquisa_id) VALUES (?, ?, ?)",
-                [surrogate_key("DIM_PESQUISA", "113"), canonical_key("113"), "112"],
+                [surrogate_key("DIM_PESQUISA", "113"), canonical_key("113"), "114"],
             )
         with self.assertRaises(duckdb.ConstraintException):
             self.con.execute(
                 "INSERT INTO DIM_PESQUISA (sk_pesquisa, natural_key, pesquisa_id) VALUES (?, ?, ?)",
                 [surrogate_key("DIM_PESQUISA", "114"), canonical_key("114"), None],
             )
+
+    def test_every_dimension_rejects_natural_key_disagreeing_with_identity(self) -> None:
+        for dim in DIMENSIONS:
+            if dim.name == "DIM_TEMPO":
+                continue  # Atributos de calendário testados separadamente.
+            actual = tuple("valor" for _ in dim.identity_columns)
+            wrong = tuple("outro" for _ in dim.identity_columns)
+            fields = ", ".join((dim.sk, "natural_key", *dim.identity_columns))
+            placeholders = ", ".join("?" for _ in range(2 + len(actual)))
+            with self.subTest(table=dim.name), self.assertRaises(duckdb.ConstraintException):
+                self.con.execute(
+                    f'INSERT INTO "{dim.name}" ({fields}) VALUES ({placeholders})',
+                    [surrogate_key(dim.name, *wrong), canonical_key(*wrong), *actual],
+                )
+
+    def test_profile_nullable_part_and_question_composite_use_canonical_identity(self) -> None:
+        self.con.execute(
+            "INSERT INTO DIM_PERFIL_PESQUISA "
+            "(sk_perfil, natural_key, complexidade, tipo_resposta) VALUES (?, ?, ?, ?)",
+            [
+                surrogate_key("DIM_PERFIL_PESQUISA", None, "aberta"),
+                canonical_key(None, "aberta"),
+                None,
+                "aberta",
+            ],
+        )
+        self.con.execute(
+            "INSERT INTO DIM_PERGUNTA "
+            "(sk_pergunta, natural_key, pesquisa_id, pergunta_id) VALUES (?, ?, ?, ?)",
+            [surrogate_key("DIM_PERGUNTA", "112", "7"), canonical_key("112", "7"), "112", "7"],
+        )
 
     def test_calendar_attributes_match_date_and_profile_absence_uses_unknown(self) -> None:
         self.con.execute(
@@ -97,6 +128,13 @@ class DimensionDuckDbTests(unittest.TestCase):
                 "(sk_tempo, natural_key, data, ano, trimestre, mes, dia, dia_semana, fim_mes) "
                 "VALUES (?, ?, DATE '2026-10-01', 2026, 4, 13, 1, 4, FALSE)",
                 [surrogate_key("DIM_TEMPO", "2026-10-01"), canonical_key("2026-10-01")],
+            )
+        with self.assertRaises(duckdb.ConstraintException):
+            self.con.execute(
+                "INSERT INTO DIM_TEMPO "
+                "(sk_tempo, natural_key, data, ano, trimestre, mes, dia, dia_semana, fim_mes) "
+                "VALUES (?, ?, DATE '2026-10-01', 2026, 4, 10, 1, 4, FALSE)",
+                [surrogate_key("DIM_TEMPO", "2026-10-02"), canonical_key("2026-10-02")],
             )
         with self.assertRaises(duckdb.ConstraintException):
             self.con.execute(

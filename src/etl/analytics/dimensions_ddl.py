@@ -73,7 +73,7 @@ DIMENSIONS = (
             "complexidade VARCHAR",
             "tipo_resposta VARCHAR",
         ),
-        (),
+        ("complexidade", "tipo_resposta"),
         (),
     ),
     Dimension(
@@ -182,6 +182,18 @@ def unknown_key(namespace: str) -> str:
     return hashlib.sha256(f"{VERSION}|{namespace}|U".encode("utf-8")).hexdigest()
 
 
+def _identity_sql(dim: Dimension) -> str:
+    """Reproduz canonical_key com os atributos gravados na própria dimensão."""
+    parts = []
+    for column in dim.identity_columns:
+        value = f'CAST("{column}" AS VARCHAR)'
+        parts.append(
+            f"(CASE WHEN \"{column}\" IS NULL THEN '-1:' "
+            f"ELSE CAST(length({value}) AS VARCHAR) || ':' || {value} END)"
+        )
+    return " || ".join(parts)
+
+
 def dimension_statements() -> tuple[str, ...]:
     statements = []
     for dim in DIMENSIONS:
@@ -197,6 +209,7 @@ def dimension_statements() -> tuple[str, ...]:
             f'    CHECK ("is_unknown" = ("{dim.sk}" = \'{unknown}\'))',
             '    CHECK ("is_unknown" = ("natural_key" IS NULL))',
             f'    CHECK ("is_unknown" OR "{dim.sk}" = sha256(\'{VERSION}|{dim.name}|K|\' || "natural_key"))',
+            f'    CHECK ("is_unknown" OR "natural_key" = ({_identity_sql(dim)}))',
         ]
         for column in dim.required_identity:
             definitions.append(f'    CHECK ("is_unknown" OR "{column}" IS NOT NULL)')
@@ -238,7 +251,7 @@ def render_ddl() -> str:
     header = (
         "-- Dimensoes analiticas v1. Gerado de src/etl/analytics/dimensions_ddl.py.\n"
         "-- Confira com PYTHONPATH=src python -m etl.analytics.dimensions_ddl --check.\n"
-        "-- A carga fornece natural_key via canonical_key; o banco confere o SHA-256.\n"
+        "-- O banco confere natural_key contra a identidade e recalcula o SHA-256.\n"
         "-- is_unknown reserva uma linha por dimensao para vinculos orfaos.\n\n"
     )
     return header + ";\n\n".join(dimension_statements()) + ";\n"
