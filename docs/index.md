@@ -48,6 +48,10 @@ documento principal.
 
 - [Decisão de consumo dos cubos no BI](decisao-consumo-cubos.md): comparação dos caminhos de acesso, escolha dos agregados Parquet e requisitos por máquina.
 
+## Modelo semântico e medidas — Sprint 4 (Anna)
+
+- [Indicadores publicáveis, bloqueados e motivo](indicadores-publicaveis-bi.md): reclassifica o catálogo I01–I25 de `dmc.md` contra o que realmente chega ao Power BI (DX-01).
+
 ## Arquitetura, decisões e UML — Sprint 3 (Anna)
 
 - [Checklist dos entregáveis](checklist-entregaveis-sprint3.md): obrigações, exclusões e critérios de avaliação do enunciado (AN-01).
