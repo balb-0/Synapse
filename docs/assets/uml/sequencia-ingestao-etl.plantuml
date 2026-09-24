@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 
 skinparam shadowing false
 skinparam sequenceMessageAlign first

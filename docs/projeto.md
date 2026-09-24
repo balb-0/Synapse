@@ -682,7 +682,7 @@ estão em [`visao-computacional-etl.md`](visao-computacional-etl.md).
 | :--- | :--- |
 | Casos de uso | [`assets/uml/casos-de-uso-etl.plantuml`](assets/uml/casos-de-uso-etl.plantuml) |
 | Componentes | [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) |
-| Sequência da ingestão | [`assets/uml/sequencia-ingestao-etl.plantuml`](assets/uml/sequencia-ingestao-etl.plantuml) |
+| Sequência da ingestão | [fonte PlantUML](assets/uml/sequencia-ingestao-etl.plantuml) e [renderização SVG](assets/uml/sequencia-ingestao-etl.svg) |
 | Decisões arquiteturais | [`adrs/index.md`](adrs/index.md) |
 | Escopo da sprint | [`checklist-entregaveis-sprint3.md`](checklist-entregaveis-sprint3.md) |
 | Rastreabilidade | [`matriz-rastreabilidade-sprint3.md`](matriz-rastreabilidade-sprint3.md) |
