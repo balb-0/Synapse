@@ -1,5 +1,8 @@
 table PUB_C04_INSTRUMENTO
 
+	measure 'Qtd Perguntas' = SUM(PUB_C04_INSTRUMENTO[qtd_perguntas])
+		formatString: #,0
+
 	column area
 		dataType: string
 		isHidden

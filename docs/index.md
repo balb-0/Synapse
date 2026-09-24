@@ -58,6 +58,7 @@ documento principal.
 - [Hierarquias do modelo semântico](hierarquias-modelo-bi.md): hierarquia de tempo (Ano-Trimestre-Mês) e de área, tipo e perfil, e como conferir o total por nível (DX-06).
 - [Medidas de portfólio, ciclo e prorrogação](medidas-portfolio-ciclo.md): medidas de `PUB_C01_CICLO`, regra aplicada e conferência contra a apuração de referência (DX-07).
 - [Medidas de participação e representatividade](medidas-participacao.md): medidas de `PUB_C02_PARTICIPACAO` e por que representatividade segue sem dado (DX-08).
+- [Medidas de questionários e qualidade do dado](medidas-questionarios-qualidade.md): medida de `PUB_C04_INSTRUMENTO` e as três publicações novas de qualidade (I16-I18) em `publish.py` (DX-09).
 
 ## Arquitetura, decisões e UML — Sprint 3 (Anna)
 

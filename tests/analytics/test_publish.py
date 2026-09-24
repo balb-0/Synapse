@@ -31,6 +31,77 @@ class PublishCubesTests(unittest.TestCase):
             "CREATE TABLE FATO_PIPELINE_MENSAL (data_fim_mes DATE, sk_status VARCHAR, sk_area VARCHAR, sk_tipo VARCHAR, sk_perfil VARCHAR, qtd_pesquisas_no_status BIGINT, qtd_entradas_no_mes BIGINT, qtd_saidas_no_mes BIGINT)",
             "CREATE TABLE FATO_PESQUISA_PERGUNTA (sk_pesquisa VARCHAR, sk_pergunta VARCHAR)",
             "CREATE TABLE ingestao_private (email VARCHAR)",
+            """
+            CREATE TABLE ingestao_pesquisas_atual AS
+            SELECT * FROM (VALUES
+                ('p1', 'Pesquisa 1', 'Ativa', 'Mercado', 'Saúde', 10, 0.5,
+                 '2026-01-01', NULL, '2026-01-05', '2026-02-01', NULL,
+                 '2026-02-10', 5, 'Alta', 'Múltipla', 3.5, 'Objetivo', 'Seg',
+                 10, 4, 9),
+                ('p1', 'Pesquisa 1 (reprocessada)', 'Ativa', 'Mercado', 'Saúde',
+                 10, 0.5, '2026-01-01', NULL, '2026-01-05', '2026-02-01', NULL,
+                 '2026-02-10', 5, 'Alta', 'Múltipla', 3.5, 'Objetivo', 'Seg',
+                 10, 4, 9),
+                ('p2', 'Pesquisa 2', 'Encerrada', 'Satisfação', 'Educação', 4,
+                 0.2, '2026-03-01', '2026-03-04', '2026-03-06', '2026-04-01',
+                 NULL, '2026-04-05', 3, 'Baixa', 'Única', 2.0, 'Objetivo 2',
+                 'Ter', 6, 5, 4)
+            ) AS t(pesquisa_id, titulo, status, tipo, area, participantes,
+                   part_mercado, data_solicitacao, data_aprov, data_divulgacao,
+                   data_limite, prorrogada_ate, data_entrega,
+                   dias_uteis_para_entrega, complexidade, tipo_resposta,
+                   tempo_preenchimento, objetivos, dia_semana_lancamento,
+                   dias_uteis_aberta, dias_solicitacao_divulgacao,
+                   dias_tabulacao)
+            """,
+            """
+            CREATE TABLE ingestao_empresas_atual AS
+            SELECT * FROM (VALUES
+                ('e1', 'Empresa 1', 0.5, 'Nacional', true, 'Efetivo', 'SP', 'SP', 'Brasil'),
+                ('e2', 'Empresa 2', NULL, 'Estrangeira', false, NULL, 'RJ', 'RJ', 'Brasil')
+            ) AS t(empresa_id, nome_fantasia, part_mercado, nacionalidade,
+                   associado, tipo_associado, cidade, estado, pais)
+            """,
+            """
+            CREATE TABLE ingestao_clientes_atual AS
+            SELECT * FROM (VALUES
+                ('c1', 'e1', 'Analista', 'Compras', 'c1@example.invalid'),
+                ('c2', 'e9', 'Gerente', NULL, 'c2@example.invalid')
+            ) AS t(cliente_id, empresa_id, cargo, departamento, email)
+            """,
+            """
+            CREATE TABLE ingestao_respondentes AS
+            SELECT * FROM (VALUES
+                ('p1', '2026-01-10 09:00', '2026-01-10 09:20', 'e1', 0.5, 'c1'),
+                ('p9', '2026-01-11 09:00', NULL, 'e1', NULL, NULL)
+            ) AS t(pesquisa_id, hora_inicio, hora_termino, empresa_id,
+                   market_share, cliente_id)
+            """,
+            """
+            CREATE TABLE ingestao_questoes_atual AS
+            SELECT * FROM (VALUES
+                ('q1', 'p1', 'Pesquisa 1', 'Enunciado privado', 'única', 4,
+                 NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+                ('q2', 'p9', 'Pesquisa 9', 'Enunciado privado 2', 'múltipla', 3,
+                 NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+            ) AS t(pergunta_id, pesquisa_id, pesquisa_titulo, enunciado, tipo,
+                   qtd_alternativas, alternativas, linhas_matriz,
+                   colunas_matriz, confianca, formato_arquivo, col_origem,
+                   observacoes)
+            """,
+            """
+            CREATE TABLE ingestao_respostas_atual AS
+            SELECT * FROM (VALUES
+                ('r1', 'p1', 'q1', 'resp1', 'e1', 'Sim', NULL, NULL, NULL),
+                ('r2', 'p9', 'q9', 'resp2', 'e9', NULL, NULL, NULL, NULL)
+            ) AS t(resposta_id, pesquisa_id, pergunta_id, respondent_id,
+                   empresa_id, alternativa, linha_matriz, coluna_matriz, valor)
+            """,
+            "CREATE TABLE ingestao_pesquisas AS SELECT pesquisa_id FROM ingestao_pesquisas_atual",
+            "CREATE TABLE ingestao_empresas AS SELECT empresa_id FROM ingestao_empresas_atual",
+            "CREATE TABLE ingestao_clientes AS SELECT cliente_id FROM ingestao_clientes_atual",
+            "CREATE TABLE ingestao_questoes AS SELECT pesquisa_id, pergunta_id FROM ingestao_questoes_atual",
+            "CREATE TABLE ingestao_respostas AS SELECT pesquisa_id, resposta_id FROM ingestao_respostas_atual",
             "INSERT INTO DIM_AREA VALUES ('area1', 'Saúde')",
             "INSERT INTO DIM_STATUS_PESQUISA VALUES ('status1', 'Ativa')",
             "INSERT INTO DIM_TIPO_PESQUISA VALUES ('tipo1', 'Mercado')",
@@ -91,6 +162,43 @@ class PublishCubesTests(unittest.TestCase):
             )
             with self.assertRaises(duckdb.CatalogException):
                 reader.execute("SELECT * FROM ingestao_private")
+        finally:
+            reader.close()
+
+    def test_publishes_quality_indicators_i16_i17_i18(self):
+        manifest = publish_cubes(self.database, self.output, load_reference="run-test-1")
+        current = json.loads((self.output / "current.json").read_text())
+        generation = self.output / current["generation"]
+        reader = duckdb.connect(":memory:")
+        try:
+            campo = generation / "PUB_QUALIDADE_CAMPO.parquet"
+            data_aprov = reader.execute(
+                "SELECT qtd_linhas, qtd_preenchidas FROM read_parquet(?)"
+                " WHERE tabela = 'pesquisas' AND campo = 'data_aprov'",
+                [str(campo)],
+            ).fetchone()
+            self.assertEqual(data_aprov, (3, 1))
+
+            relacao = generation / "PUB_QUALIDADE_RELACAO.parquet"
+            clientes_empresa = reader.execute(
+                "SELECT qtd_chaves_informadas, qtd_chaves_correspondentes"
+                " FROM read_parquet(?) WHERE relacao = 'clientes.empresa_id'",
+                [str(relacao)],
+            ).fetchone()
+            self.assertEqual(clientes_empresa, (2, 1))
+
+            duplicidade = generation / "PUB_QUALIDADE_DUPLICIDADE.parquet"
+            pesquisas_dup = reader.execute(
+                "SELECT qtd_linhas, qtd_chaves_distintas FROM read_parquet(?)"
+                " WHERE tabela = 'pesquisas'",
+                [str(duplicidade)],
+            ).fetchone()
+            self.assertEqual(pesquisas_dup, (3, 2))
+
+            for entry_name in ("PUB_QUALIDADE_CAMPO", "PUB_QUALIDADE_RELACAO"):
+                columns = manifest["tables"][entry_name]["columns"]
+                self.assertNotIn("email", columns)
+                self.assertNotIn("enunciado", columns)
         finally:
             reader.close()
 
