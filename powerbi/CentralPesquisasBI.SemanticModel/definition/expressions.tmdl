@@ -1,0 +1,3 @@
+expression PastaPublicacaoBI = "C:\caminho\privado\publicacao-bi\GERACAO" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+
+	annotation PBI_ResultType = Text

@@ -1,0 +1,15 @@
+table DIM_TIPO_PERGUNTA
+
+	column tipo_pergunta
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tipo_pergunta
+
+	partition DIM_TIPO_PERGUNTA = calculated
+		mode: import
+		source = ```
+				SELECTCOLUMNS(
+					DISTINCT(ALLNOBLANKROW(PUB_C04_INSTRUMENTO[tipo_pergunta])),
+					"tipo_pergunta", [tipo_pergunta]
+				)
+				```

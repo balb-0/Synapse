@@ -1,0 +1,64 @@
+table PUB_C03_PIPELINE_MENSAL
+
+	column data_fim_mes
+		dataType: dateTime
+		isHidden
+		summarizeBy: none
+		formatString: Short Date
+		sourceColumn: data_fim_mes
+
+	column status
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: status
+
+	column area
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: area
+
+	column tipo
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: tipo
+
+	column complexidade
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: complexidade
+
+	column tipo_resposta
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: tipo_resposta
+
+	column qtd_pesquisas_no_status
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_pesquisas_no_status
+
+	column qtd_entradas_no_mes
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_entradas_no_mes
+
+	column qtd_saidas_no_mes
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_saidas_no_mes
+
+	partition PUB_C03_PIPELINE_MENSAL = m
+		mode: import
+		source =
+				let
+					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_C03_PIPELINE_MENSAL.parquet"))
+				in
+					Origem

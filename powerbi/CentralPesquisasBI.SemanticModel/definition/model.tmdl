@@ -1,0 +1,17 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: pt-BR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+ref table PUB_C01_CICLO
+ref table PUB_C02_PARTICIPACAO
+ref table PUB_C03_PIPELINE_MENSAL
+ref table PUB_C04_INSTRUMENTO
+ref table DIM_AREA
+ref table DIM_TIPO_PESQUISA
+ref table DIM_TIPO_PERGUNTA
+ref table DIM_STATUS_PESQUISA

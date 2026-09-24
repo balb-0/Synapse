@@ -54,6 +54,7 @@ documento principal.
 - [Especificação das medidas](especificacao-medidas-bi.md): numerador, denominador, grão e tratamento de nulo e duplicata de cada medida (DX-02).
 - [Regras estatísticas obrigatórias](regras-estatisticas-medidas.md): mediana vs. média, filtro de denominador, tamanho da base e proibição de contar linha como respondente (DX-03).
 - [Validação de acesso ponta a ponta ao BI](validacao-acesso-bi.md): checklist de conexão em máquina nova e gap-check indicador × coluna publicada (DX-04).
+- [Relacionamentos do modelo semântico](relacionamentos-modelo-bi.md): dimensões conformadas, cardinalidade e direção de filtro do projeto `powerbi/CentralPesquisasBI` (DX-05).
 
 ## Arquitetura, decisões e UML — Sprint 3 (Anna)
 

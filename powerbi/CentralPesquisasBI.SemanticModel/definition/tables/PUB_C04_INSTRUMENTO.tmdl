@@ -1,0 +1,27 @@
+table PUB_C04_INSTRUMENTO
+
+	column area
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: area
+
+	column tipo_pergunta
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: tipo_pergunta
+
+	column qtd_perguntas
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_perguntas
+
+	partition PUB_C04_INSTRUMENTO = m
+		mode: import
+		source =
+				let
+					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_C04_INSTRUMENTO.parquet"))
+				in
+					Origem
