@@ -130,8 +130,9 @@ script. Os parâmetros padrão são `source=empresas`, bucket vindo de
 Execução manual e backfill devem informar seus parâmetros no histórico do
 Prefect; alterar o script não é necessário para uma reexecução pontual.
 
-O plano de controle é o Prefect, executado em processo. Não há servidor,
-agente nem worker remoto no ambiente declarado.
+O plano de controle é o Prefect. O repositório oferece um processo servidor por
+`flow.serve()`; não há agente ou worker remoto declarado no Compose, nem prova
+de disponibilidade contínua fora da máquina do operador.
 
 | Mecanismo | Implementação | Parâmetros |
 | :--- | :--- | :--- |
@@ -202,6 +203,25 @@ sequenceDiagram
 ```
 
 ## Métricas e telemetria
+
+### Sinais, coleta e alertas
+
+| Sinal | Produção | Coleta/retenção | Alerta |
+| :--- | :--- | :--- | :--- |
+| Estado do flow/task | Prefect | Histórico do servidor ativo | Interface do Prefect; regra externa não versionada |
+| Lote extraído | `ExtractionBatchLogEvent` | Logger Python | Não configurado |
+| Lote carregado/falho | `LoadBatchLogEvent` | Logger Python | Não configurado |
+| Contagens conciliadas | DuckDB, `reconciliacao_execucao` | Volume `duck-data` | Consulta/health check manual |
+| Saúde do banco | `run_health_check()` | Saída do comando | Não configurado |
+
+Logs locais já carregam correlação por `run_id`, `task_id` e `batch_id`. A
+centralização, o painel e alertas automáticos continuam dependências dos cards
+OB-07 a OB-09; a ausência desses serviços não deve ser mascarada como uma
+integração existente.
+
+Na recuperação, o último checkpoint confirmado define a retomada. O lote atual
+só avança depois de persistência e reconciliação; retry esgotado mantém o
+checkpoint anterior e deixa a falha visível no histórico e no evento técnico.
 
 O que existe hoje:
 
