@@ -126,6 +126,58 @@ Se um painel aparecer vazio, é porque ainda não há eventos daquele tipo no
 índice (ex.: nenhuma tentativa de retry ocorreu ainda) — não é falha do
 painel.
 
+### Health check da orquestração (OB-09)
+
+Checa, numa só chamada, se o servidor Prefect configurado responde e se o
+banco de ingestão aceita conexão/consulta/persistência (reaproveita o mesmo
+health check da carga, `etl.load.environment.run_health_check`):
+
+```bash
+docker compose exec runner python scripts/orchestration/health_check.py
+```
+
+Sai com código 1 se qualquer checagem falhar, e publica um evento
+`orchestration.health_check.emitted` no índice `etl-logs-*` (mesmo formato
+técnico das demais camadas, ADR 0001) — consultável no painel do OB-08 e
+usado pelo alerta de falha abaixo. A checagem do Prefect depende da variável
+`PREFECT_API_URL` (o mesmo nome de variável que o próprio Prefect lê); sem
+ela configurada, a checagem falha explicitamente em vez de tentar adivinhar
+um endereço.
+
+O servidor Prefect publicado em OQ-03 roda no host (`prefect server start` +
+`prefect deploy --all`, fora do Compose — ver card #235), não como serviço
+deste `docker-compose.yml`. Rodando `health_check.py` **dentro** do
+container `runner`, `PREFECT_API_URL=http://localhost:4200/api` aponta para
+o próprio container, não para o host — usar
+`http://host.docker.internal:4200/api` (o runner já sai por essa rede, mesma
+observação de resolução de nome feita para o `gelf-address` do Logstash na
+MR do OB-07). Rodando o script fora do container (ambiente local sem
+Docker), `localhost:4200` funciona normalmente.
+
+### Alertas mínimos (Kibana Alerting, OB-09)
+
+O schema de saved object de uma regra de alerta do Kibana (`type: "alert"`)
+muda com mais frequência entre versões do que o de dashboard/visualização
+(OB-08) e não há como confirmar a importação neste ambiente (Docker
+indisponível). Uma regra de alerta mal formada falha silenciosamente — pior
+do que simplesmente não existir — por isso as duas regras mínimas abaixo
+ficam documentadas para criação manual em **Stack Management → Rules →
+Create rule → Elasticsearch query**, em vez de um NDJSON não verificável:
+
+| Regra | Índice | Campo de tempo | Consulta (KQL) | Condição | Janela | Frequência |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| ETL - falha de execução | `etl-logs-*` | `@timestamp` | `tags: "_jsonparsefailure" or (event: "orchestration.health_check.emitted" and status: "degraded")` | contagem **acima de** 0 | últimos 5 min | a cada 1 min |
+| ETL - fila parada | `etl-logs-*` | `@timestamp` | `stage: "orchestration"` | contagem **abaixo de** 1 | últimas 26 h | a cada 30 min |
+
+A primeira regra cobre tanto uma falha real do pipeline (traceback do Python
+vazando pro stdout, capturado pelo Logstash com a tag `_jsonparsefailure` —
+ver `observability/logstash/pipeline/etl.conf`) quanto uma falha detectada
+pelo próprio health check acima. A segunda cobre o deployment agendado
+parar de rodar (cron diário às 03:00, `scripts/orchestration/deployment.py`)
+— 26h dá margem sobre as 24h de intervalo esperado. Nenhuma das duas precisa
+de uma action/connector configurada para "disparar alerta visível": o
+estado da regra já aparece em **Alerts** no Kibana quando ativa.
+
 Verificar o banco de ingestão local (cria o arquivo se não existir e roda
 consulta smoke + verificação de persistência):
 

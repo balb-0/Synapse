@@ -106,6 +106,13 @@ services:
       - elasticsearch
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      # Sem essa chave o Kibana gera uma efêmera a cada subida e as regras de
+      # alerta (OB-09) ficam ilegíveis depois de um `docker compose down` —
+      # Alerting usa essa chave para (des)criptografar os parâmetros salvos
+      # das regras mesmo com xpack.security.enabled=false. Valor fixo só para
+      # ter 32+ caracteres estáveis neste ambiente de desenvolvimento; não é
+      # segredo real, não reaproveitar fora daqui.
+      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: "dev-only-nao-use-em-producao-32chars"
     ports:
       - "5601:5601"
     healthcheck:
