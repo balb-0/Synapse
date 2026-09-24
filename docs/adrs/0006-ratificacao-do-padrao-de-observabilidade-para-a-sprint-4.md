@@ -58,14 +58,16 @@ as divergências do OB-01:
 
 1. **`task_id` passa a significar o identificador que o Prefect atribui à
    execução daquela tarefa (`task run`), único por tentativa** — não mais um
-   rótulo fixo por fonte. Este ADR fixa a semântica, não o acessor exato: cabe
-   a OB-03/OB-04 confirmar, na versão instalada (`prefect>=3,<4`), o meio
-   correto de ler esse identificador dentro de uma task (por exemplo, o
-   módulo de runtime do Prefect) e propagá-lo tanto para os eventos por lote
-   quanto para os marcos de orquestração, que hoje não carregam `task_id`
-   nenhum. O rótulo `extract-{source}` deixa de ser usado como `task_id`;
-   onde for útil identificar a fonte, isso já é feito pelo campo `source`,
-   que continua existindo separado.
+   rótulo fixo por fonte. Confirmado na versão instalada (`prefect==3.8.6`,
+   satisfazendo `prefect>=3,<4`): `prefect.runtime.task_run.id` devolve esse
+   identificador dentro de uma `@task`, e `None` fora de uma — os cinco
+   marcos de orquestração, que hoje não carregam `task_id` nenhum, caem
+   nesse segundo caso quando publicados direto no corpo de um `@flow`
+   (`ingest_object`, `backfill`); `prefect.runtime.flow_run.id` cobre esse
+   caso como o identificador de correlação daquele escopo (OB-03). O rótulo
+   `extract-{source}` deixa de ser usado como `task_id`; onde for útil
+   identificar a fonte, isso já é feito pelo campo `source`, que continua
+   existindo separado.
 2. **`event_id` é removido do padrão como campo próprio.** O ADR 0001 o
    citava, mas ele nunca existiu como atributo de log — na prática, o
    parâmetro `event_id` do disparo por evento já vira o próprio `run_id`.
@@ -99,10 +101,13 @@ as divergências do OB-01:
 - **Não corrige o acoplamento de identidade do ADR 0002** nem qualquer outro
   item pendente de sprints anteriores — esta decisão é só sobre os três
   pontos do padrão de observabilidade listados acima.
-- **Não garante que `task_id` do Prefect sobrevive a execução fora do
-  Prefect.** Os testes/smoke que rodam fora de um flow (chamando extratores
-  diretamente) precisam de um `task_id` de substituição documentado por
-  OB-10/OB-11 quando não houver contexto de execução do Prefect.
+- **Não garante que `task_id` sobrevive a execução totalmente fora do
+  Prefect.** OB-03 fecha o caso do marco publicado direto no corpo de um flow
+  (fallback para `flow_run.id`); o que continua fora do padrão é código
+  chamado sem nenhum flow ou task ao redor (por exemplo, um extrator testado
+  diretamente) — nesse caso `task_id` simplesmente não aparece no evento, sem
+  substituto inventado, e isso é aceitável enquanto essa chamada não estiver
+  na linha principal de execução.
 
 ## Consequências
 
@@ -124,11 +129,14 @@ as divergências do OB-01:
   testes e fixtures que hoje comparam `task_id` literal
   (`task_id=f"extract-{self.source}"`); OB-03/OB-04 precisam atualizar essas
   asserções, não só adicionar código novo.
-- `task_run.id` do Prefect só existe dentro de uma execução orquestrada; código
-  chamado fora de uma task (testes unitários diretos, scripts de smoke sem
-  flow) não tem esse valor disponível e precisa de um `task_id` alternativo —
-  ponto que fica registrado como pendência para OB-10/OB-11, não resolvido
-  aqui.
+- `task_run.id` do Prefect só existe dentro de uma `@task`; o marco publicado
+  direto no corpo de um `@flow` (`ingest_object`, `backfill`) já tem esse gap
+  fechado por OB-03 com o fallback para `flow_run.id`. Fora de qualquer
+  execução do Prefect (chamada direta a `_log_event` ou a um extrator num
+  teste unitário), os dois vêm `None` e `task_id` fica de fora do evento — sem
+  identificador inventado no lugar. Se OB-10/OB-11 precisar de `task_id`
+  nas evidências de smoke, a execução real via flow já resolve; não é
+  pendência nova.
 - Ratificar sem reabrir a escolha de stack não resolve o fato de que nenhuma
   dependência de Elastic Stack está no `requirements.txt` nem no
   `docker-compose.yml` — essa lacuna continua sendo trabalho de OB-07, não
