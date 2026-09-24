@@ -12,6 +12,20 @@ O contexto de negócio vem de
 
 ## Objetivo
 
+Na Sprint 4, o objetivo deixa de terminar na disponibilidade técnica da
+ingestão: a cadeia deve permitir consumo analítico controlado dos cubos por uma
+ferramenta de BI, mantendo rastreabilidade até o snapshot tratado. O valor de
+negócio é reduzir a montagem manual de relatórios sem publicar indicadores cujo
+dado ou regra ainda não existe.
+
+O sucesso é observado quando:
+
+- o operador identifica execução, atualização e qualidade antes de liberar o
+  consumo;
+- o analista consulta medidas aprovadas sem acesso de escrita ao warehouse;
+- cada indicador publicado possui numerador, denominador, grão e origem;
+- uma indisponibilidade é mostrada como tal, não substituída por zero ou proxy.
+
 A Central de Pesquisas do Sindusfarma conduz pesquisas setoriais cujos dados
 hoje vivem dispersos em planilhas, sistemas distintos e arquivos reexportados
 manualmente. Cruzar informações exige trabalho manual repetido, a origem de cada
@@ -31,6 +45,14 @@ Este é o insumo para os cubos e painéis descritos no Data Model Canvas, que
 **não** fazem parte desta entrega.
 
 ## Partes interessadas
+
+| Parte interessada | Decisão apoiada | Forma de consumo | Limite |
+| :--- | :--- | :--- | :--- |
+| Central de Pesquisas | priorizar operação, prazos e qualidade | dashboards e detalhe agregado | não expor resposta individual |
+| Liderança do Sindusfarma | acompanhar portfólio e representatividade | indicadores executivos | somente métricas com regra aprovada |
+| Analista de dados | validar cubos e investigar variações | acesso BI somente leitura | sem alterar dado tratado |
+| Operador do ETL | executar, retomar e reconciliar cargas | Prefect, logs e controles DuckDB | não redefine regra de negócio |
+| Governança/privacidade | autorizar publicação e retenção | evidências de linhagem e catálogo | bloqueia indicador sem base adequada |
 
 | Parte interessada | Relação com o pipeline | O que espera |
 | :--- | :--- | :--- |
