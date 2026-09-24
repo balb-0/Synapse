@@ -122,9 +122,7 @@ class FactCycleParticipationTests(unittest.TestCase):
 
     def test_person_sequence_unique_and_market_share_percentage(self):
         pesquisa, empresa, _fonte, _carga = self.seed_dimensions()
-        pessoa = insert_dimension(
-            self.db, "DIM_PESSOA", "sk_pessoa", ("cliente_id",), "C-1"
-        )
+        pessoa = insert_dimension(self.db, "DIM_PESSOA", "sk_pessoa", ("cliente_id",), "C-1")
         statement = (
             "INSERT INTO FATO_PARTICIPACAO "
             "(source_checksum, source_offset, sk_pesquisa, sk_empresa, "
