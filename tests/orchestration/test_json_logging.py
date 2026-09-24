@@ -177,6 +177,32 @@ class ConfigureJsonLoggingTests(unittest.TestCase):
         parsed = json.loads(lines[0])
         self.assertEqual(parsed["source"], "empresas")
 
+    def test_orchestration_health_check_also_reaches_the_stream_as_json(self) -> None:
+        """``etl.orchestration.health.log_health_check`` publica direto em
+        ``logging.getLogger("etl.orchestration")`` — fora de qualquer contexto
+        do Prefect (é um script standalone, ``get_run_logger()`` exigiria um
+        flow/task rodando). Sem esse logger em ``OBSERVED_LOGGERS``, o evento
+        cairia no handler padrão do Python (``lastResort``, sem os atributos
+        de ``extra``) em vez de sair como JSON estruturado no stdout — este
+        teste teria pego essa lacuna quando o health check (OB-09) foi
+        adicionado sem entrar na lista.
+        """
+        from etl.orchestration.health import HEALTH_CHECK_EVENT
+
+        stream = io.StringIO()
+        configure_json_logging(stream=stream)
+
+        logging.getLogger("etl.orchestration").info(
+            HEALTH_CHECK_EVENT,
+            extra={"event": HEALTH_CHECK_EVENT, "stage": "orchestration", "status": "ok"},
+        )
+
+        lines = [line for line in stream.getvalue().splitlines() if line.strip()]
+        self.assertEqual(len(lines), 1)
+        parsed = json.loads(lines[0])
+        self.assertEqual(parsed["event"], HEALTH_CHECK_EVENT)
+        self.assertEqual(parsed["status"], "ok")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -22,6 +22,7 @@ OBSERVED_LOGGERS = (
     "etl.extraction",
     "etl.transformation",
     "etl.load",
+    "etl.orchestration",
     "prefect.task_runs",
     "prefect.flow_runs",
 )
