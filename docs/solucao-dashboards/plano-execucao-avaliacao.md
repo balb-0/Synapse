@@ -54,3 +54,42 @@ bloco, tarefas fora do tempo, desvios recorrentes, precisão dos valores)
 quando as fichas forem preenchidas — os números finais entram aqui **somente
 vindos das fichas**.
 
+## 3. Avaliação de qualidade técnica
+
+Critérios objetivos, herdados dos contratos do projeto, pelos quais os
+reports são avaliados (cada um verificável tela a tela):
+
+1. **Estados distintos** — vazio, indisponível, erro e acesso negado nunca se
+   confundem; dado ausente nunca aparece como zero (§6.1.1; medidas DX-10).
+2. **Denominador explícito** — toda taxa exibe numerador e denominador;
+   denominador ausente → "indisponível" com motivo (RF04/RF05; protótipo já
+   implementa `null`, nunca `0%`).
+3. **Temporalidade rotulada** — `data_solicitacao` como padrão; outro marco
+   sempre selecionado e rotulado (RF01/RF03).
+4. **Semiaditividade respeitada** — estoque mensal do pipeline não é somado
+   entre períodos (contrato C03).
+5. **Rastreabilidade** — todo número da tela rastreia a um cubo/medida da
+   [seção de implementação](implementacao-reports.md); valores conferidos
+   contra o repositório analítico na rodada de RP-11/US-07.
+6. **Privacidade** — nenhuma tela expõe e-mail, identificador de pessoa ou
+   resposta individual (regra LGPD do protótipo, mantida nos reports).
+
+## 4. Avaliação de qualidade visual
+
+Critérios de apresentação, todos já demonstrados no protótipo e exigidos das
+telas finais (RP-09):
+
+1. **Identificação completa** — cada gráfico com título, unidade e fonte;
+   legenda presente quando há mais de uma série.
+2. **Alternativa acessível** — tabela equivalente para cada visual;
+   navegação por teclado; foco visível; contraste conforme WCAG AA.
+3. **Reflow** — leitura íntegra até 320px e zoom de 400% sem transbordo
+   (verificado no protótipo; a reverificar nas telas finais).
+4. **Rótulos honestos** — "participação observada" (nunca "adesão" sem
+   denominador); indicador bloqueado com motivo textual.
+5. **Consistência entre telas** — mesma identidade visual, mesmos nomes para
+   os mesmos conceitos, filtros com o mesmo comportamento (RP-07/RP-09).
+
+A avaliação final (técnica e visual) é preenchida por tela após a execução
+das sessões e a entrega das telas, com o resultado por critério — atendido,
+não atendido (com evidência) ou não verificável (com motivo).
