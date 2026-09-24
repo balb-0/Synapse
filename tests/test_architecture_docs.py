@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 from scripts.architecture import validate_architecture_docs as validator
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 

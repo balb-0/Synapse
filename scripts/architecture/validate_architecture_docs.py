@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
-
 ARCHITECTURE_DOCUMENTS = (
     Path("docs/visao-negocio-etl.md"),
     Path("docs/visao-informacao-etl.md"),
@@ -61,9 +60,7 @@ CODE_SYMBOLS = (
     "transform_batch",
 )
 
-MARKDOWN_LINK_RE = re.compile(
-    r"!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))", re.MULTILINE
-)
+MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))", re.MULTILINE)
 HTML_LINK_RE = re.compile(r"(?:href|src)=[\"']([^\"']+)[\"']", re.IGNORECASE)
 HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*#*\s*$", re.MULTILINE)
 EXPLICIT_ANCHOR_RE = re.compile(r"<a\s+(?:name|id)=[\"']([^\"']+)[\"']", re.IGNORECASE)
@@ -158,8 +155,7 @@ def validate_code_coherence(root: Path) -> list[str]:
         package, version = match.groups() if match else (specification, "")
         if package not in technology or (version and version not in technology):
             errors.append(
-                "docs/visao-tecnologia-etl.md: versão ausente ou divergente: "
-                f"{specification}"
+                f"docs/visao-tecnologia-etl.md: versão ausente ou divergente: {specification}"
             )
 
     image_match = re.search(r"^FROM\s+(\S+)", dockerfile, re.MULTILINE)
