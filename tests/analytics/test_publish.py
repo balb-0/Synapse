@@ -119,6 +119,14 @@ class PublishCubesTests(unittest.TestCase):
             {name: table["rows"] for name, table in second["tables"].items()},
         )
 
+    def test_rejects_output_inside_git_or_secret_like_reference(self):
+        with self.assertRaisesRegex(ValueError, "identificador simples"):
+            publish_cubes(self.database, self.output, load_reference="token=123")
+        inside_repo = Path(__file__).resolve().parents[2] / "data" / "publication"
+        with self.assertRaisesRegex(ValueError, "fora do repositório"):
+            publish_cubes(self.database, inside_repo, load_reference="run-test-1")
+        self.assertFalse(inside_repo.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import uuid
 from datetime import datetime, timezone
@@ -88,8 +89,8 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
     ``output`` deve ficar fora do checkout. O diretório é privado por padrão;
     a distribuição a consumidores autorizados ocorre fora deste processo.
     """
-    if not load_reference or not load_reference.strip() or len(load_reference) > 128:
-        raise ValueError("load_reference deve identificar a carga, com 1 a 128 caracteres")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", load_reference):
+        raise ValueError("load_reference deve ser um identificador simples, sem segredo")
     database = Path(database).resolve(strict=True)
     if Path(output).is_symlink():
         raise ValueError("diretório de publicação simbólico não é permitido")
