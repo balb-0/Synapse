@@ -32,3 +32,30 @@ comportamento verificável. Nada marcado pendente é apresentado como entregue.
 
 </div><br>
 
+## 2. Relacionamentos do modelo
+
+Estrutura em estrela conforme os contratos: **[contrato]**
+
+- `DIM_TEMPO` é **conformada nos quatro cubos**; em C01 atua por **papéis**
+  (uma relação por marco: solicitação, aprovação, divulgação, prazo,
+  prorrogação, entrega), com `data_solicitacao` como papel padrão das telas.
+- `DIM_PESQUISA` é conformada em C01, C02 e C04; Status, Área, Tipo e Perfil
+  são compartilhadas entre C01 e C03.
+- Cardinalidade: dimensão (1) → fato (N) em todas as relações; filtro
+  propaga da dimensão para o fato, em direção única. Caminhos ambíguos entre
+  fatos não permanecem ativos — cruzamento entre fatos só por dimensão
+  conformada. **[pendente: DX-05** materializar cardinalidade e direção no
+  modelo da ferramenta de BI**]**
+- Não existe relação participação ↔ resposta (C02 ↔ C04): a ponte de
+  identidade não foi conciliada (DR03) e o modelo não a presume.
+
+## 3. Filtros e hierarquias
+
+- Filtros compartilhados entre telas: período (papel `data_solicitacao` por
+  padrão, outros marcos só rotulados), tipo, área, complexidade, status.
+  **[contrato; comportamento entre telas pendente: RP-07]**
+- Hierarquia de tempo: ano → trimestre → mês (→ dia onde o grão sustentar),
+  sem quebrar o total entre níveis. **[pendente: DX-06]**
+- Hierarquias de classificação: área → tipo → perfil da pesquisa; e a
+  hierarquia de qualidade fonte → campo → regra na D04. **[pendente: DX-06]**
+
