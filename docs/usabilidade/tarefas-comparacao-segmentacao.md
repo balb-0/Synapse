@@ -40,3 +40,42 @@ RF03):
   a dúvida registrada vira achado sobre a rotulagem.
 - **Tempo aceitável:** 3 minutos.
 
+## T-SEG-01 — Dois filtros simultâneos e leitura do recorte
+
+- **Perfil-alvo:** UC01 ou UC03.
+- **Situação real:** "Quantas pesquisas de uma mesma área e de um mesmo tipo
+  existem no portfólio? Ao final, descreva exatamente o que o número
+  representa."
+- **Passos esperados:** D01 → filtro de área → filtro de tipo (mantendo o de
+  área) → leitura da contagem.
+- **Critério de sucesso:** informa a contagem **e enuncia o recorte completo**
+  ("pesquisas da área X e do tipo Y, no período padrão") sem omitir nenhum
+  filtro ativo.
+- **Tempo aceitável:** 3 minutos.
+
+## T-SEG-02 — Três filtros simultâneos cruzando telas
+
+- **Perfil-alvo:** UC02 (área técnica).
+- **Situação real:** "Para um conjunto filtrado por área, tipo e status,
+  verifique a distribuição por tipo de questão nos resultados."
+- **Passos esperados:** D01 → aplicar os três filtros → navegar a D03 →
+  conferir se o recorte se manteve → ler a distribuição por tipo de questão.
+- **Critério de sucesso:** lê a distribuição para o recorte certo e confirma
+  quais dos três filtros permaneceram ativos após a navegação (perceber
+  perda de filtro é sucesso; não perceber é o erro-alvo).
+- **Tempo aceitável:** 5 minutos.
+
+## T-SEG-03 — Segmentação que zera: recorte vazio consciente
+
+- **Perfil-alvo:** UC01 (analista da Central).
+- **Situação real:** "Empilhe filtros até obter um recorte sem pesquisas e
+  explique o que a tela está dizendo."
+- **Passos esperados:** D01 → acumular período curto + área + tipo + status
+  até zerar → ler o estado exibido → remover UM filtro e observar o retorno
+  de resultados.
+- **Critério de sucesso:** distingue "recorte sem correspondência" de erro,
+  identifica qual filtro removeu para voltar a ter dados e explica por quê.
+  (Complementa a T-FIL-04: aqui o vazio nasce da **combinação**, e o
+  participante precisa raciocinar sobre qual segmento o causou.)
+- **Tempo aceitável:** 4 minutos.
+
