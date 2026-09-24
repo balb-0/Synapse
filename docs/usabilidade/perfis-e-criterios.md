@@ -52,3 +52,48 @@ atendem. É este mapa que as tarefas de usabilidade devem cobrir.
 
 </div><br>
 
+## 3. Critérios de aceite já documentados
+
+A §6.1.1 define critérios de aceitação por requisito, todos no formato
+dado/quando/então e independentes de tecnologia. Três contratos transversais
+aparecem em praticamente todos os RFs e valem como critério de aceite geral
+para qualquer tela:
+
+1. **Estados distintos** — "sem dados", "indisponível", "erro" e "acesso
+   negado" nunca se confundem; recorte vazio não é falha e dado ausente não é
+   zero (RF01, RF03, RF05, RF06, RF10).
+2. **Denominador explícito** — nenhuma taxa é exibida sem numerador e
+   denominador identificáveis; sem universo documentado, a taxa fica
+   indisponível (RF04, RF05, RF10, RF11).
+3. **Temporalidade rotulada** — `data_solicitacao` é o campo temporal padrão;
+   qualquer outro marco só vale quando selecionado explicitamente e rotulado
+   (RF01, RF03).
+
+Critérios específicos por RF (acesso por perfil, linhagem, publicação etc.)
+permanecem na §6.1.1 e são referenciados pelas tarefas quando aplicáveis.
+
+## 4. Testes de usuário já documentados
+
+A §6.1.2 traz um roteiro de teste por requisito (RF01–RF13), cada um com
+persona, pré-condições, passos, resultado esperado, evidência e responsável
+pela aprovação. Síntese do que existe:
+
+<div align="center">
+<sub>Tabela 3 - Testes de usuário documentados e perfil responsável</sub><br>
+
+| Teste (§6.1.2) | Persona documentada | Aprovação registrada por |
+| :--- | :--- | :--- |
+| RF01 portfólio | Gestor ou analista da Central (UC01/UC03) | Gestor ou analista da Central |
+| RF02 ciclo e detalhe | Analista da Central (UC01) | Analista da Central |
+| RF03 prazos e prioridades | Gestor ou analista da Central (UC01/UC03) | Gestor ou analista da Central |
+| RF04–RF05 adesão e engajamento | Analista da Central e gestor (UC01/UC03) | Central de Pesquisas |
+| RF06–RF08 qualidade, linhagem e acesso | Data Steward / auditor (governança proposta) | Papel de governança indicado |
+| RF09 publicação | Data Owner / Custodian (governança proposta) | Papel de governança indicado |
+| RF10–RF11 resultados e contexto | Analista / auditor autorizado (UC02) | Central de Pesquisas |
+| RF12 integração | Analista técnico (UC01) | Central de Pesquisas |
+| RF13 questionário versionado | Área técnica revisora (UC02) | Área técnica |
+
+<sup>Material produzido pelos autores (2026), consolidado da §6.1.2 do projeto</sup>
+
+</div><br>
+
