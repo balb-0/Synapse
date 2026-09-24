@@ -97,3 +97,22 @@ pela aprovação. Síntese do que existe:
 
 </div><br>
 
+## 5. Lacunas encontradas no levantamento
+
+Registro do que **não** está coberto pelo material existente — insumo direto
+para o plano de usabilidade:
+
+- **Os testes da §6.1.2 validam requisito, não usabilidade.** Eles conferem
+  comportamento funcional (o dado certo aparece), mas não medem tempo de
+  conclusão, desvio de caminho nem esforço do usuário — é exatamente o que as
+  tarefas desta pasta acrescentam.
+- **UC04 (externos) não tem tela própria**: o acervo público está fora do
+  protótipo atual; tarefas de usabilidade para esse perfil ficam limitadas ao
+  que o acervo expõe e são registradas como dependentes de publicação.
+- **Papéis de governança sem titular**: os testes de RF06–RF09 pedem massa de
+  teste identificada; nas sessões de usabilidade, esses papéis são exercidos
+  por participante interno fazendo o papel, e isso fica anotado no registro.
+- **Indicadores indisponíveis** (I06, I08, I11, I15, I21–I25 conforme §5.6):
+  tarefas que passem por eles devem esperar a sinalização de "indisponível
+  com motivo", nunca um valor — isso já é critério de aceite, e vira critério
+  de sucesso das tarefas.
