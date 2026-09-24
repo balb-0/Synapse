@@ -150,6 +150,20 @@ class LogEventHelperTests(unittest.TestCase):
         _, extra = logger.calls[0]
         self.assertEqual(extra["task_id"], "explicit")
 
+    def test_a_logger_that_fails_does_not_break_the_caller(self) -> None:
+        """Mesma garantia do ADR 0001 já provada em extração/carga/transformação:
+        o mecanismo de observabilidade não pode corromper nem interromper a
+        orquestração por um coletor fora do ar (OB-10). Diferente das outras
+        camadas, ``_log_event`` não passava por um sink injetável — o próprio
+        ``logger.info(...)`` é o único ponto de falha aqui, então é ele que
+        precisa da mesma proteção."""
+
+        class LoggerQuebrado:
+            def info(self, message: str, *, extra: dict) -> None:
+                raise RuntimeError("coletor fora do ar")
+
+        flow_module._log_event(LoggerQuebrado(), "orchestration.extract.emitted", source="empresas")
+
 
 @unittest.skipUnless(DUCKDB_INSTALLED, SEM_DUCKDB)
 class IngestObjectLogEventsTests(unittest.TestCase):

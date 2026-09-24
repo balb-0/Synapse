@@ -4,6 +4,7 @@ import logging
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
@@ -180,6 +181,48 @@ class ExtractionLogTests(unittest.TestCase):
         self.assertEqual(len(sink.events), 1)
         self.assertEqual(sink.events[0].record_count, 0)
         self.assertEqual(sink.events[0].checkpoint_position, "row:0")
+
+    def test_a_sink_that_fails_does_not_break_the_extraction(self) -> None:
+        """Mesma garantia do ADR 0001 já provada em load/transformation: o
+        transporte de observabilidade fora do ar não pode corromper nem
+        interromper a extração (OB-10)."""
+
+        class FailingLogSink:
+            def emit(self, event: ExtractionBatchLogEvent) -> None:
+                raise RuntimeError("sink fora do ar")
+
+        extractor = EmpresasExtractor(
+            object_reader=MemoryObjectReader(_empresas_payload()),
+            object_reference=ObjectReference(
+                bucket="sindusfarma-data",
+                key="landing/empresas.csv",
+            ),
+            log_sink=FailingLogSink(),
+        )
+
+        batches = list(extractor.read(run_id="run-sink-down", task_id="task-sink-down"))
+
+        self.assertEqual(len(batches), 1)
+        self.assertEqual(batches[0].metadata.record_count, 3)
+
+    def test_a_bug_building_the_event_is_not_confused_with_a_sink_down(self) -> None:
+        """Só o envio ao sink é tolerante a falha (ADR 0001). Um bug na
+        construção do evento é um defeito de código, não uma falha de
+        transporte — não pode ser engolido (OB-10, espelha a mesma garantia
+        já provada em transformation.pipeline)."""
+        broken = mock.patch.object(
+            ExtractionBatchLogEvent, "from_batch", side_effect=KeyError("campo_inexistente")
+        )
+        extractor = EmpresasExtractor(
+            object_reader=MemoryObjectReader(_empresas_payload()),
+            object_reference=ObjectReference(
+                bucket="sindusfarma-data",
+                key="landing/empresas.csv",
+            ),
+        )
+
+        with broken, self.assertRaises(KeyError):
+            list(extractor.read(run_id="run-broken-event", task_id="task-broken-event"))
 
 
 if __name__ == "__main__":

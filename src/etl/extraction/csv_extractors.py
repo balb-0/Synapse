@@ -381,8 +381,21 @@ class CsvObjectExtractor:
             checkpoint=checkpoint,
             metadata=metadata,
         )
-        self._log_sink.emit(ExtractionBatchLogEvent.from_batch(batch))
+        self._emit_log(ExtractionBatchLogEvent.from_batch(batch))
         return batch
+
+    def _emit_log(self, event: ExtractionBatchLogEvent) -> None:
+        """Publica no sink sem deixar uma falha de telemetria virar falha da extração.
+
+        Mesma garantia do ADR 0001 já aplicada em carga/transformação (OB-10):
+        o mecanismo de observabilidade não pode corromper nem interromper a
+        extração por um sink fora do ar. Só o envio entra no try — um bug na
+        construção do evento continua estourando, não vira "sink fora do ar".
+        """
+        try:
+            self._log_sink.emit(event)
+        except Exception:
+            pass
 
     def _prepare_record(self, record: dict[str, str]) -> Record:
         """Permite especializar apenas a representação entregue pelo extrator."""

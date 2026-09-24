@@ -72,10 +72,21 @@ def _log_event(logger, event: str, **attributes: object) -> None:
     atributos de correlação e contagem vão em ``extra``, consultáveis por
     campo depois que o log chegar à plataforma de observabilidade. ``None``
     fica de fora, como em ``ExtractionBatchLogEvent.as_dict``/``LoadBatchLogEvent.as_dict``.
+
+    A chamada a ``logger.info`` fica isolada num try/except (OB-10): mesma
+    garantia do ADR 0001 já aplicada em extração/carga/transformação — um
+    coletor fora do ar não pode corromper nem interromper a orquestração.
+    Diferente das outras camadas, aqui não há um sink injetável separado do
+    logger; o próprio ``logger.info`` é o único ponto de falha.
     """
     attributes.setdefault("task_id", _current_task_id())
     payload = {"event": event, "stage": ORCHESTRATION_STAGE, **attributes}
-    logger.info(event, extra={key: value for key, value in payload.items() if value is not None})
+    try:
+        logger.info(
+            event, extra={key: value for key, value in payload.items() if value is not None}
+        )
+    except Exception:
+        pass
 
 
 def _minio_client(settings):
