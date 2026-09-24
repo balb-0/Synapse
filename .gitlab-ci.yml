@@ -34,6 +34,7 @@ test:
     - if: '$CI_COMMIT_BRANCH'
   script:
     - pip install -r requirements.txt -r requirements-transformation-dev.txt
+    - python scripts/architecture/validate_architecture_docs.py
     - python scripts/transformation/render_schema.py --check
     - coverage run --branch --source=etl -m unittest discover -s tests -v
     - coverage report --fail-under=85
