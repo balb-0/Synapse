@@ -229,6 +229,25 @@ a rotina de carga da camada analítica são dependências dos cards CB-02 a CB-0
 até sua integração, o diagrama acima descreve a cadeia-alvo, não tabelas já
 presentes na base `develop`.
 
+### Linhagem entre ingestão e cubos
+
+Cada fato analítico deve preservar uma referência verificável à execução que o
+originou. A linhagem mínima é composta por `run_id`, `source_checksum`,
+`schema_version` e o instante de atualização; para fatos formados por mais de
+uma fonte, a carga deve registrar o conjunto de checksums participantes.
+
+| Pergunta de auditoria | Metadado que responde | Origem canônica |
+| :--- | :--- | :--- |
+| Qual execução produziu o valor? | `run_id` | `_batch_metadata` e linhas de ingestão |
+| Qual snapshot foi usado? | `source_checksum` | `_control_object` e linhas de ingestão |
+| Qual contrato tipou o dado? | `schema_version` | `BatchMetadata` e destino tratado |
+| O lote fechou as contagens? | extraído, aceito, rejeitado e duplicado | `reconciliacao_execucao` |
+| Quando o cubo foi atualizado? | instante e identificador da carga analítica | controle da camada analítica, dependência CB-06 |
+
+O BI consome somente tabelas ou views publicadas. Campos técnicos podem ser
+ocultados da camada semântica, mas não removidos do caminho auditável que liga
+uma medida ao snapshot tratado.
+
 ## Limites desta visão
 
 A visão termina na tabela de ingestão tratada. Cubos, dimensões, fatos e
