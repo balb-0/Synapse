@@ -94,3 +94,8 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
   não perder a janela e **reexecutar** nas telas finais, mantendo os dois
   registros separados (regra já fixada no roteiro, §6).
 
+## 2. Limitações encontradas nas sessões de execução
+
+_Reservado. Preenchido a partir das fichas de US-06/US-07 quando as rodadas
+ocorrerem, no mesmo formato (impacto, causa observada com a ficha/tarefa que
+a evidencia, proposta marcada como proposta)._
