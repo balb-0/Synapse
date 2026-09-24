@@ -33,6 +33,21 @@ O repositório **não tem** `pyproject.toml`, `setup.py` nem `setup.cfg`. O paco
 é resolvido por `PYTHONPATH=src`, definido no `Dockerfile`, no job de CI e nos
 comandos de teste.
 
+### Fonte canônica e política de versões
+
+| Categoria | Fonte canônica | Política observada | Reprodutibilidade |
+| :--- | :--- | :--- | :--- |
+| Runtime Python | `Dockerfile` e `.gitlab-ci.yml` | imagem `python:3.12-slim` | Versão menor fixa; digest da imagem não fixado |
+| Bibliotecas de execução | `requirements.txt` | faixas compatíveis | Não produz ambiente idêntico sem lock |
+| Ferramentas de qualidade | `requirements-transformation-dev.txt` | `coverage==7.16.0`, `ruff==0.16.6` | Versões exatas |
+| Serviços MinIO | `docker-compose.yml` | tags `latest` | Não reprodutível por versão |
+
+O card OQ-09 é responsável por fixar as dependências de execução. Enquanto essa
+alteração não estiver integrada, esta visão registra as faixas e tags reais em
+vez de declarar versões exatas inexistentes. Depois da integração, a tabela
+deve ser conferida diretamente contra os arquivos, sem duplicar um lock manual
+neste documento.
+
 ## Protocolos
 
 | Protocolo | Uso | Onde |
