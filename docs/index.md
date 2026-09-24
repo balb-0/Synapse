@@ -60,6 +60,7 @@ documento principal.
 - [Medidas de participação e representatividade](medidas-participacao.md): medidas de `PUB_C02_PARTICIPACAO` e por que representatividade segue sem dado (DX-08).
 - [Medidas de questionários e qualidade do dado](medidas-questionarios-qualidade.md): medida de `PUB_C04_INSTRUMENTO` e as três publicações novas de qualidade (I16-I18) em `publish.py` (DX-09).
 - [Sinalização dos indicadores sem dado](sinalizacao-indicadores-bloqueados.md): medida de texto vs. `DIVIDE`/`BLANK()`, catálogo `DIM_INDICADORES_BLOQUEADOS` e como verificar que nada aparece como zero (DX-10).
+- [Conferência das medidas contra a apuração de referência](conferencia-medidas-dx11.md): script de conferência automatizada, checklist manual para as demais medidas e como tratar divergência de snapshot (DX-11).
 
 ## Arquitetura, decisões e UML — Sprint 3 (Anna)
 
