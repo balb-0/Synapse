@@ -51,3 +51,46 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
 - **Proposta (não decidida):** ingestão completa dos questionários junto ao
   parceiro; até lá, a tela expõe a cobertura ao lado da distribuição.
 
+### L05 — Classificação de atraso sem regra aprovada
+
+- **Impacto:** o usuário procura "pesquisas atrasadas" e a solução não pode
+  classificar atraso; ausência de regra vira frustração de navegação.
+- **Causa observada:** I06 depende de regra de data de referência e
+  prioridade não aprovadas (§5.6; critérios do RF03).
+- **Proposta (não decidida):** aprovar com o parceiro a regra de referência
+  temporal e prioridade; até lá, telas exibem prazos e prorrogações sem
+  rótulo de atraso.
+
+### L06 — Papéis de governança sem titular
+
+- **Impacto:** fluxos de qualidade, acesso e publicação (D04) não têm dono
+  real para validar; nas sessões, o papel é exercido por participante
+  interno, o que limita a validade externa do teste.
+- **Causa observada:** papéis propostos sem designação formal (§5.1;
+  levantamento de perfis).
+- **Proposta (não decidida):** designação formal pelo parceiro; os registros
+  de sessão anotam "papel exercido" para não inflar a evidência.
+
+### L07 — Validação funcional sem métricas de uso
+
+- **Impacto:** os testes já documentados (§6.1.2) provam que o dado certo
+  aparece, mas não medem se o usuário **chega** a ele em tempo aceitável —
+  risco de aprovar telas corretas e inutilizáveis.
+- **Causa observada:** lacuna registrada no
+  [levantamento](perfis-e-criterios.md) (testes validam requisito, não
+  usabilidade).
+- **Proposta (não decidida):** manter o plano desta pasta como etapa
+  obrigatória de validação, com as métricas de conclusão/tempo/desvio/erro do
+  [roteiro](roteiro-execucao.md).
+
+### L08 — Janela de execução dependente das telas finais
+
+- **Impacto:** as sessões de usabilidade dependem das telas dos reports
+  (RP-08); indisponibilidade delas na janela da sprint empurra a execução
+  para piloto sobre o protótipo, com menor fidelidade.
+- **Causa observada:** dependência declarada nos cards US-06/US-07 e estado
+  das entregas RP na sprint.
+- **Proposta (não decidida):** executar o piloto no protótipo navegável para
+  não perder a janela e **reexecutar** nas telas finais, mantendo os dois
+  registros separados (regra já fixada no roteiro, §6).
+
