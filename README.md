@@ -68,7 +68,7 @@ g05/
 ├─ scripts/
 │  ├─ analysis/                                       # Análise quantitativa e notebooks exploratórios
 │  ├─ dmc/                                            # Validação do dmc.json
-│  ├─ orchestration/                                  # Entrypoints do ETL (run_ingest, run_backfill, deployment, health_check)
+│  ├─ orchestration/                                  # Entrypoints do ETL (run_ingest, run_backfill, deployment, health_check, smoke_observabilidade)
 │  ├─ transformation/                                 # Auditoria e renderização do schema de transformação
 │  ├─ load/                                           # Health check do DuckDB e renderização da DDL
 │  ├─ prototipos-dashboards/                          # Geração, testes e renderização dos protótipos
