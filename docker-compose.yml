@@ -62,10 +62,19 @@ services:
       prefect-server:
         condition: service_healthy
     command: ["python", "scripts/orchestration/deployment.py"]
+    # Mesmo ambiente do `runner`: o `.serve()` executa o flow neste processo,
+    # então precisa das mesmas credenciais e do mesmo `ETL_DUCKDB_PATH` —
+    # sem isso, o agendado falharia ou escreveria em outro banco.
     environment:
+      ETL_MINIO_ENDPOINT: http://minio:9000
       ETL_MINIO_BUCKET: sindusfarma
+      ETL_MINIO_ACCESS_KEY: minioadmin
+      ETL_MINIO_SECRET_KEY: minioadmin
+      ETL_MINIO_INPUT_PREFIX: landing
+      ETL_DUCKDB_PATH: /data/warehouse.duckdb
       PREFECT_API_URL: http://prefect-server:4200/api
     volumes:
+      - duck-data:/data
       - ./src:/app/src
       - ./scripts:/app/scripts
     restart: unless-stopped
