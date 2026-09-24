@@ -1,5 +1,34 @@
 table PUB_C01_CICLO
 
+	measure 'Qtd Pesquisas' = SUM(PUB_C01_CICLO[qtd_pesquisas])
+		formatString: #,0
+
+	measure 'Media Dias Validacao' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_validacao]), SUM(PUB_C01_CICLO[qtd_validacao_disponivel]))
+		formatString: #,0.0
+
+	measure 'Base Valida Validacao' = SUM(PUB_C01_CICLO[qtd_validacao_disponivel])
+		formatString: #,0
+
+	measure 'Media Dias Coleta' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_coleta]), SUM(PUB_C01_CICLO[qtd_coleta_disponivel]))
+		formatString: #,0.0
+
+	measure 'Base Valida Coleta' = SUM(PUB_C01_CICLO[qtd_coleta_disponivel])
+		formatString: #,0
+
+	measure 'Media Dias Tabulacao' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_tabulacao]), SUM(PUB_C01_CICLO[qtd_tabulacao_disponivel]))
+		formatString: #,0.0
+
+	measure 'Base Valida Tabulacao' = SUM(PUB_C01_CICLO[qtd_tabulacao_disponivel])
+		formatString: #,0
+
+	measure 'Media Dias Ciclo Total' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_ciclo_total]), SUM(PUB_C01_CICLO[qtd_ciclo_total_disponivel]))
+		formatString: #,0.0
+
+	measure 'Base Valida Ciclo Total' = SUM(PUB_C01_CICLO[qtd_ciclo_total_disponivel])
+		formatString: #,0
+
+	measure 'Taxa de Prorrogacao' = "Indisponivel: coluna de prorrogacao nao publicada no cubo BI (ver docs/indicadores-publicaveis-bi.md, I05)"
+
 	column area
 		dataType: string
 		isHidden
