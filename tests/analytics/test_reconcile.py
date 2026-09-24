@@ -71,7 +71,7 @@ class ReconciliationTests(unittest.TestCase):
         self.assertTrue(report.reconciled)
         self.assertEqual(
             [(c.cube, c.eligible, c.loaded, c.difference) for c in report.cubes],
-            [("C01", 1, 1, 0), ("C02", 1, 1, 0), ("C03", None, 1, None), ("C04", 1, 1, 0)],
+            [("C01", 1, 1, 0), ("C02", 1, 1, 0), ("C03", 1, 1, 0), ("C04", 1, 1, 0)],
         )
         self.assertEqual(report.monthly_closures[0]["stock"], 1)
         self.assertEqual(
@@ -99,6 +99,17 @@ class ReconciliationTests(unittest.TestCase):
         self.assertEqual(report.cubes[0].unexpected_keys, 1)
         self.assertEqual(report.cubes[0].difference, 0)
 
+    def test_manifest_catches_changed_content_at_the_same_grain(self):
+        self.insert("pesquisas", "p1-a", 1, pesquisa_id="p1", titulo="Anterior")
+        load_analytics(self.con)
+        self.insert("pesquisas", "p1-b", 2, pesquisa_id="p1", titulo="Corrigido")
+        report = reconcile_analytics(self.con)
+        self.assertEqual(report.cubes[0].difference, 0)
+        self.assertFalse(report.source_digests_match)
+        self.assertFalse(report.reconciled)
+        load_analytics(self.con)
+        self.assertTrue(reconcile_analytics(self.con).source_digests_match)
+
     def test_old_snapshot_is_not_counted_as_current_participation(self):
         self.insert("pesquisas", "p1", 1, pesquisa_id="p1")
         self.insert("empresas", "e1", 1, empresa_id="e1")
@@ -122,6 +133,8 @@ class ReconciliationTests(unittest.TestCase):
         report = reconcile_analytics(self.con)
         self.assertEqual(report.cubes[1].status, "source_unavailable")
         self.assertIsNone(report.cubes[1].eligible)
+        self.assertEqual(report.cubes[2].status, "not_observed")
+        self.assertIsNone(report.cubes[2].eligible)
         self.assertFalse(report.reconciled)
 
     def test_failed_reload_leaves_detectable_current_source_difference(self):
@@ -134,6 +147,25 @@ class ReconciliationTests(unittest.TestCase):
         self.assertFalse(report.reconciled)
         self.assertEqual(report.cubes[0].difference, 1)
         self.assertEqual(report.cubes[0].missing_keys, 1)
+
+    def test_monthly_history_survives_current_source_change_and_detects_tampering(self):
+        self.insert("pesquisas", "p1", 1, pesquisa_id="p1", status="Aberta")
+        self.insert("empresas", "e1", 1, empresa_id="e1")
+        self.insert("respondentes", "r1", 1, pesquisa_id="p1", empresa_id="e1")
+        self.select_respondents()
+        load_analytics(self.con, observed_at=datetime(2026, 9, 30, 23))
+        self.insert("pesquisas", "p2", 2, pesquisa_id="p2", status="Fechada")
+        load_analytics(self.con)
+        report = reconcile_analytics(self.con)
+        self.assertEqual(report.cubes[2].eligible, 1)
+        self.assertEqual(report.cubes[2].loaded, 1)
+        self.assertTrue(report.reconciled)
+
+        self.con.execute("""UPDATE "FATO_PIPELINE_MENSAL"
+            SET qtd_pesquisas_no_status = 2""")
+        damaged = reconcile_analytics(self.con)
+        self.assertFalse(damaged.reconciled)
+        self.assertEqual(damaged.cubes[2].difference, -1)
 
 
 if __name__ == "__main__":

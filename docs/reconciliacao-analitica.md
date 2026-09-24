@@ -1,0 +1,33 @@
+# Reconciliação dos cubos analíticos
+
+`PYTHONPATH=src python -m etl.analytics.reconcile /caminho/para/analitico.duckdb` abre o banco somente para leitura, emite um JSON por consulta e retorna código 1 se encontrar diferença ou se não houver snapshot conciliado de `respondentes`. Execute depois de `load_analytics` no mesmo arquivo DuckDB. O relatório não publica identificadores de pesquisa, cliente, empresa ou participante; `respondent_checksum` identifica o arquivo selecionado e permite ligar o resultado ao controle de ingestão.
+
+## População e equação
+
+| Cubo | População elegível | Fato carregado | Regra de descarte |
+| :--- | :--- | :--- | :--- |
+| C01 | Uma linha por `pesquisa_id` em `ingestao_pesquisas_atual` | Uma linha de `FATO_CICLO_PESQUISA` por pesquisa | Nenhum descarte depois da view corrente. Versões anteriores da mesma pesquisa não pertencem à população elegível. |
+| C02 | Ocorrências (`source_checksum`, `source_offset`) do último arquivo de `respondentes` concluído e conciliado | Ocorrências de `FATO_PARTICIPACAO` do mesmo checksum | Nenhum descarte. Outros arquivos são versões de snapshot fora do recorte, não rejeições desta carga. |
+| C03 | Membros de `analytics_pipeline_membership` registrados na mesma transação de cada fechamento observado | Soma de `qtd_pesquisas_no_status` por mês e grupo | Nenhum descarte. Fechamento não observado não cria membros nem fato. |
+| C04 | Pares (`pesquisa_id`, `pergunta_id`) em `ingestao_questoes_atual` | Pares `pesquisa_id_origem`, `pergunta_id_origem` em `FATO_PESQUISA_PERGUNTA` | Nenhum descarte. Vínculo órfão da pesquisa usa a chave desconhecida sem descartar a pergunta. |
+
+Para cada cubo, o relatório calcula `difference = eligible - loaded - discarded`. C01, C02 e C04 também fazem `EXCEPT` das identidades nos dois sentidos. C03 compara quantidade e instante observado por mês e grupo com os membros persistidos. Uma diferença zero não passa quando uma linha faltante é compensada por outra inesperada. Na carga atual, `discarded = 0` é uma regra do contrato e cada ocorrência elegível deve aparecer no fato. Se surgir uma política futura de descarte, ela exige motivo persistido por ocorrência e alteração desta equação; não use `0` para encobrir linhas rejeitadas.
+
+Rejeições da transformação pertencem ao controle de ingestão (`reconciliacao_execucao`, `rejected`, `rejected_reason`) e não entram na população das views atuais. O relatório analítico não reclassifica rejeição da ingestão como descarte do cubo. Participações sem pesquisa ou empresa continuam no fato com a chave desconhecida. `cliente_id` ausente é uma ausência estrutural e deixa `sk_pessoa` nula; `cliente_id` informado sem dimensão correspondente usa a chave desconhecida. Para C04, uma pesquisa sem ID correspondente só recebe vínculo por título quando a correspondência normalizada é única; caso contrário mantém a chave desconhecida. `orphan_reasons` agrupa o registro de origem, alvo, motivo e método, sem mostrar IDs. `orphan_audit` confronta as chaves desconhecidas nos fatos com os registros de motivos esperados. Um log de órfão faltante faz o gate falhar mesmo quando todas as contagens de fatos fecham.
+
+`analytics_load_run` identifica a última execução analítica com `load_id`, `loaded_at`, checksum de respondentes e digests das quatro views correntes usadas pela carga. O relatório recalcula esses digests antes de aceitar o estado: uma correção de conteúdo que mantém o mesmo grão e contagem invalida a reconciliação da execução anterior. A leitura deve ocorrer em um arquivo estável após o commit da carga; não confunda o horário local de leitura com o instante observado do negócio.
+
+## Fechamentos mensais
+
+O estado atual de C01 não é prova do que existia no fim de um mês anterior. `analytics_pipeline_membership` conserva as chaves de pesquisa, grupo e instante observados no fechamento, na mesma transação que grava C03. O relatório compara as quantidades desse registro com cada linha do fato, inclusive o instante, e rejeita dois instantes no mesmo mês. Lista também cada mês observado, número de grupos e soma de `qtd_pesquisas_no_status`. `not_observed` significa que não há fechamento e, portanto, não há estoque histórico a comparar; não significa estoque zero.
+
+Entradas e saídas mensais seguem indisponíveis, pois os snapshots não registram transições. Nunca some estoques de meses diferentes. `reconciled=true` indica que a identidade dos cubos correntes, a contagem histórica de C03 e o log dos vínculos órfãos passaram. O ledger conserva as identidades de fechamento, mas o relatório não prova que a captura ocorreu no dia real de negócio declarado por uma fonte externa.
+
+## Interpretação de estados
+
+- `ok`: contagem e identidades do cubo corrente, ou membros e grupos do fechamento mensal, conferem.
+- `mismatch`: diferença de contagem, identidade ausente/inesperada ou estrutura mensal inconsistente.
+- `source_unavailable`: nenhum snapshot conciliado de `respondentes`; C02 não pode ser declarada vazia ou conciliada.
+- `not_observed`: não existe fechamento mensal registrado.
+
+`missing_keys` e `unexpected_keys` são diferenças de identidade entre origem e fato; `difference` é a diferença aritmética. O relatório não altera tabelas. Se a carga falhar e o banco conservar o estado anterior, uma origem corrente nova produz `mismatch` até uma carga bem-sucedida. Repita o comando após a carga e arquive o JSON agregado junto ao commit e horário da execução, sem incluir dados individuais no Git.

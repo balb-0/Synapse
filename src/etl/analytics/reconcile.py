@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass
 
 import duckdb
 from etl.analytics.dimensions_ddl import unknown_key
-from etl.analytics.load import selected_respondentes
+from etl.analytics.load import current_source_digests, selected_respondentes
 
 
 @dataclass(frozen=True)
@@ -25,6 +25,9 @@ class CubeCount:
 
 @dataclass(frozen=True)
 class ReconciliationReport:
+    load_id: str | None
+    loaded_at: str | None
+    source_digests_match: bool
     respondent_checksum: str | None
     respondent_run_id: str | None
     cubes: tuple[CubeCount, ...]
@@ -37,7 +40,12 @@ class ReconciliationReport:
         cubes_ok = all(
             cube.status in {"ok", "historical_snapshot", "not_observed"} for cube in self.cubes
         )
-        return cubes_ok and all(row["expected"] == row["logged"] for row in self.orphan_audit)
+        return (
+            self.load_id is not None
+            and self.source_digests_match
+            and cubes_ok
+            and all(row["expected"] == row["logged"] for row in self.orphan_audit)
+        )
 
     def as_dict(self) -> dict:
         return {**asdict(self), "reconciled": self.reconciled}
@@ -69,6 +77,37 @@ def _current_cube(
     return CubeCount(cube, eligible, loaded, discarded, difference, missing, unexpected, status)
 
 
+def _monthly_cube(con: duckdb.DuckDBPyConnection) -> CubeCount:
+    """Reconcile retained month-end members with the stored group measures."""
+    members = _scalar(con, 'SELECT count(*) FROM "analytics_pipeline_membership"')
+    stock = _scalar(
+        con, 'SELECT coalesce(sum(qtd_pesquisas_no_status), 0) FROM "FATO_PIPELINE_MENSAL"'
+    )
+    expected = """SELECT data_fim_mes, sk_status, sk_area, sk_tipo, sk_perfil,
+                         observed_at, count(*) AS quantity
+                  FROM "analytics_pipeline_membership"
+                  GROUP BY data_fim_mes, sk_status, sk_area, sk_tipo, sk_perfil, observed_at"""
+    actual = '''SELECT data_fim_mes, sk_status, sk_area, sk_tipo, sk_perfil,
+                       observed_at, qtd_pesquisas_no_status AS quantity
+                FROM "FATO_PIPELINE_MENSAL"'''
+    missing = _scalar(con, f"SELECT count(*) FROM (({expected}) EXCEPT ({actual}))")
+    unexpected = _scalar(con, f"SELECT count(*) FROM (({actual}) EXCEPT ({expected}))")
+    # Grouping by observed_at would otherwise allow two observations in one month.
+    mixed = _scalar(
+        con,
+        """SELECT count(*) FROM (
+        SELECT data_fim_mes FROM "analytics_pipeline_membership"
+        GROUP BY data_fim_mes HAVING count(DISTINCT observed_at) <> 1
+    )""",
+    )
+    discarded = 0
+    difference = members - stock - discarded
+    if members == stock == 0 and missing == unexpected == 0:
+        return CubeCount("C03", None, 0, 0, None, 0, 0, "not_observed")
+    status = "ok" if difference == missing == unexpected == mixed == 0 else "mismatch"
+    return CubeCount("C03", members, stock, discarded, difference, missing, unexpected, status)
+
+
 def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
     """Check persisted fact membership and report the limits of monthly history.
 
@@ -76,6 +115,18 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
     modifies data and raises when the analytical schema has not been created.
     """
     selected = selected_respondentes(con)
+    manifest = con.execute("""SELECT load_id, loaded_at, pesquisas_digest,
+        empresas_digest, clientes_digest, questoes_digest, respondentes_checksum
+        FROM "analytics_load_run" ORDER BY loaded_at DESC, load_id DESC LIMIT 1""").fetchone()
+    current_digests = current_source_digests(con)
+    source_digests_match = (
+        manifest is not None
+        and all(
+            manifest[index] == current_digests[source]
+            for index, source in enumerate(("pesquisas", "empresas", "clientes", "questoes"), 2)
+        )
+        and manifest[6] == (selected[0] if selected else None)
+    )
     cycle = _current_cube(
         con,
         "C01",
@@ -118,8 +169,8 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
         con,
         "C04",
         'SELECT pesquisa_id, pergunta_id FROM "ingestao_questoes_atual"',
-        'SELECT d.pesquisa_id, d.pergunta_id FROM "FATO_PESQUISA_PERGUNTA" f '
-        'JOIN "DIM_PERGUNTA" d USING (sk_pergunta)',
+        "SELECT pesquisa_id_origem AS pesquisa_id, pergunta_id_origem AS pergunta_id "
+        'FROM "FATO_PESQUISA_PERGUNTA"',
     )
     closure_rows = con.execute("""
         SELECT CAST(data_fim_mes AS VARCHAR), count(*), sum(qtd_pesquisas_no_status),
@@ -137,22 +188,7 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
         }
         for month, groups, stock, distinct_groups, observations in closure_rows
     )
-    monthly_ok = all(
-        row["stock"] is not None
-        and row["groups"] == row["distinct_groups"]
-        and row["observations"] == 1
-        for row in closures
-    )
-    monthly = CubeCount(
-        "C03",
-        None,
-        sum(row["groups"] for row in closures),
-        0,
-        None,
-        0,
-        0,
-        "not_observed" if not closures else "historical_snapshot" if monthly_ok else "mismatch",
-    )
+    monthly = _monthly_cube(con)
     orphan_rows = con.execute("""
         SELECT source, target, reason, method, count(*)
         FROM "analytics_reconciliation"
@@ -215,6 +251,9 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
         }
     )
     return ReconciliationReport(
+        manifest[0] if manifest else None,
+        manifest[1].isoformat() if manifest else None,
+        source_digests_match,
         selected[0] if selected else None,
         selected[1] if selected else None,
         (cycle, participation, monthly, instrument),
