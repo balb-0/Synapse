@@ -144,3 +144,63 @@ Impacto marginal com as tarifas adotadas:
 Compute é a variável dominante no cenário de produção. Antes de contratar, o
 piloto deve medir memória, CPU, duração dos jobs, crescimento diário dos logs e
 taxa de reprocessamento para redimensionar as VMs e a retenção.
+
+## 8. Exclusões e limites
+
+Não estão incluídos:
+
+- impostos, câmbio, compromisso de uso, créditos e descontos negociados;
+- domínio, certificados, DNS, balanceador, VPN, firewall gerenciado e IPs;
+- suporte comercial, plantão, treinamento, mão de obra e resposta a incidentes;
+- energia, depreciação e internet do ambiente local;
+- serviço gerenciado de banco, Prefect Cloud ou Elastic Cloud;
+- tráfego entre zonas/regiões, restauração, requisições de objeto e snapshots
+  além da cópia de segurança simplificada;
+- ambientes paralelos de desenvolvimento, homologação e recuperação de
+  desastre;
+- crescimento além dos volumes e retenções declarados.
+
+A licença sem tarifa não elimina o custo de hospedar, operar, atualizar e
+proteger o software. Recursos corporativos ou suporte contratado devem entrar
+como nova linha depois de cotação.
+
+## 9. Fontes consultáveis
+
+As tarifas deste documento são referências de planejamento arredondadas, não
+uma reprodução integral da tabela de uma nuvem. Para uma contratação, as
+quantidades deste modelo devem ser recalculadas nas fontes oficiais vigentes:
+
+- [AWS Pricing Calculator](https://calculator.aws/) — cotação por região,
+  configuração e regime de compra;
+- [Amazon EC2 On-Demand Pricing](https://aws.amazon.com/ec2/pricing/on-demand/)
+  — referência para compute sob demanda;
+- [Amazon EBS Pricing](https://aws.amazon.com/ebs/pricing/) — armazenamento em
+  bloco; a página explica cobrança por GB provisionado e desempenho adicional;
+- [Amazon S3 Pricing](https://aws.amazon.com/s3/pricing/) — armazenamento de
+  objetos, requisições, recuperação e transferência;
+- [Elastic — assinaturas autogerenciadas](https://www.elastic.co/subscriptions)
+  — recursos do nível Basic e opções comerciais;
+- [Licença do Prefect](https://github.com/PrefectHQ/prefect/blob/main/LICENSE),
+  [licença do DuckDB](https://github.com/duckdb/duckdb/blob/main/LICENSE) e
+  [licença do MinIO](https://github.com/minio/minio/blob/master/LICENSE) — base
+  para a premissa de software comunitário sem tarifa mensal neste cenário.
+
+Consulta realizada em 24/09/2026. Preço, licença e disponibilidade regional
+podem mudar; os links devem ser revisitados antes de qualquer decisão de compra.
+
+## 10. Atualização da estimativa
+
+Recalcular o documento quando ocorrer qualquer um destes eventos:
+
+1. escolha de provedor, região, tipo de instância ou moeda de contratação;
+2. medição do piloto alterar CPU, memória, armazenamento, duração ou retenção
+   em mais de 20%;
+3. inclusão de alta disponibilidade, recuperação de desastre ou segundo
+   ambiente permanente;
+4. adoção de suporte pago, Prefect Cloud, Elastic Cloud ou recurso licenciado;
+5. mudança material nas tarifas ou no contrato das ferramentas.
+
+O responsável pela atualização deve guardar a exportação da calculadora ou a
+cotação usada e marcar cada linha como medida, cotada ou projetada. Assim, um
+valor real nunca substitui silenciosamente uma premissa, nem uma projeção é
+apresentada como fatura observada.
