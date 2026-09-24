@@ -41,3 +41,52 @@ Convenções de medição (valem para todas as tarefas desta pasta):
   palavras o que cada uma mostra e retorna a D01 pela navegação da solução.
 - **Tempo aceitável:** 4 minutos.
 
+## T-FIL-01 — Filtrar o portfólio por período e área
+
+- **Perfil-alvo:** UC01 (analista da Central).
+- **Situação real:** "Um colega pediu as pesquisas de uma área específica
+  solicitadas no último ano. Encontre esse recorte."
+- **Passos esperados:** D01 → filtro de período (campo padrão
+  `data_solicitacao`) → filtro de área → leitura da lista/distribuição
+  filtrada.
+- **Critério de sucesso:** obtém a lista filtrada e **identifica qual campo de
+  data** o período está usando (o rótulo do campo temporal é parte da
+  resposta — critério herdado do RF01).
+- **Tempo aceitável:** 3 minutos.
+
+## T-FIL-02 — Combinar filtros e ler a distribuição resultante
+
+- **Perfil-alvo:** UC03 (gestor).
+- **Situação real:** "Você quer saber quantas pesquisas de um mesmo tipo ainda
+  estão em andamento, para avaliar a carga da equipe."
+- **Passos esperados:** D01 → filtro de tipo → filtro de status → leitura da
+  contagem resultante.
+- **Critério de sucesso:** informa a contagem do recorte combinado e distingue
+  a contagem filtrada do total do portfólio (não confunde as duas).
+- **Tempo aceitável:** 3 minutos.
+
+## T-FIL-03 — Limpar os filtros e restaurar o estado inicial
+
+- **Perfil-alvo:** qualquer perfil interno.
+- **Situação real:** "Depois da análise anterior, você quer voltar a ver o
+  portfólio completo."
+- **Passos esperados:** acionar a limpeza de filtros (ação única, quando
+  disponível) → conferir que contagens e distribuição voltaram ao estado
+  inicial.
+- **Critério de sucesso:** o estado exibido volta ao inicial e o participante
+  confirma isso comparando o total exibido antes/depois.
+- **Tempo aceitável:** 1 minuto.
+
+## T-FIL-04 — Distinguir recorte vazio de erro
+
+- **Perfil-alvo:** UC01 (analista da Central).
+- **Situação real:** "Procure pesquisas de uma combinação rara (área + tipo +
+  período curto) que provavelmente não existe."
+- **Passos esperados:** D01 → aplicar a combinação sem correspondência →
+  ler a resposta da tela.
+- **Critério de sucesso:** o participante explica, com as próprias palavras,
+  que **não há pesquisas para o recorte** — e não que "a tela quebrou" ou que
+  "o dado está errado". (Estados distintos são critério de aceite do RF01;
+  aqui medimos se a interface comunica isso sem ajuda.)
+- **Tempo aceitável:** 2 minutos.
+
