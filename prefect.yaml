@@ -17,6 +17,10 @@ deployments:
       bucket: sindusfarma
       key: landing/empresas.csv
     tags: [etl, ingest]
+    # O worker roda no contêiner `runner`: o código vive em `/app`.
+    pull:
+      - prefect.deployments.steps.set_working_directory:
+          directory: /app
     work_pool:
       name: default
   - name: backfill
@@ -26,5 +30,8 @@ deployments:
       bucket: sindusfarma
       prefix: landing
     tags: [etl, backfill]
+    pull:
+      - prefect.deployments.steps.set_working_directory:
+          directory: /app
     work_pool:
       name: default
