@@ -90,6 +90,24 @@ registros. Um lote inconsistente não chega à transformação.
 | `FailureRecorder` | `failures.py` | Fornecido pelo chamador |
 | `ExtractionLogSink` | `log_events.py` | `StandardLoggingSink` |
 
+### Interfaces do caminho servido e da telemetria
+
+O ponto de entrada servido é o próprio flow `ingest_object`. O script de
+deployment fornece nome, cron e parâmetros padrão; execuções pela agenda, UI ou
+CLI chegam à mesma assinatura e produzem o mesmo histórico de estados.
+
+| Fronteira | Contrato | Falha observável |
+| :--- | :--- | :--- |
+| Operador/Prefect → flow | `source`, `bucket`, `key`, `version_id`, `event_id`, `reprocess`, `db_path` | Parâmetro inválido encerra a execução antes da leitura. |
+| Flow → MinIO | `ObjectReference` e `ObjectReader.open()` | Falha transitória pode repetir; falha permanente termina a task. |
+| Flow → repositório | `load_batch()` seguido de `commit(checkpoint)` | A confirmação não ocorre se carga ou reconciliação falhar. |
+| Repositório → logging | `LoadLogSink.emit(LoadBatchLogEvent)` | Falha do sink não reverte uma carga já confirmada. |
+| Logging → coletor | Linha JSON em stdout/stderr | Transporte externo não está configurado na base auditada. |
+
+A responsabilidade pela decisão de confirmar é da orquestração; o repositório
+apenas oferece a operação persistente `commit`. Essa separação impede que uma
+carga parcial avance o checkpoint por efeito colateral interno.
+
 ## Fluxo de controle da ingestão
 
 `ingest_object(source, bucket, key, *, version_id=None, event_id=None,
