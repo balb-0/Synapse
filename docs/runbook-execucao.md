@@ -124,8 +124,17 @@ continua impedindo duplicatas.
   transitórias de leitura são reexecutadas dentro da extração
   (`RetryExecutor`, configurável por `ETL_EXTRACTION_*`).
 - Deployment agendado: `python scripts/orchestration/deployment.py` serve o
-  deployment `ingest-object/agendado` (cron `0 3 * * *`). Execução manual com
-  parâmetros explícitos:
+  deployment `ingest-object/agendado` (cron `0 3 * * *`). Os deployments
+  declarados em `prefect.yaml` (`agendado`, `manual`, `backfill`) podem ser
+  publicados pela CLI:
+
+  ```bash
+  docker compose exec runner prefect deploy --all
+  docker compose exec runner prefect deployment ls
+  ```
+
+  Execução manual com parâmetros explícitos (também pela UI em
+  http://localhost:4200):
 
   ```bash
   prefect deployment run 'ingest-object/agendado' -p source=empresas \
