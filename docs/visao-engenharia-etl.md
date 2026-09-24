@@ -110,6 +110,26 @@ O flow e o repositório leem o mesmo `ETL_DUCKDB_PATH`; no Compose ele aponta pa
 
 ## Orquestração
 
+### Agendamento e parâmetros efetivos
+
+`scripts/orchestration/deployment.py` serve o deployment `agendado` do flow
+`ingest-object` com cron `0 3 * * *`. Na configuração versionada, a execução é
+diária às 03:00 no fuso do servidor Prefect; não há `timezone` explícito no
+script. Os parâmetros padrão são `source=empresas`, bucket vindo de
+`ETL_MINIO_BUCKET` (ou `sindusfarma`) e chave `landing/empresas.csv`.
+
+| Controle | Valor/fonte | Efeito operacional |
+| :--- | :--- | :--- |
+| Agenda | `0 3 * * *` | Uma execução diária enquanto o processo servido estiver ativo. |
+| Reprocessamento | `reprocess=false` por padrão | Checksum já concluído é ignorado. |
+| Timeout de acesso | `ETL_SOURCE_TIMEOUT_SECONDS` | Limita operações com a fonte. |
+| Tentativas | `ETL_SOURCE_MAX_ATTEMPTS` | Restringe retry de falha transitória. |
+| Espera | `ETL_SOURCE_RETRY_INITIAL_SECONDS` e `ETL_SOURCE_RETRY_MAX_SECONDS` | Controla backoff limitado. |
+| Banco | argumento `db_path` ou `ETL_DUCKDB_PATH` | Mantém o mesmo destino entre agenda, UI e CLI. |
+
+Execução manual e backfill devem informar seus parâmetros no histórico do
+Prefect; alterar o script não é necessário para uma reexecução pontual.
+
 O plano de controle é o Prefect, executado em processo. Não há servidor,
 agente nem worker remoto no ambiente declarado.
 
