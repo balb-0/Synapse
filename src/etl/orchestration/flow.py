@@ -174,7 +174,13 @@ def extract(reader, reference, source: str, run_id: str, checkpoint=None) -> lis
     return batches
 
 
-@task(timeout_seconds=120, cache_policy=NO_CACHE)
+@task(
+    retries=2,
+    retry_delay_seconds=1,
+    retry_condition_fn=_should_retry,
+    timeout_seconds=120,
+    cache_policy=NO_CACHE,
+)
 def transform(batches: list, source: str, references, previous: dict, run_id: str) -> list:
     """Transforma cada lote; acumula o offset absoluto entre lotes."""
     logger = get_run_logger()
@@ -210,7 +216,13 @@ def transform(batches: list, source: str, references, previous: dict, run_id: st
 # (~7 s por lote de 1.000), matando a task no meio de um lote e exigindo
 # retomada. Uma hora acomoda objetos na casa das centenas de milhares de
 # registros sem remover o limite, que continua existindo.
-@task(timeout_seconds=3600, cache_policy=NO_CACHE)
+@task(
+    retries=2,
+    retry_delay_seconds=1,
+    retry_condition_fn=_should_retry,
+    timeout_seconds=3600,
+    cache_policy=NO_CACHE,
+)
 def load(db_path: str, results: list, tuning: dict, *, source: str, run_id: str) -> list:
     """Grava aceitos e rejeitados no DuckDB, reconciliando as contagens lote a lote.
 
