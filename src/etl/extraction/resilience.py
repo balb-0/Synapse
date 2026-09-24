@@ -14,6 +14,7 @@ from .failures import (
     PermanentSourceError,
     RetryLimitExceededError,
     SourceFailure,
+    StandardFailureRecorder,
     classify_source_failure,
 )
 
@@ -74,11 +75,6 @@ class RetryPolicy:
         return min(delay, self.max_delay_seconds)
 
 
-class _NullFailureRecorder:
-    def record(self, failure: SourceFailure) -> None:
-        del failure
-
-
 class RetryExecutor:
     """Executa operações de fonte segundo uma política e registra cada falha."""
 
@@ -90,7 +86,7 @@ class RetryExecutor:
         sleep: Sleep = time.sleep,
     ) -> None:
         self._policy = policy or RetryPolicy()
-        self._recorder = recorder or _NullFailureRecorder()
+        self._recorder = recorder or StandardFailureRecorder()
         self._sleep = sleep
 
     @classmethod
@@ -121,6 +117,7 @@ class RetryExecutor:
         operation_name: str,
     ) -> Result:
         for attempt in range(1, self._policy.max_attempts + 1):
+            started = time.monotonic()
             try:
                 return operation()
             except Exception as exception:
@@ -129,6 +126,7 @@ class RetryExecutor:
                     source=source,
                     operation_name=operation_name,
                     attempt=attempt,
+                    duration_ms=round((time.monotonic() - started) * 1000, 3),
                 )
                 if failure.nature is FailureNature.PERMANENT:
                     raise PermanentSourceError(
@@ -152,6 +150,7 @@ class RetryExecutor:
         source: str,
         operation_name: str,
         attempt: int,
+        duration_ms: float,
     ) -> SourceFailure:
         classification = classify_source_failure(exception)
         retry_scheduled = classification.retryable and attempt < self._policy.max_attempts
@@ -166,6 +165,7 @@ class RetryExecutor:
             exception_type=type(exception).__name__,
             retry_scheduled=retry_scheduled,
             next_delay_seconds=delay,
+            duration_ms=duration_ms,
         )
         self._recorder.record(failure)
         return failure
@@ -176,6 +176,7 @@ class RetryExecutor:
         *,
         source: str,
         operation_name: str,
+        duration_ms: float = 0.0,
     ) -> SourceFailure:
         """Registra uma falha ocorrida fora de uma operação com retry."""
 
@@ -190,6 +191,7 @@ class RetryExecutor:
             exception_type=type(exception).__name__,
             retry_scheduled=False,
             next_delay_seconds=0.0,
+            duration_ms=duration_ms,
         )
         self._recorder.record(failure)
         return failure

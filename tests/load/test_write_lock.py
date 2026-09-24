@@ -9,6 +9,7 @@ escritor liberar o arquivo, em vez de propagar o erro na primeira tentativa.
 from __future__ import annotations
 
 import importlib.util
+import logging
 import subprocess
 import sys
 import tempfile
@@ -38,12 +39,35 @@ HOLD_LOCK_SCRIPT = (
 )
 
 
+class LogRecordCollector(logging.Handler):
+    def __init__(self) -> None:
+        super().__init__()
+        self.records: list[logging.LogRecord] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.records.append(record)
+
+
 @unittest.skipUnless(DUCKDB_INSTALLED, SEM_DUCKDB)
 class WriteLockSerializationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary_directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary_directory.cleanup)
         self.database_path = Path(self.temporary_directory.name) / "ingestao.duckdb"
+        self.logger = logging.getLogger("etl.load")
+        self.collector = LogRecordCollector()
+        previous_level = self.logger.level
+        self.logger.handlers.append(self.collector)
+        self.logger.setLevel(logging.INFO)
+        self.addCleanup(self.logger.handlers.remove, self.collector)
+        self.addCleanup(self.logger.setLevel, previous_level)
+
+    def _connect_retry_events(self) -> list[logging.LogRecord]:
+        return [
+            record
+            for record in self.collector.records
+            if getattr(record, "event", None) == "load.connect_retry.emitted"
+        ]
 
     def _hold_lock_in_another_process(self, seconds: float) -> subprocess.Popen:
         process = subprocess.Popen(
@@ -67,6 +91,12 @@ class WriteLockSerializationTests(unittest.TestCase):
 
         self.assertGreaterEqual(elapsed, 0.3)
 
+        events = self._connect_retry_events()
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0].status, "timed_out")
+        self.assertGreaterEqual(events[0].attempts, 1)
+        self.assertGreaterEqual(events[0].duration_ms, 300)
+
     def test_waits_for_the_file_and_succeeds_once_it_is_released(self) -> None:
         holder = self._hold_lock_in_another_process(seconds=0.5)
 
@@ -78,6 +108,18 @@ class WriteLockSerializationTests(unittest.TestCase):
         # Só chega aqui depois que o outro processo soltou o arquivo.
         self.assertGreaterEqual(elapsed, 0.4)
         holder.wait(timeout=5)
+
+        events = self._connect_retry_events()
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0].status, "recovered")
+        self.assertGreater(events[0].attempts, 1)
+        self.assertGreaterEqual(events[0].duration_ms, 400)
+
+    def test_does_not_emit_an_event_when_there_is_no_contention(self) -> None:
+        with DuckDbLoadRepository(self.database_path):
+            pass
+
+        self.assertEqual(self._connect_retry_events(), [])
 
     def test_does_not_wait_for_an_error_that_is_not_a_lock_conflict(self) -> None:
         # Um diretório no lugar do arquivo causa IOException, mas não é

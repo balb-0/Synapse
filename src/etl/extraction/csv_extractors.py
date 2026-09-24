@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import re
+import time
 from collections.abc import Iterator
 from datetime import UTC, datetime
 from io import TextIOWrapper
@@ -172,6 +173,7 @@ class CsvObjectExtractor:
             raise ValueError("task_id não pode ser vazio")
 
         started_at = datetime.now(UTC)
+        read_started = time.monotonic()
         resume_row, next_sequence = self._checkpoint_position(checkpoint)
 
         with SpooledTemporaryFile(
@@ -198,6 +200,7 @@ class CsvObjectExtractor:
                     exc,
                     source=self.source,
                     operation_name="parse",
+                    duration_ms=round((time.monotonic() - read_started) * 1000, 3),
                 )
                 raise
 
