@@ -3,8 +3,8 @@
 import unittest
 
 import duckdb
-from etl.analytics.dimensions_ddl import canonical_key, dimension_statements, surrogate_key
 
+from etl.analytics.dimensions_ddl import canonical_key, dimension_statements, surrogate_key
 from etl.analytics.facts_cycle_participation import SQL_PATH, fact_statements, render_ddl
 
 
@@ -77,6 +77,26 @@ class FactCycleParticipationTests(unittest.TestCase):
                 [pesquisa],
             )
 
+    def test_prorogation_flag_matches_date_role(self):
+        pesquisa, _empresa, fonte, carga = self.seed_dimensions()
+        date_key = surrogate_key("DIM_TEMPO", "2026-09-23")
+        self.db.execute(
+            "INSERT INTO DIM_TEMPO "
+            "(sk_tempo, natural_key, data, ano, trimestre, mes, dia, dia_semana, fim_mes) "
+            "VALUES (?, ?, DATE '2026-09-23', 2026, 3, 9, 23, 3, FALSE)",
+            [date_key, canonical_key("2026-09-23")],
+        )
+        statement = (
+            "INSERT INTO FATO_CICLO_PESQUISA "
+            "(sk_pesquisa, sk_fonte, sk_carga, sk_data_prorrogacao, flag_prorrogada) "
+            "VALUES (?, ?, ?, ?, ?)"
+        )
+        with self.assertRaises(duckdb.ConstraintException):
+            self.db.execute(statement, [pesquisa, fonte, carga, None, True])
+        with self.assertRaises(duckdb.ConstraintException):
+            self.db.execute(statement, [pesquisa, fonte, carga, date_key, False])
+        self.db.execute(statement, [pesquisa, fonte, carga, date_key, True])
+
     def test_participation_physical_grain_and_foreign_keys(self):
         pesquisa, empresa, _fonte, _carga = self.seed_dimensions()
         statement = (
@@ -99,6 +119,26 @@ class FactCycleParticipationTests(unittest.TestCase):
                 "UPDATE FATO_PARTICIPACAO SET seq_ocorrencia = 1 "
                 "WHERE source_checksum = 'file-A' AND source_offset = 10"
             )
+
+    def test_person_sequence_unique_and_market_share_percentage(self):
+        pesquisa, empresa, _fonte, _carga = self.seed_dimensions()
+        pessoa = insert_dimension(
+            self.db, "DIM_PESSOA", "sk_pessoa", ("cliente_id",), "C-1"
+        )
+        statement = (
+            "INSERT INTO FATO_PARTICIPACAO "
+            "(source_checksum, source_offset, sk_pesquisa, sk_empresa, "
+            "sk_pessoa, seq_ocorrencia, minutos_preenchimento, "
+            "pct_mercado_na_participacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        )
+        self.db.execute(statement, ["file-C", 1, pesquisa, empresa, pessoa, 1, 5, 0])
+        self.db.execute(statement, ["file-C", 2, pesquisa, empresa, pessoa, 2, 5, 100])
+        with self.assertRaises(duckdb.ConstraintException):
+            self.db.execute(statement, ["file-C", 3, pesquisa, empresa, pessoa, 1, 5, 50])
+        with self.assertRaises(duckdb.ConstraintException):
+            self.db.execute(statement, ["file-C", 4, pesquisa, empresa, pessoa, 3, 5, -1])
+        with self.assertRaises(duckdb.ConstraintException):
+            self.db.execute(statement, ["file-C", 5, pesquisa, empresa, pessoa, 3, 5, 101])
 
     def test_unavailable_minutes_require_reason(self):
         pesquisa, empresa, _fonte, _carga = self.seed_dimensions()

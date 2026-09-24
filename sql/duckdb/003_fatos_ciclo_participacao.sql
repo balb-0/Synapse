@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS "FATO_CICLO_PESQUISA" (
     "dias_corridos_ciclo_total" BIGINT,
     "qtd_empresas_na_pesquisa" BIGINT,
     "flag_prorrogada" BOOLEAN NOT NULL,
+    CHECK ("flag_prorrogada" = ("sk_data_prorrogacao" IS NOT NULL)),
     CHECK ("dias_corridos_validacao" IS NULL OR "dias_corridos_validacao" >= 0),
     CHECK ("dias_corridos_coleta" IS NULL OR "dias_corridos_coleta" >= 0),
     CHECK ("dias_corridos_tabulacao" IS NULL OR "dias_corridos_tabulacao" >= 0),
@@ -51,11 +52,14 @@ CREATE TABLE IF NOT EXISTS "FATO_PARTICIPACAO" (
     "motivo_minutos_indisponivel" VARCHAR,
     "pct_mercado_na_participacao" DECIMAL(18, 6),
     PRIMARY KEY ("source_checksum", "source_offset"),
+    UNIQUE ("sk_pesquisa", "sk_pessoa", "seq_ocorrencia"),
     CHECK (length("source_checksum") > 0),
     CHECK ("qtd_participacao" = 1),
     CHECK ("seq_ocorrencia" IS NULL OR "seq_ocorrencia" > 0),
     CHECK ("minutos_preenchimento" IS NULL OR "minutos_preenchimento" >= 0),
     CHECK (("minutos_preenchimento" IS NULL) = ("motivo_minutos_indisponivel" IS NOT NULL)),
     CHECK ("motivo_minutos_indisponivel" IS NULL OR length("motivo_minutos_indisponivel") > 0),
-    CHECK ("sk_pessoa" IS NOT NULL OR "seq_ocorrencia" IS NULL)
+    CHECK ("sk_pessoa" IS NOT NULL OR "seq_ocorrencia" IS NULL),
+    CHECK ("pct_mercado_na_participacao" IS NULL OR
+           "pct_mercado_na_participacao" BETWEEN 0 AND 100)
 );
