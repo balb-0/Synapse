@@ -25,11 +25,11 @@ prefect deployment ls
 ![Deployments na UI](assets/smoke-sprint4/ui-deployments.png)
 
 A UI lista os flows, os deployments `Ready` com schedule ("At 03:00 AM
-every day" no `agendado`) e conserva o histórico após o término. IDs
-(`prefect deployment inspect ... | grep id`):
+every day" no `agendado`) e conserva o histórico após o término. ID
+estável entre restarts (`prefect deployment inspect <nome> | grep id`; os
+publicados via CLI mudam a cada `deploy --all`):
 
 - `ingest-object/agendado`: `9d842229-404b-4f78-86f9-b8896034e7ab`
-- `ingest-object/manual`: `70299de7-9977-4085-b415-129ae23434a4`
 
 ## 2. Execução pela interface (sucesso)
 
