@@ -82,13 +82,17 @@ def _digest(path: Path) -> str:
     return sha.hexdigest()
 
 
-def publish_cubes(database: Path, output: Path) -> dict:
+def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
     """Publica uma geração verificada e muda o ponteiro só no fim.
 
     ``output`` deve ficar fora do checkout. O diretório é privado por padrão;
     a distribuição a consumidores autorizados ocorre fora deste processo.
     """
+    if not load_reference or not load_reference.strip() or len(load_reference) > 128:
+        raise ValueError("load_reference deve identificar a carga, com 1 a 128 caracteres")
     database = Path(database).resolve(strict=True)
+    if Path(output).is_symlink():
+        raise ValueError("diretório de publicação simbólico não é permitido")
     output = Path(output).resolve()
     repo = Path(__file__).resolve().parents[3]
     if output == repo or repo in output.parents:
@@ -99,17 +103,17 @@ def publish_cubes(database: Path, output: Path) -> dict:
         raise ValueError("a publicação não pode ficar dentro do arquivo de origem")
 
     output.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if output.is_symlink():
-        raise ValueError("diretório de publicação simbólico não é permitido")
     output.chmod(0o700)
     generation = uuid.uuid4().hex
     staging = output / f".pending-{generation}"
     final = output / generation
     staging.mkdir(mode=0o700)
     conn = None
+    in_transaction = False
     try:
         conn = duckdb.connect(str(database), read_only=True)
         conn.execute("BEGIN TRANSACTION")
+        in_transaction = True
         tables = {}
         for name, query in PUBLICATIONS.items():
             target = staging / f"{name}.parquet"
@@ -138,10 +142,12 @@ def publish_cubes(database: Path, output: Path) -> dict:
                 "sha256": _digest(target),
             }
         conn.execute("COMMIT")
+        in_transaction = False
         manifest = {
             "version": 1,
             "generation": generation,
             "published_at_utc": datetime.now(timezone.utc).isoformat(),
+            "load_reference": load_reference,
             "tables": tables,
         }
         manifest_path = staging / "manifest.json"
@@ -154,7 +160,7 @@ def publish_cubes(database: Path, output: Path) -> dict:
         os.replace(pointer, output / "current.json")
         return manifest
     except Exception:
-        if conn is not None:
+        if conn is not None and in_transaction:
             conn.execute("ROLLBACK")
         shutil.rmtree(staging, ignore_errors=True)
         raise
@@ -167,8 +173,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--database", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--load-reference", required=True)
     args = parser.parse_args()
-    result = publish_cubes(args.database, args.output)
+    result = publish_cubes(args.database, args.output, load_reference=args.load_reference)
     print(
         json.dumps(
             {
