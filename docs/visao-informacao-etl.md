@@ -198,6 +198,37 @@ A política completa está em
 [`Governança-de-Dados-do-Projeto.md`](Governança-de-Dados-do-Projeto.md) e em
 [`dev-rules.md`](dev-rules.md).
 
+## Camada analítica derivada
+
+A Sprint 4 prolonga a cadeia informacional sem alterar a fonte de verdade da
+ingestão. As tabelas analíticas devem ser derivadas exclusivamente das views
+`ingestao_<fonte>_atual` e dos controles de execução; nunca dos CSVs brutos nem
+de uma segunda transformação mantida pela ferramenta de BI.
+
+```mermaid
+flowchart LR
+    A[CSV no MinIO] --> B[ExtractedBatch]
+    B --> C[AcceptedRecord / RejectedRecord]
+    C --> D[ingestao_fonte + controles]
+    D --> E[dimensões conformadas]
+    D --> F[fatos analíticos]
+    E --> G[cubos C01 a C04]
+    F --> G
+    G --> H[consumo BI somente leitura]
+```
+
+| Saída analítica | Fontes tratadas necessárias | Grão esperado |
+| :--- | :--- | :--- |
+| C01 — Portfólio e ciclo | `pesquisas` e datas conformadas | Uma pesquisa por versão válida |
+| C02 — Participação e representatividade | `respondentes`, `empresas`, `clientes`, `pesquisas` | Uma participação em uma pesquisa |
+| C03 — Pipeline mensal | Marcos de `pesquisas` e dimensão calendário | Uma pesquisa em um período de referência |
+| C04 — Resultados e questionários | `questoes`, `respostas`, `pesquisas` | Uma resposta a uma questão versionada |
+
+O contrato lógico dos quatro cubos permanece em [`dmc.json`](dmc.json). A DDL e
+a rotina de carga da camada analítica são dependências dos cards CB-02 a CB-06;
+até sua integração, o diagrama acima descreve a cadeia-alvo, não tabelas já
+presentes na base `develop`.
+
 ## Limites desta visão
 
 A visão termina na tabela de ingestão tratada. Cubos, dimensões, fatos e
