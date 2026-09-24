@@ -1,5 +1,16 @@
-# Ambiente local do ETL orquestrado (OV-02): MinIO como entrada e o runner
-# Prefect/DuckDB. A Elastic Stack (observabilidade) é acrescentada no OV-07.
+# Ambiente local do ETL orquestrado (OV-02): MinIO como entrada, o runner
+# Prefect/DuckDB e a Elastic Stack (observabilidade, OB-07/ADR 0001).
+#
+# O runner nunca fala com o Logstash diretamente: ele só escreve JSON
+# estruturado no stdout (etl.orchestration.logging_config, OB-03). O driver
+# de log `gelf` do Docker é quem embrulha cada linha e envia por UDP ao
+# Logstash. UDP é fire-and-forget — se o Logstash ou o Elasticsearch caírem,
+# o envio é descartado silenciosamente pelo SO, sem bloquear o processo do
+# runner nem atrasar a carga (ADR 0001: indisponibilidade do transporte de
+# telemetria não pode corromper nem interromper a carga). Verificação de
+# ponta a ponta (subir a stack e confirmar que um log chega ao Elasticsearch)
+# fica para OB-10/OB-11 — não foi possível rodar Docker neste ambiente para
+# validar isso empiricamente.
 services:
   minio:
     image: minio/minio:latest
@@ -43,7 +54,44 @@ services:
       - duck-data:/data
       - ./src:/app/src
       - ./scripts:/app/scripts
+    # Sem `condition: service_healthy`: o runner não pode esperar nem falhar
+    # por causa do coletor (mesma garantia de não-interrupção do ADR 0001).
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://logstash:12201"
+        tag: "etl-runner"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.0
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./observability/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "12201:12201/udp"
 
 volumes:
   minio-data:
   duck-data:
+  es-data:

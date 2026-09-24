@@ -74,7 +74,8 @@ g05/
 │  ├─ prototipos-dashboards/                          # Geração, testes e renderização dos protótipos
 │  ├─ data_quality/                                   # Validação da qualidade dos dados
 │  └─ traceability/                                   # Validação de rastreabilidade às fontes
-├─ docker-compose.yml                                 # Ambiente local: MinIO + runner Prefect/DuckDB
+├─ docker-compose.yml                                 # Ambiente local: MinIO + runner Prefect/DuckDB + Elastic Stack
+├─ observability/logstash/pipeline/                   # Pipeline do coletor (GELF → Elasticsearch, OB-07)
 ├─ Dockerfile                                         # Imagem do runner do ETL
 ├─ requirements.txt                                   # Dependências de execução (minio, prefect, duckdb)
 ├─ .env.example                                       # Modelo das variáveis de ambiente do ETL
@@ -91,7 +92,7 @@ Para executar as validações localmente, utilize as versões abaixo (ou superio
 
 - **Git**: 2.40+
 - **Python**: 3.12+ (ETL, análise quantitativa e scripts de validação)
-- **Docker e Docker Compose** (ambiente local do ETL: MinIO + runner)
+- **Docker e Docker Compose** (ambiente local do ETL: MinIO + runner + Elastic Stack)
 - **matplotlib**: 3.9+ (geração dos gráficos da análise quantitativa)
 - **jq**: 1.6+ (validação estrutural do `dmc.json`)
 

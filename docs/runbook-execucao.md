@@ -11,7 +11,7 @@ e na ADR
 
 - Git 2.40+
 - Python 3.12+ (imagem do runner usa `python:3.12-slim`)
-- Docker e Docker Compose (ambiente local com MinIO e runner)
+- Docker e Docker Compose (ambiente local com MinIO, runner e Elastic Stack)
 - jq 1.6+ (apenas para os gates do `dmc.json`)
 
 ## Instalação
@@ -69,6 +69,21 @@ Serviços definidos em `docker-compose.yml`:
 - `createbucket`: cria o bucket `sindusfarma` na subida (`mc mb --ignore-existing`).
 - `runner`: contêiner Python com Prefect e DuckDB (`Dockerfile`), com `src/` e
   `scripts/` montados; permanece ativo (`sleep infinity`) para executar comandos.
+- `elasticsearch`: armazena a telemetria na porta 9200 (`discovery.type=single-node`,
+  segurança desligada — só para desenvolvimento local).
+- `logstash`: coletor (OB-07/ADR 0001); recebe UDP/GELF na porta 12201, decodifica
+  o JSON de cada linha de log e grava em `etl-logs-YYYY.MM.dd` no Elasticsearch.
+  Pipeline em `observability/logstash/pipeline/etl.conf`.
+
+O `runner` nunca fala com o Logstash: quem envia é o próprio driver de log
+`gelf` do Docker (configurado no serviço `runner`), por UDP — se o Logstash ou
+o Elasticsearch estiverem fora do ar, o envio é descartado pelo SO sem
+bloquear o runner nem interromper a carga (ADR 0001). Consultar os logs
+coletados:
+
+```bash
+curl -s 'http://localhost:9200/etl-logs-*/_search?pretty&size=5&sort=@timestamp:desc'
+```
 
 Verificar o banco de ingestão local (cria o arquivo se não existir e roda
 consulta smoke + verificação de persistência):
@@ -202,3 +217,4 @@ os mesmos comandos.
 | Execução morreu no meio | falha entre extração e carga | reexecute o mesmo comando: o `_checkpoint` retoma da posição confirmada do mesmo objeto; checkpoint de outra versão é descartado |
 | Falha transitória de leitura | timeout/instabilidade do MinIO | a extração já retenta (`ETL_EXTRACTION_MAX_ATTEMPTS`); o Prefect retenta só erro inesperado (`retries=2` na task `extract`) |
 | `DDL_DESATUALIZADA` no CI | contrato físico mudou sem regerar o SQL | `python scripts/load/render_ddl.py` e commitar `sql/duckdb/001_ingestao_tratada.sql` |
+| Nenhum log aparece no Elasticsearch | Logstash/Elasticsearch ainda subindo, ou pipeline com erro | `docker compose logs logstash`; a carga continua normalmente mesmo assim — o coletor é best-effort (ADR 0001) |

@@ -26,7 +26,8 @@ As decisões que justificam cada escolha estão em
 | Cobertura | `coverage` | `==7.16.0` | `requirements-transformation-dev.txt` | Em uso no CI |
 | Lint e formatação | `ruff` | `==0.16.6` | `requirements-transformation-dev.txt` | Em uso no CI |
 | Integração contínua | GitLab CI | — | `.gitlab-ci.yml` | Em uso |
-| Observabilidade | Elastic Stack (Logstash, Elasticsearch, Kibana) | — | [ADR 0001](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | **Decidida, não integrada** |
+| Observabilidade — coletor | Logstash + Elasticsearch | `8.15.0` | `docker-compose.yml`, `observability/logstash/pipeline/etl.conf` | Em uso (OB-07) |
+| Observabilidade — painel | Kibana | — | [ADR 0001](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | Decidida, não integrada (OB-08) |
 | Contêineres | Docker e Docker Compose | — | `Dockerfile`, `docker-compose.yml` | Em uso |
 
 O repositório **não tem** `pyproject.toml`, `setup.py` nem `setup.cfg`. O pacote
