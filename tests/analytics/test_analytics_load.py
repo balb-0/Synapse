@@ -54,10 +54,16 @@ class AnalyticsLoadTests(unittest.TestCase):
         first = load_analytics(self.con)
         self.assertEqual((first.pesquisas, first.participacoes, first.perguntas), (1, 1, 1))
         before = self.con.execute('SELECT * FROM "FATO_CICLO_PESQUISA"').fetchall()
-        self.assertEqual(first, load_analytics(self.con))
+        second_load = load_analytics(self.con)
+        self.assertNotEqual(first.load_id, second_load.load_id)
+        self.assertEqual((first.pesquisas, first.participacoes, first.perguntas),
+                         (second_load.pesquisas, second_load.participacoes, second_load.perguntas))
         self.assertEqual(before, self.con.execute('SELECT * FROM "FATO_CICLO_PESQUISA"').fetchall())
         self.assertEqual(self.con.execute('''SELECT method, matched_id FROM "analytics_reconciliation"
             WHERE source = 'questoes' ''').fetchone(), ("titulo_exato_unico", "p1"))
+        self.assertEqual(self.con.execute('''SELECT pesquisa_id_origem, pergunta_id_origem,
+            metodo_vinculo FROM "FATO_PESQUISA_PERGUNTA"''').fetchone(),
+                         ("foreign", "q1", "titulo_unico"))
 
         self.insert("pesquisas", "p1-b", 2, pesquisa_id="p1", titulo="Pesquisa A",
                     status="Fechada", data_solicitacao="2026-09-01", data_aprov="2026-09-04")
@@ -73,6 +79,7 @@ class AnalyticsLoadTests(unittest.TestCase):
         self.insert("pesquisas", "p1-b", 2, pesquisa_id="p1", titulo="Corrigido")
         with self.assertRaisesRegex(RuntimeError, "injected"):
             load_analytics(self.con, fail_after="facts")
+        self.assertEqual(self.con.execute('SELECT count(*) FROM "analytics_load_run"').fetchone()[0], 1)
         self.assertEqual(self.con.execute('SELECT titulo FROM "DIM_PESQUISA" WHERE pesquisa_id = ?',
                                           ("p1",)).fetchone()[0], "Original")
         self.assertEqual(self.con.execute('SELECT count(*) FROM "FATO_CICLO_PESQUISA"').fetchone()[0], 1)
@@ -120,6 +127,17 @@ class AnalyticsLoadTests(unittest.TestCase):
         self.assertEqual((result.respondentes_checksum, result.participacoes), ("file2", 1))
         self.assertEqual(self.con.execute('SELECT source_checksum FROM "FATO_PARTICIPACAO"').fetchall(),
                          [("file2",)])
+
+    def test_ambiguous_title_keeps_unknown_research(self):
+        self.insert("pesquisas", "p1-a", 1, pesquisa_id="p1", titulo="Título Comum")
+        self.insert("pesquisas", "p2-a", 2, pesquisa_id="p2", titulo=" título  comum ")
+        self.insert("questoes", "q1-a", 1, pesquisa_id="foreign", pergunta_id="q1",
+                    pesquisa_titulo="TÍTULO COMUM", tipo="aberta")
+        load_analytics(self.con)
+        method = self.con.execute('''SELECT metodo_vinculo FROM "FATO_PESQUISA_PERGUNTA"''').fetchone()[0]
+        self.assertEqual(method, "desconhecido")
+        self.assertEqual(self.con.execute('''SELECT reason FROM "analytics_reconciliation"
+            WHERE source = 'questoes' ''').fetchone()[0], "titulo_ambiguo")
 
 
 if __name__ == "__main__":

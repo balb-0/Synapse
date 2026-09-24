@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import argparse
 import calendar
+import hashlib
 import unicodedata
+import uuid
 from dataclasses import dataclass
 from datetime import date, datetime
 
@@ -22,6 +24,7 @@ from etl.analytics.facts_pipeline_instrument import fact_statements as other_sta
 
 @dataclass(frozen=True)
 class LoadResult:
+    load_id: str
     pesquisas: int
     participacoes: int
     perguntas: int
@@ -40,6 +43,20 @@ def _normalized(value: str | None) -> str | None:
     if value is None:
         return None
     return " ".join(unicodedata.normalize("NFKC", value).casefold().split()) or None
+
+
+def _digest(rows: list[dict]) -> str:
+    """Stable identity fingerprint for a current source view, including empty."""
+    material = "".join(f'{len(key)}:{key}' for key in sorted(row["idempotency_key"] for row in rows))
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
+
+
+def current_source_digests(con: duckdb.DuckDBPyConnection) -> dict[str, str]:
+    """Fingerprint the four current views used by C01/C02 dimensions and C04."""
+    return {
+        source: _digest(_rows(con, f'SELECT idempotency_key FROM "ingestao_{source}_atual"'))
+        for source in ("pesquisas", "empresas", "clientes", "questoes")
+    }
 
 
 def _member(con: duckdb.DuckDBPyConnection, table: str, key: str, attributes: dict) -> str:
@@ -173,6 +190,12 @@ def load_analytics(
             sk_tipo VARCHAR NOT NULL, sk_perfil VARCHAR NOT NULL,
             observed_at TIMESTAMP NOT NULL,
             PRIMARY KEY (data_fim_mes, sk_pesquisa)
+        )''')
+        con.execute('''CREATE TABLE IF NOT EXISTS "analytics_load_run" (
+            load_id VARCHAR PRIMARY KEY, loaded_at TIMESTAMP NOT NULL,
+            pesquisas_digest VARCHAR NOT NULL, empresas_digest VARCHAR NOT NULL,
+            clientes_digest VARCHAR NOT NULL, questoes_digest VARCHAR NOT NULL,
+            respondentes_checksum VARCHAR, observed_at TIMESTAMP
         )''')
         con.execute("DELETE FROM \"analytics_reconciliation\" WHERE source = 'questoes'")
         pesquisas = _rows(con, 'SELECT * FROM "ingestao_pesquisas_atual" ORDER BY pesquisa_id')
@@ -310,18 +333,23 @@ def load_analytics(
                     "qtd_alternativas", "alternativas", "linhas_matriz", "colunas_matriz",
                     "confianca", "formato_arquivo", "col_origem", "observacoes")})
             target = pid if pid in pesquisa_ids else None
+            method = "id" if target else "desconhecido"
             if target is None:
                 matches = title_ids.get(_normalized(row["pesquisa_titulo"]), set())
                 if len(matches) == 1:
                     target = next(iter(matches))
+                    method = "titulo_unico"
                     _orphan(con, "questoes", pid, "DIM_PESQUISA", "id_divergente",
                             "titulo_exato_unico", target)
                 else:
                     _orphan(con, "questoes", pid, "DIM_PESQUISA",
                             "titulo_ambiguo" if matches else "pesquisa_nao_encontrada")
-            con.execute('INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, NULL)', (
+            con.execute('''INSERT INTO "FATO_PESQUISA_PERGUNTA"
+                (sk_pesquisa, sk_pergunta, sk_data_pesquisa,
+                 pesquisa_id_origem, pergunta_id_origem, metodo_vinculo)
+                VALUES (?, ?, NULL, ?, ?, ?)''', (
                 surrogate_key("DIM_PESQUISA", target) if target else unknown_key("DIM_PESQUISA"),
-                question_sk))
+                question_sk, pid, qid, method))
 
         closure = None
         if observed_at is not None:
@@ -345,8 +373,12 @@ def load_analytics(
         if fail_after == "facts":
             raise RuntimeError("injected failure after facts")
         orphans = con.execute('SELECT count(*) FROM "analytics_reconciliation"').fetchone()[0]
+        load_id = str(uuid.uuid4())
+        con.execute('''INSERT INTO "analytics_load_run" VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', (
+            load_id, datetime.now(), _digest(pesquisas), _digest(empresas), _digest(clientes),
+            _digest(questoes), selected[0] if selected else None, observed_at))
         con.execute("COMMIT")
-        return LoadResult(len(pesquisas), participacoes, len(questoes), orphans,
+        return LoadResult(load_id, len(pesquisas), participacoes, len(questoes), orphans,
                           selected[0] if selected else None, closure)
     except Exception:
         con.execute("ROLLBACK")
