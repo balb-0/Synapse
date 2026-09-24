@@ -44,6 +44,21 @@ externo, com as 19 suítes de `tests/`.
 | Log estruturado | [`log_events.py`](../src/etl/extraction/log_events.py) | `ExtractionLogSink.emit(event)`, `StandardLoggingSink` | Emitir o evento JSON do lote extraído | Transportar telemetria a um coletor | Implementado parcialmente |
 | Telemetria | — | Logstash, Elasticsearch, Kibana | Centralizar logs, métricas e painéis | Controlar o estado do pipeline | **Planejado** (ADR 0001) |
 
+### Componentes acrescentados ao fluxo servido
+
+| Componente | Entrada | Saída | Responsabilidade verificável | Estado em `develop` |
+| :--- | :--- | :--- | :--- | :--- |
+| Servidor de deployment | Parâmetros do deployment `ingest-object/agendado` | Flow run do Prefect | Manter o deployment disponível para agenda e disparo manual | Implementado em `scripts/orchestration/deployment.py`; inicialização manual |
+| Emissor de eventos da carga | `LoadResult` e `BatchMetadata` | `LoadBatchLogEvent` | Publicar status, duração e contagens sem conteúdo de negócio | Implementado em `src/etl/load/log_events.py` |
+| Sink de logging padrão | Evento técnico | Registro JSON no logger Python | Serializar o evento sem acoplar o repositório ao transporte | Implementado para extração e carga |
+| Coletor de telemetria | Log JSON | Índice/painel central | Transportar e reter sinais operacionais | Ausente no Compose da base auditada |
+| Camada analítica | Views tratadas e controles | Dimensões, fatos e cubos | Materializar o contrato dimensional | Dependência CB-02 a CB-06; não integrada |
+
+O servidor Prefect e o coletor são componentes distintos: servir um deployment
+não instala nem configura observabilidade centralizada. Da mesma forma, emitir
+JSON estruturado não comprova que o evento chegou a Elasticsearch ou a um
+painel.
+
 ## Contratos de dados entre componentes
 
 Três estruturas imutáveis atravessam as fronteiras, todas declaradas em
