@@ -47,6 +47,29 @@ services:
       timeout: 3s
       retries: 20
 
+  # Serve os deployments com agendamento: mantém
+  # `ingest-object/agendado` (cron `0 3 * * *`, ver
+  # `scripts/orchestration/deployment.py`) ativo enquanto o ambiente roda.
+  # `restart: unless-stopped` faz o agendamento sobreviver ao reinício do
+  # contêiner; os agendamentos e o histórico vivem no `prefect-server`
+  # (volume `prefect-data`), não neste processo — derrubar e subir o
+  # ambiente (`docker compose down/up`) preserva ambos.
+  scheduler:
+    build: .
+    depends_on:
+      minio:
+        condition: service_started
+      prefect-server:
+        condition: service_healthy
+    command: ["python", "scripts/orchestration/deployment.py"]
+    environment:
+      ETL_MINIO_BUCKET: sindusfarma
+      PREFECT_API_URL: http://prefect-server:4200/api
+    volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+    restart: unless-stopped
+
   runner:
     build: .
     depends_on:
