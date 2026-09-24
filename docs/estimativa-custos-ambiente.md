@@ -74,3 +74,73 @@ total_anual = total_mensal × 12
 
 As fórmulas não incluem impostos. Um orçamento em BRL deve converter o total
 somente depois de registrar a taxa, a data e a fonte cambial usadas.
+
+## 6. Cálculo dos cenários
+
+### 6.1 Local — medido parcialmente
+
+| Componente | Quantidade | Cálculo | USD/mês |
+| :--- | ---: | :--- | ---: |
+| Infraestrutura incremental | — | equipamento e conexão já disponíveis | **0,00 medido** |
+| Energia, depreciação e trabalho | — | não medidos | **não disponível** |
+| **Total de desembolso incremental conhecido** | | | **0,00 medido** |
+
+O zero local significa somente que não houve fatura incremental de
+infraestrutura. Ele não significa custo total de propriedade igual a zero.
+
+### 6.2 Piloto — projetado
+
+| Componente | Quantidade | Cálculo | USD/mês |
+| :--- | ---: | :--- | ---: |
+| Controle, ETL, DuckDB e MinIO | 1 VM média por 180 h | `1 × 180 × 0,20` | 36,00 |
+| Elastic Stack | 1 VM média por 180 h | `1 × 180 × 0,20` | 36,00 |
+| Bloco SSD | 200 GB-mês | `200 × 0,08` | 16,00 |
+| Objetos ativos | 100 GB-mês | `100 × 0,0265` | 2,65 |
+| Cópia de segurança | 100 GB-mês | `100 × 0,0265` | 2,65 |
+| Transferência de saída | 20 GB | `20 × 0,09` | 1,80 |
+| Licenças comunitárias | 1 mês | tarifa de referência | 0,00 |
+| **Total projetado mensal** | | soma dos itens | **95,10** |
+| **Total projetado anual** | | `95,10 × 12` | **1.141,20** |
+
+O nó único da Elastic Stack torna o piloto inadequado para compromisso de alta
+disponibilidade. Desligar as duas VMs fora da janela prevista é condição para
+manter o custo de compute indicado.
+
+### 6.3 Produção de referência — projetado
+
+| Componente | Quantidade | Cálculo | USD/mês |
+| :--- | ---: | :--- | ---: |
+| Controle e workers do ETL | 2 VMs médias por 730 h | `2 × 730 × 0,20` | 292,00 |
+| DuckDB e MinIO | 2 VMs médias por 730 h | `2 × 730 × 0,20` | 292,00 |
+| Elastic Stack | 3 VMs grandes por 730 h | `3 × 730 × 0,40` | 876,00 |
+| Bloco SSD | 1.500 GB-mês | `1.500 × 0,08` | 120,00 |
+| Objetos ativos | 1.000 GB-mês | `1.000 × 0,0265` | 26,50 |
+| Cópia de segurança | 1.000 GB-mês | `1.000 × 0,0265` | 26,50 |
+| Transferência de saída | 200 GB | `200 × 0,09` | 18,00 |
+| Licenças comunitárias | 1 mês | tarifa de referência | 0,00 |
+| **Total projetado mensal** | | soma dos itens | **1.651,00** |
+| **Total projetado anual** | | `1.651,00 × 12` | **19.812,00** |
+
+O cenário não promete alta disponibilidade completa: DuckDB é embarcado e a
+topologia de replicação do MinIO ainda precisa ser definida. As duas VMs da
+camada de dados representam capacidade e separação operacional, não uma
+garantia automática de failover.
+
+## 7. Comparação e sensibilidade
+
+| Cenário | Natureza do total | USD/mês | USD/ano | Principal condicionante |
+| :--- | :--- | ---: | ---: | :--- |
+| Local | medido parcialmente | 0,00 | não calculado | energia e trabalho não medidos |
+| Piloto | projetado | 95,10 | 1.141,20 | desligamento após 180 h/mês |
+| Produção de referência | projetado | 1.651,00 | 19.812,00 | sete VMs ligadas continuamente |
+
+Impacto marginal com as tarifas adotadas:
+
+- mais 100 horas de uma VM média: **USD 20,00**;
+- mais 100 GB-mês de bloco SSD: **USD 8,00**;
+- mais 100 GB-mês de objetos ou backup: **USD 2,65**;
+- mais 100 GB de saída para internet: **USD 9,00**.
+
+Compute é a variável dominante no cenário de produção. Antes de contratar, o
+piloto deve medir memória, CPU, duração dos jobs, crescimento diário dos logs e
+taxa de reprocessamento para redimensionar as VMs e a retenção.
