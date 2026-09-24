@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from etl.analytics.facts_pipeline_instrument import (  # noqa: E402
     SQL_PATH,
+    UNKNOWN_PESQUISA_KEY,
     fact_statements,
     render_ddl,
 )
@@ -21,6 +22,11 @@ if DUCKDB_INSTALLED:
 
 
 MONTH_KEY = hashlib.sha256(b"v1|DIM_TEMPO|K|10:2026-08-31").hexdigest()
+PESQUISA_A_KEY = hashlib.sha256(b"v1|DIM_PESQUISA|K|1:A").hexdigest()
+PESQUISA_B_KEY = hashlib.sha256(b"v1|DIM_PESQUISA|K|1:B").hexdigest()
+PERGUNTA_A_KEY = hashlib.sha256(b"v1|DIM_PERGUNTA|K|1:A2:q1").hexdigest()
+PERGUNTA_ORFA_KEY = hashlib.sha256(b"v1|DIM_PERGUNTA|K|1:X2:q2").hexdigest()
+PERGUNTA_TITULO_KEY = hashlib.sha256(b"v1|DIM_PERGUNTA|K|1:Y2:q3").hexdigest()
 
 
 class FactsDdlContractTests(unittest.TestCase):
@@ -61,9 +67,12 @@ class FactsDdlDatabaseTests(unittest.TestCase):
             ("DIM_AREA", "sk_area", "a1"),
             ("DIM_TIPO_PESQUISA", "sk_tipo", "ty1"),
             ("DIM_PERFIL_PESQUISA", "sk_perfil", "pf1"),
-            ("DIM_PESQUISA", "sk_pesquisa", "p1"),
-            ("DIM_PESQUISA", "sk_pesquisa", "unknown"),
-            ("DIM_PERGUNTA", "sk_pergunta", "q1"),
+            ("DIM_PESQUISA", "sk_pesquisa", PESQUISA_A_KEY),
+            ("DIM_PESQUISA", "sk_pesquisa", PESQUISA_B_KEY),
+            ("DIM_PESQUISA", "sk_pesquisa", UNKNOWN_PESQUISA_KEY),
+            ("DIM_PERGUNTA", "sk_pergunta", PERGUNTA_A_KEY),
+            ("DIM_PERGUNTA", "sk_pergunta", PERGUNTA_ORFA_KEY),
+            ("DIM_PERGUNTA", "sk_pergunta", PERGUNTA_TITULO_KEY),
         ):
             self.db.execute(f'INSERT INTO "{table}" ("{key}") VALUES (?)', [value])
         for statement in fact_statements():
@@ -114,24 +123,62 @@ class FactsDdlDatabaseTests(unittest.TestCase):
 
     def test_instrument_is_factless_and_one_association_per_question(self) -> None:
         self.db.execute(
-            'INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, ?)', ["unknown", "q1", None]
+            'INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, ?, ?, ?, ?)',
+            [PESQUISA_A_KEY, PERGUNTA_A_KEY, None, "A", "q1", "id"],
         )
         self.assertEqual(
             self.db.execute('SELECT COUNT(*) FROM "FATO_PESQUISA_PERGUNTA"').fetchone(), (1,)
         )
         with self.assertRaises(duckdb.ConstraintException):
             self.db.execute(
-                'INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, ?)', ["p1", "q1", MONTH_KEY]
+                'INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, ?, ?, ?, ?)',
+                [PESQUISA_A_KEY, PERGUNTA_A_KEY, MONTH_KEY, "A", "q1", "id"],
             )
         with self.assertRaises(duckdb.ConstraintException):
             self.db.execute(
-                'INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, ?)', ["p1", "missing", None]
+                'INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, ?, ?, ?, ?)',
+                [PESQUISA_A_KEY, "missing", None, "A", "q2", "id"],
             )
         columns = [
             row[1]
             for row in self.db.execute('PRAGMA table_info("FATO_PESQUISA_PERGUNTA")').fetchall()
         ]
-        self.assertEqual(columns, ["sk_pesquisa", "sk_pergunta", "sk_data_pesquisa"])
+        self.assertEqual(
+            columns,
+            [
+                "sk_pesquisa",
+                "sk_pergunta",
+                "sk_data_pesquisa",
+                "pesquisa_id_origem",
+                "pergunta_id_origem",
+                "metodo_vinculo",
+            ],
+        )
+
+    def test_direct_id_rejects_question_a_with_research_b(self) -> None:
+        for wrong_research, original_id, method in (
+            (PESQUISA_B_KEY, "A", "id"),
+            (UNKNOWN_PESQUISA_KEY, "A", "id"),
+            (PESQUISA_A_KEY, "B", "id"),
+            (PESQUISA_B_KEY, "A", "desconhecido"),
+        ):
+            with self.subTest(wrong_research=wrong_research, method=method):
+                with self.assertRaises(duckdb.ConstraintException):
+                    self.db.execute(
+                        'INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, ?, ?, ?, ?)',
+                        [wrong_research, PERGUNTA_A_KEY, None, original_id, "q1", method],
+                    )
+
+    def test_orphan_and_title_remap_have_explicit_methods(self) -> None:
+        self.db.execute(
+            'INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, ?, ?, ?, ?)',
+            [UNKNOWN_PESQUISA_KEY, PERGUNTA_ORFA_KEY, None, "X", "q2", "desconhecido"],
+        )
+        # A carga prova o título único e registra origem/alvo antes deste método.
+        self.db.execute(
+            'INSERT INTO "FATO_PESQUISA_PERGUNTA" VALUES (?, ?, ?, ?, ?, ?)',
+            [PESQUISA_B_KEY, PERGUNTA_TITULO_KEY, None, "Y", "q3", "titulo_unico"],
+        )
 
 
 if __name__ == "__main__":

@@ -7,10 +7,12 @@ módulo cria estruturas: não reconstrói fechamentos ou transições histórica
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 
 VERSION = "v1"
 SQL_PATH = Path(__file__).resolve().parents[3] / "sql/duckdb/004_fatos_pipeline_instrumento.sql"
+UNKNOWN_PESQUISA_KEY = hashlib.sha256(f"{VERSION}|DIM_PESQUISA|U".encode("utf-8")).hexdigest()
 
 
 def fact_statements() -> tuple[str, ...]:
@@ -39,9 +41,23 @@ def fact_statements() -> tuple[str, ...]:
     "sk_pesquisa" VARCHAR NOT NULL REFERENCES "DIM_PESQUISA"("sk_pesquisa"),
     "sk_pergunta" VARCHAR NOT NULL REFERENCES "DIM_PERGUNTA"("sk_pergunta"),
     "sk_data_pesquisa" VARCHAR REFERENCES "DIM_TEMPO"("sk_tempo"),
+    "pesquisa_id_origem" VARCHAR NOT NULL,
+    "pergunta_id_origem" VARCHAR NOT NULL,
+    "metodo_vinculo" VARCHAR NOT NULL,
     PRIMARY KEY ("sk_pesquisa", "sk_pergunta"),
-    UNIQUE ("sk_pergunta")
-)""",
+    UNIQUE ("sk_pergunta"),
+    CHECK ("sk_pergunta" = sha256('{version}|DIM_PERGUNTA|K|' ||
+        CAST(length("pesquisa_id_origem") AS VARCHAR) || ':' || "pesquisa_id_origem" ||
+        CAST(length("pergunta_id_origem") AS VARCHAR) || ':' || "pergunta_id_origem")),
+    CHECK (
+        ("metodo_vinculo" = 'id' AND "sk_pesquisa" = sha256('{version}|DIM_PESQUISA|K|' ||
+            CAST(length("pesquisa_id_origem") AS VARCHAR) || ':' || "pesquisa_id_origem"))
+        OR ("metodo_vinculo" = 'desconhecido' AND "sk_pesquisa" = '{unknown_pesquisa_key}')
+        OR ("metodo_vinculo" = 'titulo_unico' AND "sk_pesquisa" <> '{unknown_pesquisa_key}'
+            AND "sk_pesquisa" <> sha256('{version}|DIM_PESQUISA|K|' ||
+                CAST(length("pesquisa_id_origem") AS VARCHAR) || ':' || "pesquisa_id_origem"))
+    )
+)""".replace("{version}", VERSION).replace("{unknown_pesquisa_key}", UNKNOWN_PESQUISA_KEY),
     )
 
 
@@ -53,7 +69,9 @@ def render_ddl() -> str:
         "-- Pipeline: estoque semiaditivo apenas para fechamento observado; nao some meses.\n"
         "-- Entradas e saidas sem historico de transicoes permanecem NULL, nunca zero presumido.\n"
         "-- data_fim_mes corresponde a chave deterministica de DIM_TEMPO.\n"
-        "-- Instrumento: COUNT(*) deriva a quantidade de perguntas; alternativas sao da dimensao.\n\n"
+        "-- Instrumento: SK da pergunta deriva do par de IDs de origem.\n"
+        "-- Vinculo por titulo unico exige prova na carga e registro na reconciliacao.\n"
+        "-- COUNT(*) deriva a quantidade de perguntas; alternativas sao da dimensao.\n\n"
     )
     return header + ";\n\n".join(fact_statements()) + ";\n"
 

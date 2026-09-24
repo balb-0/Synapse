@@ -4,7 +4,9 @@
 -- Pipeline: estoque semiaditivo apenas para fechamento observado; nao some meses.
 -- Entradas e saidas sem historico de transicoes permanecem NULL, nunca zero presumido.
 -- data_fim_mes corresponde a chave deterministica de DIM_TEMPO.
--- Instrumento: COUNT(*) deriva a quantidade de perguntas; alternativas sao da dimensao.
+-- Instrumento: SK da pergunta deriva do par de IDs de origem.
+-- Vinculo por titulo unico exige prova na carga e registro na reconciliacao.
+-- COUNT(*) deriva a quantidade de perguntas; alternativas sao da dimensao.
 
 CREATE TABLE IF NOT EXISTS "FATO_PIPELINE_MENSAL" (
     "sk_data_fim_mes" VARCHAR NOT NULL REFERENCES "DIM_TEMPO"("sk_tempo"),
@@ -30,6 +32,20 @@ CREATE TABLE IF NOT EXISTS "FATO_PESQUISA_PERGUNTA" (
     "sk_pesquisa" VARCHAR NOT NULL REFERENCES "DIM_PESQUISA"("sk_pesquisa"),
     "sk_pergunta" VARCHAR NOT NULL REFERENCES "DIM_PERGUNTA"("sk_pergunta"),
     "sk_data_pesquisa" VARCHAR REFERENCES "DIM_TEMPO"("sk_tempo"),
+    "pesquisa_id_origem" VARCHAR NOT NULL,
+    "pergunta_id_origem" VARCHAR NOT NULL,
+    "metodo_vinculo" VARCHAR NOT NULL,
     PRIMARY KEY ("sk_pesquisa", "sk_pergunta"),
-    UNIQUE ("sk_pergunta")
+    UNIQUE ("sk_pergunta"),
+    CHECK ("sk_pergunta" = sha256('v1|DIM_PERGUNTA|K|' ||
+        CAST(length("pesquisa_id_origem") AS VARCHAR) || ':' || "pesquisa_id_origem" ||
+        CAST(length("pergunta_id_origem") AS VARCHAR) || ':' || "pergunta_id_origem")),
+    CHECK (
+        ("metodo_vinculo" = 'id' AND "sk_pesquisa" = sha256('v1|DIM_PESQUISA|K|' ||
+            CAST(length("pesquisa_id_origem") AS VARCHAR) || ':' || "pesquisa_id_origem"))
+        OR ("metodo_vinculo" = 'desconhecido' AND "sk_pesquisa" = '28d61d4b6a9c57493f0424e34934c028d7d3865f655bfeaf2d11a471d0ed8da3')
+        OR ("metodo_vinculo" = 'titulo_unico' AND "sk_pesquisa" <> '28d61d4b6a9c57493f0424e34934c028d7d3865f655bfeaf2d11a471d0ed8da3'
+            AND "sk_pesquisa" <> sha256('v1|DIM_PESQUISA|K|' ||
+                CAST(length("pesquisa_id_origem") AS VARCHAR) || ':' || "pesquisa_id_origem"))
+    )
 );
