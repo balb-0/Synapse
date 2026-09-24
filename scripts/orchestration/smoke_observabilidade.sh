@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Smoke de observabilidade (OB-11): cenário de sucesso + falha controlada com
-# retry visível no painel e o alerta correspondente.
+# o alerta correspondente.
 #
 # Roda no HOST, não dentro do runner: precisa do próprio `docker compose`
 # para parar/religar o MinIO, que é o gatilho da falha controlada.
@@ -12,11 +12,24 @@
 #   - As duas regras de alerta do OB-09 já criadas manualmente no Kibana
 #     (Stack Management -> Rules) — não são importáveis por NDJSON.
 #
-# Este script só produz os eventos reais no Elasticsearch/Prefect. Ele NÃO
-# tira print nem confirma o alerta sozinho — a evidência (prints do painel
-# OB-08 e do Kibana Alerts) precisa ser capturada por quem rodar isto, com
-# Docker de verdade. Não foi possível gerar essa evidência neste ambiente de
-# desenvolvimento (sem Docker) — só o roteiro abaixo.
+# IMPORTANTE — o que este cenário B prova e o que não prova (confirmado
+# empiricamente rodando ingest_object com um leitor MinIO quebrado, sem
+# Docker, direto no venv de teste): `ingest_object` calcula o checksum do
+# objeto (`_object_checksum`, flow.py) ANTES de chamar a task `extract` —
+# e esse cálculo não passa pelo `RetryExecutor` (OB-06), só a leitura de
+# fato dentro da task passa. Um MinIO totalmente fora do ar derruba o flow
+# bem nesse cálculo, ANTES da task de extração sequer começar — então este
+# script prova a falha real e o alerta correspondente (a exceção propaga
+# até `run_ingest.py`, que não a captura; o traceback cru vai pro stderr e
+# o Docker GELF o entrega ao Logstash como `_jsonparsefailure`), mas **não**
+# produz `extraction.retry.emitted` de forma confiável — isso exigiria
+# derrubar o MinIO só depois do checksum e só durante a leitura da task, uma
+# janela estreita demais para cronometrar de fora sem uma ferramenta de
+# falha de rede mais cirúrgica (ex.: toxiproxy), que esta stack não tem.
+# A prova determinística do mecanismo de retry já existe nos testes
+# automatizados (tests/extraction/test_resilience.py, OB-06;
+# tests/e2e/test_telemetria_e_coletor_indisponivel.py, OB-10) — não precisa
+# ser reproduzida ao vivo para ser confiável.
 set -euo pipefail
 
 echo "=== Cenário A: execução com sucesso ==="
@@ -31,8 +44,8 @@ cat <<'EVIDENCIA'
 EVIDENCIA
 
 echo
-echo "=== Cenário B: falha controlada com retry visível + alerta ==="
-echo ">>> Parando o MinIO para forçar falha transitória na extração..."
+echo "=== Cenário B: falha controlada (checksum sem MinIO) + alerta ==="
+echo ">>> Parando o MinIO para forçar a falha no cálculo do checksum..."
 docker compose stop minio
 
 set +e
@@ -42,23 +55,24 @@ set -e
 
 if [ "$resultado" -eq 0 ]; then
   cat <<'AVISO'
-!!! A ingestão terminou sem erro — o MinIO pode ter voltado rápido demais,
-    ou os 3 attempts (padrão de ETL_EXTRACTION_MAX_ATTEMPTS) absorveram a
-    janela em que ele ficou fora do ar. Repita com o MinIO parado por mais
-    tempo antes de rodar o comando, ou aumente ETL_EXTRACTION_MAX_ATTEMPTS
-    temporariamente para tornar a falha mais fácil de reproduzir.
+!!! A ingestão terminou sem erro — o MinIO pode ter voltado antes do
+    comando rodar. Confirme com `docker compose ps minio` que ele está
+    mesmo parado antes de repetir.
 AVISO
 fi
 
 cat <<'EVIDENCIA'
 >>> Evidência a capturar (cenário B):
-    - painel Kibana (OB-08), viz "ETL - Tentativas de repeticao"
-      (etl-viz-retries) com extraction.retry.emitted > 0 para "pesquisas";
     - Kibana Alerts mostrando a regra "ETL - falha de execução" ativa
       (ver docs/runbook-execucao.md, seção Alertas mínimos);
-    - a linha com tags:_jsonparsefailure no Elasticsearch (traceback do
-      Prefect ao esgotar as tentativas).
-    curl -s 'http://localhost:9200/etl-logs-*/_search?q=event:extraction.retry.emitted&sort=@timestamp:desc&size=10&pretty'
+    - a linha com tags:_jsonparsefailure no Elasticsearch (traceback cru
+      que run_ingest.py deixa propagar até o topo, sem capturar);
+    - o marco JSON limpo do próprio Prefect para a mesma falha
+      (prefect.flow_runs, level ERROR, "Encountered exception during
+      execution") — sinal adicional, sem tag de erro, útil pra confirmar
+      que os dois caminhos (stderr cru e stdout estruturado) descrevem o
+      mesmo evento.
+    curl -s 'http://localhost:9200/etl-logs-*/_search?q=tags:_jsonparsefailure&sort=@timestamp:desc&size=5&pretty'
 EVIDENCIA
 
 echo

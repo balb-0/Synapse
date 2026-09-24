@@ -186,10 +186,10 @@ estado da regra já aparece em **Alerts** no Kibana quando ativa.
 
 ### Smoke de observabilidade (OB-11)
 
-Roteiro para provar, com uma execução real, os dois cenários exigidos pelo
-card: uma execução concluída e uma falha controlada com retry visível no
-painel e o alerta correspondente. Depende de OB-09 (health check e alertas)
-e OB-10 (garantia de resiliência) já estarem no ar.
+Roteiro para provar, com uma execução real, os cenários exigidos pelo card:
+uma execução concluída e uma falha controlada com o alerta correspondente.
+Depende de OB-09 (health check e alertas) e OB-10 (garantia de resiliência)
+já estarem no ar.
 
 ```bash
 ./scripts/orchestration/smoke_observabilidade.sh
@@ -198,24 +198,37 @@ e OB-10 (garantia de resiliência) já estarem no ar.
 O script roda no host (não dentro do `runner`), porque o cenário de falha
 depende de `docker compose stop/start minio` — algo que só o host consegue
 fazer. Ele só produz os eventos reais; **não tira print nem confirma o
-alerta sozinho**. Os dois cenários e o que capturar como evidência:
+alerta sozinho**. Os cenários e o que capturar como evidência:
 
 - **Sucesso**: `health_check.py` + `run_ingest.py --source empresas` com o
   MinIO no ar. Evidência: painel Kibana (OB-08) mostrando a execução com
   status `success`.
 - **Falha controlada**: MinIO parado, `run_ingest.py --source pesquisas`
-  esgota as tentativas (`ETL_EXTRACTION_MAX_ATTEMPTS=3` por padrão) e falha.
-  Evidência: `etl-viz-retries` do painel com `extraction.retry.emitted` > 0;
-  a regra "ETL - falha de execução" (ver seção anterior) ativa em **Kibana →
-  Alerts**; a linha com `tags:_jsonparsefailure` no Elasticsearch (o
-  traceback do Prefect ao desistir, capturado pelo Logstash — OB-07).
+  falha ao calcular o checksum do objeto (`_object_checksum`, `flow.py`) —
+  essa etapa roda **antes** da task `extract` e não passa pelo
+  `RetryExecutor` (OB-06), então este cenário não produz
+  `extraction.retry.emitted`, só a falha em si. Evidência: a regra "ETL -
+  falha de execução" (ver seção anterior) ativa em **Kibana → Alerts**; a
+  linha com `tags:_jsonparsefailure` no Elasticsearch (o traceback cru que
+  `run_ingest.py` deixa propagar até o topo, capturado pelo Logstash —
+  OB-07); o marco JSON limpo do próprio Prefect para a mesma falha
+  (`prefect.flow_runs`, `level: ERROR`), sinal adicional sem a tag de erro.
+  A prova de que o retry em si funciona (a garantia "repetição visível")
+  já é determinística nos testes automatizados
+  (`tests/extraction/test_resilience.py`, OB-06;
+  `tests/e2e/test_telemetria_e_coletor_indisponivel.py`, OB-10) —
+  reproduzi-la ao vivo exigiria derrubar o MinIO só durante a leitura da
+  task de extração, uma janela estreita demais para cronometrar de fora sem
+  uma ferramenta de falha de rede mais cirúrgica (ex.: toxiproxy), que esta
+  stack não tem.
 
 **Este roteiro não foi executado de ponta a ponta neste repositório**: o
 ambiente de desenvolvimento usado não tem Docker disponível (mesma limitação
 das MRs de OB-07/OB-08/OB-09). O script e os comandos foram escritos e
-validados por leitura (sintaxe do bash, classificação de falha transitória
-em `etl.extraction.failures`, valores padrão de retry), não por execução real
-— quem rodar isto pela primeira vez deve conferir cada passo antes de
+validados por leitura e por um teste isolado no venv (confirmando, sem
+Docker, que a falha do leitor MinIO propaga até o topo de `ingest_object`
+antes da task de extração rodar) — não por execução real contra a stack
+inteira. Quem rodar isto pela primeira vez deve conferir cada passo antes de
 anexá-lo como evidência ao card.
 
 Verificar o banco de ingestão local (cria o arquivo se não existir e roda
