@@ -250,10 +250,19 @@ uma medida ao snapshot tratado.
 
 ## Limites desta visão
 
-A visão termina na tabela de ingestão tratada. Cubos, dimensões, fatos e
-indicadores do [`dmc.json`](dmc.json) **não** são construídos nesta sprint: eles
-funcionam como contrato de destino que restringe nomes e tipos, conforme
-[`inventario-contratos-dimensionais.md`](inventario-contratos-dimensionais.md).
+A implementação integrada na base auditada termina na ingestão tratada. Cubos,
+dimensões e fatos do [`dmc.json`](dmc.json) funcionam como contrato de destino
+enquanto as dependências CB-02 a CB-06 não forem incorporadas. Esta distinção
+evita apresentar desenho lógico como dado já consultável.
+
+| Informação desejada | Estado | Motivo verificável |
+| :--- | :--- | :--- |
+| Volume e estado das pesquisas | Disponível na ingestão tratada | `pesquisas` possui identidade e datas tipadas. |
+| Participação por empresa | Parcial | Existe participação, mas a qualidade do vínculo pessoa–empresa precisa ser preservada. |
+| Taxa de resposta | Indisponível | Não há denominador confirmado para população convidada. |
+| Representatividade por segmento | Indisponível | Não existe regra aprovada de população-base e ponderação. |
+| Resultado agregado por questão | Parcial | Questões e respostas existem; publicação depende das regras de agregação e privacidade. |
+| Série histórica anterior aos snapshots | Indisponível | A origem entregue não contém histórico retroativo completo. |
 
 Não há política de retenção definida para as versões acumuladas na tabela de
 ingestão, e a ponte entre `respostas.respondent_id` e a base de participação
