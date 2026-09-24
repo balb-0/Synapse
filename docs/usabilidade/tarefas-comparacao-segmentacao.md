@@ -79,3 +79,12 @@ RF03):
   participante precisa raciocinar sobre qual segmento o causou.)
 - **Tempo aceitável:** 4 minutos.
 
+## Dependências e limites declarados
+
+- As comparações usam apenas contagens calculáveis do snapshot (I01–I05);
+  nenhuma tarefa pede taxa que dependa de denominador indisponível (I08,
+  I11) — se a tela exibir "indisponível", ler esse estado corretamente é o
+  comportamento esperado, não um bloqueio da tarefa.
+- Comparação entre períodos usa janelas equivalentes por `data_solicitacao`;
+  tarefas não pedem "período" solto sem marco definido (regra do RF03 contra
+  referência temporal ambígua).
