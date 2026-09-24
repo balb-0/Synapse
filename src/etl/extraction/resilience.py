@@ -176,9 +176,15 @@ class RetryExecutor:
         *,
         source: str,
         operation_name: str,
-        duration_ms: float = 0.0,
+        duration_ms: float,
     ) -> SourceFailure:
-        """Registra uma falha ocorrida fora de uma operação com retry."""
+        """Registra uma falha ocorrida fora de uma operação com retry.
+
+        ``duration_ms`` é obrigatório e sem default: um valor como ``0.0``
+        pareceria uma medição real (chamada instantânea) em vez de "não
+        medido", e esse tipo de dado errado silencioso é pior do que um
+        `TypeError` na hora de escrever o call site.
+        """
 
         classification = classify_source_failure(exception)
         failure = SourceFailure(
