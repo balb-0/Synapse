@@ -1,15 +1,11 @@
-"""Reinício de tarefa falha e reexecução parametrizada.
+"""Reinício de tarefa falha com retry limitado.
 
-Cobre o contrato que a interface do Prefect usa no retry/re-run:
+Cobre o contrato de retry das tasks do flow:
 
-- as três tasks do flow têm retry limitado (``retries=2``), de modo que uma
-  falha reiniciada pela UI repete o trecho sem perder o checkpoint já
-  confirmado (a retomada lote a lote é coberta em ``test_resumption.py``);
-- ``_should_retry`` só repete erro inesperado: falha permanente da extração
-  (``ExtractionError``, ``ValueError``, ``KeyError``) ou limite interno já
-  esgotado falha rápido, sem duplicar tentativa;
-- a reexecução parametrizada (``reprocess``) é o parâmetro do deployment
-  (ver ``prefect.yaml`` e ``deployment.py``), registrada no histórico do run.
+- as três tasks têm retry limitado (``retries=2``) com a condição
+  ``_should_retry``;
+- falha permanente da extração e S3 permanente (ex.: ``NoSuchKey``) falham
+  rápido; erro transitório (ex.: ``SlowDown``) e inesperado repetem.
 """
 
 from __future__ import annotations
@@ -24,11 +20,13 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
 PREFECT_INSTALLED = importlib.util.find_spec("prefect") is not None
+MINIO_INSTALLED = importlib.util.find_spec("minio") is not None
 if PREFECT_INSTALLED:
     from etl.extraction import ExtractionError
     from etl.orchestration import flow as flow_module
 
 SEM_PREFECT = "prefect não instalado; use pip install -r requirements.txt"
+SEM_MINIO = "minio não instalado; use pip install -r requirements.txt"
 
 
 def _state_with(error: BaseException | None):
@@ -40,15 +38,26 @@ def _state_with(error: BaseException | None):
     return state
 
 
+def _s3_error(code: str):
+    from minio.error import S3Error
+
+    return S3Error(mock.Mock(), code, "mensagem", "recurso", "req", "host", "balde", "chave")
+
+
 @unittest.skipUnless(PREFECT_INSTALLED, SEM_PREFECT)
 class RetryTasksTest(unittest.TestCase):
-    def test_tasks_tem_retry_limitado(self):
+    def test_tasks_tem_retry_limitado_com_condicao(self):
         for task in (
             flow_module.extract,
             flow_module.transform,
             flow_module.load,
         ):
             self.assertEqual(task.retries, 2, f"{task.name} sem retries=2")
+            self.assertIs(
+                task.retry_condition_fn,
+                flow_module._should_retry,
+                f"{task.name} sem a condição de retry",
+            )
 
     def test_falha_permanente_nao_repete(self):
         for error in (
@@ -68,6 +77,18 @@ class RetryTasksTest(unittest.TestCase):
 
     def test_sucesso_nao_repete(self):
         self.assertFalse(flow_module._should_retry(mock.Mock(), mock.Mock(), _state_with(None)))
+
+    @unittest.skipUnless(MINIO_INSTALLED, SEM_MINIO)
+    def test_s3_permanente_nao_repete(self):
+        self.assertFalse(
+            flow_module._should_retry(mock.Mock(), mock.Mock(), _state_with(_s3_error("NoSuchKey")))
+        )
+
+    @unittest.skipUnless(MINIO_INSTALLED, SEM_MINIO)
+    def test_s3_transitorio_repete(self):
+        self.assertTrue(
+            flow_module._should_retry(mock.Mock(), mock.Mock(), _state_with(_s3_error("SlowDown")))
+        )
 
 
 if __name__ == "__main__":

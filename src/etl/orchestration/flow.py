@@ -21,12 +21,14 @@ from etl.extraction import (
     ClientesExtractor,
     EmpresasExtractor,
     ExtractionError,
+    FailureNature,
     MinioObjectReader,
     ObjectReference,
     PesquisasExtractor,
     QuestoesExtractor,
     RespondentesExtractor,
     RespostasExtractor,
+    classify_source_failure,
     load_extraction_settings,
 )
 from etl.load import DuckDbLoadRepository
@@ -132,11 +134,12 @@ def _build_references(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
 
 
 def _should_retry(task, task_run, state) -> bool:
-    """Repete só falha transitória inesperada; permanente ou já esgotada, não.
+    """Repete só falha transitória; permanente ou já esgotada, não.
 
     A extração já reexecuta falhas transitórias internamente (RetryExecutor). No
-    nível do Prefect só faz sentido repetir um erro inesperado; falha permanente
-    (credencial/schema/objeto ausente) e limite de retry esgotado falham rápido.
+    nível do Prefect só faz sentido repetir um erro transitório: falha
+    permanente da extração (credencial/schema/objeto ausente), S3 permanente
+    (ex.: ``NoSuchKey``) e limite de retry esgotado falham rápido.
     """
     try:
         state.result(raise_on_failure=True)
@@ -144,9 +147,25 @@ def _should_retry(task, task_run, state) -> bool:
         # Erros da extração já chegam terminais (transitório foi reexecutado
         # internamente); config/schema/objeto ausente também não se repetem.
         return False
-    except Exception:
-        return True
+    except Exception as error:
+        return _is_transient_unexpected(error)
     return False
+
+
+def _is_transient_unexpected(error: Exception) -> bool:
+    """Erro inesperado repete, exceto S3 permanente (ex.: ``NoSuchKey``).
+
+    O ``minio`` é importado tarde para não virar dependência dura do módulo:
+    sem ele instalado, todo erro inesperado continua repetindo.
+    """
+
+    try:
+        from minio.error import S3Error
+    except ImportError:
+        return True
+    if isinstance(error, S3Error):
+        return classify_source_failure(error).nature is FailureNature.TRANSIENT
+    return True
 
 
 @task(

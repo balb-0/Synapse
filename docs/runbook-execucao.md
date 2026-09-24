@@ -114,11 +114,12 @@ continua impedindo duplicatas.
 - Flows em `src/etl/orchestration/flow.py`: `ingest-object` (um objeto:
   verificação de idempotência → extração → transformação → carga →
   reconciliação) e `backfill` (subflows por fonte).
-- Retry: a tarefa `extract` tem `retries=2` com condição (`_should_retry`) —
-  só repete erro inesperado; falha permanente (credencial, schema, objeto
-  ausente) ou limite interno de retry já esgotado falham rápido. Falhas
-  transitórias de leitura são reexecutadas dentro da extração
-  (`RetryExecutor`, configurável por `ETL_EXTRACTION_*`).
+- Retry: as tarefas `extract`, `transform` e `load` têm `retries=2` com
+  condição (`_should_retry`) — só repete erro transitório ou inesperado;
+  falha permanente (credencial, schema, objeto ausente, `NoSuchKey`) ou
+  limite interno de retry já esgotado falham rápido. Falhas transitórias de
+  leitura são reexecutadas dentro da extração (`RetryExecutor`, configurável
+  por `ETL_EXTRACTION_*`).
 - Deployment agendado: `python scripts/orchestration/deployment.py` serve o
   deployment `ingest-object/agendado` (cron `0 3 * * *`). Execução manual com
   parâmetros explícitos:
@@ -200,5 +201,5 @@ os mesmos comandos.
 | CSV malformado | linhas inválidas da fonte | a transformação rejeita por linha com motivo em `rejected`/`rejected_reason`; o lote não cai — a reconciliação em `_batch_metadata` mostra quantos foram rejeitados |
 | Objeto reenviado é ignorado (`status: ignored`) | idempotência por hash do objeto | comportamento esperado; para forçar, use `run_backfill.py --reprocess` (a dedup por linha protege) |
 | Execução morreu no meio | falha entre extração e carga | reexecute o mesmo comando: o `_checkpoint` retoma da posição confirmada do mesmo objeto; checkpoint de outra versão é descartado |
-| Falha transitória de leitura | timeout/instabilidade do MinIO | a extração já retenta (`ETL_EXTRACTION_MAX_ATTEMPTS`); o Prefect retenta só erro inesperado (`retries=2` na task `extract`) |
+| Falha transitória de leitura | timeout/instabilidade do MinIO | a extração já retenta (`ETL_EXTRACTION_MAX_ATTEMPTS`); o Prefect retenta só erro transitório ou inesperado (`retries=2` com `_should_retry` nas tasks `extract`, `transform` e `load`) |
 | `DDL_DESATUALIZADA` no CI | contrato físico mudou sem regerar o SQL | `python scripts/load/render_ddl.py` e commitar `sql/duckdb/001_ingestao_tratada.sql` |
