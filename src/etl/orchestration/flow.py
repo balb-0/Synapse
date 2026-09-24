@@ -21,12 +21,14 @@ from etl.extraction import (
     ClientesExtractor,
     EmpresasExtractor,
     ExtractionError,
+    FailureNature,
     MinioObjectReader,
     ObjectReference,
     PesquisasExtractor,
     QuestoesExtractor,
     RespondentesExtractor,
     RespostasExtractor,
+    classify_source_failure,
     load_extraction_settings,
 )
 from etl.load import DuckDbLoadRepository
@@ -132,11 +134,12 @@ def _build_references(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
 
 
 def _should_retry(task, task_run, state) -> bool:
-    """Repete só falha transitória inesperada; permanente ou já esgotada, não.
+    """Repete só falha transitória; permanente ou já esgotada, não.
 
     A extração já reexecuta falhas transitórias internamente (RetryExecutor). No
-    nível do Prefect só faz sentido repetir um erro inesperado; falha permanente
-    (credencial/schema/objeto ausente) e limite de retry esgotado falham rápido.
+    nível do Prefect só faz sentido repetir um erro transitório: falha
+    permanente da extração (credencial/schema/objeto ausente), S3 permanente
+    (ex.: ``NoSuchKey``) e limite de retry esgotado falham rápido.
     """
     try:
         state.result(raise_on_failure=True)
@@ -144,9 +147,25 @@ def _should_retry(task, task_run, state) -> bool:
         # Erros da extração já chegam terminais (transitório foi reexecutado
         # internamente); config/schema/objeto ausente também não se repetem.
         return False
-    except Exception:
-        return True
+    except Exception as error:
+        return _is_transient_unexpected(error)
     return False
+
+
+def _is_transient_unexpected(error: Exception) -> bool:
+    """Erro inesperado repete, exceto S3 permanente (ex.: ``NoSuchKey``).
+
+    O ``minio`` é importado tarde para não virar dependência dura do módulo:
+    sem ele instalado, todo erro inesperado continua repetindo.
+    """
+
+    try:
+        from minio.error import S3Error
+    except ImportError:
+        return True
+    if isinstance(error, S3Error):
+        return classify_source_failure(error).nature is FailureNature.TRANSIENT
+    return True
 
 
 @task(
@@ -174,7 +193,13 @@ def extract(reader, reference, source: str, run_id: str, checkpoint=None) -> lis
     return batches
 
 
-@task(timeout_seconds=120, cache_policy=NO_CACHE)
+@task(
+    retries=2,
+    retry_delay_seconds=1,
+    retry_condition_fn=_should_retry,
+    timeout_seconds=120,
+    cache_policy=NO_CACHE,
+)
 def transform(batches: list, source: str, references, previous: dict, run_id: str) -> list:
     """Transforma cada lote; acumula o offset absoluto entre lotes."""
     logger = get_run_logger()
@@ -210,7 +235,13 @@ def transform(batches: list, source: str, references, previous: dict, run_id: st
 # (~7 s por lote de 1.000), matando a task no meio de um lote e exigindo
 # retomada. Uma hora acomoda objetos na casa das centenas de milhares de
 # registros sem remover o limite, que continua existindo.
-@task(timeout_seconds=3600, cache_policy=NO_CACHE)
+@task(
+    retries=2,
+    retry_delay_seconds=1,
+    retry_condition_fn=_should_retry,
+    timeout_seconds=3600,
+    cache_policy=NO_CACHE,
+)
 def load(db_path: str, results: list, tuning: dict, *, source: str, run_id: str) -> list:
     """Grava aceitos e rejeitados no DuckDB, reconciliando as contagens lote a lote.
 
