@@ -58,6 +58,25 @@ neste documento.
 | Webhook HTTP | Notificação `s3:ObjectCreated` do MinIO ao adaptador | **Planejado** (ADR 0001) |
 | Cron | Agendamento do deployment | `scripts/orchestration/deployment.py` |
 
+### Padrão de observabilidade ratificado
+
+O padrão separa produção de sinais, transporte e consumo. Eventos de extração,
+carga e orquestração usam logging estruturado com correlação; métricas e traces
+devem preservar `run_id`, `task_id`, `batch_id` e `source` sem incluir registros
+de negócio ou segredos.
+
+| Camada | Tecnologia/contrato | Situação verificável |
+| :--- | :--- | :--- |
+| Produção | `logging` Python, `ExtractionBatchLogEvent`, `LoadBatchLogEvent`, estados Prefect | Implementada |
+| Serialização | JSON com campos técnicos e contagens | Implementada para eventos de lote |
+| Transporte | saída do processo para coletor compatível | Não configurado em `docker-compose.yml` |
+| Armazenamento | Elasticsearch | Decidido, não integrado |
+| Consulta e painel | Kibana | Decidido, não integrado |
+| Alertas | regra sobre falha, retry esgotado e health check | Não versionada na base auditada |
+
+Assim, “padrão ratificado” significa contrato tecnológico escolhido e emissão
+local existente; não significa que Elastic Stack esteja executando em produção.
+
 ## Formatos
 
 | Formato | Onde aparece |
