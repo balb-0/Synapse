@@ -94,9 +94,10 @@ transformação, orquestração — OB-06/OB-07). O painel só consulta esse ín
 nenhuma camada do ETL fala com o Kibana. Objetos salvos (index pattern, 5
 visualizações e o dashboard) estão versionados em
 `observability/kibana/painel-operacional.ndjson`, gerados uma vez a partir do
-mapeamento de campos dos eventos (não foi possível confirmar a importação
-neste ambiente, sem Docker disponível — ver seção "O que não foi verificado").
-Para importar, com a stack no ar:
+mapeamento de campos dos eventos. Não foi possível confirmar a importação
+num Kibana real neste ambiente (Docker indisponível no WSL2 usado no
+desenvolvimento) — ver a MR do OB-08 para o detalhe do que foi e não foi
+validado. Para importar, com a stack no ar:
 
 ```bash
 curl -s -X POST http://localhost:5601/api/saved_objects/_import?overwrite=true \
@@ -114,9 +115,12 @@ operacional de execucao (OB-08)"**. O painel mostra, por execução:
   `record_count`, `extracted_count`, `loaded_count`);
 - **rejeições e duplicatas** (`etl-viz-rejeicoes`: soma de `rejected_count` e
   `duplicate_count` por fonte e etapa);
-- **tentativas de repetição** (`etl-viz-retries`: contagem e tentativa média
-  dos eventos `extraction.retry.emitted`/`load.connect_retry.emitted`, por
-  categoria/status).
+- **tentativas de repetição** (`etl-viz-retries`: contagem por
+  `event.keyword`, com a tentativa média em campos separados —
+  `attempt` só existe em `extraction.retry.emitted`, `attempts` só em
+  `load.connect_retry.emitted`; os dois eventos não têm os mesmos campos
+  extras, por isso o painel não os agrupa por categoria/status — faria linhas
+  inteiras desaparecerem da tabela em vez de só deixar a métrica em branco).
 
 Se um painel aparecer vazio, é porque ainda não há eventos daquele tipo no
 índice (ex.: nenhuma tentativa de retry ocorreu ainda) — não é falha do
