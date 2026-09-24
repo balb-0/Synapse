@@ -18,6 +18,7 @@ participant "MinioObjectReader" as READER
 participant "Extrator" as EXTRACTOR
 participant "transform_batch" as TRANSFORM
 participant "DuckDbLoadRepository" as REPO
+participant "LoadLogSink" as LOADLOG
 database "DuckDB" as DB
 participant "Logstash\n(planejado)" as LOGS
 
@@ -34,21 +35,30 @@ group Execução normal
   REPO --> FLOW : identidades e checkpoint
   FLOW -> EXTRACTOR : read(run_id, checkpoint)
   EXTRACTOR -> READER : open(reference)
-  EXTRACTOR --> FLOW : ExtractedBatch
-  EXTRACTOR -->> LOGS : evento JSON do lote
-  FLOW -> TRANSFORM : transform_batch(batch, references, previous)
-  TRANSFORM --> FLOW : TransformationResult
-  FLOW -> REPO : load_batch(result, metadata)
-  REPO -> DB : BEGIN TRANSACTION
-  REPO -> DB : INSERT nas tabelas de ingestão
-  REPO -> DB : INSERT em rejected e rejected_reason
-  REPO -> DB : contagem por run_id e batch_id
-  DB --> REPO : carregados e rejeitados
-  REPO -> DB : INSERT em _batch_metadata (carregado)
-  REPO -> DB : COMMIT
-  REPO --> FLOW : LoadResult balanceado
+  loop para cada ExtractedBatch
+    EXTRACTOR --> FLOW : lote + checkpoint do lote
+    EXTRACTOR -->> LOGS : evento JSON de extração
+    FLOW -> TRANSFORM : transform_batch(batch, references, previous)
+    TRANSFORM --> FLOW : TransformationResult
+    FLOW -> REPO : load_batch(result, metadata)
+    REPO -> DB : BEGIN TRANSACTION
+    REPO -> DB : INSERT aceitos e rejeitados
+    REPO -> DB : contagem por run_id e batch_id
+    DB --> REPO : carregados e rejeitados
+    REPO -> DB : INSERT em _batch_metadata
+    REPO -> DB : COMMIT
+    REPO -->> LOADLOG : LoadBatchLogEvent
+    LOADLOG -->> LOGS : evento JSON de carga
+    REPO --> FLOW : LoadResult balanceado
+    FLOW -> REPO : commit(checkpoint do lote)
+    REPO -> DB : UPSERT em _checkpoint
+    note right of FLOW
+      O checkpoint só avança depois do
+      COMMIT e da reconciliação do lote.
+    end note
+  end
   FLOW -> REPO : mark_object_loaded(source, checksum, run_id)
-  FLOW -> REPO : commit(checkpoint)
+  REPO -> DB : UPSERT em _control_object
   FLOW -->> LOGS : estado final da execução
   FLOW --> OPE : status loaded
 end
