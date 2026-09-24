@@ -1,5 +1,16 @@
 table PUB_C02_PARTICIPACAO
 
+	measure 'Qtd Participacoes' = SUM(PUB_C02_PARTICIPACAO[qtd_participacoes])
+		formatString: #,0
+
+	measure 'Media Minutos Preenchimento' = DIVIDE(SUM(PUB_C02_PARTICIPACAO[soma_minutos_preenchimento]), SUM(PUB_C02_PARTICIPACAO[qtd_preenchimento_disponivel]))
+		formatString: #,0.0
+
+	measure 'Base Valida Preenchimento' = SUM(PUB_C02_PARTICIPACAO[qtd_preenchimento_disponivel])
+		formatString: #,0
+
+	measure Representatividade = "Indisponivel: participacao de mercado (I09) nao publicada no cubo BI; fonte autoritativa pendente de homologacao (docs/dmc.md, DR02)"
+
 	column area
 		dataType: string
 		isHidden
