@@ -125,12 +125,14 @@ continua impedindo duplicatas.
   (`RetryExecutor`, configurável por `ETL_EXTRACTION_*`).
 - Deployment agendado: `python scripts/orchestration/deployment.py` serve o
   deployment `ingest-object/agendado` (cron `0 3 * * *`). Os deployments
-  declarados em `prefect.yaml` (`agendado`, `manual`, `backfill`) podem ser
-  publicados pela CLI:
+  `ingest-object/manual` e `backfill`, declarados em `prefect.yaml`, são
+  publicados pela CLI a partir da raiz do repositório (com o ambiente no ar):
 
   ```bash
-  docker compose exec runner prefect deploy --all
-  docker compose exec runner prefect deployment ls
+  export PREFECT_API_URL=http://localhost:4200/api
+  prefect work-pool create default --type process   # idempotente
+  prefect deploy --all
+  prefect deployment ls
   ```
 
   Execução manual com parâmetros explícitos (também pela UI em

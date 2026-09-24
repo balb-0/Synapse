@@ -1,24 +1,15 @@
 # Deployments do ETL no Prefect Server local.
 #
-# Publicação (com o ambiente no ar):
-#   docker compose up -d
-#   docker compose exec runner prefect deploy --all
+# O deployment agendado (`ingest-object/agendado`, cron `0 3 * * *`) é servido
+# pelo serviço `scheduler` via `scripts/orchestration/deployment.py`; este
+# arquivo declara os deployments para publicação explícita pela CLI e para a
+# execução manual parametrizada pela UI (`ingest-object/manual`, `backfill`).
 #
-# O `scheduler` do `docker-compose.yml` já serve o deployment `agendado`
-# via `scripts/orchestration/deployment.py`; este arquivo declara os mesmos
-# deployments para publicação explícita pela CLI e para a execução manual
-# parametrizada pela UI (`ingest-object` / `backfill`).
+# Publicação (com o ambiente no ar, a partir da raiz do repositório):
+#   export PREFECT_API_URL=http://localhost:4200/api
+#   prefect work-pool create default --type process   # idempotente
+#   prefect deploy --all
 deployments:
-  - name: agendado
-    entrypoint: src/etl/orchestration/flow.py:ingest_object
-    parameters:
-      source: empresas
-      bucket: sindusfarma
-      key: landing/empresas.csv
-    schedules:
-      - cron: "0 3 * * *"
-        timezone: America/Sao_Paulo
-    tags: [etl, ingest]
   - name: manual
     entrypoint: src/etl/orchestration/flow.py:ingest_object
     parameters:
@@ -26,6 +17,8 @@ deployments:
       bucket: sindusfarma
       key: landing/empresas.csv
     tags: [etl, ingest]
+    work_pool:
+      name: default
   - name: backfill
     entrypoint: src/etl/orchestration/flow.py:backfill
     parameters:
@@ -33,3 +26,5 @@ deployments:
       bucket: sindusfarma
       prefix: landing
     tags: [etl, backfill]
+    work_pool:
+      name: default
