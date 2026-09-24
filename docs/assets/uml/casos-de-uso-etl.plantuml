@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 
 left to right direction
 
