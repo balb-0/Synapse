@@ -72,3 +72,12 @@ não como sucesso.
   investigar" quando a tela distinguir os dois (critério do RF06).
 - **Tempo aceitável:** 4 minutos.
 
+## Dependências e limites declarados
+
+- T-DET-02 e T-DET-04 dependem de rótulos e distinções que são contrato das
+  telas (participação observada; nulos condicionais). Se a tela final (RP)
+  não expuser a distinção, a tarefa é executada mesmo assim e a ausência
+  vira achado de usabilidade — não se ajusta a tarefa para a tela passar.
+- O detalhamento até registro individual **não** faz parte destas tarefas:
+  os perfis testados consomem agregados (limite documentado no levantamento
+  de perfis e na política de acesso proposta).
