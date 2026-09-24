@@ -46,3 +46,31 @@ As classificações usadas são:
   verdadeiro, de acordo com `_control_object`.
 - O agendamento documentado no script é diário às 03:00; ele não deve ser
   confundido com um serviço já iniciado pelo Compose.
+
+## Rastreabilidade para correção
+
+| Card | Divergências cobertas | Critério verificável de saída |
+| :--- | :--- | :--- |
+| AR-02 | D01 | Cadeia informacional distingue ingestão implementada, camada analítica dependente e indisponibilidades. |
+| AR-03 | D02, D03, D12 | Componentes e responsabilidades são vinculados a símbolos reais, sem contagem volátil. |
+| AR-04 | D04, D05 | Topologia separa execução servida, emissão de telemetria e infraestrutura ainda ausente. |
+| AR-05 | D06 | Versões e protocolos são transcritos das fontes canônicas e limites de reprodução ficam explícitos. |
+| AR-06 | D07 | Consumo analítico e indicadores indisponíveis aparecem como estados distintos. |
+| AR-07 | D08, D09, D11 | Dois diagramas têm fonte e imagem, com atores/componentes existentes. |
+| AR-08 | D10, D11 | Sequência representa checkpoint por lote, falha, retry e telemetria, com imagem versionada. |
+
+## Evidências de verificação
+
+O levantamento pode ser repetido sem ambiente externo pelos comandos abaixo:
+
+```bash
+rg -n "planejado|Implementado|checkpoint|Telemetria" docs/visao-*-etl.md docs/assets/uml
+rg -n "def |class |serve\(|cron=|commit\(" src/etl scripts/orchestration
+git ls-files docs/assets/uml
+```
+
+O resultado esperado na base auditada é: três fontes PlantUML, nenhuma imagem
+renderizada em `docs/assets/uml`, um deployment servido com cron diário, emissão
+local de eventos estruturados e ausência de coletor/painel no Compose. Mudanças
+posteriores nesses fatos exigem nova execução do levantamento, não a simples
+reutilização desta fotografia.
