@@ -1,96 +1,117 @@
 # Smoke da orquestração servida — execução, falha e reinício pela interface
 
-Registro da execução de um fluxo pela interface do Prefect Server local, com
-falha controlada e reinício bem-sucedido. Comandos executados contra o ambiente
-declarado em `docker-compose.yml` (serviços `prefect-server`, `scheduler`,
-`runner`, `minio`). A UI vive em http://localhost:4200 (runs, deployments e
-parâmetros); abaixo, os mesmos dados via CLI/API para reprodutibilidade.
+Registro da execução de fluxos pela interface do Prefect Server local, com
+falha controlada e reinício bem-sucedido. Requer os MRs de orquestração
+integrados (servidor, deployments publicados e `scheduler` no ar); a ordem
+de merge está descrita em cada MR. Comandos executados contra o ambiente
+declarado em `docker-compose.yml`. Capturas da UI em
+`docs/assets/smoke-sprint4/`.
 
-## 1. Servidor, UI e deployment agendado
+## 1. Servidor, UI e deployments publicados
 
 ```bash
 docker compose up -d --build
 curl http://localhost:4200/api/health
 # true
-docker compose exec runner prefect deployment ls
-# ingest-object/agendado
+export PREFECT_API_URL=http://localhost:4200/api
+prefect work-pool create default --type process   # idempotente
+prefect deploy --all
+prefect deployment ls
+# ingest-object/agendado   (cron `0 3 * * *`, servido pelo `scheduler`)
+# ingest-object/manual     (work pool `default`, `prefect.yaml`)
+# backfill/backfill        (work pool `default`, `prefect.yaml`)
 ```
 
-A UI lista o flow `ingest-object`, as tasks separadas (`extract`, `transform`,
-`load`) e conserva o histórico após o término (seção 4). O deployment
-`ingest-object/agendado` (cron `0 3 * * *`) cria runs `SCHEDULED` com os
-parâmetros registrados.
+![Deployments na UI](assets/smoke-sprint4/ui-deployments.png)
 
-## 2. Execução por evento (sucesso)
+A UI lista os flows, os deployments `Ready` com schedule ("At 03:00 AM
+every day" no `agendado`) e conserva o histórico após o término. IDs
+(`prefect deployment inspect ... | grep id`):
+
+- `ingest-object/agendado`: `9d842229-404b-4f78-86f9-b8896034e7ab`
+- `ingest-object/manual`: `70299de7-9977-4085-b415-129ae23434a4`
+
+## 2. Execução pela interface (sucesso)
+
+Com um worker servindo o pool (`docker compose exec -d runner prefect
+worker start --pool default`), um run disparado pelo deployment executa de
+verdade no contêiner. Objeto novo publicado sem ingestão prévia:
 
 ```bash
-docker compose exec runner python scripts/orchestration/run_ingest.py --source empresas
-# RESULTADO: {'status': 'loaded', 'source': 'empresas',
-#   'reconciliation': [{'extracted': 3, 'loaded': 3, 'rejected': 0,
-#   'duplicates': 0, 'balanced': True}]}
+docker compose exec runner python -c "
+import os
+from urllib.parse import urlsplit
+from minio import Minio
+p = urlsplit(os.environ['ETL_MINIO_ENDPOINT'])
+c = Minio(p.netloc or p.path, access_key=os.environ['ETL_MINIO_ACCESS_KEY'],
+          secret_key=os.environ['ETL_MINIO_SECRET_KEY'], secure=False)
+c.fput_object(os.environ['ETL_MINIO_BUCKET'], 'landing/ui-novo.csv', '/tmp/ui4.csv')
+"
+prefect deployment run 'ingest-object/manual' -p key=landing/ui-novo.csv
+# URL: http://localhost:4200/runs/flow-run/d43a8233-25b6-4179-9c70-4a920779919d
+# yellow-cockatrice | Completed
 ```
 
-Reenvio do mesmo objeto (disparo repetido): `{'status': 'ignored', ...}` —
-mesmo checksum, sem nova carga e sem duplicar.
+As tasks aparecem separadas no run (`extract`, `transform`, `load`,
+todas `Completed`):
 
-Disparo pelo adaptador de chegada de objeto:
+![Run com 3 task runs](assets/smoke-sprint4/ui-run-tasks.png)
 
-```bash
-docker compose exec runner python scripts/orchestration/watch_landing.py --once
-# [watch] s3://sindusfarma/landing/empresas.csv fonte=empresas -> ignored
-# [watch] ignorada (fora do padrão <fonte>.csv): landing/recuperado.csv
-```
+Reenvio do mesmo objeto: `status: ignored` (mesmo checksum SHA-256), sem
+nova carga e sem duplicar.
 
 ## 3. Falha controlada
 
-Objeto inexistente (falha permanente: sem retry, estado `Failed` no histórico):
+Run pelo deployment com objeto inexistente — falha permanente, sem retry
+(`NoSuchKey` falha rápido por regra em `_should_retry`):
 
 ```bash
-docker compose exec runner python -c "...ingest_object(source='empresas', bucket='sindusfarma', key='landing/inexistente.csv')"
-# S3Error: NoSuchKey ... landing/inexistente.csv
-# Finished in state Failed(...)
+prefect deployment run 'ingest-object/manual' -p key=landing/inexistente.csv
+# fast-bird | Failed (S3Error: NoSuchKey ... landing/inexistente.csv)
 ```
-
-Arquivo malformado (linha com campos a mais): `MalformedSourceError ...
-linha 5`, também `Failed` sem retry — falha de dado não se repete.
 
 ## 4. Reinício bem-sucedido (reexecução parametrizada)
 
-Reexecução com o objeto corrigido (mesma fonte, novo conteúdo):
+Reexecução pelo deployment de um objeto já carregado — conclui sem
+duplicar nenhuma linha confirmada:
 
 ```bash
-docker compose exec runner python scripts/orchestration/run_ingest.py \
-  --source empresas --key landing/recuperado.csv --fixture /tmp/rec.csv
-# RESULTADO: {'status': 'loaded', ...
-#   'reconciliation': [{'extracted': 4, 'loaded': 1, 'rejected': 0,
-#   'duplicates': 3, 'balanced': True}]}
+prefect deployment run 'ingest-object/manual' -p key=landing/ui-recuperado.csv
+# discerning-agama | Completed, status ignored (mesmo checksum, zero carga nova)
 ```
 
-Só a linha nova foi carregada (`loaded: 1`); as 3 já confirmadas voltaram
-como `duplicates: 3` — reinício sem perder nem duplicar registro confirmado.
+A prova de carga nova pelo mesmo caminho está no `yellow-cockatrice`
+(§2): lote `c0187b25` com 1 registro extraído, 1 aceito, 0 rejeitados e 0
+duplicados (`_batch_metadata`); o lote `97d9d693` mostra o outro lado da
+moeda — 4 extraídos, 1 aceito e 3 duplicados contidos, sem duplicar o já
+confirmado.
 
-## 5. Histórico na interface (runs e parâmetros)
+![Detalhe do run com logs e Retry](assets/smoke-sprint4/ui-run-detalhe.png)
 
-`POST /api/flow_runs/filter` contra o servidor (o que a UI em
-http://localhost:4200 mostra em Runs):
+O detalhe do run mostra logs, parâmetros e o botão `Retry` para reiniciar
+pela interface.
 
-| Run | Estado | Parâmetros |
-| :--- | :--- | :--- |
-| `spry-skua` | COMPLETED | `source=empresas, key=landing/empresas.csv` |
-| (reenvio) | COMPLETED | `status: ignored`, mesmo checksum |
-| `certain-vole` | FAILED | `key=landing/inexistente.csv` (NoSuchKey) |
-| (recuperado) | COMPLETED | `key=landing/recuperado.csv`, `loaded: 1, duplicates: 3` |
-| `zealous-marten`, `cordial-snail`, ... | SCHEDULED | `key=landing/empresas.csv` (deployment `agendado`) |
+## 5. Histórico na interface
+
+![Runs na UI](assets/smoke-sprint4/ui-runs.png)
+
+| Run | State | Deployment | Parâmetros |
+| :--- | :--- | :--- | :--- |
+| `yellow-cockatrice` | Completed | `manual` | `key=landing/ui-novo.csv`, 3 task runs, lote 1/1/0/0 |
+| `discerning-agama` | Completed | `manual` | `key=landing/ui-recuperado.csv`, `ignored`, zero duplicação |
+| `ordinary-dragon` | Completed | `manual` | `key=landing/ui-manual.csv` |
+| `fast-bird` | Failed | `manual` | `key=landing/inexistente.csv` (NoSuchKey) |
+| `zealous-marten`, … | Scheduled | `agendado` | `key=landing/empresas.csv` |
 
 ## 6. Agendamento sobrevive ao reinício
 
 ```bash
 docker compose restart scheduler
 docker compose exec runner prefect deployment ls
-# ingest-object/agendado   (mesmo ID de antes do restart)
-# runs SCHEDULED preservados, com os parâmetros de cada execução
+# ingest-object/agendado   (id 9d842229-404b-4f78-86f9-b8896034e7ab, inalterado)
+# runs Scheduled preservados, com os parâmetros de cada execução
 ```
 
-Agendamentos e histórico vivem no `prefect-server` (volume `prefect-data`),
-não no processo que serve o deployment — derrubar e subir o ambiente
-preserva ambos.
+Agendamentos e histórico vivem no `prefect-server` (volume
+`prefect-data`), não no processo que serve o deployment — derrubar e subir
+o ambiente preserva ambos.
