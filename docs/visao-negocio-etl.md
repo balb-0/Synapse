@@ -193,6 +193,22 @@ registrados como pendência na
 
 ## Riscos de negócio reconhecidos
 
+### Indicadores publicáveis e indisponíveis
+
+| Indicador | Situação | Regra/limite |
+| :--- | :--- | :--- |
+| Quantidade de pesquisas por status e período | Publicável após carga do C01 | Contagem distinta de pesquisa no grão documentado. |
+| Duração entre marcos disponíveis | Publicável com ressalva | Somente pares de datas presentes; valores ausentes não viram zero. |
+| Participações por pesquisa/empresa | Publicável agregado | Sujeito a limiar de privacidade e qualidade do vínculo. |
+| Taxa de resposta | Indisponível | Falta denominador confirmado de convidados elegíveis. |
+| Representatividade do setor | Indisponível | Falta população-base e regra de ponderação aprovadas. |
+| Atraso contratual | Indisponível | Não existe regra única de prazo e prorrogação aprovada. |
+| Série histórica completa | Indisponível | Os snapshots entregues não cobrem retrospectivamente todos os marcos. |
+
+Indicador indisponível deve aparecer no catálogo como bloqueado, com motivo e
+dependência, e não em um dashboard com valor estimado. Essa regra preserva o
+limite entre análise sustentada pelos dados e hipótese de negócio.
+
 - **Dependência de confirmação do parceiro.** Frequência, fuso horário, tipo de
   carga e forma de acesso continuam pendentes; até lá, a automação opera sobre
   snapshots recebidos manualmente.
