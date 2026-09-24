@@ -40,3 +40,35 @@ não como sucesso.
   contrato do protótipo e critério do RF04.
 - **Tempo aceitável:** 4 minutos.
 
+## T-DET-03 — Detalhar preservando o filtro entre telas
+
+- **Perfil-alvo:** UC02 (área técnica) ou UC01.
+- **Situação real:** "Você filtrou um conjunto de pesquisas na tela de
+  Operação e agora quer ver os resultados de questionários desse mesmo
+  conjunto."
+- **Passos esperados:** D01 com filtro aplicado → navegar para D03 →
+  verificar se o recorte se manteve → ler a distribuição por tipo de questão
+  do recorte.
+- **Níveis:** recorte filtrado em D01 → mesmo recorte em D03 (detalhamento
+  entre telas).
+- **Critério de sucesso:** o participante **verifica explicitamente** se o
+  filtro sobreviveu à navegação e lê o número certo para o recorte; se o
+  filtro não se mantiver, ele percebe e refaz — perceber é parte do sucesso,
+  não perceber é o erro que esta tarefa existe para capturar.
+- **Tempo aceitável:** 4 minutos.
+
+## T-DET-04 — Chegar à regra que explica um indicador de qualidade
+
+- **Perfil-alvo:** papel de governança (participante interno exercendo o
+  papel, conforme registro do levantamento de perfis).
+- **Situação real:** "Um campo aparece com completude abaixo de 100% na tela
+  de qualidade. Descubra qual regra foi avaliada e quantos registros são
+  afetados."
+- **Passos esperados:** D04 → matriz/lista de regras → localizar o campo →
+  ler regra avaliada, numerador e denominador da completude.
+- **Níveis:** indicador agregado de qualidade → regra e contagem por campo.
+- **Critério de sucesso:** cita a regra, o número de registros afetados e o
+  denominador usado — sem confundir "ausência permitida" com "lacuna a
+  investigar" quando a tela distinguir os dois (critério do RF06).
+- **Tempo aceitável:** 4 minutos.
+
