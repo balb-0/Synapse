@@ -44,6 +44,10 @@ documento principal.
 - [Compensação e retomada de execuções com falha parcial](compensacao-e-retomada-de-carga.md): o que uma falha entre lotes deixa registrado e a partir de que ponto a tentativa seguinte retoma.
 - [Runbook de execução do ETL](runbook-execucao.md): pré-requisitos, variáveis de ambiente, ambiente Docker, execução do pipeline, testes, CI e troubleshooting.
 
+## Camada analítica — Sprint 4
+
+- [Decisão de consumo dos cubos no BI](decisao-consumo-cubos.md): comparação dos caminhos de acesso, escolha dos agregados Parquet e requisitos por máquina.
+
 ## Arquitetura, decisões e UML — Sprint 3 (Anna)
 
 - [Checklist dos entregáveis](checklist-entregaveis-sprint3.md): obrigações, exclusões e critérios de avaliação do enunciado (AN-01).
