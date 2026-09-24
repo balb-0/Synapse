@@ -51,3 +51,33 @@ específico, para que uma tarefa não ensine a resposta da anterior:
 Duração prevista por sessão: **30–45 minutos** (aquecimento + 5 a 6 tarefas
 por participante + debrief).
 
+## 3. O que é medido
+
+Por tarefa (convenções definidas em
+[`tarefas-navegacao-filtros.md`](tarefas-navegacao-filtros.md)):
+
+- **Conclusão**: sim / com assistência / não.
+- **Tempo**: cronometrado do enunciado ao critério de sucesso; comparado ao
+  tempo aceitável declarado na tarefa.
+- **Desvio de caminho**: contagem de telas/ações fora dos passos esperados.
+- **Erros**: leitura errada de número, recorte não percebido, estado
+  (vazio/erro/indisponível) confundido — anotados literalmente.
+- **Justificativa do número** (blocos C/D): transcrita em uma frase; correta /
+  incompleta / errada.
+
+Por sessão: observações do think-aloud e respostas do debrief.
+
+## 4. Registro e guarda da evidência
+
+- **Ficha de sessão**: uma tabela por participante (modelo nos documentos de
+  execução), preenchida pelo moderador durante a sessão — nunca de memória
+  depois.
+- **Capturas**: tela ao final de cada tarefa (estado dos filtros visível).
+- **Guarda**: fichas e capturas versionadas em
+  `docs/usabilidade/evidencias/` no MR da execução correspondente; nenhuma
+  evidência contém dado pessoal (as telas usam os agregados do protótipo,
+  já conformes à LGPD).
+- **Identificação**: sessões numeradas (S1–S4) com data, versão do
+  protótipo/telas usada e nome do moderador; participantes aparecem só como
+  P1–P4 com o perfil exercido.
+
