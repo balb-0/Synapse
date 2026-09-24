@@ -34,8 +34,13 @@ sprint (OB-03 a OB-11) precisa resolver, não redecidir:
    uma sua classe de evento (`ExtractionBatchLogEvent`, `LoadBatchLogEvent`);
    a transformação só devolve `TransformationResult.metrics` para quem a
    chamou, e a orquestração loga apenas o total agregado (`accepted_count`)
-   — rejeitados e duplicados calculados pela transformação não chegam a
-   nenhum log.
+   — rejeitados, duplicados e os bytes de entrada calculados pela
+   transformação não chegam a nenhum log. O dicionário já carrega quase todo
+   o formato de um evento (`source`, `run_id`, `task_id`, `batch_id`,
+   `stage`, `status`, `extracted_count`, `accepted_count`, `rejected_count`,
+   `duplicate_count`, `input_bytes`, `duration_seconds` —
+   `pipeline.py:130-142`); falta só publicá-lo como classe fechada, não
+   recalculá-lo.
 
 A Sprint 4 exige (catálogo de tasks, OB-03/OB-04/OB-05/OB-06) logs
 estruturados correlacionados nas quatro etapas, métricas de transformação
@@ -70,11 +75,13 @@ as divergências do OB-01:
    `run_id`.
 3. **A transformação passa a emitir um evento por lote**, no mesmo padrão de
    `ExtractionBatchLogEvent`/`LoadBatchLogEvent` (uma classe fechada, sem
-   registros, com `run_id`, `task_id`, `source`, `batch_id`,
-   `accepted_count`, `rejected_count`, `duplicate_count`, `duration_ms`).
-   Fica para OB-04 implementar; esta decisão só fixa que a simetria entre as
-   quatro etapas exige essa classe existir — hoje a transformação é a única
-   das quatro sem evento próprio.
+   registros, com `run_id`, `task_id`, `source`, `batch_id`, `byte_count`,
+   `accepted_count`, `rejected_count`, `duplicate_count`, `duration_ms`) —
+   incluindo o byte count, já calculado em `metrics["input_bytes"]` e exigido
+   por OB-05. Fica para OB-04 implementar a partir do que
+   `TransformationResult.metrics` já calcula; esta decisão só fixa que a
+   simetria entre as quatro etapas exige essa classe existir — hoje a
+   transformação é a única das quatro sem evento próprio.
 
 ## O que esta decisão não entrega
 
@@ -126,6 +133,12 @@ as divergências do OB-01:
   dependência de Elastic Stack está no `requirements.txt` nem no
   `docker-compose.yml` — essa lacuna continua sendo trabalho de OB-07, não
   desta decisão.
+- `TransformationResult.metrics` guarda duração em `duration_seconds` e
+  status como `"completed"`/`"completed_with_rejections"`
+  (`pipeline.py:135-141`), diferente de `duration_ms` e do vocabulário
+  `"success"` usado pelos eventos de extração e carga. OB-04 precisa
+  converter a unidade e decidir se unifica o vocabulário de status entre as
+  quatro etapas — esta decisão não resolve isso, só identifica a divergência.
 
 ## Alternativas consideradas
 
