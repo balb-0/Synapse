@@ -77,6 +77,7 @@ def _current_cube(
 
 def _monthly_cube(con: duckdb.DuckDBPyConnection) -> CubeCount:
     """Reconcile retained month-end members with the stored group measures."""
+    markers = _scalar(con, 'SELECT count(*) FROM "analytics_pipeline_closure"')
     members = _scalar(con, 'SELECT count(*) FROM "analytics_pipeline_membership"')
     stock = _scalar(
         con, 'SELECT coalesce(sum(qtd_pesquisas_no_status), 0) FROM "FATO_PIPELINE_MENSAL"'
@@ -98,11 +99,50 @@ def _monthly_cube(con: duckdb.DuckDBPyConnection) -> CubeCount:
         GROUP BY data_fim_mes HAVING count(DISTINCT observed_at) <> 1
     )""",
     )
+    invalid_closure = _scalar(
+        con,
+        """SELECT count(*) FROM "analytics_pipeline_closure" c
+        LEFT JOIN "analytics_load_run" r ON r.load_id = c.load_id
+        WHERE r.load_id IS NULL OR c.data_fim_mes <> last_day(c.data_fim_mes)
+           OR CAST(c.observed_at AS DATE) <> c.data_fim_mes""",
+    )
+    missing_markers = _scalar(
+        con,
+        """SELECT count(*) FROM (
+        (SELECT DISTINCT CAST(observed_at AS DATE) AS data_fim_mes
+         FROM "analytics_load_run" WHERE observed_at IS NOT NULL)
+        EXCEPT (SELECT data_fim_mes FROM "analytics_pipeline_closure")
+    )""",
+    )
+    invalid_members = _scalar(
+        con,
+        """SELECT count(*) FROM "analytics_pipeline_membership" m
+        LEFT JOIN "analytics_pipeline_closure" c USING (data_fim_mes)
+        WHERE c.data_fim_mes IS NULL OR m.observed_at <> c.observed_at""",
+    )
+    invalid_facts = _scalar(
+        con,
+        """SELECT count(*) FROM "FATO_PIPELINE_MENSAL" f
+        LEFT JOIN "analytics_pipeline_closure" c USING (data_fim_mes)
+        WHERE c.data_fim_mes IS NULL OR f.observed_at <> c.observed_at""",
+    )
     discarded = 0
     difference = members - stock - discarded
-    if members == stock == 0 and missing == unexpected == 0:
+    if markers == members == stock == missing_markers == 0 and missing == unexpected == 0:
         return CubeCount("C03", None, 0, 0, None, 0, 0, "not_observed")
-    status = "ok" if difference == missing == unexpected == mixed == 0 else "mismatch"
+    status = (
+        "ok"
+        if difference
+        == missing
+        == unexpected
+        == mixed
+        == invalid_closure
+        == missing_markers
+        == invalid_members
+        == invalid_facts
+        == 0
+        else "mismatch"
+    )
     return CubeCount("C03", members, stock, discarded, difference, missing, unexpected, status)
 
 
@@ -116,6 +156,7 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
         "analytics_load_run",
         "analytics_reconciliation",
         "analytics_pipeline_membership",
+        "analytics_pipeline_closure",
         "FATO_CICLO_PESQUISA",
         "FATO_PARTICIPACAO",
         "FATO_PIPELINE_MENSAL",
@@ -192,20 +233,21 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
         'FROM "FATO_PESQUISA_PERGUNTA"',
     )
     closure_rows = con.execute("""
-        SELECT CAST(data_fim_mes AS VARCHAR), count(*), sum(qtd_pesquisas_no_status),
-               count(DISTINCT (sk_status, sk_area, sk_tipo, sk_perfil)),
-               count(DISTINCT observed_at)
-        FROM "FATO_PIPELINE_MENSAL" GROUP BY data_fim_mes ORDER BY data_fim_mes
+        SELECT CAST(c.data_fim_mes AS VARCHAR), CAST(c.observed_at AS VARCHAR),
+               c.load_id, count(f.sk_status), coalesce(sum(f.qtd_pesquisas_no_status), 0)
+        FROM "analytics_pipeline_closure" c
+        LEFT JOIN "FATO_PIPELINE_MENSAL" f USING (data_fim_mes)
+        GROUP BY c.data_fim_mes, c.observed_at, c.load_id ORDER BY c.data_fim_mes
     """).fetchall()
     closures = tuple(
         {
             "month": month,
+            "observed_at": observed_at,
+            "load_id": load_id,
             "groups": groups,
             "stock": stock,
-            "distinct_groups": distinct_groups,
-            "observations": observations,
         }
-        for month, groups, stock, distinct_groups, observations in closure_rows
+        for month, observed_at, load_id, groups, stock in closure_rows
     )
     monthly = _monthly_cube(con)
     orphan_rows = con.execute("""
@@ -267,6 +309,26 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
             "reason": "sem_vinculo_unico",
             "expected": question_unknown,
             "logged": question_logged,
+        }
+    )
+    title_matched = _scalar(
+        con,
+        """SELECT count(*) FROM "FATO_PESQUISA_PERGUNTA"
+        WHERE metodo_vinculo = 'titulo_unico' """,
+    )
+    title_logged = _scalar(
+        con,
+        """SELECT count(*) FROM "analytics_reconciliation"
+        WHERE source = 'questoes' AND target = 'DIM_PESQUISA'
+        AND reason = 'id_divergente' AND method = 'titulo_exato_unico' """,
+    )
+    orphan_audit.append(
+        {
+            "source": "questoes",
+            "target": "DIM_PESQUISA",
+            "reason": "id_divergente",
+            "expected": title_matched,
+            "logged": title_logged,
         }
     )
     return ReconciliationReport(

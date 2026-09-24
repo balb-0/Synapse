@@ -141,6 +141,39 @@ class ReconciliationTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "execute load_analytics"):
             reconcile_analytics(self.con)
 
+    def test_unique_title_fallback_requires_a_reconciliation_record(self):
+        self.insert("pesquisas", "p1", 1, pesquisa_id="p1", titulo="Pesquisa")
+        self.insert(
+            "questoes",
+            "q1",
+            1,
+            pesquisa_id="outro",
+            pergunta_id="q1",
+            pesquisa_titulo=" PESQUISA ",
+            tipo="aberta",
+        )
+        self.select_respondents()
+        load_analytics(self.con)
+        report = reconcile_analytics(self.con)
+        self.assertTrue(report.reconciled)
+        self.assertEqual(report.orphan_audit[-1]["expected"], 1)
+        self.assertEqual(report.orphan_audit[-1]["logged"], 1)
+        self.con.execute("""DELETE FROM "analytics_reconciliation"
+            WHERE reason = 'id_divergente' """)
+        self.assertFalse(reconcile_analytics(self.con).reconciled)
+
+    def test_empty_observed_month_is_distinct_from_no_observation(self):
+        self.select_respondents()
+        load_analytics(self.con, observed_at=datetime(2026, 9, 30, 23))
+        report = reconcile_analytics(self.con)
+        self.assertTrue(report.reconciled)
+        self.assertEqual(report.cubes[2].status, "ok")
+        self.assertEqual((report.cubes[2].eligible, report.cubes[2].loaded), (0, 0))
+        self.assertEqual(report.monthly_closures[0]["month"], "2026-09-30")
+        self.assertEqual(report.monthly_closures[0]["stock"], 0)
+        self.con.execute('DELETE FROM "analytics_pipeline_closure"')
+        self.assertEqual(reconcile_analytics(self.con).cubes[2].status, "mismatch")
+
     def test_failed_reload_leaves_detectable_current_source_difference(self):
         self.insert("pesquisas", "p1", 1, pesquisa_id="p1", titulo="Primeira")
         load_analytics(self.con)
