@@ -15,6 +15,7 @@ import sys
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest import mock
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
@@ -180,6 +181,18 @@ class TransformBatchLogEmissionTests(unittest.TestCase):
         result = _transform([{"id": "1", "titulo": "a"}], _metadata(1), log_sink=FailingLogSink())
 
         self.assertEqual(len(result.accepted), 1)
+
+    def test_a_bug_building_the_event_is_not_confused_with_a_sink_down(self) -> None:
+        """Só o envio ao sink é tolerante a falha (ADR 0001). Um bug na
+        construção do evento (ex.: chave errada em ``metrics``) é um defeito
+        de código, não uma falha de transporte — não pode ser engolido."""
+        broken = mock.patch.object(
+            TransformationBatchLogEvent,
+            "from_metrics",
+            side_effect=KeyError("campo_inexistente"),
+        )
+        with broken, self.assertRaises(KeyError):
+            _transform([{"id": "1", "titulo": "a"}], _metadata(1))
 
 
 if __name__ == "__main__":

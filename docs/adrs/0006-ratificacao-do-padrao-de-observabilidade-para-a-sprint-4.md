@@ -132,11 +132,19 @@ as divergências do OB-01:
 - `task_run.id` do Prefect só existe dentro de uma `@task`; o marco publicado
   direto no corpo de um `@flow` (`ingest_object`, `backfill`) já tem esse gap
   fechado por OB-03 com o fallback para `flow_run.id`. Fora de qualquer
-  execução do Prefect (chamada direta a `_log_event` ou a um extrator num
-  teste unitário), os dois vêm `None` e `task_id` fica de fora do evento — sem
-  identificador inventado no lugar. Se OB-10/OB-11 precisar de `task_id`
-  nas evidências de smoke, a execução real via flow já resolve; não é
-  pendência nova.
+  execução do Prefect, os dois vêm `None`. Isso se comporta de dois jeitos
+  diferentes, e a diferença é proposital: nos marcos de orquestração
+  (`_log_event`), `task_id` é campo opcional e some do evento sem
+  identificador inventado no lugar (mesma regra de omitir `None` que os
+  outros atributos já seguem). Em `BatchMetadata` (extração, e por herança
+  transformação e carga), `task_id` é campo obrigatório, com a mesma
+  validação de `run_id` (`CsvObjectExtractor.read`, OB-04) — porque esse
+  evento é persistido (`task_id VARCHAR NOT NULL` na tabela de ingestão), não
+  só logado, e não existe linha gravada sem correlação. Chamar um extrator
+  fora de um flow (ex.: um teste unitário) já exige passar `task_id`
+  explícito; não há mais chamada silenciosa sem esse campo. Se OB-10/OB-11
+  precisar de `task_id` nas evidências de smoke, a execução real via flow já
+  resolve; não é pendência nova.
 - Ratificar sem reabrir a escolha de stack não resolve o fato de que nenhuma
   dependência de Elastic Stack está no `requirements.txt` nem no
   `docker-compose.yml` — essa lacuna continua sendo trabalho de OB-07, não

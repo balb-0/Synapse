@@ -144,11 +144,14 @@ def transform_batch(
         "duration_seconds": perf_counter() - started,
     }
     sink = log_sink or StandardLoggingSink()
+    event = TransformationBatchLogEvent.from_metrics(metrics)
     try:
-        sink.emit(TransformationBatchLogEvent.from_metrics(metrics))
+        sink.emit(event)
     except Exception:
         # Mesma garantia da ADR 0001 já aplicada em extraction/load: o
         # transporte de observabilidade fora do ar não pode corromper nem
-        # bloquear o resultado da transformação.
+        # bloquear o resultado da transformação. Só o envio ao sink entra no
+        # try — um bug na construção do evento (chave errada em `metrics`)
+        # deve continuar estourando, não ser confundido com sink fora do ar.
         pass
     return TransformationResult(tuple(accepted), tuple(rejected), tuple(duplicates), metrics)

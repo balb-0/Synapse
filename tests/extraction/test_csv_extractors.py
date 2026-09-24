@@ -132,6 +132,21 @@ class CsvObjectExtractorTests(unittest.TestCase):
         self.assertEqual(batch.metadata.record_count, 0)
         self.assertEqual(batch.checkpoint.position, "row:0")
 
+    def test_rejects_empty_or_blank_task_id(self) -> None:
+        payload = csv_payload(EMPRESAS_REQUIRED_COLUMNS, [])
+        extractor = EmpresasExtractor(
+            object_reader=MemoryObjectReader(payload),
+            object_reference=ObjectReference(
+                bucket="sindusfarma-data",
+                key="landing/empresas.csv",
+            ),
+        )
+
+        for blank_task_id in ("", "   "):
+            with self.subTest(task_id=blank_task_id):
+                with self.assertRaisesRegex(ValueError, "task_id não pode ser vazio"):
+                    list(extractor.read(run_id="run-blank-task-id", task_id=blank_task_id))
+
     def test_rejects_source_without_required_columns(self) -> None:
         payload = csv_payload(("ID", "Nome Fantasia"), [["1", "Empresa"]])
         extractor = EmpresasExtractor(
