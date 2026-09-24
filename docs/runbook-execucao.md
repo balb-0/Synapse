@@ -144,6 +144,12 @@ usado pelo alerta de falha abaixo. A checagem do Prefect depende da variável
 ela configurada, a checagem falha explicitamente em vez de tentar adivinhar
 um endereço.
 
+A checagem do banco abre a conexão direto, sem o retry com espera que a
+carga real usa (`duckdb_repository._connect_with_retry`) — rodar o health
+check durante uma carga em andamento pode reportar `duckdb: falha` por um
+lock de escrita transitório que a carga em si esperaria passar. Não é um
+sinal de pipeline quebrado nesse caso, só de execução concorrente.
+
 O servidor Prefect publicado em OQ-03 roda no host (`prefect server start` +
 `prefect deploy --all`, fora do Compose — ver card #235), não como serviço
 deste `docker-compose.yml`. Rodando `health_check.py` **dentro** do

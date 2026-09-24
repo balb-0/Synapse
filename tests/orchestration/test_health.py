@@ -67,6 +67,19 @@ class VerificaSaudeDoPrefect(unittest.TestCase):
         resultado = check_prefect_health("http://prefect.local/api", http_get=http_get_que_falha)
 
         self.assertFalse(resultado.passed)
+
+    def test_relata_falha_quando_a_porta_responde_mas_nao_fala_http(self) -> None:
+        import http.client
+
+        def http_get_com_resposta_corrompida(url: str, timeout: float) -> int:
+            raise http.client.BadStatusLine("lixo binário, não é HTTP")
+
+        resultado = check_prefect_health(
+            "http://prefect.local/api", http_get=http_get_com_resposta_corrompida
+        )
+
+        self.assertFalse(resultado.passed)
+        self.assertIn("inacessível", resultado.detail)
         self.assertIn("inacessível", resultado.detail)
 
     def test_relata_falha_explicita_quando_api_url_nao_esta_configurada(self) -> None:

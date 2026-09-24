@@ -11,6 +11,7 @@ alerta mínimas.
 
 from __future__ import annotations
 
+import http.client
 import logging
 import time
 import urllib.error
@@ -78,7 +79,11 @@ def check_prefect_health(
     url = f"{api_url.rstrip('/')}/health"
     try:
         status = http_get(url, PREFECT_HEALTH_TIMEOUT_SECONDS)
-    except (urllib.error.URLError, OSError) as error:
+    except (urllib.error.URLError, http.client.HTTPException, OSError) as error:
+        # http.client.HTTPException não é OSError: cobre o caso de
+        # PREFECT_API_URL apontar para uma porta que responde, mas não fala
+        # HTTP (resposta corrompida) — sem isso, esse erro escaparia do health
+        # check inteiro em vez de virar uma falha relatada como as demais.
         return HealthCheck(name="prefect_api", passed=False, detail=f"{url} inacessível: {error}")
 
     if status != 200:
@@ -89,7 +94,13 @@ def check_prefect_health(
 
 
 def check_database_health(settings: DuckDBSettings) -> HealthCheck:
-    """Reaproveita o health check da carga (``etl.load.environment``) como uma única checagem."""
+    """Reaproveita o health check da carga (``etl.load.environment``) como uma única checagem.
+
+    ``run_health_check`` abre a conexão direto, sem o retry com espera de
+    ``duckdb_repository._connect_with_retry`` usado pela carga real: rodar
+    este health check durante uma carga em andamento pode reportar uma falha
+    transitória de lock de escrita que a carga em si teria esperado passar.
+    """
     try:
         report = run_health_check(settings)
     except (ConfigurationError, DatabaseEnvironmentError) as error:
