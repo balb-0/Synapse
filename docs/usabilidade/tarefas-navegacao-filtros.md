@@ -90,3 +90,11 @@ Convenções de medição (valem para todas as tarefas desta pasta):
   aqui medimos se a interface comunica isso sem ajuda.)
 - **Tempo aceitável:** 2 minutos.
 
+## Dependências e limites declarados
+
+- As tarefas usam apenas filtros existentes no protótipo (período por
+  `data_solicitacao`, tipo, área, complexidade, status). Nenhuma tarefa
+  depende de indicador marcado indisponível na §5.6 do `projeto.md`.
+- T-FIL-01 herda do RF01 a exigência de rótulo do campo temporal; se a tela
+  final (RP) alterar os filtros disponíveis, a tarefa deve ser reconferida
+  contra o mapa de visualizações antes da execução.
