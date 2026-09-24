@@ -42,7 +42,8 @@ class AnalyticsLoadTests(unittest.TestCase):
 
     def test_repeated_load_and_corrected_source(self):
         self.insert("pesquisas", "p1-a", 1, pesquisa_id="p1", titulo="Pesquisa A",
-                    status="Aberta", data_solicitacao="2026-09-01", data_aprov="2026-09-03")
+                    status="Aberta", data_solicitacao="2026-09-01", data_aprov="2026-09-03",
+                    data_divulgacao="2026-09-05")
         self.insert("empresas", "e1-a", 1, empresa_id="e1")
         self.insert("clientes", "c1-a", 1, cliente_id="c1", empresa_id="e1")
         self.insert("respondentes", "respondent-a", 1, pesquisa_id="p1", empresa_id="e1",
@@ -64,6 +65,14 @@ class AnalyticsLoadTests(unittest.TestCase):
         self.assertEqual(self.con.execute('''SELECT pesquisa_id_origem, pergunta_id_origem,
             metodo_vinculo FROM "FATO_PESQUISA_PERGUNTA"''').fetchone(),
                          ("foreign", "q1", "titulo_unico"))
+        self.assertEqual(self.con.execute('''SELECT p.data, r.data, q.data
+            FROM "FATO_PARTICIPACAO" f
+            JOIN "DIM_TEMPO" p ON p.sk_tempo = f.sk_data_pesquisa
+            JOIN "DIM_TEMPO" r ON r.sk_tempo = f.sk_data_resposta
+            JOIN "FATO_PESQUISA_PERGUNTA" i ON TRUE
+            JOIN "DIM_TEMPO" q ON q.sk_tempo = i.sk_data_pesquisa''').fetchone(),
+                         (datetime(2026, 9, 5).date(), datetime(2026, 9, 1).date(),
+                          datetime(2026, 9, 5).date()))
 
         self.insert("pesquisas", "p1-b", 2, pesquisa_id="p1", titulo="Pesquisa A",
                     status="Fechada", data_solicitacao="2026-09-01", data_aprov="2026-09-04")
@@ -138,6 +147,30 @@ class AnalyticsLoadTests(unittest.TestCase):
         self.assertEqual(method, "desconhecido")
         self.assertEqual(self.con.execute('''SELECT reason FROM "analytics_reconciliation"
             WHERE source = 'questoes' ''').fetchone()[0], "titulo_ambiguo")
+        self.assertEqual(self.con.execute('''SELECT source_id FROM "analytics_reconciliation"
+            WHERE source = 'questoes' ''').fetchone()[0], '["foreign", "q1"]')
+
+    def test_empty_observed_closure_is_preserved_until_newer_observation(self):
+        at = datetime(2026, 9, 30, 22, 0)
+        with self.assertRaisesRegex(RuntimeError, "injected"):
+            load_analytics(self.con, observed_at=at, fail_after="facts")
+        self.assertEqual(self.con.execute('''SELECT count(*) FROM information_schema.tables
+            WHERE table_name = 'analytics_pipeline_closure' ''').fetchone()[0], 0)
+        first = load_analytics(self.con, observed_at=at)
+        self.assertEqual(self.con.execute('SELECT count(*) FROM "FATO_PIPELINE_MENSAL"').fetchone()[0], 0)
+        self.assertEqual(self.con.execute('SELECT count(*) FROM "analytics_pipeline_membership"').fetchone()[0], 0)
+        self.assertEqual(self.con.execute('''SELECT observed_at, load_id FROM "analytics_pipeline_closure"''').fetchone(),
+                         (at, first.load_id))
+        self.insert("pesquisas", "p1-a", 1, pesquisa_id="p1", status="Aberta")
+        load_analytics(self.con)
+        load_analytics(self.con, observed_at=at)
+        self.assertEqual(self.con.execute('SELECT count(*) FROM "FATO_PIPELINE_MENSAL"').fetchone()[0], 0)
+        self.assertEqual(self.con.execute('SELECT load_id FROM "analytics_pipeline_closure"').fetchone()[0],
+                         first.load_id)
+        second = load_analytics(self.con, observed_at=datetime(2026, 9, 30, 23, 0))
+        self.assertEqual(self.con.execute('SELECT count(*) FROM "FATO_PIPELINE_MENSAL"').fetchone()[0], 1)
+        self.assertEqual(self.con.execute('SELECT load_id FROM "analytics_pipeline_closure"').fetchone()[0],
+                         second.load_id)
 
 
 if __name__ == "__main__":

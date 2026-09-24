@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import calendar
 import hashlib
+import json
 import unicodedata
 import uuid
 from dataclasses import dataclass
@@ -191,6 +192,10 @@ def load_analytics(
             observed_at TIMESTAMP NOT NULL,
             PRIMARY KEY (data_fim_mes, sk_pesquisa)
         )''')
+        con.execute('''CREATE TABLE IF NOT EXISTS "analytics_pipeline_closure" (
+            data_fim_mes DATE PRIMARY KEY, observed_at TIMESTAMP NOT NULL,
+            load_id VARCHAR NOT NULL
+        )''')
         con.execute('''CREATE TABLE IF NOT EXISTS "analytics_load_run" (
             load_id VARCHAR PRIMARY KEY, loaded_at TIMESTAMP NOT NULL,
             pesquisas_digest VARCHAR NOT NULL, empresas_digest VARCHAR NOT NULL,
@@ -219,6 +224,7 @@ def load_analytics(
                         'SELECT * FROM _previous_participacao')
             con.execute('DROP TABLE _previous_participacao')
         pesquisa_ids = {row["pesquisa_id"] for row in pesquisas}
+        pesquisa_by_id = {row["pesquisa_id"]: row for row in pesquisas}
         empresa_ids = {row["empresa_id"] for row in empresas}
         cliente_ids = {row["cliente_id"] for row in clientes}
         title_ids: dict[str, set[str]] = {}
@@ -321,13 +327,16 @@ def load_analytics(
                     checksum, row["source_offset"],
                     surrogate_key("DIM_PESQUISA", pid) if pid in pesquisa_ids else unknown_key("DIM_PESQUISA"),
                     surrogate_key("DIM_EMPRESA", eid) if eid in empresa_ids else unknown_key("DIM_EMPRESA"),
-                    person, _time(con, start), _time(con, end), seq, minutes, reason,
+                    person,
+                    _time(con, pesquisa_by_id[pid]["data_divulgacao"]) if pid in pesquisa_by_id else None,
+                    _time(con, start), seq, minutes, reason,
                     row["market_share"],
                 ))
                 participacoes += 1
 
         for row in questoes:
             qid, pid = row["pergunta_id"], row["pesquisa_id"]
+            question_source_id = json.dumps([pid, qid], ensure_ascii=False)
             question_sk = _composite_member(con, "DIM_PERGUNTA", (pid, qid), {
                 name: row[name] for name in ("pesquisa_id", "pergunta_id", "enunciado", "tipo",
                     "qtd_alternativas", "alternativas", "linhas_matriz", "colunas_matriz",
@@ -339,26 +348,34 @@ def load_analytics(
                 if len(matches) == 1:
                     target = next(iter(matches))
                     method = "titulo_unico"
-                    _orphan(con, "questoes", pid, "DIM_PESQUISA", "id_divergente",
+                    _orphan(con, "questoes", question_source_id, "DIM_PESQUISA", "id_divergente",
                             "titulo_exato_unico", target)
                 else:
-                    _orphan(con, "questoes", pid, "DIM_PESQUISA",
+                    _orphan(con, "questoes", question_source_id, "DIM_PESQUISA",
                             "titulo_ambiguo" if matches else "pesquisa_nao_encontrada")
             con.execute('''INSERT INTO "FATO_PESQUISA_PERGUNTA"
                 (sk_pesquisa, sk_pergunta, sk_data_pesquisa,
                  pesquisa_id_origem, pergunta_id_origem, metodo_vinculo)
-                VALUES (?, ?, NULL, ?, ?, ?)''', (
+                VALUES (?, ?, ?, ?, ?, ?)''', (
                 surrogate_key("DIM_PESQUISA", target) if target else unknown_key("DIM_PESQUISA"),
-                question_sk, pid, qid, method))
+                question_sk,
+                _time(con, pesquisa_by_id[target]["data_divulgacao"]) if target else None,
+                pid, qid, method))
 
+        load_id = str(uuid.uuid4())
         closure = None
         if observed_at is not None:
             closure = observed_at.date()
-            existing = con.execute('SELECT max(observed_at) FROM "FATO_PIPELINE_MENSAL" WHERE data_fim_mes = ?',
-                                   (closure,)).fetchone()[0]
+            prior_closure = con.execute(
+                'SELECT observed_at FROM "analytics_pipeline_closure" WHERE data_fim_mes = ?',
+                (closure,)).fetchone()
+            existing = prior_closure[0] if prior_closure else None
             if existing is None or observed_at > existing:
                 con.execute('DELETE FROM "FATO_PIPELINE_MENSAL" WHERE data_fim_mes = ?', (closure,))
                 con.execute('DELETE FROM "analytics_pipeline_membership" WHERE data_fim_mes = ?', (closure,))
+                con.execute('DELETE FROM "analytics_pipeline_closure" WHERE data_fim_mes = ?', (closure,))
+                con.execute('INSERT INTO "analytics_pipeline_closure" VALUES (?, ?, ?)',
+                            (closure, observed_at, load_id))
                 month_sk = _time(con, closure)
                 con.execute('''INSERT INTO "analytics_pipeline_membership"
                     SELECT ?, sk_pesquisa, sk_status, sk_area, sk_tipo, sk_perfil, ?
@@ -373,7 +390,6 @@ def load_analytics(
         if fail_after == "facts":
             raise RuntimeError("injected failure after facts")
         orphans = con.execute('SELECT count(*) FROM "analytics_reconciliation"').fetchone()[0]
-        load_id = str(uuid.uuid4())
         con.execute('''INSERT INTO "analytics_load_run" VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', (
             load_id, datetime.now(), _digest(pesquisas), _digest(empresas), _digest(clientes),
             _digest(questoes), selected[0] if selected else None, observed_at))
