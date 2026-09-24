@@ -15,7 +15,7 @@ Legenda: **evidência** = comando, arquivo ou teste que prova o atendimento;
 | :--- | :--- | :--- |
 | Servidor do orquestrador com UI e histórico persistente | — | `docker-compose.yml` só declara `minio` + `runner`; sem `prefect-server`, cada execução usa API efêmera e o histórico se perde |
 | Publicar fluxos e conservar histórico após o término | `src/etl/orchestration/flow.py` (`ingest-object`, `backfill`); `scripts/orchestration/deployment.py` (deployment `agendado`) | sem servidor, `deployment.py` serve em processo e o histórico não sobrevive; sem `prefect.yaml` para publicação pela CLI |
-| Health check da própria interface do servidor | — | sem endpoint `/api/health` com volume próprio no ambiente declarado |
+| Health check da própria interface do servidor | — | sem servidor com endpoint `/api/health` e volume próprio no ambiente declarado |
 
 ## Agendamento, reexecução e disparo
 
