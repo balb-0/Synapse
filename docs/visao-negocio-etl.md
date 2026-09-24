@@ -70,6 +70,24 @@ responsáveis técnicos — estão registrados no [`dmc.json`](dmc.json) e em
 
 ## Escopo de negócio
 
+### Consumo analítico controlado
+
+O caminho aprovado é: ingestão tratada reconciliada → carga dos cubos →
+publicação somente leitura → modelo semântico do BI. A ferramenta de BI não
+transforma a origem, não corrige rejeições e não escreve no DuckDB. A liberação
+de uma atualização exige conciliação da execução e identificação do snapshot.
+
+| Etapa | Responsável | Evidência para avançar |
+| :--- | :--- | :--- |
+| Ingestão | Operador do ETL | execução concluída e `reconciliacao_execucao` balanceada |
+| Camada analítica | Rotina de carga dos cubos | contagens de origem e destino reconciliadas |
+| Publicação | Responsável por dados | snapshot, data de atualização e conjunto de medidas aprovados |
+| Consumo | Analista/gestor | filtro, unidade e período visíveis no relatório |
+
+Não há entrega automatizada em produção nesta arquitetura. Credenciais,
+gateway, atualização agendada da ferramenta de BI e permissões corporativas
+dependem do ambiente do parceiro.
+
 O pipeline entrega, nesta sprint:
 
 - leitura das seis fontes fornecidas pelo parceiro, preservando o arquivo
