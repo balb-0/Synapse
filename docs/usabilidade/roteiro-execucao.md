@@ -81,3 +81,19 @@ Por sessão: observações do think-aloud e respostas do debrief.
   protótipo/telas usada e nome do moderador; participantes aparecem só como
   P1–P4 com o perfil exercido.
 
+## 5. Papéis na execução
+
+- **Moderador**: apresenta a situação real de cada tarefa (sem revelar os
+  passos), cronometra e preenche a ficha.
+- **Observador** (quando disponível): anota think-aloud e desvios; não fala
+  com o participante.
+- O moderador **não ajuda** — pedido de ajuda encerra a medição da tarefa
+  como "com assistência" e a sessão continua.
+
+## 6. Critérios para considerar a execução válida
+
+- Toda tarefa executada por ao menos um participante, com ficha completa
+  (nenhuma célula vazia ou presumida).
+- Tarefas dependentes das telas finais (RP-08) só executam quando as telas
+  existirem; execução sobre o protótipo é registrada como **piloto** e
+  identificada como tal na ficha — os dois registros não se misturam.
