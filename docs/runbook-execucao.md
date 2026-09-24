@@ -146,6 +146,13 @@ Objeto repetido retorna `status: ignored` (idempotência por SHA-256 em
 `_control_object`): não gera carga duplicada. Chaves fora do padrão
 `<fonte>.csv` são ignoradas com aviso.
 
+Limites do adaptador (ambiente de desenvolvimento): o modo webhook exige
+configurar o notifier no MinIO (`mc event add local/sindusfarma
+arn:minio:sqs::1:webhook --prefix landing/ --suffix .csv --event put`) e
+expõe a porta escolhida sem autenticação; o `--state-file` do polling é
+relativo ao diretório de execução — para sobreviver a `down/up`, aponte-o
+para um volume (ex.: `/data/.watch_seen.json`).
+
 ## Logs e observabilidade
 
 - Cada tarefa loga via `get_run_logger()` do Prefect (nível configurável por

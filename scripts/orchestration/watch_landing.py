@@ -6,7 +6,9 @@ carga):
 
 - webhook (padrão quando ``--webhook-port`` é informado): servidor HTTP que
   recebe a notificação ``s3:ObjectCreated`` do MinIO e ingere o objeto
-  notificado. Configure no MinIO (exemplo):
+  notificado. O servidor escuta em todas as interfaces sem autenticação
+  (adequado ao Compose local; não exponha essa porta fora dele). Configure
+  no MinIO (exemplo):
 
       mc event add local/sindusfarma arn:minio:sqs::1:webhook --event put
       mc event add local/sindusfarma arn:minio:sqs::1:webhook \\
@@ -86,23 +88,34 @@ def _save_seen(state_file: Path, seen: set[str]) -> None:
 
 
 def poll_once(bucket: str, prefix: str, state_file: Path) -> list[dict]:
-    """Uma varredura: ingere chaves novas, marca vistas, retorna resultados."""
+    """Uma varredura: ingere chaves novas, marca vistas, retorna resultados.
+
+    Falha em uma chave não mata a varredura nem perde o progresso: registra,
+    segue para a próxima e grava o estado ao final. A chave com falha tenta
+    de novo na próxima varredura (a ingestão é idempotente).
+    """
 
     client = _minio_client()
     seen = _load_seen(state_file)
     outcomes = []
-    for obj in client.list_objects(bucket, prefix=prefix, recursive=True):
-        key = obj.object_name
-        if key in seen:
-            continue
-        source = infer_source(key, prefix)
-        if source is None:
-            print(f"[watch] ignorada (fora do padrão <fonte>.csv): {key}")
-            seen.add(key)
-            continue
-        outcomes.append(ingest(bucket, key, source))
-        seen.add(key)
-    _save_seen(state_file, seen)
+    try:
+        for obj in client.list_objects(bucket, prefix=prefix, recursive=True):
+            key = obj.object_name
+            if key in seen:
+                continue
+            source = infer_source(key, prefix)
+            if source is None:
+                print(f"[watch] ignorada (fora do padrão <fonte>.csv): {key}")
+                seen.add(key)
+                continue
+            try:
+                outcomes.append(ingest(bucket, key, source))
+            except Exception as exc:  # noqa: BLE001 — uma chave não derruba o daemon
+                print(f"[watch] falha ao ingerir {key}: {exc}")
+            else:
+                seen.add(key)
+    finally:
+        _save_seen(state_file, seen)
     return outcomes
 
 
