@@ -67,3 +67,17 @@ relationship DimStatusPesquisa_PubC03PipelineMensal
 	crossFilteringBehavior: single
 	fromColumn: PUB_C03_PIPELINE_MENSAL.status
 	toColumn: DIM_STATUS_PESQUISA.status
+
+relationship DimTempo_PubC02Participacao
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: single
+	fromColumn: PUB_C02_PARTICIPACAO.mes_resposta
+	toColumn: DIM_TEMPO.data
+
+relationship DimTempo_PubC03PipelineMensal
+	fromCardinality: many
+	toCardinality: one
+	crossFilteringBehavior: single
+	fromColumn: PUB_C03_PIPELINE_MENSAL.data_fim_mes
+	toColumn: DIM_TEMPO.data

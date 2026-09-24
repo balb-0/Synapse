@@ -55,6 +55,23 @@ table PUB_C03_PIPELINE_MENSAL
 		summarizeBy: none
 		sourceColumn: qtd_saidas_no_mes
 
+	column perfil = [complexidade] & " / " & [tipo_resposta]
+		dataType: string
+		isHidden
+		summarizeBy: none
+
+	hierarchy 'Area, Tipo e Perfil'
+		lineageTag: area-tipo-perfil-hierarchy
+
+		level Area
+			column: area
+
+		level Tipo
+			column: tipo
+
+		level Perfil
+			column: perfil
+
 	partition PUB_C03_PIPELINE_MENSAL = m
 		mode: import
 		source =

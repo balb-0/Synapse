@@ -15,3 +15,4 @@ ref table DIM_AREA
 ref table DIM_TIPO_PESQUISA
 ref table DIM_TIPO_PERGUNTA
 ref table DIM_STATUS_PESQUISA
+ref table DIM_TEMPO
