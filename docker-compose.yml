@@ -64,6 +64,11 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    # Sem autenticação (`xpack.security.enabled=false`) e porta publicada no
+    # host: aceitável só neste ambiente local de desenvolvimento, mesmo
+    # padrão do MinIO já usado neste arquivo (`minioadmin`/`minioadmin`). Não
+    # copiar esta configuração para um host compartilhado ou produção sem
+    # habilitar autenticação e revisar a exposição da porta.
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"
@@ -76,7 +81,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'",
+          "curl -s http://localhost:9200/_cluster/health | grep -Eq '\"status\":\"(green|yellow)\"'",
         ]
       interval: 10s
       timeout: 5s
