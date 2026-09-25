@@ -10,39 +10,38 @@ skinparam ranksep 50
 
 table(DIM_PESQUISA) {
   + sk_pesquisa : PK
-  + id_origem_planilha
+  + pesquisa_id : chave durável
   + titulo
   + objetivos
-  + ano_edicao
 }
 
 table(DIM_TEMPO) {
   + sk_tempo : PK
   + data
   + ano
-  + mes
   + trimestre
-  + flag_dia_util
+  + mes
+  + dia
+  + dia_semana
+  + fim_mes
 }
 
 table(DIM_AREA) {
   + sk_area : PK
-  + nome_area
-  + agrupamento_macro
+  + area
 }
 
 table(DIM_STATUS_PESQUISA) {
   + sk_status : PK
-  + nome_status
-  + etapa_ciclo
-  + flag_em_aberto
-  + flag_terminal
+  + status
+  + flag_em_aberto : anulável
+  + flag_conta_como_a_finalizar : anulável
+  + flag_terminal : anulável
 }
 
 table(DIM_TIPO_PESQUISA) {
   + sk_tipo : PK
-  + nome_tipo
-  + natureza_origem
+  + tipo
 }
 
 table(DIM_PERFIL_PESQUISA) {
@@ -53,60 +52,67 @@ table(DIM_PERFIL_PESQUISA) {
 
 table(DIM_FAMILIA_PESQUISA) {
   + sk_familia : PK
-  + titulo_familia
-  + qtd_edicoes
-  + flag_recorrente
+  + titulo_normalizado
+  + estado_homologacao
 }
 
 table(DIM_FONTE_DADO) {
   + sk_fonte : PK
-  + nome_sistema_origem
+  + source
 }
 
 table(DIM_EXECUCAO_CARGA) {
   + sk_carga : PK
-  + data_execucao
-  + versao_etl
+  + source
+  + run_id
+  + concluded_at
+  + source_checksum
 }
 
 fact(FATO_CICLO_PESQUISA) {
-  + sk_pesquisa : FK
-  + sk_data_solicitacao : FK
-  + sk_data_aprovacao : FK
-  + sk_data_divulgacao : FK
-  + sk_data_limite_coleta : FK
-  + sk_data_prorrogacao : FK
-  + sk_data_entrega : FK
-  + sk_area : FK
-  + sk_status : FK
-  + sk_tipo : FK
-  + sk_perfil : FK
-  + sk_familia : FK
-  + sk_fonte : FK
-  + sk_carga : FK
+  + sk_pesquisa : PK / FK
+  + sk_data_solicitacao : FK anulável
+  + sk_data_aprovacao : FK anulável
+  + sk_data_divulgacao : FK anulável
+  + sk_data_limite_coleta : FK anulável
+  + sk_data_prorrogacao : FK anulável
+  + sk_data_entrega : FK anulável
+  + sk_area : FK anulável
+  + sk_status : FK anulável
+  + sk_tipo : FK anulável
+  + sk_perfil : FK anulável
+  + sk_familia : FK anulável
+  + sk_fonte : FK NOT NULL
+  + sk_carga : FK NOT NULL
   --
-  + dias_uteis_validacao
-  + dias_uteis_coleta
-  + dias_uteis_tabulacao
-  + dias_uteis_ciclo_total
-  + qtd_empresas_na_pesquisa
-  + qtd_respondentes_na_pesquisa
-  + flag_prorrogada
+  + dias_corridos_validacao : anulável
+  + dias_corridos_coleta : anulável
+  + dias_corridos_tabulacao : anulável
+  + dias_corridos_ciclo_total : anulável
+  + qtd_empresas_na_pesquisa : anulável
+  + flag_prorrogada : BOOLEAN NOT NULL
 }
 
-DIM_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_pesquisa
-DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_solicitacao
-DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_aprovacao
-DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_divulgacao
-DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_limite_coleta
-DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_prorrogacao
-DIM_TEMPO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_entrega
-DIM_AREA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_area
-DIM_STATUS_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_status
-DIM_TIPO_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_tipo
-DIM_PERFIL_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_perfil
-DIM_FAMILIA_PESQUISA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_familia
+DIM_PESQUISA "1" -- "0..1" FATO_CICLO_PESQUISA : sk_pesquisa
+DIM_TEMPO "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_solicitacao
+DIM_TEMPO "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_aprovacao
+DIM_TEMPO "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_divulgacao
+DIM_TEMPO "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_limite_coleta
+DIM_TEMPO "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_prorrogacao
+DIM_TEMPO "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_data_entrega
+DIM_AREA "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_area
+DIM_STATUS_PESQUISA "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_status
+DIM_TIPO_PESQUISA "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_tipo
+DIM_PERFIL_PESQUISA "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_perfil
+DIM_FAMILIA_PESQUISA "0..1" -- "0..n" FATO_CICLO_PESQUISA : sk_familia
 DIM_FONTE_DADO "1" -- "0..n" FATO_CICLO_PESQUISA : sk_fonte
 DIM_EXECUCAO_CARGA "1" -- "0..n" FATO_CICLO_PESQUISA : sk_carga
+
+note bottom of FATO_CICLO_PESQUISA
+  Seis papéis de DIM_TEMPO: solicitação, aprovação,
+  divulgação, limite, prorrogação e entrega.
+  Durações são dias corridos; NULL quando o par de datas
+  está ausente ou inválido. Ano de edição indisponível.
+end note
 
 @enduml

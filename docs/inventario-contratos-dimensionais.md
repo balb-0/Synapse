@@ -37,19 +37,18 @@ A partir dessa fronteira, este documento cobre:
   na ingestão. Propor essa definição fica pra uma etapa de modelagem
   analítica.
 - **Traduzir tipos.** Não é necessário: o contrato de transformação declara diretamente tipos DuckDB.
-- **Resolver os achados de nomenclatura e derivação** listados nas tabelas
-  abaixo (`ano_edicao`, `regiao`, "cliente" vs. "pessoa"). Ficam registrados
-  como constatação; a decisão acontece na implementação da tabela de
-  ingestão.
+- **Inventariar limites de origem e nomenclatura.** `ano_edicao` e `regiao`
+  ficam indisponíveis sem coluna de origem ou derivação homologada. `cliente_id`
+  é o nome canônico da origem que alimenta `DIM_PESSOA` quando conciliado; essa
+  diferença de rótulo não cria uma segunda identidade.
 
 ## Contrato herdado da camada de transformação
 
 O contrato da camada de transformação é imediatamente anterior à tabela de
-ingestão no fluxo de dados — é isso que este inventário usa como referência
-de alinhamento. O contrato executável está em `schema.py` e
-`schema-transformacao.md`, disponíveis numa branch de trabalho separada
-(`docs-171-mg-02-definir-o-schema-canonico-tratado`), ainda não incorporada à
-branch principal do repositório.
+ingestão no fluxo de dados. O schema executável já está incorporado nesta
+branch em `src/etl/transformation/schema.py`, acompanhado por
+`docs/schema-transformacao.md`; este inventário descreve o contrato corrente,
+não uma proposta pendente de merge.
 
 ### Tabelas de destino já propostas
 
@@ -74,7 +73,7 @@ branch principal do repositório.
 | `datetime` | `datetime` UTC | `TIMESTAMP` | Fuso explícito obrigatório |
 | `boolean` | `bool` | `BOOLEAN` | Mapa fechado sim/não, true/false |
 | `text` | `str` | `VARCHAR` | Unicode NFC, sem espaços externos |
-| `list` | `list[str]` | `VARCHAR (JSON)` | Ausência produz `[]`, não nulo |
+| `list` | `list[str]` | `VARCHAR` | A carga serializa a lista como JSON; ausência produz `[]`, não nulo |
 
 A coluna "Destino declarado" é DuckDB (`duckdb_type`, literal no código) e corresponde ao schema físico de ingestão.
 
@@ -99,10 +98,9 @@ dimensão já proposto depende dele. Campos sem consumidor listado não estão
 | `participantes` | `participantes` | Medida `qtd_empresas_na_pesquisa` (`FATO_CICLO_PESQUISA`) |
 | `data_solicitacao` … `data_entrega` (6 campos) | idem | Papéis de `DIM_TEMPO` no `FATO_CICLO_PESQUISA` (`sk_data_*`); `data_divulgacao` também alimenta `sk_data_pesquisa` em C02 e C04 |
 
-**Achado:** `DIM_PESQUISA` (diagramas e §5.2.1) tem atributo `ano_edicao`,
-sem campo `ano`/`ano_edicao` correspondente no contrato de transformação para
-`pesquisas`. Candidato a derivação do `titulo`, no mesmo padrão de
-`DIM_FAMILIA_PESQUISA` (normalização de título).
+**Limite físico:** `DIM_PESQUISA.ano_edicao` não tem coluna de origem nem
+derivação homologada; fica indisponível. A proposta de família por título não
+homologa uma regra para extrair o ano da edição.
 
 ### `ingestao_respondentes`
 
@@ -135,10 +133,9 @@ e `respondentes.market_share` divergem, sem precedência presumida — "a fonte
 autoritativa deve ser homologada antes de calcular I09". A tabela de
 ingestão preserva as duas colunas separadas.
 
-**Achado:** `DIM_EMPRESA` tem atributo `regiao` (diagrama de cubo-02), sem
-coluna correspondente no contrato de transformação para `empresas` —
-candidato a derivação de `estado`, mesmo padrão do achado de `ano_edicao`
-acima.
+**Limite físico:** `DIM_EMPRESA.regiao` não tem coluna de origem nem mapa
+estadual homologado; fica indisponível. `estado` permanece atributo geográfico
+da empresa e não deve ser convertido em região sem uma regra aprovada.
 
 ### `ingestao_clientes`
 
@@ -154,25 +151,23 @@ acima.
 | Campo canônico | Coluna recebida | Consumidor downstream |
 | :--- | :--- | :--- |
 | `pergunta_id` | `id_pergunta` | Chave de `DIM_PERGUNTA` |
-| `pesquisa_id` | `pesquisa_id` | `FATO_INSTRUMENTO.sk_pesquisa` |
-| `pesquisa_titulo` | `pesquisa_titulo` | Sustenta o fallback por título pros 4 `pesquisa_id` órfãos (424, 1116, 1139, 1147) descrito em `projeto.md` §5.2.4 |
+| `pesquisa_id` | `pesquisa_id` | `FATO_PESQUISA_PERGUNTA.sk_pesquisa` |
+| `pesquisa_titulo` | `pesquisa_titulo` | Insumo de fallback apenas quando o título normalizado corresponde de forma exata e única à pesquisa corrente; registrar método, ID original e alvo; ambiguidade ou ausência mantém chave desconhecida e órfão em reconciliação |
 | `enunciado`, `tipo`, `qtd_alternativas` | idem | Atributos de `DIM_PERGUNTA` |
 | `confianca`, `formato_arquivo`, `col_origem` | idem | `DIM_PERGUNTA.nivel_confianca`, `.formato_arquivo_origem`, `.col_origem` |
 
 ### `ingestao_respostas`
 
-O modelo dimensional já entregue (`projeto.md` §5.2) cobre `respostas.csv` só
-como ponto de extensão futuro: o C04 (`FATO_INSTRUMENTO`) para em
-`questoes.csv`, e a ligação entre `respondent_id` e a identidade de
-`respondentes.csv` está explicitamente "não comprovada" (§5.2.4) — o próprio
-documento reserva essa fonte pra um futuro `FATO_RESPOSTA`. A ingestão desta
-fonte segue o contrato de transformação sem restrição adicional de um fato ou
-dimensão ainda inexistente.
+O contrato de transformação inclui a tabela de ingestão de `respostas.csv`, mas
+esta fonte não tem relação analítica no contrato físico desta entrega. O C04
+(`FATO_PESQUISA_PERGUNTA`) termina em `questoes.csv`; a ligação entre
+`respondent_id` e a identidade de `respondentes.csv` não está comprovada. Uma
+futura `FATO_RESPOSTA` depende de reconciliação e autorização.
 
 ## Fontes usadas
 
-- `schema.py` e `schema-transformacao.md` — contrato de transformação, numa
-  branch de trabalho ainda não incorporada à branch principal.
+- `src/etl/transformation/schema.py` e `docs/schema-transformacao.md` — contrato
+  de transformação já incorporado à branch corrente.
 - `docs/projeto.md` §5.1–5.2 — modelo de cubos já entregue (Data Model Canvas).
 - `docs/dmc.json` — mesmo modelo, em JSON.
 - `docs/Governança-de-Dados-do-Projeto.md` §3.2 — padrão de nome `asset_id`
