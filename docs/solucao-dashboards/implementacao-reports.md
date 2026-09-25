@@ -9,6 +9,13 @@ válido para implementação; **[pendente: DX/RP]** = depende da entrega do
 modelo semântico (DX) ou da construção das telas (RP) para virar
 comportamento verificável. Nada marcado pendente é apresentado como entregue.
 
+> **Revisão de 25/09/2026:** esta seção é o mapa planejado de quatro telas.
+> A implementação demonstrada contém apenas duas páginas, alimentadas por CSVs
+> sintéticos; existe separadamente um modelo TMDL para sete Parquet agregados.
+> As diferenças de grão, medidas, filtros e execução estão verificadas em
+> [`solucao_dashboard.md`](../solucao_dashboard.md). As marcações de task
+> abaixo não devem ser interpretadas como estado atualizado de merge.
+
 ## 1. Visualizações por tela e cubo de origem
 
 <div align="center">
