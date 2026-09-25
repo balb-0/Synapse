@@ -27,6 +27,39 @@ quatro telas), T-DET-03 (detalhamento entre telas via D03) e T-DET-04
 (regra de qualidade na D04) — executá-las antes exige o protótipo como alvo,
 registrado como tal.
 
+## Rodada 0 — validação com o parceiro (sprint review)
+
+| Campo | Valor |
+| :--- | :--- |
+| Data | 25/09/2026, sprint review da Sprint 4 |
+| Participante | Representante do parceiro (Sindusfarma) |
+| Alvo | Telas Power BI de Operação (RP-03) e Participação/Benchmark Externo (RP-04) |
+| Formato | Demonstração conduzida pelo grupo, com feedback verbal do parceiro |
+| Ressalva declarada | O grupo informou explicitamente que os dados exibidos eram sintéticos (mockados) |
+
+Esta rodada não segue o protocolo moderado do [roteiro](roteiro-execucao.md)
+(não mede tempo, desvio nem conclusão por tarefa) — é registro de validação
+com o usuário real, complementar às sessões S1–S4, que permanecem pendentes.
+
+### Achados sobre navegação e detalhamento
+
+- **As duas telas foram bem recebidas**, com destaque do parceiro para a de
+  Benchmark Externo.
+- **Expandir as tabelas agradou**: o parceiro usou e elogiou o detalhamento
+  das tabelas (Acompanhamento das pesquisas / Participação por pesquisa) —
+  valida o caminho agregado → detalhe que as tarefas T-DET exercitam.
+- **A leitura dos insights por tipo funcionou**: o corte por tipo de pesquisa
+  (tempo por etapa e tipo) foi compreendido e considerado útil sem precisar
+  de explicação adicional.
+
+### Encaminhamentos (propostas, não decisões)
+
+- Nenhum bloqueio de navegação ou de filtro foi apontado nesta rodada; os
+  ajustes pedidos pelo parceiro são de **métrica e semântica temporal** e
+  estão registrados na ficha de comparação
+  ([`execucao-comparacao-segmentacao.md`](execucao-comparacao-segmentacao.md)),
+  onde pertencem.
+
 ## Ficha S1 — P1 (UC01, analista da Central)
 
 Tarefas do participante nesta rodada: T-NAV-01, T-FIL-01, T-FIL-04, T-DET-01.
