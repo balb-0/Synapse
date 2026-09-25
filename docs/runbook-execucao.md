@@ -147,6 +147,31 @@ continua impedindo duplicatas.
       -p bucket=sindusfarma -p key=landing/empresas.csv -p reprocess=true
   ```
 
+## Disparo pela chegada de objeto
+
+`scripts/orchestration/watch_landing.py` inicia a ingestão quando um objeto
+chega à área de entrada (`<prefixo>/<fonte>.csv`), sem varredura manual:
+
+```bash
+# webhook (MinIO notifica o adaptador, sem polling):
+docker compose exec runner python scripts/orchestration/watch_landing.py --webhook-port 8001
+# polling (quando o webhook não está configurado):
+docker compose exec runner python scripts/orchestration/watch_landing.py --interval 30
+# uma varredura e sai (smoke/teste):
+docker compose exec runner python scripts/orchestration/watch_landing.py --once
+```
+
+Objeto repetido retorna `status: ignored` (idempotência por SHA-256 em
+`_control_object`): não gera carga duplicada. Chaves fora do padrão
+`<fonte>.csv` são ignoradas com aviso.
+
+Limites do adaptador (ambiente de desenvolvimento): o modo webhook exige
+configurar o notifier no MinIO (`mc event add local/sindusfarma
+arn:minio:sqs::1:webhook --prefix landing/ --suffix .csv --event put`) e
+expõe a porta escolhida sem autenticação; o `--state-file` do polling é
+relativo ao diretório de execução — para sobreviver a `down/up`, aponte-o
+para um volume (ex.: `/data/.watch_seen.json`).
+
 ## Logs e observabilidade
 
 - Cada tarefa loga via `get_run_logger()` do Prefect (nível configurável por

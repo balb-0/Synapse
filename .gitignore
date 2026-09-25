@@ -88,6 +88,8 @@ temp/
 *.tmp
 *.bak
 *.orig
+# Estado local do adaptador de disparo por objeto (não versionar).
+.watch_landing_seen.json
 
 # --- Editores / IDE ----------------------------------------------------------
 .vscode/*
