@@ -24,8 +24,10 @@
 | [`usabilidade/`](usabilidade/) | Plano de usabilidade dos dashboards: perfis e critérios, tarefas de navegação, detalhamento e comparação, roteiro de execução e limitações |
 | [`solucao-dashboards/`](solucao-dashboards/) | Documento da solução de dashboards: implementação a partir dos cubos, plano/execução/avaliação de qualidade e checklist contra os critérios |
 
-O levantamento inicial da estrutura dos dashboards está em
-[`solucao-dashboards/levantamento-dashboards.md`](solucao-dashboards/levantamento-dashboards.md).
+O levantamento e o mapa da estrutura dos dashboards estão em
+[`solucao-dashboards/estrutura-dashboards.md`](solucao-dashboards/estrutura-dashboards.md).
+O mesmo documento também apresenta o mapa de medidas, dimensões, filtros e
+cubos de origem de cada visual.
 
 O conteúdo essencial permanece em `projeto.md`. O documento de governança é o
 artefato específico da Sprint 2 e detalha suas políticas sem transformar
