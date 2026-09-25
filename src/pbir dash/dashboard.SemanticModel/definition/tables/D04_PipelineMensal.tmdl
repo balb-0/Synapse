@@ -1,0 +1,123 @@
+/// C03 — Pipeline Mensal. Snapshot derivado de bi.vw_pipeline_mensal.
+table D04_PipelineMensal
+	lineageTag: 78d517d2-2bf7-42b6-bcb0-4cc99ec94736
+
+	/// Volume mensal de pesquisas por status no snapshot de pipeline mensal.
+	measure 'Pesquisas no Pipeline' = SUM ( 'D04_PipelineMensal'[qtd_pesquisas_no_status] )
+		formatString: #,0
+		displayFolder: 01. Operação
+		lineageTag: 8dbb141d-3444-48e4-a12b-313becf72044
+
+	column data_fim_mes
+		dataType: dateTime
+		isNullable: false
+		lineageTag: 2662b819-a9e9-4665-819a-b4663d483cb3
+		sourceColumn: data_fim_mes
+
+	column ano
+		dataType: int64
+		isNullable: false
+		lineageTag: dedf21dc-f678-47d4-b39e-c3ae5b6d39af
+		sourceColumn: ano
+
+	column mes
+		dataType: int64
+		isNullable: false
+		lineageTag: 8c410285-a478-4777-b1cb-8e46ea8fc463
+		sourceColumn: mes
+
+	column ano_mes
+		dataType: string
+		lineageTag: 5e0ffcc2-9c2a-4f9b-acae-905623ea98b3
+		sourceColumn: ano_mes
+
+	column status
+		dataType: string
+		lineageTag: bca204de-76b6-430d-9dca-04bf2dbc85c4
+		sourceColumn: status
+
+	column flag_em_aberto
+		dataType: boolean
+		isNullable: false
+		lineageTag: 7d26e557-999f-40bd-923b-0e6de7b70a07
+		sourceColumn: flag_em_aberto
+
+	column flag_conta_como_a_finalizar
+		dataType: boolean
+		isNullable: false
+		lineageTag: 11be5ba2-4bae-42c5-a510-54fe36114cd2
+		sourceColumn: flag_conta_como_a_finalizar
+
+	column flag_terminal
+		dataType: boolean
+		isNullable: false
+		lineageTag: cdd5e990-46cf-4ad2-a17a-cdd48bde1fd4
+		sourceColumn: flag_terminal
+
+	column area
+		dataType: string
+		lineageTag: a47c427c-99d2-402a-b8a3-a7e2cb0d9827
+		sourceColumn: area
+
+	column tipo
+		dataType: string
+		lineageTag: 496b3f19-4f75-441d-b711-80698acb4e7a
+		sourceColumn: tipo
+
+	column complexidade
+		dataType: string
+		lineageTag: 1e811766-2900-47b4-a408-cbb51b259d8c
+		sourceColumn: complexidade
+
+	column tipo_resposta
+		dataType: string
+		lineageTag: 704ac09e-1ad4-4288-8814-6e11952f82ca
+		sourceColumn: tipo_resposta
+
+	column qtd_pesquisas_no_status
+		dataType: int64
+		isNullable: false
+		lineageTag: 62888c8b-7c84-4e80-80e7-405c6a3af652
+		sourceColumn: qtd_pesquisas_no_status
+
+	column qtd_entradas_no_mes
+		dataType: int64
+		lineageTag: f6187970-185a-468f-bdc0-781bae1f9d98
+		sourceColumn: qtd_entradas_no_mes
+
+	column qtd_saidas_no_mes
+		dataType: int64
+		lineageTag: 3b64cbe3-d376-4da8-9791-7cf82edcffba
+		sourceColumn: qtd_saidas_no_mes
+
+	column estado_fluxos
+		dataType: string
+		lineageTag: 722a2b98-018d-47ce-b952-5a4ea56c90bb
+		sourceColumn: estado_fluxos
+
+	column fechado_em
+		dataType: dateTime
+		isNullable: false
+		lineageTag: 9dc4ab15-c6d2-4527-87ec-34187fa302f3
+		sourceColumn: fechado_em
+
+	column execucao_id
+		dataType: string
+		lineageTag: 74668c06-ecc4-4dde-94ec-25fbfd070296
+		sourceColumn: execucao_id
+
+	column versao_regra
+		dataType: string
+		lineageTag: 3af43410-d49e-462b-93b4-24f0a1733d29
+		sourceColumn: versao_regra
+
+	partition D04_PipelineMensal = m
+		mode: import
+		source =
+				let
+				    Fonte = Csv.Document(File.Contents("C:\\Users\\Inteli\\Documents\\projetos_inteli\\g05\\data\\powerbi_gold_simulada\\vw_pipeline_mensal.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Cabecalhos, {{"data_fim_mes", type date}, {"ano", Int64.Type}, {"mes", Int64.Type}, {"flag_em_aberto", type logical}, {"flag_conta_como_a_finalizar", type logical}, {"flag_terminal", type logical}, {"qtd_pesquisas_no_status", Int64.Type}, {"qtd_entradas_no_mes", Int64.Type}, {"qtd_saidas_no_mes", Int64.Type}, {"fechado_em", type datetime}})
+				in
+				    Tipos
+

@@ -33,6 +33,21 @@ O repositório **não tem** `pyproject.toml`, `setup.py` nem `setup.cfg`. O paco
 é resolvido por `PYTHONPATH=src`, definido no `Dockerfile`, no job de CI e nos
 comandos de teste.
 
+### Fonte canônica e política de versões
+
+| Categoria | Fonte canônica | Política observada | Reprodutibilidade |
+| :--- | :--- | :--- | :--- |
+| Runtime Python | `Dockerfile` e `.gitlab-ci.yml` | imagem `python:3.12-slim` | Versão menor fixa; digest da imagem não fixado |
+| Bibliotecas de execução | `requirements.txt` | faixas compatíveis | Não produz ambiente idêntico sem lock |
+| Ferramentas de qualidade | `requirements-transformation-dev.txt` | `coverage==7.16.0`, `ruff==0.16.6` | Versões exatas |
+| Serviços MinIO | `docker-compose.yml` | tags `latest` | Não reprodutível por versão |
+
+O card OQ-09 é responsável por fixar as dependências de execução. Enquanto essa
+alteração não estiver integrada, esta visão registra as faixas e tags reais em
+vez de declarar versões exatas inexistentes. Depois da integração, a tabela
+deve ser conferida diretamente contra os arquivos, sem duplicar um lock manual
+neste documento.
+
 ## Protocolos
 
 | Protocolo | Uso | Onde |
@@ -42,6 +57,25 @@ comandos de teste.
 | SQL | Consulta e escrita no banco de ingestão | [`ddl.py`](../src/etl/load/ddl.py), [`duckdb_repository.py`](../src/etl/load/duckdb_repository.py) |
 | Webhook HTTP | Notificação `s3:ObjectCreated` do MinIO ao adaptador | **Planejado** (ADR 0001) |
 | Cron | Agendamento do deployment | `scripts/orchestration/deployment.py` |
+
+### Padrão de observabilidade ratificado
+
+O padrão separa produção de sinais, transporte e consumo. Eventos de extração,
+carga e orquestração usam logging estruturado com correlação; métricas e traces
+devem preservar `run_id`, `task_id`, `batch_id` e `source` sem incluir registros
+de negócio ou segredos.
+
+| Camada | Tecnologia/contrato | Situação verificável |
+| :--- | :--- | :--- |
+| Produção | `logging` Python, `ExtractionBatchLogEvent`, `LoadBatchLogEvent`, estados Prefect | Implementada |
+| Serialização | JSON com campos técnicos e contagens | Implementada para eventos de lote |
+| Transporte | saída do processo para coletor compatível | Não configurado em `docker-compose.yml` |
+| Armazenamento | Elasticsearch | Decidido, não integrado |
+| Consulta e painel | Kibana | Decidido, não integrado |
+| Alertas | regra sobre falha, retry esgotado e health check | Não versionada na base auditada |
+
+Assim, “padrão ratificado” significa contrato tecnológico escolhido e emissão
+local existente; não significa que Elastic Stack esteja executando em produção.
 
 ## Formatos
 
@@ -85,6 +119,20 @@ de 85% — extração, carga e orquestração incluídas.
 
 **Não há Deploy Contínuo.** Nenhum job publica imagem, aplica migração ou promove
 versão, em conformidade com a exclusão do enunciado.
+
+### Artefatos tecnológicos verificáveis
+
+| Artefato | Produtor | Consumidor | Retenção/publicação |
+| :--- | :--- | :--- | :--- |
+| `coverage-etl.xml` | job `test` | relatório de cobertura do GitLab | artefato do pipeline |
+| DDL de ingestão | `scripts/load/render_ddl.py` | DuckDB e revisão de schema | versionado em `sql/duckdb/` |
+| Logs JSON de lote | sinks padrão do ETL | stdout e futuro coletor | sem retenção central configurada |
+| Histórico de flow runs | Prefect servido | operador pela UI/CLI | depende da persistência do servidor |
+| Imagens Docker | build local/CI | runner ETL | não publicadas por este pipeline |
+
+O gate automatiza lint, testes, schema e cobertura. Ele não valida preço de
+infraestrutura, disponibilidade do servidor, retenção de logs nem promoção para
+produção; esses limites pertencem ao runbook e à estimativa de custos.
 
 ## Divergências observadas
 

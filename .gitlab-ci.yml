@@ -34,6 +34,7 @@ test:
     - if: '$CI_COMMIT_BRANCH'
   script:
     - pip install -r requirements.txt -r requirements-transformation-dev.txt
+    - python scripts/architecture/validate_architecture_docs.py
     - python scripts/transformation/render_schema.py --check
     # Passada única: cobertura + JUnit juntos. Se um teste falhar, os XMLs
     # dos demais já foram gerados e o job falha (bloqueio mantido).

@@ -21,6 +21,13 @@
 | [`testes-extracao.md`](testes-extracao.md) | Suíte unitária e de contrato dos seis extratores |
 | [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Inventário técnico das seis fontes do ETL: formato, grão, chaves, volumes, integridade, acesso e disponibilidade |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
+| [`usabilidade/`](usabilidade/) | Plano de usabilidade dos dashboards: perfis e critérios, tarefas de navegação, detalhamento e comparação, roteiro de execução e limitações |
+| [`solucao-dashboards/`](solucao-dashboards/) | Documento da solução de dashboards: implementação a partir dos cubos, plano/execução/avaliação de qualidade e checklist contra os critérios |
+
+O levantamento e o mapa da estrutura dos dashboards estão em
+[`solucao-dashboards/estrutura-dashboards.md`](solucao-dashboards/estrutura-dashboards.md).
+O mesmo documento também apresenta o mapa de medidas, dimensões, filtros e
+cubos de origem de cada visual.
 
 O conteúdo essencial permanece em `projeto.md`. O documento de governança é o
 artefato específico da Sprint 2 e detalha suas políticas sem transformar
@@ -43,6 +50,24 @@ documento principal.
 - [Repositório de carga](repositorio-de-carga.md): escrita em lote no DuckDB, contagens confirmadas pelo banco, serialização de escrita e convergência do lote reexecutado.
 - [Compensação e retomada de execuções com falha parcial](compensacao-e-retomada-de-carga.md): o que uma falha entre lotes deixa registrado e a partir de que ponto a tentativa seguinte retoma.
 - [Runbook de execução do ETL](runbook-execucao.md): pré-requisitos, variáveis de ambiente, ambiente Docker, execução do pipeline, testes, CI e troubleshooting.
+
+## Camada analítica — Sprint 4
+
+- [Decisão de consumo dos cubos no BI](decisao-consumo-cubos.md): comparação dos caminhos de acesso, escolha dos agregados Parquet e requisitos por máquina.
+
+## Modelo semântico e medidas — Sprint 4 (Anna)
+
+- [Indicadores publicáveis, bloqueados e motivo](indicadores-publicaveis-bi.md): reclassifica o catálogo I01–I25 de `dmc.md` contra o que realmente chega ao Power BI (DX-01).
+- [Especificação das medidas](especificacao-medidas-bi.md): numerador, denominador, grão e tratamento de nulo e duplicata de cada medida (DX-02).
+- [Regras estatísticas obrigatórias](regras-estatisticas-medidas.md): mediana vs. média, filtro de denominador, tamanho da base e proibição de contar linha como respondente (DX-03).
+- [Validação de acesso ponta a ponta ao BI](validacao-acesso-bi.md): checklist de conexão em máquina nova e gap-check indicador × coluna publicada (DX-04).
+- [Relacionamentos do modelo semântico](relacionamentos-modelo-bi.md): dimensões conformadas, cardinalidade e direção de filtro do projeto `powerbi/CentralPesquisasBI` (DX-05).
+- [Hierarquias do modelo semântico](hierarquias-modelo-bi.md): hierarquia de tempo (Ano-Trimestre-Mês) e de área, tipo e perfil, e como conferir o total por nível (DX-06).
+- [Medidas de portfólio, ciclo e prorrogação](medidas-portfolio-ciclo.md): medidas de `PUB_C01_CICLO`, regra aplicada e conferência contra a apuração de referência (DX-07).
+- [Medidas de participação e representatividade](medidas-participacao.md): medidas de `PUB_C02_PARTICIPACAO` e por que representatividade segue sem dado (DX-08).
+- [Medidas de questionários e qualidade do dado](medidas-questionarios-qualidade.md): medida de `PUB_C04_INSTRUMENTO` e as três publicações novas de qualidade (I16-I18) em `publish.py` (DX-09).
+- [Sinalização dos indicadores sem dado](sinalizacao-indicadores-bloqueados.md): medida de texto vs. `DIVIDE`/`BLANK()`, catálogo `DIM_INDICADORES_BLOQUEADOS` e como verificar que nada aparece como zero (DX-10).
+- [Conferência das medidas contra a apuração de referência](conferencia-medidas-dx11.md): script de conferência automatizada, checklist manual para as demais medidas e como tratar divergência de snapshot (DX-11).
 
 ## Arquitetura, decisões e UML — Sprint 3 (Anna)
 

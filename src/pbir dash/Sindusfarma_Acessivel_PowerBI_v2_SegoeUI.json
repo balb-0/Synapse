@@ -1,0 +1,46 @@
+{
+  "name": "Sindusfarma | Acessível | Segoe UI",
+  "dataColors": [
+    "#0072BC",
+    "#FF8F1C",
+    "#00554B",
+    "#440099",
+    "#00B9F2",
+    "#FFC56E",
+    "#AD96DC",
+    "#00F0B4",
+    "#002D78"
+  ],
+  "background": "#FFFFFF",
+  "foreground": "#1D2939",
+  "tableAccent": "#0072BC",
+  "good": "#00554B",
+  "neutral": "#FFC56E",
+  "bad": "#FF8F1C",
+  "maximum": "#002D78",
+  "center": "#00B9F2",
+  "minimum": "#EAF4FB",
+  "null": "#D9E2EC",
+  "textClasses": {
+    "callout": {
+      "fontSize": 28,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#002D78"
+    },
+    "title": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#002D78"
+    },
+    "header": {
+      "fontSize": 11,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#002D78"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#1D2939"
+    }
+  }
+}

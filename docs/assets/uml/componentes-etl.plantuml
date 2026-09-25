@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 
 skinparam shadowing false
 skinparam nodesep 30
@@ -32,7 +33,7 @@ component "Adaptador de eventos" as ADAPTER <<planejado>>
 node "Prefect" as PREFECT {
   component "Flow ingest-object" as FLOWINGEST
   component "Flow backfill" as FLOWBACKFILL
-  component "Deployment agendado" as DEPLOYMENT
+  component "Deployment servido\nagendado" as DEPLOYMENT
 }
 
 node "Plano de dados em Python" as PYTHON {
@@ -44,7 +45,8 @@ node "Plano de dados em Python" as PYTHON {
   component "Consistência\n(etl.transformation.consistency)" as REFERENCES
   component "Repositório de carga\n(etl.load.duckdb_repository)" as REPOSITORY
   component "Contrato físico\n(etl.load.ddl)" as DDL
-  component "Log estruturado\n(etl.extraction.log_events)" as LOGEVENTS
+  component "Log da extração\n(etl.extraction.log_events)" as LOGEVENTS
+  component "Log da carga\n(etl.load.log_events)" as LOADLOGS
 }
 
 database "DuckDB" as DUCKDB {
@@ -65,11 +67,13 @@ interface "Extractor" as IEXTRACTOR
 interface "CheckpointStore" as ICHECKPOINT
 interface "MetadataSink" as ISINK
 interface "ExtractionLogSink" as ILOGSINK
+interface "LoadLogSink" as ILOADLOGSINK
 
 READER -up- IREADER
 EXTRACTORS -up- IEXTRACTOR
 REPOSITORY -up- ICHECKPOINT
 LOGEVENTS -up- ILOGSINK
+LOADLOGS -up- ILOADLOGSINK
 ISINK .. REPOSITORY : não implementado
 
 PUB --> S3PORT : publica objeto
@@ -93,6 +97,7 @@ EXTRACTORS --> TRANSFORM : ExtractedBatch
 REFERENCES --> TRANSFORM : ReferenceData
 TRANSFORM --> REPOSITORY : TransformationResult
 REPOSITORY --> DDL : statements()
+REPOSITORY --> LOADLOGS : LoadBatchLogEvent
 REPOSITORY --> TABLES
 REPOSITORY --> REJECTED
 REPOSITORY --> CONTROL
@@ -100,6 +105,7 @@ CONTROL --> VIEWS
 EXTRACTORS ..> BRONZE : representação intermediária
 
 LOGEVENTS ..> LOGSTASH : log JSON
+LOADLOGS ..> LOGSTASH : log JSON
 FLOWINGEST ..> LOGSTASH : log JSON
 LOGSTASH ..> ES
 ES ..> KIBANA
@@ -113,6 +119,12 @@ note bottom of ELASTIC
   Decidida no ADR 0001.
   Código nas branches OV-05 a OV-08,
   não integradas ao develop.
+end note
+
+note right of DEPLOYMENT
+  scripts/orchestration/deployment.py
+  serve ingest-object com cron 0 3 * * *.
+  Inicialização feita pelo operador.
 end note
 
 note right of REFERENCES

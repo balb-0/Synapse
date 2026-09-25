@@ -1,0 +1,55 @@
+table DIM_INDICADORES_BLOQUEADOS
+
+	measure 'Qtd Indicadores Sem Dado' = COUNTROWS(FILTER(DIM_INDICADORES_BLOQUEADOS, DIM_INDICADORES_BLOQUEADOS[status] = "Sem dado"))
+		formatString: #,0
+
+	column indicador
+		dataType: string
+		summarizeBy: none
+		sourceColumn: indicador
+
+	column medida
+		dataType: string
+		summarizeBy: none
+		sourceColumn: medida
+
+	column status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: status
+
+	column motivo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: motivo
+
+	partition DIM_INDICADORES_BLOQUEADOS = calculated
+		mode: import
+		source = ```
+				DATATABLE(
+					"indicador", STRING,
+					"medida", STRING,
+					"status", STRING,
+					"motivo", STRING,
+					{
+						{"I03", "Cobertura dos marcos", "Parcial", "So cobre os quatro pares de datas usados nas duracoes (validacao, coleta, tabulacao, ciclo total); cobertura de um marco isolado nao e publicada."},
+						{"I05", "Taxa de Prorrogacao", "Sem dado", "flag_prorrogada existe no fato fisico mas nao foi incluida na consulta de PUB_C01_CICLO; precisa de uma nova coluna publicada."},
+						{"I06", "Pesquisas atrasadas ou prioritarias", "Sem dado", "Falta data de referencia e regra aprovadas, mesmo motivo da camada de dados."},
+						{"I07", "Empresas participantes distintas por pesquisa", "Sem dado", "PUB_C02_PARTICIPACAO agrega por area/tipo/mes e so expoe qtd_participacoes; a contagem distinta de empresa por pesquisa nao sobrevive a agregacao."},
+						{"I08", "Taxa de adesao", "Sem dado", "Falta universo de convites, mesmo motivo da camada de dados."},
+						{"I09", "Representatividade / participacao de mercado", "Sem dado", "pct_mercado_na_participacao nao e publicada; mesmo se fosse, a fonte segue nao homologada (docs/dmc.md, DR02)."},
+						{"I10", "Engajamento por publico", "Sem dado", "Participacao e cliente conciliado exigem reconciliacao, que nao e publicada."},
+						{"I11", "Taxa de engajamento", "Sem dado", "Falta denominador de convidados por publico, mesmo motivo da camada de dados."},
+						{"I12", "Distribuicao agregada de respostas", "Sem dado", "Nenhum dos quatro cubos publica distribuicao de respostas."},
+						{"I13", "Respondentes distintos na fonte de respostas", "Sem dado", "Nao publicado; qtd_participacoes conta ocorrencia, nao pessoa."},
+						{"I15", "Estado de validacao e versao", "Sem dado", "Falta versao, area revisora, decisao e timestamp, mesmo motivo da camada de dados."},
+						{"I19", "Parseabilidade", "Sem dado", "Nao publicado nesta rodada; exigiria testar conversao de tipo por campo."},
+						{"I20", "Divergencia de titulo", "Sem dado", "Nao publicado nesta rodada; sem consulta equivalente em publish.py."},
+						{"I21", "Frescor da fonte", "Sem dado", "Falta timestamp de carga e regra aprovada, mesmo motivo da camada de dados."},
+						{"I22", "Cobertura da linhagem", "Sem dado", "Exige mapeamento nao publicado, mesmo motivo da camada de dados."},
+						{"I23", "Estado de publicacao autorizada", "Sem dado", "Falta decisao, estado e data de publicacao, mesmo motivo da camada de dados."},
+						{"I24", "Cobertura do processamento", "Sem dado", "Falta catalogo e execucoes, mesmo motivo da camada de dados."},
+						{"I25", "Conformidade de acesso", "Sem dado", "Falta politica e logs, mesmo motivo da camada de dados."}
+					}
+				)
+				```
