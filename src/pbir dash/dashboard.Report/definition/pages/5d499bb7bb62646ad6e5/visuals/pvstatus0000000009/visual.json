@@ -266,7 +266,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Pesquisas por status'"
+                  "Value": "'Pesquisas por Status'"
                 }
               }
             },

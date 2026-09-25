@@ -266,7 +266,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Volume por área'"
+                  "Value": "'Volume por Área'"
                 }
               }
             },

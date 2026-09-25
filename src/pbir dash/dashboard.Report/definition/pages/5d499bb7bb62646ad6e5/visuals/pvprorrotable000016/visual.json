@@ -58,10 +58,10 @@
                     "Entity": "D01_CicloPesquisa"
                   }
                 },
-                "Property": "dias_ciclo_total_corridos"
+                "Property": "area"
               }
             },
-            "direction": "Descending"
+            "direction": "Ascending"
           }
         ]
       }
@@ -240,7 +240,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Pesquisas prorrogadas'"
+                  "Value": "'Pesquisas Prorrogadas'"
                 }
               }
             },
