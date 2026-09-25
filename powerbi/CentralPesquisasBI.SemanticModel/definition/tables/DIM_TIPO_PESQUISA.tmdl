@@ -1,0 +1,21 @@
+table DIM_TIPO_PESQUISA
+
+	column tipo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tipo
+
+	partition DIM_TIPO_PESQUISA = calculated
+		mode: import
+		source = ```
+				SELECTCOLUMNS(
+					DISTINCT(
+						UNION(
+							ALLNOBLANKROW(PUB_C01_CICLO[tipo]),
+							ALLNOBLANKROW(PUB_C02_PARTICIPACAO[tipo]),
+							ALLNOBLANKROW(PUB_C03_PIPELINE_MENSAL[tipo])
+						)
+					),
+					"tipo", [tipo]
+				)
+				```

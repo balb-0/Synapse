@@ -1,4 +1,4 @@
-"""Publica recortes agregados dos quatro cubos em Parquet.
+"""Publica recortes agregados dos quatro cubos e da qualidade do dado em Parquet.
 
 O arquivo DuckDB de origem nunca é distribuído. Cada execução grava uma geração
 imutável; ``current.json`` aponta para a geração completa após a validação.
@@ -69,6 +69,151 @@ PUBLICATIONS = {
          GROUP BY a.area, pergunta.tipo
     """,
 }
+
+COLUNAS_QUALIDADE = {
+    "pesquisas": [
+        "pesquisa_id",
+        "titulo",
+        "status",
+        "tipo",
+        "area",
+        "participantes",
+        "part_mercado",
+        "data_solicitacao",
+        "data_aprov",
+        "data_divulgacao",
+        "data_limite",
+        "prorrogada_ate",
+        "data_entrega",
+        "dias_uteis_para_entrega",
+        "complexidade",
+        "tipo_resposta",
+        "tempo_preenchimento",
+        "objetivos",
+        "dia_semana_lancamento",
+        "dias_uteis_aberta",
+        "dias_solicitacao_divulgacao",
+        "dias_tabulacao",
+    ],
+    "empresas": [
+        "empresa_id",
+        "nome_fantasia",
+        "part_mercado",
+        "nacionalidade",
+        "associado",
+        "tipo_associado",
+        "cidade",
+        "estado",
+        "pais",
+    ],
+    "clientes": ["cliente_id", "empresa_id", "cargo", "departamento", "email"],
+    "respondentes": [
+        "pesquisa_id",
+        "hora_inicio",
+        "hora_termino",
+        "empresa_id",
+        "market_share",
+        "cliente_id",
+    ],
+    "questoes": [
+        "pergunta_id",
+        "pesquisa_id",
+        "pesquisa_titulo",
+        "enunciado",
+        "tipo",
+        "qtd_alternativas",
+        "alternativas",
+        "linhas_matriz",
+        "colunas_matriz",
+        "confianca",
+        "formato_arquivo",
+        "col_origem",
+        "observacoes",
+    ],
+    "respostas": [
+        "resposta_id",
+        "pesquisa_id",
+        "pergunta_id",
+        "respondent_id",
+        "empresa_id",
+        "alternativa",
+        "linha_matriz",
+        "coluna_matriz",
+        "valor",
+    ],
+}
+
+RELACOES_QUALIDADE = [
+    ("questoes", "pesquisa_id", "pesquisas", "pesquisa_id"),
+    ("respostas", "pesquisa_id", "pesquisas", "pesquisa_id"),
+    ("respostas", "pergunta_id", "questoes", "pergunta_id"),
+    ("respostas", "empresa_id", "empresas", "empresa_id"),
+    ("respondentes", "pesquisa_id", "pesquisas", "pesquisa_id"),
+    ("respondentes", "empresa_id", "empresas", "empresa_id"),
+    ("respondentes", "cliente_id", "clientes", "cliente_id"),
+    ("clientes", "empresa_id", "empresas", "empresa_id"),
+]
+
+CHAVES_QUALIDADE = {
+    "pesquisas": ("pesquisa_id",),
+    "empresas": ("empresa_id",),
+    "clientes": ("cliente_id",),
+    "questoes": ("pesquisa_id", "pergunta_id"),
+    "respostas": ("pesquisa_id", "resposta_id"),
+}
+
+
+def _view_atual(fonte: str) -> str:
+    if fonte == "respondentes":
+        return "ingestao_respondentes"
+    return f"ingestao_{fonte}_atual"
+
+
+def _sql_qualidade_campo() -> str:
+    partes = [
+        f"""SELECT '{fonte}' AS tabela, '{coluna}' AS campo,
+               COUNT(*)::BIGINT AS qtd_linhas,
+               COUNT({coluna})::BIGINT AS qtd_preenchidas
+          FROM {_view_atual(fonte)}"""
+        for fonte, colunas in COLUNAS_QUALIDADE.items()
+        for coluna in colunas
+    ]
+    return "\n         UNION ALL\n".join(partes)
+
+
+def _sql_qualidade_relacao() -> str:
+    partes = [
+        f"""SELECT '{filha}.{col_filha}' AS relacao,
+               COUNT(*)::BIGINT AS qtd_chaves_informadas,
+               COUNT(p.{col_pai})::BIGINT AS qtd_chaves_correspondentes
+          FROM {_view_atual(filha)} f
+          LEFT JOIN {_view_atual(pai)} p ON p.{col_pai} = f.{col_filha}
+         WHERE f.{col_filha} IS NOT NULL"""
+        for filha, col_filha, pai, col_pai in RELACOES_QUALIDADE
+    ]
+    return "\n         UNION ALL\n".join(partes)
+
+
+def _sql_qualidade_duplicidade() -> str:
+    partes = [
+        f"""SELECT '{fonte}' AS tabela,
+               COUNT(*)::BIGINT AS qtd_linhas,
+               (SELECT COUNT(*) FROM (
+                    SELECT DISTINCT {", ".join(chaves)} FROM ingestao_{fonte}
+                ))::BIGINT AS qtd_chaves_distintas
+          FROM ingestao_{fonte}"""
+        for fonte, chaves in CHAVES_QUALIDADE.items()
+    ]
+    return "\n         UNION ALL\n".join(partes)
+
+
+PUBLICATIONS.update(
+    {
+        "PUB_QUALIDADE_CAMPO": _sql_qualidade_campo(),
+        "PUB_QUALIDADE_RELACAO": _sql_qualidade_relacao(),
+        "PUB_QUALIDADE_DUPLICIDADE": _sql_qualidade_duplicidade(),
+    }
+)
 
 
 def _sql_literal(value: Path) -> str:

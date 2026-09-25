@@ -1,0 +1,20 @@
+table DIM_STATUS_PESQUISA
+
+	column status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: status
+
+	partition DIM_STATUS_PESQUISA = calculated
+		mode: import
+		source = ```
+				SELECTCOLUMNS(
+					DISTINCT(
+						UNION(
+							ALLNOBLANKROW(PUB_C01_CICLO[status]),
+							ALLNOBLANKROW(PUB_C03_PIPELINE_MENSAL[status])
+						)
+					),
+					"status", [status]
+				)
+				```
