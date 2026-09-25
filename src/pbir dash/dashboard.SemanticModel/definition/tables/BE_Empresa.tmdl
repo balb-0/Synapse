@@ -1,0 +1,201 @@
+table BE_Empresa
+	lineageTag: 612acee9-f1b1-53fc-b108-7520473132cf
+
+	/// Contagem distinta existente, restrita às pesquisas selecionadas e a empresas identificadas.
+	measure 'BE Pesquisas por empresa' =
+			CALCULATE (
+			    [Pesquisas com Participação],
+			    KEEPFILTERS ( TREATAS ( VALUES ( BE_Pesquisa[ID Pesquisa] ), D02_Participacao[pesquisa_id_origem] ) ),
+			    KEEPFILTERS ( D02_Participacao[empresa_id_duravel] <> BLANK () ),
+			    KEEPFILTERS ( D02_Participacao[pesquisa_id_origem] <> BLANK () )
+			)
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: 707bda00-927c-5607-b5a4-06de3a446206
+
+	/// Sem seleção única retorna vazio. Com seleção válida sem registros retorna zero.
+	measure 'BE Pesquisas da empresa' =
+			IF (
+			    HASONEVALUE ( BE_Empresa[ID Empresa] ),
+			    COALESCE ( CALCULATE ( [BE Pesquisas por empresa],
+			        KEEPFILTERS ( TREATAS ( VALUES ( BE_Empresa[ID Empresa] ), D02_Participacao[empresa_id_duravel] ) ) ), 0 )
+			)
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: 2a423c86-95a1-59b1-826e-91fbe46207f0
+
+	/// Todas as empresas identificadas com registro no recorte, incluindo a selecionada quando observada.
+	measure 'BE Empresas observadas' =
+			COALESCE ( CALCULATE (
+			    DISTINCTCOUNTNOBLANK ( D02_Participacao[empresa_id_duravel] ),
+			    REMOVEFILTERS ( D02_Participacao[empresa_id_duravel], D02_Participacao[empresa] ),
+			    KEEPFILTERS ( TREATAS ( VALUES ( BE_Pesquisa[ID Pesquisa] ), D02_Participacao[pesquisa_id_origem] ) )
+			), 0 )
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: d022fe88-5b3d-59e0-affd-973790648107
+
+	/// Pesquisas do catálogo no recorte; inclui pesquisas sem participantes e não indica elegibilidade.
+	measure 'BE Pesquisas no recorte' = DISTINCTCOUNTNOBLANK ( BE_Pesquisa[ID Pesquisa] )
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: 1ebe51c4-db1c-516a-8da1-365eb9b6d1c3
+
+	/// Empresas distintas observadas, excluindo a selecionada. Vazio sem seleção única ou registros.
+	measure 'BE Demais empresas' =
+			VAR Selecionada = SELECTEDVALUE ( BE_Empresa[ID Empresa] )
+			RETURN IF ( HASONEVALUE ( BE_Empresa[ID Empresa] ),
+			    CALCULATE ( DISTINCTCOUNTNOBLANK ( D02_Participacao[empresa_id_duravel] ),
+			        REMOVEFILTERS ( D02_Participacao[empresa] ),
+			        FILTER ( ALL ( D02_Participacao[empresa_id_duravel] ),
+			            NOT ISBLANK ( D02_Participacao[empresa_id_duravel] ) && D02_Participacao[empresa_id_duravel] <> Selecionada ),
+			        KEEPFILTERS ( TREATAS ( VALUES ( BE_Pesquisa[ID Pesquisa] ), D02_Participacao[pesquisa_id_origem] ) ) )
+			)
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: de0a59b6-98fa-5882-8426-457e77ae8ed2
+
+	/// Demais empresas distintas no recorte dos slicers. Remove somente a linha da pesquisa do visual.
+	measure 'BE Denominador observado' = CALCULATE ( [BE Demais empresas], ALLSELECTED ( BE_Pesquisa ) )
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: 000eff2a-f370-5318-b92f-0d3ec545fa43
+
+	/// Demais empresas na pesquisa dividido pelas demais empresas em todas as pesquisas do recorte. Denominador zero retorna vazio.
+	measure 'BE Percentual observado' = DIVIDE ( [BE Demais empresas], [BE Denominador observado] )
+		formatString: 0.0%
+		displayFolder: Benchmark observado
+		lineageTag: 70cf0ec4-b5b5-597a-b840-648ab77fed36
+
+	/// Sim/Não indica exclusivamente a existência de registro da empresa na pesquisa.
+	measure 'BE Empresa participou' =
+			IF ( HASONEVALUE ( BE_Empresa[ID Empresa] ),
+			    IF ( [BE Pesquisas da empresa] > 0, "Sim", "Não" ), "Selecione uma empresa" )
+		displayFolder: Benchmark observado
+		lineageTag: 02a98c67-fa39-5426-bd86-31d99bd55771
+
+	/// Retém somente pesquisas com registro de outras empresas e nenhum da selecionada.
+	measure 'BE Empresas sem registro selecionado' =
+			IF ( HASONEVALUE ( BE_Empresa[ID Empresa] ) && [BE Pesquisas da empresa] = 0 && [BE Demais empresas] > 0,
+			    [BE Demais empresas] )
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: e93d54b3-ba1b-586e-b337-5290660cbd68
+
+	/// Percentual observado somente para pesquisas sem registro da selecionada.
+	measure 'BE Percentual sem registro' = IF ( NOT ISBLANK ( [BE Empresas sem registro selecionado] ), [BE Percentual observado] )
+		formatString: 0.0%
+		displayFolder: Benchmark observado
+		lineageTag: a5f63d09-fdf1-5905-9ab3-8f5b54a67516
+
+	/// Ano da divulgação; pesquisas sem essa data são excluídas apenas da evolução temporal.
+	measure 'BE Pesquisas por ano' = IF ( NOT ISBLANK ( SELECTEDVALUE ( BE_Pesquisa[Ano] ) ), [BE Pesquisas da empresa] )
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: 69242342-4663-5688-87e6-45af9f33922b
+
+	/// Histograma de empresas observadas por número de pesquisas distintas, excluindo a empresa selecionada.
+	measure 'BE Empresas por faixa' =
+			VAR Minimo = SELECTEDVALUE ( BE_Faixa[Minimo] )
+			VAR Maximo = SELECTEDVALUE ( BE_Faixa[Maximo] )
+			VAR Selecionada = SELECTEDVALUE ( BE_Empresa[ID Empresa] )
+			VAR Empresas = CALCULATETABLE ( VALUES ( D02_Participacao[empresa_id_duravel] ),
+			    REMOVEFILTERS ( D02_Participacao[empresa_id_duravel], D02_Participacao[empresa] ),
+			    KEEPFILTERS ( TREATAS ( VALUES ( BE_Pesquisa[ID Pesquisa] ), D02_Participacao[pesquisa_id_origem] ) ) )
+			RETURN IF ( HASONEVALUE ( BE_Empresa[ID Empresa] ),
+			    COALESCE ( COUNTROWS ( FILTER ( Empresas,
+			        VAR Quantidade = CALCULATE ( [BE Pesquisas por empresa] )
+			        RETURN NOT ISBLANK ( D02_Participacao[empresa_id_duravel] ) && D02_Participacao[empresa_id_duravel] <> Selecionada
+			            && Quantidade >= Minimo && ( ISBLANK ( Maximo ) || Quantidade <= Maximo ) ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: eb82b905-4d39-5c3e-bcdd-4d04216b7129
+
+	/// Marca a empresa selecionada na sua faixa, sem atribuir posição ou percentil.
+	measure 'BE Selecionada por faixa' =
+			VAR Quantidade = [BE Pesquisas da empresa]
+			VAR Minimo = SELECTEDVALUE ( BE_Faixa[Minimo] )
+			VAR Maximo = SELECTEDVALUE ( BE_Faixa[Maximo] )
+			RETURN IF ( HASONEVALUE ( BE_Empresa[ID Empresa] ) && Quantidade >= Minimo
+			    && ( ISBLANK ( Maximo ) || Quantidade <= Maximo ), 1 )
+		formatString: #,0
+		displayFolder: Benchmark observado
+		lineageTag: ee4e2ee4-97be-59fb-a9dd-3b055a37fcd2
+
+	/// Identificação textual da empresa e de sua contagem; não depende de cor.
+	measure 'BE Contexto da empresa' =
+			IF ( HASONEVALUE ( BE_Empresa[ID Empresa] ),
+			    SELECTEDVALUE ( BE_Empresa[Empresa] ) & " · " & FORMAT ( [BE Pesquisas da empresa], "0" ) & " pesquisas",
+			    "Selecione uma empresa no filtro lateral" )
+		displayFolder: Benchmark observado
+		lineageTag: f5b697df-cf0d-58ec-8bb8-1dac153d7795
+
+	/// Medida de suporte visual para a comparação observada; preserva o mesmo recorte e grão.
+	measure 'BE Média demais por ano' =
+			VAR Selecionada = SELECTEDVALUE ( BE_Empresa[ID Empresa] )
+			VAR Empresas = CALCULATETABLE ( VALUES ( D02_Participacao[empresa_id_duravel] ),
+			    REMOVEFILTERS ( D02_Participacao[empresa_id_duravel], D02_Participacao[empresa] ),
+			    KEEPFILTERS ( TREATAS ( VALUES ( BE_Pesquisa[ID Pesquisa] ), D02_Participacao[pesquisa_id_origem] ) ) )
+			RETURN IF ( HASONEVALUE ( BE_Empresa[ID Empresa] ),
+			    AVERAGEX ( FILTER ( Empresas, D02_Participacao[empresa_id_duravel] <> Selecionada ), CALCULATE ( [BE Pesquisas por empresa] ) ) )
+		formatString: #,0.0
+		displayFolder: Benchmark observado
+		lineageTag: b508107b-be2c-5d51-849c-061d86953c8b
+
+	/// Medida de suporte visual para a comparação observada; preserva o mesmo recorte e grão.
+	measure 'BE % empresa por área' =
+			VAR AreasDoRecorte = CALCULATETABLE ( VALUES ( BE_Pesquisa[Área] ), ALLSELECTED ( BE_Pesquisa[Área] ) )
+			VAR TotalDaEmpresa = CALCULATE ( [BE Pesquisas da empresa], REMOVEFILTERS ( BE_Pesquisa[Área] ), KEEPFILTERS ( AreasDoRecorte ) )
+			RETURN DIVIDE ( [BE Pesquisas da empresa], TotalDaEmpresa )
+		formatString: 0.0%
+		displayFolder: Benchmark observado
+		lineageTag: 7993ca6a-c78b-5a77-92a8-39377e25ff72
+
+	/// Medida de suporte visual para a comparação observada; preserva o mesmo recorte e grão.
+	measure 'BE % demais por área' =
+			VAR Selecionada = SELECTEDVALUE ( BE_Empresa[ID Empresa] )
+			VAR AreasDoRecorte = CALCULATETABLE ( VALUES ( BE_Pesquisa[Área] ), ALLSELECTED ( BE_Pesquisa[Área] ) )
+			VAR Empresas = CALCULATETABLE ( VALUES ( D02_Participacao[empresa_id_duravel] ),
+			    REMOVEFILTERS ( D02_Participacao[empresa_id_duravel], D02_Participacao[empresa] ),
+			    KEEPFILTERS ( TREATAS ( VALUES ( BE_Pesquisa[ID Pesquisa] ), D02_Participacao[pesquisa_id_origem] ) ) )
+			RETURN IF ( HASONEVALUE ( BE_Empresa[ID Empresa] ),
+			    AVERAGEX ( FILTER ( Empresas, D02_Participacao[empresa_id_duravel] <> Selecionada ),
+			        VAR Numerador = CALCULATE ( [BE Pesquisas por empresa] )
+			        VAR Denominador = CALCULATE ( [BE Pesquisas por empresa], REMOVEFILTERS ( BE_Pesquisa[Área] ), KEEPFILTERS ( AreasDoRecorte ) )
+			        RETURN DIVIDE ( Numerador, Denominador ) ) )
+		formatString: 0.0%
+		displayFolder: Benchmark observado
+		lineageTag: a2d27d52-398c-5204-a871-903fa6aee5fb
+
+	/// Limita o gráfico principal às oito pesquisas mais presentes, evitando rolagem sem alterar a métrica base.
+	measure 'BE % observado Top 8' =
+			VAR Ordem = RANKX ( ALLSELECTED ( BE_Pesquisa[Pesquisa] ), [BE Percentual observado], , DESC, DENSE )
+			RETURN IF ( Ordem <= 8, [BE Percentual observado] )
+		formatString: 0.0%
+		displayFolder: Benchmark observado
+		lineageTag: 5b76b0a8-f5fc-5150-a1dd-4d2da01145aa
+
+	column 'ID Empresa'
+		dataType: string
+		lineageTag: e5fde121-f991-547d-880a-6fa5fbf335c3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [ID Empresa]
+
+	column Empresa
+		dataType: string
+		lineageTag: 370b57ba-b137-533e-9433-37b19860e4c5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Empresa]
+
+	partition BE_Empresa = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS (
+				    FILTER ( SUMMARIZE ( D02_Participacao, D02_Participacao[empresa_id_duravel], D02_Participacao[empresa] ),
+				        NOT ISBLANK ( D02_Participacao[empresa_id_duravel] ) ),
+				    "ID Empresa", D02_Participacao[empresa_id_duravel],
+				    "Empresa", COALESCE ( D02_Participacao[empresa], "Empresa sem nome" ) & " [" & D02_Participacao[empresa_id_duravel] & "]"
+				)
+
