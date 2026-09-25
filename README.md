@@ -139,7 +139,7 @@ Prefect, logs, consulta ao DuckDB, CI e troubleshooting — está em
     * ETL, testes e documentação de execução e rastreabilidade
 * 0.4.0 - Sprint 4 - 25/09/2026
     * Camada analítica, modelo semântico Power BI, dashboards e observabilidade
-* 0.5.0 - Sprint 5 - 09/10/2026 (previsão)
+* 0.5.0 - Sprint 5 - 07/10/2026
     * Em andamento; entregas ainda não registradas neste histórico
 
 ## 📋 Licença/License
