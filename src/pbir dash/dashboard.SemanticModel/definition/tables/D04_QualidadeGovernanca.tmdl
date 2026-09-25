@@ -1,0 +1,56 @@
+/// D04 — resultados e estados das regras de qualidade e governança; não é um quinto cubo.
+table D04_QualidadeGovernanca
+	lineageTag: a0d3ecdb-c0f6-4a1e-bd8b-fb0389fc13aa
+
+	column indicador_id
+		dataType: string
+		isNullable: false
+		lineageTag: 7b5cbbb3-61da-4d63-9a01-f1d31a6c5415
+		sourceColumn: indicador_id
+
+	column nome
+		dataType: string
+		lineageTag: 91c9bc78-70a8-4dfd-8450-41b545d7cad8
+		sourceColumn: nome
+
+	column numerador
+		dataType: int64
+		lineageTag: a2538c6d-8ae4-4448-9794-83910b81e751
+		sourceColumn: numerador
+
+	column denominador
+		dataType: int64
+		lineageTag: cbccda53-b841-4605-9de6-4b9e4a05155d
+		sourceColumn: denominador
+
+	column percentual
+		dataType: decimal
+		lineageTag: f277f42f-539b-42a8-bcda-09bc94f76066
+		sourceColumn: percentual
+
+	column status
+		dataType: string
+		lineageTag: 3ca98707-5f8b-4bbe-8e4b-a043f19761d7
+		sourceColumn: status
+
+	column motivo
+		dataType: string
+		lineageTag: 0744debc-34ec-45bb-a4da-8ff3e7aa28a3
+		sourceColumn: motivo
+
+	column calculado_em
+		dataType: dateTime
+		isNullable: false
+		lineageTag: 605f793b-ba34-4ece-8eb1-0474f2228ef9
+		sourceColumn: calculado_em
+
+	partition D04_QualidadeGovernanca = m
+		mode: import
+		source =
+				let
+				    Fonte = Csv.Document(File.Contents("C:\\Users\\Inteli\\Documents\\projetos_inteli\\g05\\data\\powerbi_gold_simulada\\vw_qualidade_governanca.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Cabecalhos, {{"numerador", Int64.Type}, {"denominador", Int64.Type}, {"percentual", type number}, {"calculado_em", type datetime}})
+				in
+				    Tipos
+
