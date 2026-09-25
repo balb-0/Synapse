@@ -1,8 +1,12 @@
+# Dependências de execução do ETL com versões fixadas (`==`, sem faixa
+# aberta). Ambiente novo instala as mesmas versões do CI. Medido em
+# 2026-09-24 no `.venv` que passa a suíte (234 testes): manter sincronizado
+# com o que o CI instala.
 # Cliente usado pelo adaptador de leitura dos objetos no MinIO.
-minio>=7.2,<8
+minio==7.2.20
 # Dependências HTTP usadas para configurar timeout sem retries internos ocultos.
-certifi>=2024
-urllib3>=2,<3
+certifi==2026.07.22
+urllib3==2.7.0
 # Orquestração (plano de controle) e banco de ingestão tratada (ADR 0001).
-prefect>=3,<4
-duckdb>=1.1
+prefect==3.8.5
+duckdb==1.5.5

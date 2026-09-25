@@ -1,0 +1,32 @@
+table PUB_QUALIDADE_RELACAO
+
+	measure 'Integridade Referencial' = DIVIDE(SUM(PUB_QUALIDADE_RELACAO[qtd_chaves_correspondentes]), SUM(PUB_QUALIDADE_RELACAO[qtd_chaves_informadas]))
+		formatString: 0.0%
+
+	measure 'Base Valida Integridade' = SUM(PUB_QUALIDADE_RELACAO[qtd_chaves_informadas])
+		formatString: #,0
+
+	column relacao
+		dataType: string
+		summarizeBy: none
+		sourceColumn: relacao
+
+	column qtd_chaves_informadas
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_chaves_informadas
+
+	column qtd_chaves_correspondentes
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_chaves_correspondentes
+
+	partition PUB_QUALIDADE_RELACAO = m
+		mode: import
+		source =
+				let
+					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_QUALIDADE_RELACAO.parquet"))
+				in
+					Origem

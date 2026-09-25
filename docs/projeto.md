@@ -290,9 +290,10 @@ aos insumos do projeto e identificados pelos hashes da §5.3.6. Eles somam cerca
 de 46 mil registros e representam pesquisa, empresa, pessoa/cliente,
 participação, questão e elemento de resposta. A proveniência e a natureza real
 ou sintética das linhas não podem ser confirmadas sem as fontes primárias; por
-isso, os arquivos permanecem fora do Git. O quadro abaixo resume a estrutura
-observada, e as “colunas úteis” desconsideram colunas vazias remanescentes da
-exportação.
+isso, os arquivos permanecem fora do Git. O quadro abaixo resume a estrutura observada nos arquivos recebidos, e as
+“colunas úteis” desconsideram colunas vazias remanescentes da exportação. Os
+quantitativos pertencem ao snapshot identificado na §5.3.6; não são garantia
+de volume para versões posteriores, incluindo a v3.
 
 <div align="center">
 <sub>Tabela — Inventário das bases disponibilizadas</sub><br>
@@ -678,14 +679,14 @@ estão em [`visao-computacional-etl.md`](visao-computacional-etl.md).
 
 ## 4.7 Diagramas UML e decisões arquiteturais
 
-| Artefato | Onde |
-| :--- | :--- |
-| Casos de uso | [`assets/uml/casos-de-uso-etl.plantuml`](assets/uml/casos-de-uso-etl.plantuml) |
-| Componentes | [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) |
-| Sequência da ingestão | [fonte PlantUML](assets/uml/sequencia-ingestao-etl.plantuml) e [renderização SVG](assets/uml/sequencia-ingestao-etl.svg) |
-| Decisões arquiteturais | [`adrs/index.md`](adrs/index.md) |
-| Escopo da sprint | [`checklist-entregaveis-sprint3.md`](checklist-entregaveis-sprint3.md) |
-| Rastreabilidade | [`matriz-rastreabilidade-sprint3.md`](matriz-rastreabilidade-sprint3.md) |
+| Artefato | Fonte | Renderização |
+| :--- | :--- | :--- |
+| Casos de uso | [`assets/uml/casos-de-uso-etl.plantuml`](assets/uml/casos-de-uso-etl.plantuml) | [`assets/uml/casos-de-uso-etl.svg`](assets/uml/casos-de-uso-etl.svg) |
+| Componentes | [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) | [`assets/uml/componentes-etl.svg`](assets/uml/componentes-etl.svg) |
+| Sequência da ingestão | [`assets/uml/sequencia-ingestao-etl.plantuml`](assets/uml/sequencia-ingestao-etl.plantuml) | [`assets/uml/sequencia-ingestao-etl.svg`](assets/uml/sequencia-ingestao-etl.svg) |
+| Decisões arquiteturais | [`adrs/index.md`](adrs/index.md) | — |
+| Escopo da sprint | [`checklist-entregaveis-sprint3.md`](checklist-entregaveis-sprint3.md) | — |
+| Rastreabilidade | [`matriz-rastreabilidade-sprint3.md`](matriz-rastreabilidade-sprint3.md) | — |
 
 # 5. Modelagem Dimensional e Cubos OLAP
 
@@ -807,34 +808,34 @@ Trechos interrompidos pela paginação do PDF terminam no mesmo ponto no JSON; n
 
 ## 5.2 Cubos Analíticos
 
-Os cubos abaixo são contratos analíticos propostos a partir do snapshot dos seis CSV. Eles não afirmam a existência de um data warehouse implantado. A estrutura em estrela preserva as chaves recebidas como chaves de origem e só admite uma chave canônica depois da reconciliação. Dimensões degeneradas mantêm IDs e títulos para auditoria; dimensões de perfil não expõem e-mail nem resposta individual nos painéis.
+Os cubos abaixo são contratos analíticos propostos e reconciliados com o contrato físico em [`docs/contrato-fisico-cubos.md`](contrato-fisico-cubos.md); eles não afirmam a existência de um data warehouse implantado. A estrutura em estrela preserva as chaves recebidas como chaves de origem e só admite uma chave canônica depois da reconciliação. Dimensões degeneradas mantêm IDs e títulos para auditoria; dimensões de perfil não expõem e-mail nem resposta individual nos painéis.
 
 | ID / cubo | Grão e estrutura | Tipo de fato e eventos | Métricas | Dimensões e dimensões especiais | Disponibilidade |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| C01 — Ciclo de Vida das Pesquisas | Uma linha por pesquisa, acumulando os marcos observados da solicitação à entrega; estrela | Snapshot acumulado; solicitação, aprovação, divulgação, prazo, prorrogação e entrega | I01–I06 | Pesquisa, papéis de Tempo para cada marco, tipo, área, complexidade, status e tipo de resposta | Calculável agora para I01–I05; I06 depende de regra e data de referência aprovadas |
-| C02 — Adesão e Participação | Uma linha por registro de participação de `respondentes.csv`, sem afirmar unicidade de pessoa; estrela | Fato transacional; participação, início e término registrados | I07–I11 | Pesquisa, Empresa, Tempo, Cargo e Departamento; Cliente/Pessoa somente após conciliação | Calculável agora para I07; I08–I11 dependem de denominador, normalização ou reconciliação |
-| C03 — Pipeline Mensal | Uma linha por combinação de mês, status, área, tipo e perfil; star schema | Snapshot periódico; fluxo de pesquisas por status a cada fim de mês | quantidade de pesquisas no status, quantidade de entradas no mês, quantidade de saídas no mês | Tempo, Status, Área, Tipo e Perfil da pesquisa | Calculável após go-live; dados históricos anteriores não disponíveis |
-| C04 — Resultados e Questionários | Uma linha por pergunta associada a uma pesquisa; star schema | Fato de associação (factless fact); conexões entre pesquisa e perguntas | quantidade de perguntas, quantidade de alternativas | Pesquisa, Pergunta, Tempo | Cobertura limitada a 10 pesquisas (2,7% do acervo); extensível quando dados completos forem disponibilizados |
+| C01 — Portfólio e Ciclo | Uma linha corrente por `pesquisa_id`; estrela | Snapshot acumulativo com seis papéis diários de `DIM_TEMPO` | I01–I06; durações em dias corridos | Pesquisa, seis marcos temporais, status, área, tipo, perfil, família, fonte e execução de carga | I01–I05 calculáveis conforme cobertura; I06 depende de regra e data de referência aprovadas |
+| C02 — Participação e Representatividade | Uma linha por ocorrência do snapshot selecionado de `respondentes`; estrela | Fato transacional | I07–I11; duração por par válido | Pesquisa, Empresa, Pessoa quando conciliada e Tempo nos papéis disponíveis | I07 calculável; I08–I11 dependem de denominador, normalização ou reconciliação |
+| C03 — Pipeline Mensal | Uma linha por combinação de fim de mês, status, área, tipo e perfil; estrela | Snapshot periódico | Estoque semiaditivo; entradas e saídas indisponíveis sem histórico de transições | Tempo, Status, Área, Tipo e Perfil | Estoque após início dos fechamentos; fluxos somente quando houver histórico |
+| C04 — Resultados e Questionários | Uma associação por (`pesquisa_id`, `pergunta_id`); estrela, fato sem medidas armazenadas `FATO_PESQUISA_PERGUNTA` | Associação entre pesquisa e pergunta | `qtd_pergunta` derivada por contagem distinta; `qtd_alternativas` é atributo de `DIM_PERGUNTA` | Pesquisa, Pergunta e Tempo opcional | Volumes e cobertura da v3 precisam de nova apuração; não projetar a cobertura do snapshot anterior |
 
-No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da ocorrência registrada. O C03 complementa essa visão ao registrar o pipeline mensal de status a partir do go-live, sem reconstruir histórico que não foi recebido. O C04 fica restrito ao conteúdo dos questionários, conectando pesquisas e perguntas, sem substituir indicadores de qualidade, publicação ou governança que dependem de regras e integrações futuras.
+No C01, prorrogação é um marco do ciclo e I05 é a contagem canônica da ocorrência registrada. O C03 registra o estoque de pesquisas nos fechamentos observados a partir do início da captura; sem histórico de transições, entradas e saídas ficam indisponíveis. O C04 descreve somente o instrumento, por associação entre pesquisa e pergunta, sem medida armazenada ou resposta individual conciliada.
 
-Os quatro cubos não criam uma ponte observada entre participação e resposta. Os 542 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem contrato aprovado. Por isso, o C04 documenta o instrumento de pesquisa e permanece como ponto de extensão para um futuro `FATO_RESPOSTA`, mas não afirma a existência de respostas individuais conciliadas.
+Os quatro cubos não criam uma ponte observada entre participação e resposta. Os 542 `respondent_id` distintos em `respostas.csv` não podem ser ligados aos clientes de `respondentes.csv` sem contrato aprovado. Por isso, o C04 documenta o instrumento de pesquisa em `FATO_PESQUISA_PERGUNTA` e permanece como ponto de extensão para um futuro `FATO_RESPOSTA`, mas não afirma a existência de respostas individuais conciliadas.
 
 **Registro da revisão KP-09.** A conferência entre esta seção e
 `docs/dmc.json` preservou quatro cubos. C01 mantém uma linha por pesquisa e
 explicita a cobertura de aprovação de 20/366; C02 separa participação de
 resposta e bloqueia a representatividade até homologar a fonte; C03 trata o
 estoque como semi-aditivo e condiciona entradas e saídas ao histórico de
-transições; C04 permanece fato de associação pesquisa–pergunta, com contagens
-derivadas e sem ponte presumida para pessoa. `DIM_TEMPO` é conformada nos quatro
+transições; C04 permanece `FATO_PESQUISA_PERGUNTA`, fato de associação sem medidas
+armazenadas, com contagens derivadas e sem ponte presumida para pessoa. `DIM_TEMPO` é conformada nos quatro
 cubos; `DIM_PESQUISA`, em C01, C02 e C04; e Status, Área, Tipo e Perfil, em C01
 e C03. Nenhuma dimensão futura foi declarada como compartilhamento atual.
 
 ### 5.2.1 C01 — Portfólio e Ciclo
 
-Este cubo modela o ciclo de vida completo de uma pesquisa. Ele armazena os principais marcos do processo (solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega) em uma única linha por pesquisa. O objetivo é permitir análises de duração de cada etapa, volume de entregas e identificação de gargalos operacionais.
+Este cubo modela o ciclo de vida da pesquisa em uma linha corrente por `pesquisa_id`, usando `FATO_CICLO_PESQUISA` e a origem física `ingestao_pesquisas_atual`. A linha reúne solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega. O tipo de fato é um snapshot acumulativo, atualizado conforme os marcos observados avançam. O objetivo é permitir análises de duração por etapa, entregas e gargalos operacionais.
 
-O grão do cubo é uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual. A fonte de dados é o arquivo `pesquisas.csv`. O tipo de fato é um acumulador (accumulating snapshot), pois a linha é atualizada conforme a pesquisa avança pelos marcos do ciclo, em vez de gerar uma nova linha a cada evento.  A estrutura do cubo pode ser visualizada abaixo.
+O snapshot anteriormente analisado tinha aproximadamente 366 pesquisas; volumes devem ser associados à versão da fonte. A estrutura do cubo pode ser visualizada abaixo.
 
 <div align="center">
   <p> <b> Diagrama Cubo 1 </b> </p>
@@ -844,48 +845,42 @@ O grão do cubo é uma linha por pesquisa, totalizando aproximadamente 366 linha
 
 #### Métricas
 
-As métricas são os números calculados e armazenados no cubo. A coluna **Aditividade** define se o número pode ser somado em agregações, como somar no ano inteiro.
+As durações armazenadas são diferenças em dias corridos entre pares válidos.
+Valores ausentes, inválidos ou com fim anterior ao início ficam indisponíveis;
+médias devem informar o denominador de pares válidos. A subtração de datas não
+representa dias úteis.
 
-**dias_uteis_validacao**
-- Tipo: inteiro
-- Fonte ou regra de cálculo: `data_aprov` menos `data_solicitacao`
-- Aditividade: aditiva
-- Observação: Cobertura de 5,5% das pesquisas; o indicador deve informar o denominador válido e não sustenta uma leitura geral do ciclo
+**dias_corridos_validacao**
+- Tipo: inteiro anulável
+- Fonte ou regra de cálculo: `data_aprov - data_solicitacao` quando ambas existem e o fim não antecede o início
+- Aditividade: não somar durações entre pesquisas como tempo de ciclo total
+- Observação: no snapshot anteriormente analisado, `data_aprov` cobria 20 de 366 pesquisas (5,5%); informar denominador e excluídos
 
-**dias_uteis_coleta**
-- Tipo: inteiro
-- Fonte ou regra de cálculo: `data_limite` ou `prorrogada_ate` menos `data_divulgacao`
-- Aditividade: aditiva
-- Observação: Se existir prorrogação, usa a data prorrogada
+**dias_corridos_coleta**
+- Tipo: inteiro anulável
+- Fonte ou regra de cálculo: `COALESCE(prorrogada_ate, data_limite) - data_divulgacao`, com par válido
+- Aditividade: duração por pesquisa; não somar com o ciclo total
 
-**dias_uteis_tabulacao**
-- Tipo: inteiro
-- Fonte ou regra de cálculo: `data_entrega` menos `data_limite` ou `prorrogada_ate`
-- Aditividade: aditiva
+**dias_corridos_tabulacao**
+- Tipo: inteiro anulável
+- Fonte ou regra de cálculo: `data_entrega - COALESCE(prorrogada_ate, data_limite)`, com par válido
+- Aditividade: duração por pesquisa; não somar com o ciclo total
 
-**dias_uteis_ciclo_total**
-- Tipo: inteiro
-- Fonte ou regra de cálculo: `data_entrega` menos `data_solicitacao`
-- Aditividade: não aditiva
-- Observação: O ciclo total é a soma das fases. Somar as quatro métricas causaria dupla contagem. Para agregar o tempo total de ciclo, deve-se usar apenas esta métrica, sem somá-la às fases
+**dias_corridos_ciclo_total**
+- Tipo: inteiro anulável
+- Fonte ou regra de cálculo: `data_entrega - data_solicitacao`, com par válido
+- Aditividade: não aditiva em relação às fases; nunca somar o ciclo total e as fases como períodos disjuntos
 
 **qtd_empresas_na_pesquisa**
-- Tipo: inteiro
-- Fonte ou regra de cálculo: coluna `participantes` do CSV
-- Aditividade: não aditiva
-- Observação: É uma contagem declarada pela origem e só pode ser lida no nível da pesquisa; não substitui a contagem distinta observada no C02 e não pode ser somada entre pesquisas
-
-**qtd_respondentes_na_pesquisa**
-- Tipo: inteiro
-- Fonte ou regra de cálculo: métrica removida de C01; contagens de respondentes devem ser calculadas no C02 a partir de `respondentes.csv`, usando a unidade de participação ou pessoa conciliada conforme o denominador aprovado
-- Aditividade: não aditiva
-- Observação: `tempo_preenchimento` é duração declarada, não quantidade de respondentes. Mantê-la como contagem em C01 produziria interpretação incorreta
+- Tipo: inteiro anulável
+- Fonte ou regra de cálculo: valor declarado em `participantes` na origem
+- Aditividade: não aditiva entre pesquisas
+- Observação: não equivale às empresas distintas observadas em C02
 
 **flag_prorrogada**
-- Tipo: booleano (0 ou 1)
-- Fonte ou regra de cálculo: 1 se `prorrogada_ate` não for nulo, 0 caso contrário
-- Aditividade: não é para somar
-- Observação: Usada como filtro, como mostrar apenas prorrogadas
+- Tipo: booleano
+- Fonte ou regra de cálculo: `prorrogada_ate IS NOT NULL`
+- Aditividade: não se aplica; usar como filtro
 
 #### Dimensões
 
@@ -893,7 +888,7 @@ As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é um
 
 **sk_pesquisa**
 - Tabela dimensional: `DIM_PESQUISA`
-- Descrição: Contém atributos da pesquisa como título, objetivos e ano da edição
+- Descrição: Contém título e objetivos; `ano_edicao` não tem coluna de origem nem derivação homologada e fica indisponível
 
 **sk_data_solicitacao**
 - Tabela dimensional: `DIM_TEMPO`
@@ -937,7 +932,7 @@ As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é um
 
 **sk_familia**
 - Tabela dimensional: `DIM_FAMILIA_PESQUISA`
-- Descrição: Derivada do título da pesquisa. Permite agrupar edições recorrentes, como "Premiação da Força de Vendas"
+- Descrição: Proposta determinística baseada em título normalizado, pendente de homologação; não é uma classificação aprovada
 
 **sk_fonte**
 - Tabela dimensional: `DIM_FONTE_DADO`
@@ -949,21 +944,22 @@ As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é um
 
 #### Observações
 
-Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem no `pesquisas.csv`. No cubo, serão tratados como chaves órfãs em reconciliação, apontando para um registro "Não mapeado" na `DIM_PESQUISA`. Essa decisão preserva os dados originais sem criar entidades artificiais, e a reconciliação poderá ser feita futuramente quando os mapeamentos forem validados.
+No snapshot anteriormente analisado, `data_aprov` cobria 20 de 366 pesquisas
+(5,5%). Métricas dependentes recebem `NULL` quando o par de datas é inválido ou
+incompleto; os painéis devem informar o denominador válido.
 
-A data de aprovação (`data_aprov`) tem cobertura de 5,5% das pesquisas (20 de 366). As métricas que dependem dela (`dias_uteis_validacao`) terão muitos valores NULL. Os painéis devem informar o denominador válido e exibir indisponibilidade quando o recorte não sustentar a comparação.
+`ano_edicao` não tem coluna de origem ou derivação homologada e fica indisponível. `DIM_FAMILIA_PESQUISA` pode armazenar uma proposta determinística
+basada na normalização do título, mas permanece pendente de homologação e não
+deve ser publicada como classificação aprovada.
 
-A dimensão `DIM_FAMILIA_PESQUISA` é derivada dos títulos e deve ser validada pelo Sindusfarma. A derivação foi feita por normalização de título, removendo anos e padronizando o texto. Das 32 famílias identificadas, a maior parte é composta por pesquisas anuais recorrentes, como "Premiação da Força de Vendas" e "Gestão de Frotas".
-
-Este cubo não armazena dados individuais de respondentes, respeitando a política de k-anonimato e LGPD. O acesso aos dados é controlado por camadas: a camada externa só publica agregações com mais de cinco empresas, e a camada interna mantém o detalhe para a equipe da Central de Pesquisas.
+Este cubo não armazena dados individuais de respondentes. Publicações externas
+exigem agregação e os controles de anonimização aprovados.
 
 ---
 
 ### 5.2.2 C02 — Participação e Representatividade
 
-Este cubo modela a participação de empresas e pessoas nas pesquisas. Cada linha representa um registro de participação de `respondentes.csv`, não uma resposta individual a uma questão. O cubo permite análises de alcance observado, engajamento e representatividade de mercado, sem afirmar taxa de adesão quando o universo elegível não estiver disponível.
-
-O grão do cubo é uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual. A fonte de dados principal é o arquivo `respondentes.csv`, complementado por `pesquisas.csv` para a data de divulgação da pesquisa, `clientes.csv` para atributos da pessoa respondente e `empresas.csv` para atributos da empresa. O tipo de fato é uma transação (transaction fact), pois cada linha representa um evento único e não acumula estados. A estrutura do cubo pode ser visualizada abaixo.
+Este cubo usa `FATO_PARTICIPACAO`, com uma linha por ocorrência do snapshot selecionado de `ingestao_respondentes`, identificada por (`source_checksum`, `source_offset`). A seleção usa o último arquivo completo e conciliado; reexportações não são somadas como novas participações. Pesquisas, clientes e empresas entram pelas relações correntes quando o vínculo estiver comprovado. Cada ocorrência é um fato transacional, não uma resposta individual a questão nem uma pessoa deduplicada. As aproximadamente 18.735 linhas pertencem ao snapshot anteriormente analisado e não garantem o volume de outras versões. A estrutura do cubo pode ser visualizada abaixo.
 
 <div align="center">
   <p><b>Diagrama Cubo 2</b></p>
@@ -988,10 +984,10 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 - Observação: Usada como filtro para remover duplicatas, selecionando apenas `seq_ocorrencia = 1` quando necessário
 
 **minutos_preenchimento**
-- Tipo: inteiro
-- Fonte ou regra de cálculo: Calculado como a diferença entre `hora_termino` e `hora_inicio`, em minutos
-- Aditividade: aditiva onde existir
-- Observação: Cobertura de aproximadamente 4,3% das linhas, pois muitos registros não possuem ambos os horários preenchidos
+- Tipo: inteiro anulável
+- Fonte ou regra de cálculo: diferença entre `hora_termino` e `hora_inicio`, em minutos completos, quando ambas são válidas e o fim não antecede o início
+- Aditividade: duração por participação; médias exigem o denominador de pares válidos
+- Observação: ausências e pares inválidos ficam `NULL` com motivo; a cobertura de 4,3% pertence ao snapshot anteriormente analisado
 
 **pct_mercado_na_participacao**
 - Tipo: decimal
@@ -1009,7 +1005,7 @@ As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é um
 
 **sk_empresa**
 - Tabela dimensional: `DIM_EMPRESA`
-- Descrição: A empresa à qual o respondente pertence. Contém atributos como nome, nacionalidade, cidade, tipo de associado e o share de mercado atual
+- Descrição: A empresa à qual a participação pertence; pode conter nome, nacionalidade, cidade, estado, país, tipo de associado e share. `regiao` fica indisponível sem campo de origem ou mapa estadual homologado
 
 **sk_pessoa**
 - Tabela dimensional: `DIM_PESSOA`
@@ -1021,15 +1017,15 @@ As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é um
 
 **sk_data_resposta**
 - Tabela dimensional: `DIM_TEMPO`
-- Descrição: Data da resposta, extraída da coluna `hora_inicio` do `respondentes.csv`. É uma chave opcional, com cobertura de aproximadamente 4,3% das linhas, utilizada para análises de sazonalidade ou tempo de preenchimento
+- Descrição: Data da resposta, extraída da coluna `hora_inicio` do `respondentes.csv`. É uma chave opcional; a cobertura aproximada de 4,3% refere-se ao snapshot anteriormente analisado. Pode apoiar análises de sazonalidade ou tempo de preenchimento
 
 #### Observações
 
-O arquivo `respondentes.csv` contém 838 casos de duplicatas onde a mesma pessoa aparece respondendo a mesma pesquisa mais de uma vez. O campo `seq_ocorrencia` foi criado para numerar essas ocorrências. Para análises de respondentes únicos, deve-se filtrar por `seq_ocorrencia = 1`. Isso permite que o cubo suporte tanto a contagem bruta de participações quanto a contagem de pessoas distintas, sem perder dados.
+No snapshot anteriormente analisado, foram observadas 838 ocorrências adicionais da mesma pessoa na mesma pesquisa. O campo `seq_ocorrencia` numera as ocorrências conforme a regra de deduplicação aprovada. Para análises de respondentes únicos, deve-se filtrar por `seq_ocorrencia = 1`. Isso permite que o cubo suporte tanto a contagem bruta de participações quanto a contagem de pessoas distintas, sem perder dados.
 
-A data da resposta (`hora_inicio`) tem cobertura reduzida, de aproximadamente 4,3%. Por isso, a chave temporal primária é a data da pesquisa (`sk_data_pesquisa`), que é derivada de `data_divulgacao` em `pesquisas.csv` e cobre praticamente todas as participações. A data da resposta fica como um campo opcional para análises específicas de duração.
+No snapshot anteriormente analisado, a data da resposta (`hora_inicio`) tinha cobertura reduzida, de aproximadamente 4,3%. Por isso, a chave temporal primária é a data da pesquisa (`sk_data_pesquisa`), que é derivada de `data_divulgacao` em `pesquisas.csv` e cobre praticamente todas as participações. A data da resposta fica como um campo opcional para análises específicas de duração.
 
-O campo `minutos_preenchimento`, calculado a partir de `hora_inicio` e `hora_termino`, também tem cobertura baixa, de aproximadamente 4,3%, e deve ser usado com cautela. Para métricas de tempo médio de preenchimento, recomenda-se filtrar apenas as linhas com ambos os campos preenchidos.
+No snapshot anteriormente analisado, o campo `minutos_preenchimento`, calculado a partir de `hora_inicio` e `hora_termino`, tinha cobertura baixa, de aproximadamente 4,3%, e deve ser usado com cautela. Para métricas de tempo médio de preenchimento, recomenda-se filtrar apenas as linhas com ambos os campos preenchidos.
 
 A coluna `market_share` em `respondentes.csv` e o campo `% de mercado` em `empresas.csv` divergem. O projeto não presume precedência entre eles: a fonte autoritativa deve ser homologada antes de calcular I09, e o recorte permanece bloqueado quando houver conflito.
 
@@ -1042,7 +1038,7 @@ Para contagens distintas de empresas ou pessoas, deve-se utilizar as chaves dur�
 
 Este cubo modela a carga de trabalho da Central de Pesquisas ao longo do tempo. Ele é um instantâneo periódico (periodic snapshot) que registra, ao final de cada mês, quantas pesquisas estavam em cada combinação de status, área, tipo e perfil. O objetivo é responder perguntas como quantas pesquisas estavam em andamento em um determinado mês, qual a evolução do fluxo de entregas e onde ocorrem os gargalos operacionais.
 
-O grão do cubo é uma linha por combinação de mês, status, área, tipo e perfil. A fonte de dados é derivada do Cubo 1, mas com uma limitação importante: não há registro histórico de status anteriores, portanto este cubo só começa a ser alimentado a partir do momento em que o sistema entrar em produção (go-live). O tipo de fato é um instantâneo periódico (periodic snapshot), pois captura o estado do pipeline em um momento específico (o fim de cada mês). A estrutura do cubo pode ser visualizada abaixo.
+O fato `FATO_PIPELINE_MENSAL` tem uma linha por (`sk_data_fim_mes`, `sk_status`, `sk_area`, `sk_tipo`, `sk_perfil`). Ele deriva o estado de C01 observado no fechamento mensal após o início da captura. Não há reconstrução de status históricos por `ingested_at`, que não é tempo de negócio. O tipo de fato é snapshot periódico e não existe estoque histórico antes do primeiro fechamento observado. A estrutura do cubo pode ser visualizada abaixo.
 
 <div align="center">
   <p><b>Diagrama Cubo 3 - Pipeline Mensal</b></p>
@@ -1056,21 +1052,21 @@ As métricas são os números calculados e armazenados no cubo. A coluna **Aditi
 
 **qtd_pesquisas_no_status**
 - Tipo: inteiro
-- Fonte ou regra de cálculo: Contagem de pesquisas que estavam naquele status no último dia do mês
+- Fonte ou regra de cálculo: contagem de pesquisas distintas da combinação no fechamento observado
 - Aditividade: semi-aditiva
-- Observação: Pode ser agregada entre categorias disjuntas no mesmo fechamento, mas não entre meses. Para contar finalizações no ano, deve-se usar o fluxo de entradas no status terminal, não somar estoques mensais
+- Observação: somável entre grupos disjuntos do mesmo mês, nunca entre meses; sem fechamento observado não há linha histórica
 
 **qtd_entradas_no_mes**
-- Tipo: inteiro
-- Fonte ou regra de cálculo: Quantidade de pesquisas que chegaram àquele status durante o mês
-- Aditividade: aditiva
-- Observação: Representa o fluxo de entrada no status e exige histórico de transições; diferenças entre dois snapshots capturam apenas a mudança líquida, não todas as transições do mês
+- Tipo: inteiro anulável
+- Fonte ou regra de cálculo: quantidade de pesquisas que chegaram ao status durante o mês, somente a partir do histórico de transições
+- Aditividade: aditiva quando disponível
+- Observação: indisponível sem histórico; a diferença entre snapshots mostra apenas variação líquida
 
 **qtd_saidas_no_mes**
-- Tipo: inteiro
-- Fonte ou regra de cálculo: Quantidade de pesquisas que saíram daquele status durante o mês
-- Aditividade: aditiva
-- Observação: Representa o fluxo de saída do status e exige histórico de transições; fica indisponível enquanto esse histórico não existir
+- Tipo: inteiro anulável
+- Fonte ou regra de cálculo: quantidade de pesquisas que saíram do status durante o mês, somente a partir do histórico de transições
+- Aditividade: aditiva quando disponível
+- Observação: indisponível sem histórico de transições
 
 #### Dimensões
 
@@ -1104,7 +1100,7 @@ A métrica `qtd_a_finalizar` foi removida do modelo na revisão adversarial porq
 
 A dimensão `DIM_TEMPO` deve ter um papel específico para o último dia do mês (`sk_data_fim_mes`). O grão da `DIM_TEMPO` permanece diário, e esse papel é usado exclusivamente para este cubo.
 
-A dimensão `DIM_STATUS_PESQUISA` deve conter flags que auxiliem na interpretação dos status: `flag_em_aberto`, `flag_conta_como_a_finalizar` e `flag_terminal`. Essas flags permitem que a camada semântica faça cálculos consistentes sem necessidade de hardcode de status no código.
+`flag_em_aberto`, `flag_conta_como_a_finalizar` e `flag_terminal` ficam anuláveis até a regra dos valores de status ser aprovada. Status não reconhecido não recebe classificação inventada; a camada semântica só calcula “a finalizar” após essa aprovação.
 
 Para o fluxo mensal, recomenda-se que o snapshot seja gerado automaticamente no primeiro dia útil de cada mês, considerando o fechamento do mês anterior. Isso garante que o dado esteja sempre disponível para análises comparativas entre períodos.
 
@@ -1112,9 +1108,9 @@ Para o fluxo mensal, recomenda-se que o snapshot seja gerado automaticamente no 
 
 ### 5.2.4 C04 — Resultados e Questionários
 
-Este cubo descreve o conteúdo dos questionários, ou seja, quais perguntas foram feitas em cada pesquisa. Ele é um fato de associação (factless fact), pois não possui métricas numéricas tradicionais para somar, mas sim conexões entre dimensões. O objetivo é responder perguntas como quantas perguntas cada pesquisa possui, qual o tipo predominante de questões e quais pesquisas compartilham perguntas semelhantes.
+Este cubo descreve o instrumento de pesquisa pela associação entre pesquisa e pergunta. `FATO_PESQUISA_PERGUNTA` é um fato sem medidas armazenadas (*factless fact*); ele registra as associações correntes e permite derivar contagens de perguntas distintas e analisar atributos de `DIM_PERGUNTA`. Não incorpora respostas individuais.
 
-O grão do cubo é uma linha por pergunta em uma pesquisa, totalizando 231 linhas no snapshot atual, cobrindo apenas 10 das 366 pesquisas (aproximadamente 2,7% do acervo). A fonte de dados é o arquivo questoes.csv. O tipo de fato é um fato de associação, pois conecta a pesquisa à pergunta sem armazenar medidas numéricas de soma. A estrutura do cubo pode ser visualizada abaixo.
+O grão é uma associação por (`pesquisa_id` de origem, `pergunta_id`) na versão corrente de `ingestao_questoes_atual`, com vínculo à pesquisa corrente somente quando comprovado. Os valores de 231 linhas e 10/366 pesquisas pertencem ao snapshot analisado antes da versão v3; a cobertura e o volume atuais exigem nova apuração. O fato não armazena medidas numéricas. A estrutura do cubo pode ser visualizada abaixo.
 
 <div align="center">
   <p><b>Diagrama Cubo 4</b></p>
@@ -1124,7 +1120,7 @@ O grão do cubo é uma linha por pergunta em uma pesquisa, totalizando 231 linha
 
 #### Métricas derivadas
 
-Como este é um fato de associação, o fato não armazena medidas numéricas tradicionais. As contagens abaixo são derivadas das linhas e dos atributos dimensionais no momento da consulta.
+Como fato de associação, `FATO_PESQUISA_PERGUNTA` não armazena medidas. `qtd_pergunta` é derivada por `COUNT(*)` das associações distintas no recorte; `qtd_alternativas` é atributo de `DIM_PERGUNTA`.
 
 qtd_pergunta
 - Tipo: inteiro
@@ -1144,27 +1140,37 @@ As dimensões são as formas de agrupar e filtrar os dados. Cada dimensão é um
 
 sk_pesquisa
 - Tabela dimensional: DIM_PESQUISA
-- Descrição: a pesquisa que contém a pergunta
+- Descrição: a pesquisa que contém a pergunta; `ano_edicao` fica indisponível sem origem ou derivação homologada
 
 sk_pergunta
 - Tabela dimensional: DIM_PERGUNTA
-- Descrição: a pergunta em si. Contém o enunciado, o tipo de questão, o número de alternativas, o formato de arquivo de origem e outras características
+- Descrição: a pergunta em si, com enunciado, tipo, alternativas e metadados de origem. `linhas_matriz` e `colunas_matriz` são atributos da pergunta quando necessários; não há medidas `qtd_linhas_matriz` ou `qtd_colunas_matriz` no fato
 
 sk_data_pesquisa
 - Tabela dimensional: DIM_TEMPO
-- Descrição: data da pesquisa, herdada da data de divulgação (data_divulgacao) em pesquisas.csv. Permite agrupar por ano ou trimestre
+- Descrição: papel opcional, herdado de `data_divulgacao` da pesquisa corrente
 
 #### Observações
 
-O arquivo questoes.csv contém 10 pesquisas distintas, mas quatro delas (IDs 424, 1116, 1139 e 1147) não existem em pesquisas.csv. Para essas quatro pesquisas, a ligação com DIM_PESQUISA é feita por fallback utilizando o título da pesquisa, que apresenta correspondência exata com os títulos da planilha principal. As seis pesquisas restantes (112, 238, 274, 377, 414 e 415) ligam diretamente pelos IDs, cobrindo 188 das 231 linhas (81,4% do arquivo).
+No snapshot anteriormente analisado, quatro IDs (`424`, `1116`, `1139` e
+`1147`) não tinham pesquisa homônima por ID. Fallback por título só é válido
+quando o título normalizado tem correspondência exata e única com a pesquisa
+corrente; a execução registra método, ID original e alvo. Ambiguidade ou
+ausência de correspondência mantém chave desconhecida controlada e o órfão em
+reconciliação. Os volumes daquele snapshot não descrevem a versão v3.
 
-A base de questões cobre apenas 2,7% do acervo total de pesquisas (10 de 366). Os relatórios que dependem deste cubo, como o Relatório #07 (Resultados da Pesquisa) e o Relatório #10 (Benchmark Setorial), só funcionarão plenamente para essas 10 pesquisas. Para as demais, os painéis mostrarão "Dados não disponíveis" ou uma mensagem similar, a menos que a extração de questões seja estendida para todo o acervo.
+A cobertura do acervo pela extração de questões precisa ser recalculada para a
+versão corrente antes de qualquer afirmação de disponibilidade. Recortes sem
+pergunta associada devem exibir indisponibilidade, nunca zero; ampliar a
+cobertura exige ingestão validada para o acervo correspondente.
 
-O cubo é um ponto de extensão para uma futura `FATO_RESPOSTA` conciliada. O projeto possui `respostas.csv`, mas a ponte entre `respondent_id` e a identidade de `respondentes.csv` não está comprovada. Distribuições agregadas no grão questão podem ser calculadas quando válidas; análises por pessoa, participação ou segmento permanecem bloqueadas até a reconciliação, sem união por similaridade.
+O cubo é ponto de extensão para uma futura `FATO_RESPOSTA`. A ponte entre
+`respostas.respondent_id` e a identidade de `respondentes.csv` não está
+comprovada; análises por pessoa, participação ou segmento ficam bloqueadas sem
+reconciliação e autorização.
 
-A dimensão DIM_PERGUNTA contém metadados adicionais que podem ser úteis para análises futuras: o formato do arquivo de origem, a coluna de origem no arquivo bruto e um campo de confiança que indica o nível de certeza sobre a extração da pergunta.
-
-`qtd_alternativas` é atributo da `DIM_PERGUNTA`. Totais ou médias podem ser derivados sobre perguntas distintas, deixando explícitos o conjunto coberto e o denominador; o atributo não transforma o fato de associação em um fato com medida armazenada.
+`DIM_PERGUNTA` contém enunciado, tipo, número de alternativas e metadados como
+formato de arquivo, coluna de origem e confiança da extração.
 
 #### Dimensões conformadas entre os cubos
 
@@ -1207,7 +1213,7 @@ Matriz de rastreamento entre perguntas de negócio, requisitos, indicadores, cub
 
 ## 5.3 Qualidade e Validação de Dados
 
-Esta seção diagnostica dados ausentes e registros duplicados nas seis bases disponibilizadas, para apoiar as regras de qualidade da solução. A medição foi executada pelo artefato versionado `scripts/data_quality/profile_csv.py`, conforme `scripts/data_quality/manifest.json`, usando UTF-8 (BOM aceito), separador `;`, decimal brasileiro e percentual com sufixo `%`. O manifesto registra `teste.csv` como alias local conceitual de `respostas.csv`; o arquivo bruto não foi copiado para o repositório nem para as saídas. O dicionário é validado de fato: cabeçalho, nove variáveis, conteúdo mínimo e alegações verificáveis de cardinalidade e nulos são confrontados com a base. **Não houve duplicidade de linha nem das chaves declaradas** nas seis fontes. Chaves estrangeiras (FKs) podem repetir legitimamente por representarem muitos registros filhos para uma mesma entidade e não foram tratadas como duplicatas. As ausências, por outro lado, exigem leitura cuidadosa: parte é **condicional** — estrutural e esperada, seguindo o tipo da pergunta ou o estágio do ciclo de vida da pesquisa (ex.: `linha_matriz` só existe em perguntas de matriz; `prorrogada_ate` só quando há prorrogação) — e parte é **a investigar**, indicando possível lacuna de preenchimento a tratar antes de automatizar indicadores.[<sup>[2]</sup>](#ref-2)[<sup>[12]</sup>](#ref-12)
+Esta seção registra o perfil histórico do snapshot recebido nas seis bases disponibilizadas, para apoiar as regras de qualidade da solução. Seus números preservam as medições dos arquivos identificados na §5.3.6, anteriores à versão v3; não são uma baseline de volume/cobertura das relações correntes. A medição foi executada pelo artefato versionado `scripts/data_quality/profile_csv.py`, conforme `scripts/data_quality/manifest.json`, usando UTF-8 (BOM aceito), separador `;`, decimal brasileiro e percentual com sufixo `%`. O manifesto registra `teste.csv` como alias local conceitual de `respostas.csv`; o arquivo bruto não foi copiado para o repositório nem para as saídas. O dicionário é validado de fato: cabeçalho, nove variáveis, conteúdo mínimo e alegações verificáveis de cardinalidade e nulos são confrontados com a base. **Não houve duplicidade de linha nem das chaves declaradas** nas seis fontes. Chaves estrangeiras (FKs) podem repetir legitimamente por representarem muitos registros filhos para uma mesma entidade e não foram tratadas como duplicatas. As ausências, por outro lado, exigem leitura cuidadosa: parte é **condicional** — estrutural e esperada, seguindo o tipo da pergunta ou o estágio do ciclo de vida da pesquisa (ex.: `linha_matriz` só existe em perguntas de matriz; `prorrogada_ate` só quando há prorrogação) — e parte é **a investigar**, indicando possível lacuna de preenchimento a tratar antes de automatizar indicadores.[<sup>[2]</sup>](#ref-2)[<sup>[12]</sup>](#ref-12)
 
 O grão de `respostas` é **um elemento atômico de resposta de um respondente para uma pergunta de uma pesquisa**. Uma linha não representa necessariamente um questionário completo: caixas de seleção e matrizes podem produzir várias linhas para o mesmo respondente e pergunta. Portanto, `COUNT(*)` nessa fonte mede elementos de resposta, e não respondentes; qualquer KPI de adesão deve usar a chave e a unidade de análise explicitamente.
 
@@ -2943,7 +2949,7 @@ acervo) e, quando possível, quantificada com o snapshot recebido.
 | :--- | :--- | :--- | :--- |
 | Coleta (SurveyMonkey) | "Cada linha de resposta é uma pessoa." | 1 linha de `Resposta` é um elemento (matriz/checkbox), não um respondente. | 20.607 linhas de `respostas` para 18.735 `respondentes`: contar linha infla participação. |
 | Coleta / identidade | "O respondente é o mesmo entre as bases." | `id_cliente` aparece como texto (`s/i`) e como inteiro; exige conciliação de tipo. | Reconcilia 100% como string, mas o sentinela `s/i` quebra join numérico ingênuo. |
-| Coleta / cobertura | "Toda pesquisa tem questionário e respostas." | Só **10 das 366 pesquisas** têm questionário/respostas no snapshot. | Cubo de resultados cobre ~2,7% do acervo; indicador de conteúdo é parcial. |
+| Coleta / cobertura | "Toda pesquisa tem questionário e respostas." | No snapshot anterior à versão v3, só **10 das 366 pesquisas** tinham questionário/respostas. | A cobertura atual exige nova apuração; a medição histórica era ~2,7% do acervo. |
 | Consolidação | "Encerrei a coleta, então o resultado está pronto." | Encerrar coleta só muda `status`; validação e tabulação são etapas próprias. | Publicação precoce de dado não validado. |
 | Liberação do acervo | "Aprovei tecnicamente, logo está publicado." | Publicação exige autorização, versão e perfil — não modelados (§6.7.14). | Expectativa de publicação automática sem controle. |
 
@@ -2986,7 +2992,7 @@ acontece, mas não deixa rastro consultável nem auditável.
 - **O que o modelo precisaria conter:** um histórico de validação (data, revisor,
   resultado, versão do instrumento) ligado à `Pesquisa`, permitindo auditar por
   que um questionário foi aceito ou devolvido.
-- **Evidência da lacuna:** o snapshot não possui nenhuma coluna de parecer ou
+- **Evidência da lacuna:** o snapshot anterior à versão v3 não possui coluna de parecer ou
   versão de questionário nas 231 linhas de `questoes`; a decisão técnica existe no
   processo, não no dado.
 - **Status de implementação:** **pendente** — sinalizado como lacuna; a estrutura
@@ -3017,7 +3023,8 @@ do DER** com os passos dos fluxos §6.7.3 e §6.7.6, para garantir que a
 correspondência fluxo↔banco esteja mapeada e que toda chave estrangeira usada nas
 transições de estado (§6.7.7 e §6.7.8) se sustente nos dados reais. A checagem é
 **reproduzível** pelo script `scripts/data_quality/valida_integridade_referencial.py`,
-executado sobre o snapshot do parceiro; os resultados abaixo são a sua saída.
+executado sobre o snapshot do parceiro anterior à versão v3; os resultados
+abaixo preservam a saída histórica e não afirmam a integridade da versão corrente.
 
 <div align="center">
 <sub>Tabela 6.7.19 - Integridade referencial medida nas bases reais (evidência do alinhamento)</sub><br>
@@ -3138,7 +3145,7 @@ mecanismo de suporte que reduz o custo — detalhado com seu tipo de interface n
 | R06 | "Coleta encerrada = concluída" (§6.7.12, linha 1) | Equipe interna e solicitante, que leem o encerramento da coleta como entrega pronta. | Preserva a separação entre `Coleta encerrada`, `Tabulada`, `Revisada` e `Publicada` (§6.7.7), evitando cobrança e retrabalho por status mal lido. | Uma vez por ciclo de pesquisa, no encerramento da coleta. | Quanto mais pesquisas a equipe acompanha de ponta a ponta, mais rápido associa "encerrado" a "ainda em validação"; times que só acompanham o início do ciclo não desenvolvem essa leitura sozinhos. | S06 |
 | R07 | "Questionário aprovado = pronto para publicar" (§6.7.12, linha 2) | Área técnica, que tende a ler a validação técnica (S1) como autorização de publicação. | Mantém a sequência coleta → análise → autorização como condição de publicação, coerente com a governança (§6.6) e com o papel de revisão, não de decisão, da área técnica (§6.7.6). | Uma vez por questionário validado; a área técnica passa por esse ponto em toda pesquisa em que atua (S1). | Como a área técnica atua de forma pontual (premissa do perfil secundário, §6.7.16), sua repetição depende do volume de pesquisas em que é chamada a validar — quanto menor esse volume, menor a chance de a distinção se consolidar sem suporte. | S07 |
 | R08 | "Tabulado = disponível no acervo" (§6.7.12, linha 3) | Equipe interna, no momento de revisar a entrega. | Garante que resultado tabulado passe por revisão de consistência, autorização e versionamento antes de qualquer disponibilização (JOP05). | Uma vez por pesquisa, na revisão de entrega (etapa 9). | A equipe que revisa entregas com frequência aprende a distinguir os três estados; a leitura só se consolida se a revisão continuar visível como etapa própria e não for pulada em nome de agilidade. | S08 |
-| R09 | Contagem de participação (§6.7.11, coleta) | Equipe interna e área técnica, que leem a contagem de linhas de resposta como contagem de pessoas. | O sistema conta respondentes únicos, não linhas de `Resposta` (20.607 linhas para 18.735 respondentes), evitando inflar participação e adesão. | Média — aparece sempre que participação ou adesão é consultada nos painéis. | Analistas que usam os painéis com frequência internalizam a distinção respostas × respondentes; usuários eventuais tendem a reincidir na leitura ingênua. | S09 |
+| R09 | Contagem de participação (§6.7.11, coleta) | Equipe interna e área técnica, que leem a contagem de linhas de resposta como contagem de pessoas. | No snapshot anteriormente analisado, havia 20.607 linhas de `Resposta` e 18.735 registros de participação em `respondentes`; contar linhas de resposta como pessoas inflaria a participação. Pessoas distintas só podem ser contadas após conciliação e deduplicação aprovada. | Média — aparece sempre que participação ou adesão é consultada nos painéis. | Analistas que usam os painéis com frequência internalizam a distinção respostas × respondentes; usuários eventuais tendem a reincidir na leitura ingênua. | S09 |
 
 <sup>Material produzido pelos autores (2026)</sup>
 
@@ -3148,9 +3155,10 @@ As duas divergências restantes da §6.7.11 não recebem classificação de
 acomodação, ruptura ou lacuna porque não são decisões de interação. A
 **identidade inconsistente** (`id_cliente` como texto e como inteiro) é resolvida
 por **conciliação de tipo na camada tratada** — transparente ao usuário, é
-decisão de modelagem/ETL, não de fluxo. A **cobertura parcial** (só 10 das 366
-pesquisas têm questionário) é uma **limitação de dado reportada honestamente**,
-não uma expectativa que o fluxo frustra. Ambas ficam registradas na §6.7.11, mas
+decisão de modelagem/ETL, não de fluxo. A **cobertura parcial** (10 de 366
+pesquisas tinham questionário no snapshot anterior à versão v3) é uma
+**limitação de dado reportada honestamente**. A cobertura corrente precisa ser
+reapurada. Ambas ficam registradas na §6.7.11, mas
 fora da tríade AC/R/L, que se aplica a divergências resolvíveis por decisão de
 projeto.
 
@@ -3470,6 +3478,10 @@ de evidência, não resultados omitidos nem capacidade presumida.
 
 <!-- QUANTI:UT-04:START -->
 ### 8.2.1 Cuidados matemáticos antes de automatizar os indicadores
+
+Os resultados numéricos abaixo são do snapshot recebido e identificado na
+§5.3.6; preservam evidência histórica e não declaram volumes atuais da versão
+v3.
 
 0. **Declarar granularidade e denominador.** A adesão medida por pesquisa sobre associados resulta em 8,8%; medida como alcance acumulado do cadastro resulta em 53,8%. São leituras diferentes dos mesmos dados e não devem ser apresentadas como o mesmo indicador.
 

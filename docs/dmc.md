@@ -260,10 +260,10 @@ e-mail nem resposta individual nos painéis.
 
 | ID / cubo | Grão e estrutura | Tipo de fato | Indicadores ou métricas | Disponibilidade |
 | :--- | :--- | :--- | :--- | :--- |
-| C01 — Portfólio e Ciclo | Uma linha por pesquisa, acumulando os marcos observados da solicitação à entrega | Snapshot acumulativo | I01–I06 | I01–I05 calculáveis; I06 depende de regra e data de referência aprovadas |
-| C02 — Participação e Representatividade | Uma linha por registro de `respondentes.csv`, sem afirmar unicidade de pessoa | Transação | I07–I11 | I07 calculável; I08–I11 dependem de denominador, normalização ou reconciliação |
-| C03 — Pipeline Mensal | Uma linha por mês, status, área, tipo e perfil | Snapshot periódico | estoque, entradas e saídas | Calculável após go-live; histórico anterior indisponível |
-| C04 — Resultados e Questionários | Uma linha por pergunta associada a uma pesquisa | Fato de associação | perguntas e alternativas | Cobertura de 10 pesquisas, equivalente a 2,7% do acervo |
+| C01 — Portfólio e Ciclo | Uma linha corrente por pesquisa_id; seis marcos temporais | Snapshot acumulativo | I01–I06; durações em dias corridos | Conforme cobertura; I06 depende de regra e data de referência aprovadas |
+| C02 — Participação e Representatividade | Uma linha por ocorrência do snapshot selecionado de `respondentes` | Transação | I07–I11 | I07 calculável; I08–I11 dependem de denominador, normalização ou reconciliação |
+| C03 — Pipeline Mensal | Uma linha por fechamento, status, área, tipo e perfil | Snapshot periódico | Estoque semiaditivo; fluxos indisponíveis sem histórico de transições | Estoque após início dos fechamentos; histórico anterior indisponível |
+| C04 — Resultados e Questionários | Associação por pesquisa_id e pergunta_id | FATO_PESQUISA_PERGUNTA, sem medidas armazenadas | Perguntas distintas derivadas; alternativas são atributo | Reapurar volumes e cobertura para a versão v3; snapshot anterior não é baseline atual |
 
 ### 3.1 C01 — Portfólio e Ciclo
 
@@ -284,7 +284,7 @@ e-mail nem resposta individual nos painéis.
 ```mermaid
 flowchart LR
     DP[DIM_PESQUISA] --> F1[FATO_CICLO_PESQUISA]
-    DT[DIM_TEMPO<br/>7 papéis] --> F1
+    DT[DIM_TEMPO<br/>6 papéis] --> F1
     DS[DIM_STATUS_PESQUISA] --> F1
     DA[DIM_AREA] --> F1
     DTI[DIM_TIPO_PESQUISA] --> F1
@@ -311,17 +311,18 @@ flowchart LR
 
 #### Métricas
 
-- `dias_uteis_validacao`: `data_aprov` menos `data_solicitacao`. Até a homologação do calendário, calcular e rotular apenas a diferença em dias corridos, sem apresentá-la como dias úteis. Cobertura de 5,5% (20 de 366), sempre com denominador e excluídos.
-- `dias_uteis_coleta`: `data_limite`, ou `prorrogada_ate` quando existir, menos `data_divulgacao`. Até a homologação do calendário, calcular e rotular apenas dias corridos; não misturar as duas convenções.
-- `dias_uteis_tabulacao`: `data_entrega` menos `data_limite`, ou `prorrogada_ate` quando existir. Até a homologação do calendário, calcular e rotular apenas dias corridos; pares incompletos produzem `NULL`.
-- `dias_uteis_ciclo_total`: `data_entrega` menos `data_solicitacao`; métrica não aditiva, usada sem soma com as fases para evitar dupla contagem.
-- `qtd_empresas_na_pesquisa`: contagem declarada na coluna `participantes` do CSV; métrica não aditiva, lida somente no nível da pesquisa e distinta da contagem observada no C02.
-- `qtd_respondentes_na_pesquisa`: removida do C01. Contagens de respondentes devem ser calculadas no C02 a partir de `respondentes.csv`, usando participação ou pessoa conciliada conforme o denominador aprovado.
-- `flag_prorrogada`: 1 quando `prorrogada_ate` não é nulo e 0 caso contrário; usada como filtro.
+- `dias_corridos_validacao`: `data_aprov - data_solicitacao` quando o par existe e não está invertido; diferença civil em dias corridos, nunca rotular como dias úteis.
+- `dias_corridos_coleta`: `COALESCE(prorrogada_ate, data_limite) - data_divulgacao`, com par válido.
+- `dias_corridos_tabulacao`: `data_entrega - COALESCE(prorrogada_ate, data_limite)`, com par válido.
+- `dias_corridos_ciclo_total`: `data_entrega - data_solicitacao`, com par válido; não aditiva em relação às fases.
+- `qtd_empresas_na_pesquisa`: valor declarado em `participantes`; não aditivo entre pesquisas e distinto das empresas observadas em C02.
+- `flag_prorrogada`: `prorrogada_ate IS NOT NULL`; filtro, não medida para soma.
+
+Durações inválidas ou incompletas ficam `NULL`; médias informam o denominador de pares válidos. No snapshot anteriormente analisado, `data_aprov` cobria 20/366 pesquisas (5,5%).
 
 #### Dimensões
 
-- `sk_pesquisa`: `DIM_PESQUISA`, com título, objetivos e ano da edição.
+- `sk_pesquisa`: `DIM_PESQUISA`, com título e objetivos; `ano_edicao` não tem origem nem derivação homologada e fica indisponível.
 - `sk_data_solicitacao`: `DIM_TEMPO` para a data de solicitação.
 - `sk_data_aprovacao`: `DIM_TEMPO` para a data de aprovação.
 - `sk_data_divulgacao`: `DIM_TEMPO` para a data de divulgação.
@@ -332,29 +333,29 @@ flowchart LR
 - `sk_status`: `DIM_STATUS_PESQUISA`, derivada de `pesquisas.status`.
 - `sk_tipo`: `DIM_TIPO_PESQUISA`, derivada de `pesquisas.tipo`.
 - `sk_perfil`: `DIM_PERFIL_PESQUISA`, com atributos imutáveis como complexidade e tipo de resposta.
-- `sk_familia`: `DIM_FAMILIA_PESQUISA`, derivada do título para agrupar edições recorrentes.
+- `sk_familia`: `DIM_FAMILIA_PESQUISA`, proposta determinística por título normalizado, pendente de homologação e não aprovada para publicação.
 - `sk_fonte`: `DIM_FONTE_DADO`, dimensão de linhagem do sistema de origem.
 - `sk_carga`: `DIM_EXECUCAO_CARGA`, dimensão de governança da execução de ETL.
 
 #### Observações do C01
 
-- Os `pesquisa_id` 424, 1116, 1139 e 1147 não existem em `pesquisas.csv`. Eles devem permanecer como chaves órfãs em reconciliação e apontar para “Não mapeado”, sem criação silenciosa de entidades.
-- `data_aprov` cobre somente 20 das 366 pesquisas (5,5%). Métricas dependentes recebem `NULL` quando o par de datas não existe e o painel deve declarar o denominador válido.
-- `DIM_FAMILIA_PESQUISA` é derivada por normalização de títulos e precisa de validação do Sindusfarma antes de ser tratada como classificação oficial.
-- O cubo não armazena dados individuais de respondentes. Publicações externas exigem agregação e os controles de anonimização aprovados.
+- `ano_edicao` não tem coluna de origem nem derivação homologada; fica indisponível.
+- A família baseada em título é uma proposta determinística pendente de homologação; não a publicar como classificação aprovada.
+- O cubo não armazena dados individuais de respondentes. Publicações externas exigem agregação e controles de anonimização aprovados.
 
 #### Dados do C01
 
-**Fontes:** `pesquisas.csv`.
+**Fonte física:** `ingestao_pesquisas_atual`, pela pesquisa_id corrente.
 
-**Transformações:** validar e converter datas; calcular diferenças em dias
-corridos entre pares válidos; usar calendário útil somente após homologação;
-usar `prorrogada_ate` como fim efetivo quando existir; derivar
-`flag_prorrogada` e `DIM_FAMILIA_PESQUISA`; preservar chaves de origem.
+**Transformações:** validar datas e calcular as quatro durações em dias
+corridos somente para pares válidos; usar `COALESCE(prorrogada_ate,
+data_limite)` como fim efetivo da coleta e referência da tabulação; derivar
+`flag_prorrogada`; preservar chave de origem. Família normalizada é proposta
+determinística pendente de homologação.
 
-**Qualidade:** quatro IDs de outras fontes permanecem em reconciliação;
-`data_aprov` tem baixa cobertura; famílias derivadas exigem homologação; o cubo
-não recebe detalhe individual de respondentes.
+**Qualidade:** `data_aprov` tinha baixa cobertura no snapshot anterior;
+`ano_edicao` fica indisponível; família derivada exige homologação; o cubo não
+recebe detalhe individual de respondentes.
 
 **Histórico/SCD:** usar SCD2 somente após aprovação das regras; manter chave
 durável, chave de origem, início/fim de vigência, versão e linhagem de carga.
@@ -402,9 +403,9 @@ flowchart LR
 
 #### Grão
 
-- Uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual.
-- Cada linha representa um registro de `respondentes.csv`, não uma resposta individual a uma questão, e não acumula estados.
-- O cubo suporta contagem bruta de participações e contagem distinta quando filtrado por `seq_ocorrencia`.
+- Uma linha por ocorrência do snapshot selecionado de `ingestao_respondentes`, identificada por `source_checksum` e `source_offset`.
+- A seleção usa a última execução completa e conciliada; reexportações não são somadas como novas participações.
+- As aproximadamente 18.735 linhas pertencem ao snapshot anteriormente analisado e não garantem o volume de outras versões; pessoa distinta depende de conciliação e deduplicação aprovada.
 
 #### Fatos
 
@@ -416,14 +417,14 @@ flowchart LR
 #### Métricas
 
 - `qtd_participacao`: sempre 1, pois cada linha é uma participação; métrica aditiva que não representa quantidade de respostas a questões.
-- `seq_ocorrencia`: número sequencial para duplicatas de pesquisa e pessoa; métrica não aditiva usada como filtro para deduplicação.
-- `minutos_preenchimento`: diferença entre `hora_termino` e `hora_inicio` em minutos; aditiva onde existir, com cobertura aproximada de 4,3%.
+- `seq_ocorrencia`: ordenação determinística para (`pesquisa_id`, `cliente_id`) quando `cliente_id` existe; atributo de deduplicação, não medida aditiva.
+- `minutos_preenchimento`: diferença em minutos completos entre horários válidos e ordenados; anulável, e médias exigem denominador de pares válidos. Os 4,3% pertencem ao snapshot anterior.
 - `pct_mercado_na_participacao`: `market_share` de `respondentes.csv` no nível da participação; não aditiva e não homologada enquanto houver conflito com `empresas.csv`. Após decidir a fonte autoritativa, I09 soma uma vez por pesquisa o valor normalizado de cada empresa participante distinta.
 
 #### Dimensões
 
 - `sk_pesquisa`: `DIM_PESQUISA`, a pesquisa respondida.
-- `sk_empresa`: `DIM_EMPRESA`, com nome, nacionalidade, cidade, tipo de associado e share de mercado atual.
+- `sk_empresa`: `DIM_EMPRESA`, com nome, nacionalidade, cidade, estado, país, tipo de associado e share; `regiao` fica indisponível sem campo de origem ou mapa estadual homologado.
 - `sk_pessoa`: `DIM_PESSOA`, com cargo, departamento, nível hierárquico e agrupamento de departamento para anonimização; sem e-mail.
 - `sk_data_pesquisa`: `DIM_TEMPO` herdada de `pesquisas.data_divulgacao`, chave temporal primária.
 - `sk_data_resposta`: `DIM_TEMPO` extraída de `respondentes.hora_inicio`, chave opcional para sazonalidade e tempo de preenchimento.
@@ -438,17 +439,20 @@ flowchart LR
 
 #### Dados do C02
 
-**Fontes:** `respondentes.csv`, `pesquisas.csv`, `clientes.csv` e
-`empresas.csv`.
+**Fontes físicas:** `ingestao_respondentes` no snapshot selecionado;
+`ingestao_pesquisas_atual`; `ingestao_clientes_atual` quando houver conciliação;
+`ingestao_empresas_atual`.
 
-**Transformações:** criar `qtd_participacao`; numerar `seq_ocorrencia`;
-calcular duração somente com horários válidos; usar `data_divulgacao` como data
-primária enquanto `hora_inicio` tiver baixa cobertura; não escolher uma fonte
-de market share antes da homologação.
+**Transformações:** selecionar o checksum da última execução completa e
+conciliada; usar `source_offset` como ocorrência; criar `qtd_participacao`;
+atribuir `seq_ocorrencia` somente com pessoa conciliada; calcular duração apenas
+com par válido; usar `data_divulgacao` e `hora_inicio` em papéis distintos;
+bloquear I09 até homologação da fonte de market share.
 
-**Qualidade:** 838 ocorrências adicionais devem ser preservadas e numeradas;
-horários têm cobertura aproximada de 4,3%; market share é divergente; cargo e
-departamento são restritos; 55 participações apontam para `id_pesq=304` ausente.
+**Qualidade:** as 838 ocorrências adicionais e cobertura temporal aproximada
+de 4,3% foram medidas no snapshot anterior; market share é divergente; cargo e
+departamento são restritos; `regiao` fica indisponível sem origem ou mapa
+homologado. Órfãos são registrados na reconciliação da versão corrente.
 
 **Histórico/SCD:** usar chaves duráveis nas contagens; versionar atributos
 históricos somente com vigência e fonte aprovadas; separar identidade canônica
@@ -503,16 +507,15 @@ flowchart LR
 
 #### Fatos
 
-- Estado mensal da pesquisa no status.
-- Entrada no status durante o mês.
-- Saída do status durante o mês.
+- Estado de cada pesquisa no fechamento mensal observado.
+- Entradas e saídas de status, indisponíveis sem histórico de transições.
 - Fechamento mensal do pipeline.
 
 #### Métricas
 
-- `qtd_pesquisas_no_status`: estoque de pesquisas naquele status no último dia do mês; semi-aditiva entre categorias disjuntas do mesmo fechamento e nunca somada entre meses.
-- `qtd_entradas_no_mes`: fluxo de pesquisas que chegaram ao status durante o mês; aditiva no tempo somente quando houver histórico de transições, pois diferenças de snapshots mostram apenas mudança líquida.
-- `qtd_saidas_no_mes`: fluxo de pesquisas que saíram do status durante o mês; aditiva no tempo e indisponível enquanto não houver histórico de transições.
+- `qtd_pesquisas_no_status`: contagem de pesquisas distintas no fechamento observado; semi-aditiva entre grupos disjuntos do mesmo mês, nunca entre meses. Sem fechamento observado não há linha histórica.
+- `qtd_entradas_no_mes`: fluxo anulável, indisponível sem histórico de transições; diferenças entre snapshots mostram apenas mudança líquida.
+- `qtd_saidas_no_mes`: fluxo anulável, indisponível sem histórico de transições.
 
 #### Dimensões
 
@@ -525,21 +528,23 @@ flowchart LR
 #### Observações do C03
 
 - Não existe histórico de status anterior. O cubo começa no go-live e não deve fabricar backfill.
-- `qtd_a_finalizar` não é armazenada no fato, pois somá-la entre status multiplica o estoque. A camada semântica deve usar `flag_conta_como_a_finalizar` de `DIM_STATUS_PESQUISA`.
-- `DIM_STATUS_PESQUISA` deve oferecer `flag_em_aberto`, `flag_conta_como_a_finalizar` e `flag_terminal`, evitando regras de status fixas no código.
+- `qtd_a_finalizar` não é armazenada; a camada semântica só a calcula após homologação da flag correspondente.
+- `flag_em_aberto`, `flag_conta_como_a_finalizar` e `flag_terminal` ficam anuláveis até aprovação da regra; status desconhecido não recebe classificação inventada.
 - O fechamento recomendado ocorre no primeiro dia útil do mês, referente ao último dia do mês anterior, após aprovação operacional dessa agenda.
 
 #### Dados do C03
 
-**Fontes:** derivado do C01, com `pesquisas.csv` como base inicial.
+**Fontes:** estado corrente de C01 observado após o início da captura; histórico
+de transições para fluxos.
 
-**Transformações:** fechar o mês em execução identificada; usar papel específico
-de `DIM_TEMPO`; calcular entradas e saídas apenas sobre histórico real; derivar
-“a finalizar” na camada semântica pelas flags de status.
+**Transformações:** fechar o mês com competência e execução identificadas; não
+reconstruir status por `ingested_at`; calcular entradas e saídas somente no
+histórico de transições; derivar “a finalizar” na camada semântica após
+homologação das flags.
 
-**Qualidade:** não há histórico anterior ao go-live; backfill inferido é
-proibido; estoque não pode ser somado entre meses; toda linha precisa de status
-válido e versão da regra.
+**Qualidade:** não há histórico antes do início da captura; backfill por
+`ingested_at` é proibido; estoque não pode ser somado entre meses; fluxos ficam
+indisponíveis sem transições; flags ficam anuláveis até aprovação do mapeamento.
 
 **Histórico/SCD:** snapshots mensais são imutáveis; mudanças de significado dos
 status são versionadas em `DIM_STATUS_PESQUISA`; cada fechamento preserva a
@@ -586,9 +591,9 @@ flowchart LR
 
 #### Grão
 
-- Uma linha por pergunta em uma pesquisa, totalizando 231 linhas no snapshot atual.
-- A cobertura atual é de 10 das 366 pesquisas, aproximadamente 2,7% do acervo.
-- O fato conecta pesquisa e pergunta sem medidas numéricas tradicionais para soma.
+- Uma associação por (`pesquisa_id` de origem, `pergunta_id`) na versão corrente de `ingestao_questoes_atual`.
+- O volume de 231 linhas e a cobertura de 10/366 pertencem ao snapshot anterior à v3; volume e cobertura atuais exigem nova apuração.
+- `FATO_PESQUISA_PERGUNTA` conecta pesquisa e pergunta sem medidas armazenadas.
 
 #### Fatos
 
@@ -604,32 +609,31 @@ flowchart LR
 #### Dimensões
 
 - `sk_pesquisa`: `DIM_PESQUISA`, pesquisa que contém a pergunta.
-- `sk_pergunta`: `DIM_PERGUNTA`, com enunciado, tipo de questão, número de alternativas, formato de arquivo de origem e outras características.
+- `sk_pergunta`: `DIM_PERGUNTA`, com enunciado, tipo, alternativas e metadados de origem; `linhas_matriz` e `colunas_matriz` são atributos quando necessários.
 - `sk_data_pesquisa`: `DIM_TEMPO` herdada de `pesquisas.data_divulgacao`.
 
 #### Observações do C04
 
-- Das 231 linhas de `questoes.csv`, 188 (81,4%) ligam diretamente às pesquisas 112, 238, 274, 377, 414 e 415. Os IDs 424, 1116, 1139 e 1147 permanecem em reconciliação; correspondência por título não vira chave canônica sem validação.
-- A fonte cobre 10 de 366 pesquisas (2,7%). Para as demais, o consumo deve declarar “Dados não disponíveis”.
-- O cubo é ponto de extensão para uma futura `FATO_RESPOSTA`. A ponte entre `respostas.respondent_id` e a identidade de `respondentes.csv` não está comprovada; análise por pessoa ou segmento continua bloqueada.
-- `qtd_alternativas` é atributo de `DIM_PERGUNTA`. Agregações devem operar sobre perguntas distintas e declarar o denominador.
+- `qtd_pergunta` é contagem derivada de associações distintas; `qtd_alternativas` é atributo de `DIM_PERGUNTA`, não medida armazenada.
+- O relato de quatro IDs órfãos e 231 linhas descreve o snapshot anterior à versão v3. Não usar esses números como cobertura atual.
+- Título normalizado só pode ligar se tiver correspondência exata e única com a pesquisa corrente; registrar método, ID original e alvo. Ambiguidade ou ausência mantém chave desconhecida controlada e órfão em reconciliação.
+- `respostas.respondent_id` não tem ponte comprovada para pessoa ou participação; `FATO_RESPOSTA` é extensão futura sujeita a reconciliação e autorização.
 
 #### Dados do C04
 
-**Fontes:** `questoes.csv` e `pesquisas.csv`. `respostas.csv` é somente uma
-extensão agregada futura e não integra o cubo atual.
+**Fontes físicas:** `ingestao_questoes_atual` e `ingestao_pesquisas_atual`; a
+relação de respostas não integra este fato.
 
-**Transformações:** deduplicar a associação no grão; derivar `qtd_pergunta` por
-contagem; manter `qtd_alternativas` como atributo; vincular seis pesquisas por
-ID; manter quatro IDs em reconciliação com fallback exato e auditável; não unir
-respondentes e clientes sem contrato aprovado.
+**Transformações:** deduplicar associações no grão declarado, preservar origem,
+derivar a contagem por `COUNT(*)`, manter alternativas e listas de matriz como
+atributos da pergunta; fallback só com título normalizado de correspondência
+exata e única, registrando método, ID original e alvo.
 
-**Qualidade:** cobertura de 10/366 pesquisas; ligação direta de 188/231 linhas;
-quatro IDs órfãos; consulta fora da cobertura retorna indisponível; resposta
-agregada não autoriza consulta individual.
+**Qualidade:** volume e cobertura da v3 exigem nova apuração; recortes sem
+associação retornam indisponível, nunca zero; ambiguidade fica em reconciliação.
 
 **Histórico/SCD:** versionar `DIM_PERGUNTA` e o instrumento vigente; integrar
-uma futura `FATO_RESPOSTA` somente depois da reconciliação e autorização.
+uma futura `FATO_RESPOSTA` somente após reconciliação e autorização.
 
 #### Otimização e governança do C04
 

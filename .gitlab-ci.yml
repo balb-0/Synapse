@@ -34,8 +34,11 @@ test:
     - if: '$CI_COMMIT_BRANCH'
   script:
     - pip install -r requirements.txt -r requirements-transformation-dev.txt
+    - python scripts/architecture/validate_architecture_docs.py
     - python scripts/transformation/render_schema.py --check
-    - coverage run --branch --source=etl -m unittest discover -s tests -v
+    # Passada única: cobertura + JUnit juntos. Se um teste falhar, os XMLs
+    # dos demais já foram gerados e o job falha (bloqueio mantido).
+    - coverage run --branch --source=etl -m xmlrunner discover -s tests -o test-reports -v
     - coverage report --fail-under=85
     - coverage xml -o coverage-etl.xml
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
@@ -43,7 +46,9 @@ test:
     when: always
     paths:
       - coverage-etl.xml
+      - test-reports/
     reports:
+      junit: test-reports/*.xml
       coverage_report:
         coverage_format: cobertura
         path: coverage-etl.xml

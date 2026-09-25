@@ -76,6 +76,15 @@ env/
 .mypy_cache/
 .ruff_cache/
 
+# --- Power BI Project (.pbip) -------------------------------------------------
+# Cache local e configurações por usuário/máquina do modelo semântico; nunca
+# contêm dado (o dado vem só dos Parquet publicados, já ignorados acima).
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+**/.pbi/editorSettings.json
+**/.pbi/unappliedChanges.json
+*.pbix
+
 # --- Docker ------------------------------------------------------------------
 # (Dockerfile, docker-compose.yml e .dockerignore SÃO versionados)
 docker-compose.override.yml
@@ -88,6 +97,11 @@ temp/
 *.tmp
 *.bak
 *.orig
+# Relatórios gerados pelo CI localmente (também publicados como artefatos).
+test-reports/
+coverage-etl.xml
+# Estado local do adaptador de disparo por objeto (não versionar).
+.watch_landing_seen.json
 
 # --- Editores / IDE ----------------------------------------------------------
 .vscode/*

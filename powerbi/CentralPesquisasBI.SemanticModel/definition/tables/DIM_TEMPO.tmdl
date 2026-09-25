@@ -1,0 +1,75 @@
+table DIM_TEMPO
+
+	column data
+		dataType: dateTime
+		isHidden
+		summarizeBy: none
+		formatString: Short Date
+		sourceColumn: data
+
+	column ano
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: ano
+
+	column numero_trimestre
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: numero_trimestre
+
+	column trimestre
+		dataType: string
+		summarizeBy: none
+		sortByColumn: numero_trimestre
+		sourceColumn: trimestre
+
+	column numero_mes
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: numero_mes
+
+	column mes
+		dataType: string
+		summarizeBy: none
+		sortByColumn: numero_mes
+		sourceColumn: mes
+
+	column ano_mes
+		dataType: string
+		summarizeBy: none
+		sortByColumn: data
+		sourceColumn: ano_mes
+
+	hierarchy Calendario
+		lineageTag: calendario-hierarchy
+
+		level Ano
+			column: ano
+
+		level Trimestre
+			column: trimestre
+
+		level 'Mes'
+			column: mes
+
+	partition DIM_TEMPO = calculated
+		mode: import
+		source = ```
+				VAR _DatasParticipacao = SELECTCOLUMNS(PUB_C02_PARTICIPACAO, "data", [mes_resposta])
+				VAR _DatasPipeline = SELECTCOLUMNS(PUB_C03_PIPELINE_MENSAL, "data", [data_fim_mes])
+				VAR _Datas = DISTINCT(UNION(_DatasParticipacao, _DatasPipeline))
+				VAR _ComColunas =
+					ADDCOLUMNS(
+						_Datas,
+						"ano", YEAR([data]),
+						"numero_trimestre", QUARTER([data]),
+						"trimestre", "T" & QUARTER([data]),
+						"numero_mes", MONTH([data]),
+						"mes", FORMAT([data], "MMM"),
+						"ano_mes", FORMAT([data], "YYYY-MM")
+					)
+				RETURN
+					_ComColunas
+				```

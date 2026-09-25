@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 
 left to right direction
 
@@ -20,15 +21,19 @@ skinparam usecase {
 
 actor "Publicador da fonte" as PUB
 actor "Operador de dados" as OPE
+actor "Analista de dados" as ANALISTA
+actor "Responsável por governança" as GOV
 actor "MinIO" as MINIO <<sistema>>
 actor "Prefect" as PREFECT <<sistema>>
 actor "Elastic Stack" as ELASTIC <<sistema planejado>>
+actor "Ferramenta de BI" as BI <<sistema planejado>>
 
 rectangle "Pipeline de ingestão do ETL" {
   usecase "Publicar objeto na área de entrada" as UC01
   usecase "Disparar execução por evento s3:ObjectCreated" as UC02 <<planejado>>
   usecase "Executar ingestão de um objeto" as UC03
   usecase "Executar backfill por fonte e janela" as UC04
+  usecase "Servir deployment com agenda diária" as UC18
   usecase "Verificar SHA-256 do objeto" as UC05
   usecase "Registrar entrada já concluída como ignorada" as UC06
   usecase "Extrair a fonte em lotes" as UC07
@@ -42,6 +47,8 @@ rectangle "Pipeline de ingestão do ETL" {
   usecase "Retomar a partir do checkpoint confirmado" as UC15
   usecase "Consultar histórico de execuções" as UC16
   usecase "Monitorar execução, saúde e alertas" as UC17 <<planejado>>
+  usecase "Autorizar snapshot analítico" as UC19 <<planejado>>
+  usecase "Consultar cubos publicados" as UC20 <<planejado>>
 }
 
 PUB --> UC01
@@ -50,11 +57,16 @@ OPE --> UC03
 OPE --> UC04
 OPE --> UC16
 OPE --> UC17
+OPE --> UC18
+ANALISTA --> UC20
+GOV --> UC19
 PREFECT --> UC03
 PREFECT --> UC04
+PREFECT --> UC18
 PREFECT --> UC13
 PREFECT --> UC14
 ELASTIC --> UC17
+BI --> UC20
 
 UC02 ..> UC03 : <<include>>
 UC03 ..> UC05 : <<include>>
@@ -64,16 +76,29 @@ UC03 ..> UC10 : <<include>>
 UC03 ..> UC11 : <<include>>
 UC03 ..> UC12 : <<include>>
 UC04 ..> UC03 : <<include>>
+UC18 ..> UC03 : <<include>>
 UC08 ..> UC09 : <<include>>
 UC06 ..> UC05 : <<extend>>
 UC13 ..> UC07 : <<extend>>
 UC14 ..> UC07 : <<extend>>
 UC15 ..> UC07 : <<extend>>
+UC20 ..> UC19 : <<include>>
 
 note right of UC02
   Contrato do ADR 0001.
   Não implementado no develop:
   o disparo real é manual ou agendado.
+end note
+
+note right of UC18
+  Implementado por ingest_object.serve()
+  com cron 0 3 * * *; o processo é
+  iniciado pelo operador.
+end note
+
+note right of UC20
+  Depende da carga e publicação dos cubos.
+  Não existe adaptador BI no develop.
 end note
 
 note right of UC17
