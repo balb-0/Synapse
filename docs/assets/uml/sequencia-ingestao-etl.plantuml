@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 
 skinparam shadowing false
 skinparam sequenceMessageAlign first
@@ -18,6 +19,7 @@ participant "MinioObjectReader" as READER
 participant "Extrator" as EXTRACTOR
 participant "transform_batch" as TRANSFORM
 participant "DuckDbLoadRepository" as REPO
+participant "LoadLogSink" as LOADLOG
 database "DuckDB" as DB
 participant "Logstash\n(planejado)" as LOGS
 
@@ -34,21 +36,30 @@ group Execução normal
   REPO --> FLOW : identidades e checkpoint
   FLOW -> EXTRACTOR : read(run_id, checkpoint)
   EXTRACTOR -> READER : open(reference)
-  EXTRACTOR --> FLOW : ExtractedBatch
-  EXTRACTOR -->> LOGS : evento JSON do lote
-  FLOW -> TRANSFORM : transform_batch(batch, references, previous)
-  TRANSFORM --> FLOW : TransformationResult
-  FLOW -> REPO : load_batch(result, metadata)
-  REPO -> DB : BEGIN TRANSACTION
-  REPO -> DB : INSERT nas tabelas de ingestão
-  REPO -> DB : INSERT em rejected e rejected_reason
-  REPO -> DB : contagem por run_id e batch_id
-  DB --> REPO : carregados e rejeitados
-  REPO -> DB : INSERT em _batch_metadata (carregado)
-  REPO -> DB : COMMIT
-  REPO --> FLOW : LoadResult balanceado
+  loop para cada ExtractedBatch
+    EXTRACTOR --> FLOW : lote + checkpoint do lote
+    EXTRACTOR -->> LOGS : evento JSON de extração
+    FLOW -> TRANSFORM : transform_batch(batch, references, previous)
+    TRANSFORM --> FLOW : TransformationResult
+    FLOW -> REPO : load_batch(result, metadata)
+    REPO -> DB : BEGIN TRANSACTION
+    REPO -> DB : INSERT aceitos e rejeitados
+    REPO -> DB : contagem por run_id e batch_id
+    DB --> REPO : carregados e rejeitados
+    REPO -> DB : INSERT em _batch_metadata
+    REPO -> DB : COMMIT
+    REPO -->> LOADLOG : LoadBatchLogEvent
+    LOADLOG -->> LOGS : evento JSON de carga
+    REPO --> FLOW : LoadResult balanceado
+    FLOW -> REPO : commit(checkpoint do lote)
+    REPO -> DB : UPSERT em _checkpoint
+    note right of FLOW
+      O checkpoint só avança depois do
+      COMMIT e da reconciliação do lote.
+    end note
+  end
   FLOW -> REPO : mark_object_loaded(source, checksum, run_id)
-  FLOW -> REPO : commit(checkpoint)
+  REPO -> DB : UPSERT em _control_object
   FLOW -->> LOGS : estado final da execução
   FLOW --> OPE : status loaded
 end
@@ -67,6 +78,7 @@ group Falha transitória com retry limitado
   else limite esgotado
     EXTRACTOR --> FLOW : RetryLimitExceededError
     FLOW -> FLOW : _should_retry devolve false
+    FLOW -->> LOGS : erro correlacionado e tentativas esgotadas
     FLOW --> OPE : execução falha sem nova tentativa
     note right of FLOW
       Checkpoint e hash não são confirmados.
@@ -74,6 +86,23 @@ group Falha transitória com retry limitado
       e a próxima execução relê o trecho.
     end note
   end
+end
+
+group Falha durante carga ou reconciliação
+  FLOW -> REPO : load_batch(result, metadata)
+  REPO -> DB : BEGIN + escritas do lote
+  DB --> REPO : erro de escrita ou contagem divergente
+  REPO -> DB : ROLLBACK
+  REPO -> DB : INSERT _batch_metadata (falha, contagens zero)
+  REPO -->> LOADLOG : evento status=failed
+  LOADLOG -->> LOGS : lote falho com run_id e batch_id
+  REPO --> FLOW : exceção
+  FLOW --> OPE : flow run failed
+  note right of REPO
+    Não há commit do checkpoint.
+    O lote será relido desde a última
+    posição confirmada.
+  end note
 end
 
 group Falha permanente
@@ -84,6 +113,7 @@ group Falha permanente
   EXTRACTOR -> EXTRACTOR : classify_source_failure -> permanente
   EXTRACTOR --> FLOW : PermanentSourceError
   FLOW -> FLOW : _should_retry devolve false
+  FLOW -->> LOGS : falha permanente correlacionada
   FLOW --> OPE : execução falha imediatamente
 end
 

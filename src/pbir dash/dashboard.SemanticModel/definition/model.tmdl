@@ -1,0 +1,24 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+ref table D01_CicloPesquisa
+ref table D02_Participacao
+ref table D03_PesquisaPergunta
+ref table D04_PipelineMensal
+ref table D04_QualidadeGovernanca
+ref table BE_Empresa
+ref table BE_Pesquisa
+ref table BE_Faixa
+
+ref cultureInfo pt-BR
+

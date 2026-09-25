@@ -55,6 +55,8 @@ g05/
 │  ├─ dmc.json                                        # Data Model Canvas exportado
 │  ├─ runbook-execucao.md                             # Runbook: subir ambiente, executar ETL, testes e troubleshooting
 │  ├─ estrategia-de-testes.md                         # Estratégia de testes do ETL (baseline e camadas)
+│  ├─ solucao-dashboards/                             # Documentação dos dashboards
+│  ├─ usabilidade/                                    # Plano e avaliação de usabilidade
 │  ├─ adrs/                                           # Decisões de arquitetura do ETL
 │  ├─ gestao-projeto.md                               # Sprints, riscos e post-mortem
 │  ├─ gestao-configuração.md                          # Políticas de repo, branches e commits
@@ -62,25 +64,31 @@ g05/
 │  └─ assets/                                         # Protótipos, diagramas e figuras dos documentos
 │     ├─ figuras/                                     # Figuras agregadas geradas pela análise quantitativa
 │     └─ uml/                                         # Diagramas UML da solução
-├─ src/etl/                                           # ETL: extraction, transformation, load e orchestration (Prefect)
-├─ tests/                                             # Suíte unittest por camada (extraction, transformation, load)
-├─ sql/duckdb/                                        # DDL versionada das tabelas de ingestão
+├─ src/etl/                                           # ETL: extração, transformação, carga e orquestração
+├─ src/pbir dash/                                     # Relatório e modelo semântico Power BI
+├─ powerbi/                                           # Projeto Power BI da Central de Pesquisas
+├─ tests/                                             # Testes do ETL e da camada analítica
+├─ sql/duckdb/                                        # DDL versionada de ingestão e análise
 ├─ scripts/
 │  ├─ analysis/                                       # Análise quantitativa e notebooks exploratórios
+│  ├─ analytics/                                      # Rotinas da camada analítica
+│  ├─ architecture/                                   # Validação da documentação arquitetural
 │  ├─ dmc/                                            # Validação do dmc.json
 │  ├─ orchestration/                                  # Entrypoints do ETL (run_ingest, run_backfill, deployment)
 │  ├─ transformation/                                 # Auditoria e renderização do schema de transformação
 │  ├─ load/                                           # Health check do DuckDB e renderização da DDL
 │  ├─ prototipos-dashboards/                          # Geração, testes e renderização dos protótipos
 │  ├─ data_quality/                                   # Validação da qualidade dos dados
+│  ├─ governance/                                     # Validação de governança
 │  └─ traceability/                                   # Validação de rastreabilidade às fontes
-├─ docker-compose.yml                                 # Ambiente local: MinIO + runner Prefect/DuckDB
+├─ docker-compose.yml                                 # Ambiente local: MinIO, Prefect e runner
+├─ prefect.yaml                                       # Deployments Prefect
 ├─ Dockerfile                                         # Imagem do runner do ETL
 ├─ requirements.txt                                   # Dependências de execução (minio, prefect, duckdb)
 ├─ .env.example                                       # Modelo das variáveis de ambiente do ETL
 ├─ .gitlab/
-│  ├─ ci/                                             # Jobs do pipeline de CI
 │  └─ merge_request_templates/                        # Template de Merge Request
+├─ .gitlab-ci.yml                                     # Pipeline de CI
 ├─ .gitignore
 └─ README.md
 ```
@@ -125,6 +133,14 @@ Prefect, logs, consulta ao DuckDB, CI e troubleshooting — está em
 
 * 0.1.0 - Sprint 1 - 14/08/2026
     * Contexto Organizacional, Modelagem Quantitativa dos Dados e Data Model Canvas
+* 0.2.0 - Sprint 2 - 28/08/2026
+    * Governança de dados e contratos iniciais do ETL
+* 0.3.0 - Sprint 3 - 11/09/2026
+    * ETL, testes e documentação de execução e rastreabilidade
+* 0.4.0 - Sprint 4 - 25/09/2026
+    * Camada analítica, modelo semântico Power BI, dashboards e observabilidade
+* 0.5.0 - Sprint 5 - 07/10/2026
+    * Em andamento; entregas ainda não registradas neste histórico
 
 ## 📋 Licença/License
 

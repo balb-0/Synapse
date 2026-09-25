@@ -67,6 +67,13 @@ Serviços definidos em `docker-compose.yml`:
 - `minio`: armazenamento de objetos na porta 9000; console web em
   http://localhost:9001 (usuário/senha de desenvolvimento: `minioadmin`/`minioadmin`).
 - `createbucket`: cria o bucket `sindusfarma` na subida (`mc mb --ignore-existing`).
+- `prefect-server`: backend persistente do Prefect com UI de pipelines em
+  http://localhost:4200 e health check em http://localhost:4200/api/health
+  (volume `prefect-data`: agendamentos e histórico sobrevivem a
+  `docker compose down/up`).
+- `scheduler`: serve o deployment `ingest-object/agendado` (cron `0 3 * * *`)
+  e reinicia sozinho (`restart: unless-stopped`); usa o mesmo ambiente e o
+  mesmo banco do `runner`, e o histórico vive no `prefect-server`.
 - `runner`: contêiner Python com Prefect e DuckDB (`Dockerfile`), com `src/` e
   `scripts/` montados; permanece ativo (`sleep infinity`) para executar comandos.
 
@@ -114,19 +121,56 @@ continua impedindo duplicatas.
 - Flows em `src/etl/orchestration/flow.py`: `ingest-object` (um objeto:
   verificação de idempotência → extração → transformação → carga →
   reconciliação) e `backfill` (subflows por fonte).
-- Retry: a tarefa `extract` tem `retries=2` com condição (`_should_retry`) —
-  só repete erro inesperado; falha permanente (credencial, schema, objeto
-  ausente) ou limite interno de retry já esgotado falham rápido. Falhas
-  transitórias de leitura são reexecutadas dentro da extração
-  (`RetryExecutor`, configurável por `ETL_EXTRACTION_*`).
+- Retry: as tarefas `extract`, `transform` e `load` têm `retries=2` com
+  condição (`_should_retry`) — só repete erro transitório ou inesperado;
+  falha permanente (credencial, schema, objeto ausente, `NoSuchKey`) ou
+  limite interno de retry já esgotado falham rápido. Falhas transitórias de
+  leitura são reexecutadas dentro da extração (`RetryExecutor`, configurável
+  por `ETL_EXTRACTION_*`).
 - Deployment agendado: `python scripts/orchestration/deployment.py` serve o
-  deployment `ingest-object/agendado` (cron `0 3 * * *`). Execução manual com
-  parâmetros explícitos:
+  deployment `ingest-object/agendado` (cron `0 3 * * *`). Os deployments
+  `ingest-object/manual` e `backfill`, declarados em `prefect.yaml`, são
+  publicados pela CLI a partir da raiz do repositório (com o ambiente no ar):
+
+  ```bash
+  export PREFECT_API_URL=http://localhost:4200/api
+  prefect work-pool create default --type process   # idempotente
+  prefect deploy --all
+  prefect deployment ls
+  ```
+
+  Execução manual com parâmetros explícitos (também pela UI em
+  http://localhost:4200):
 
   ```bash
   prefect deployment run 'ingest-object/agendado' -p source=empresas \
       -p bucket=sindusfarma -p key=landing/empresas.csv -p reprocess=true
   ```
+
+## Disparo pela chegada de objeto
+
+`scripts/orchestration/watch_landing.py` inicia a ingestão quando um objeto
+chega à área de entrada (`<prefixo>/<fonte>.csv`), sem varredura manual:
+
+```bash
+# webhook (MinIO notifica o adaptador, sem polling):
+docker compose exec runner python scripts/orchestration/watch_landing.py --webhook-port 8001
+# polling (quando o webhook não está configurado):
+docker compose exec runner python scripts/orchestration/watch_landing.py --interval 30
+# uma varredura e sai (smoke/teste):
+docker compose exec runner python scripts/orchestration/watch_landing.py --once
+```
+
+Objeto repetido retorna `status: ignored` (idempotência por SHA-256 em
+`_control_object`): não gera carga duplicada. Chaves fora do padrão
+`<fonte>.csv` são ignoradas com aviso.
+
+Limites do adaptador (ambiente de desenvolvimento): o modo webhook exige
+configurar o notifier no MinIO (`mc event add local/sindusfarma
+arn:minio:sqs::1:webhook --prefix landing/ --suffix .csv --event put`) e
+expõe a porta escolhida sem autenticação; o `--state-file` do polling é
+relativo ao diretório de execução — para sobreviver a `down/up`, aponte-o
+para um volume (ex.: `/data/.watch_seen.json`).
 
 ## Logs e observabilidade
 
@@ -200,5 +244,5 @@ os mesmos comandos.
 | CSV malformado | linhas inválidas da fonte | a transformação rejeita por linha com motivo em `rejected`/`rejected_reason`; o lote não cai — a reconciliação em `_batch_metadata` mostra quantos foram rejeitados |
 | Objeto reenviado é ignorado (`status: ignored`) | idempotência por hash do objeto | comportamento esperado; para forçar, use `run_backfill.py --reprocess` (a dedup por linha protege) |
 | Execução morreu no meio | falha entre extração e carga | reexecute o mesmo comando: o `_checkpoint` retoma da posição confirmada do mesmo objeto; checkpoint de outra versão é descartado |
-| Falha transitória de leitura | timeout/instabilidade do MinIO | a extração já retenta (`ETL_EXTRACTION_MAX_ATTEMPTS`); o Prefect retenta só erro inesperado (`retries=2` na task `extract`) |
+| Falha transitória de leitura | timeout/instabilidade do MinIO | a extração já retenta (`ETL_EXTRACTION_MAX_ATTEMPTS`); o Prefect retenta só erro transitório ou inesperado (`retries=2` com `_should_retry` nas tasks `extract`, `transform` e `load`) |
 | `DDL_DESATUALIZADA` no CI | contrato físico mudou sem regerar o SQL | `python scripts/load/render_ddl.py` e commitar `sql/duckdb/001_ingestao_tratada.sql` |

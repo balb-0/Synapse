@@ -1,4 +1,5 @@
-# Ambiente local do ETL orquestrado (OV-02): MinIO como entrada e o runner
+# Ambiente local do ETL orquestrado (OV-02): MinIO como entrada, o servidor
+# Prefect (histórico de execução e UI de pipelines) e o runner
 # Prefect/DuckDB. A Elastic Stack (observabilidade) é acrescentada no OV-07.
 services:
   minio:
@@ -28,10 +29,42 @@ services:
       mc mb --ignore-existing local/sindusfarma &&
       echo 'bucket sindusfarma pronto'"
 
-  runner:
+  # Backend persistente do Prefect: histórico de execução consultável
+  # e UI de pipelines (`http://localhost:4200`). Sem ele, cada processo do
+  # runner fala com uma API efêmera própria, sem histórico entre execuções
+  # nem visualização. Reaproveita a imagem do runner (mesma versão do
+  # Prefect, fixada em `requirements.txt`).
+  prefect-server:
+    build: .
+    command: ["prefect", "server", "start", "--host", "0.0.0.0"]
+    ports:
+      - "4200:4200"
+    volumes:
+      - prefect-data:/root/.prefect
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4200/api/health', timeout=3)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Serve os deployments com agendamento: mantém
+  # `ingest-object/agendado` (cron `0 3 * * *`, ver
+  # `scripts/orchestration/deployment.py`) ativo enquanto o ambiente roda.
+  # `restart: unless-stopped` faz o agendamento sobreviver ao reinício do
+  # contêiner; os agendamentos e o histórico vivem no `prefect-server`
+  # (volume `prefect-data`), não neste processo — derrubar e subir o
+  # ambiente (`docker compose down/up`) preserva ambos.
+  scheduler:
     build: .
     depends_on:
-      - minio
+      minio:
+        condition: service_started
+      prefect-server:
+        condition: service_healthy
+    command: ["python", "scripts/orchestration/deployment.py"]
+    # Mesmo ambiente do `runner`: o `.serve()` executa o flow neste processo,
+    # então precisa das mesmas credenciais e do mesmo `ETL_DUCKDB_PATH` —
+    # sem isso, o agendado falharia ou escreveria em outro banco.
     environment:
       ETL_MINIO_ENDPOINT: http://minio:9000
       ETL_MINIO_BUCKET: sindusfarma
@@ -39,6 +72,28 @@ services:
       ETL_MINIO_SECRET_KEY: minioadmin
       ETL_MINIO_INPUT_PREFIX: landing
       ETL_DUCKDB_PATH: /data/warehouse.duckdb
+      PREFECT_API_URL: http://prefect-server:4200/api
+    volumes:
+      - duck-data:/data
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+    restart: unless-stopped
+
+  runner:
+    build: .
+    depends_on:
+      minio:
+        condition: service_started
+      prefect-server:
+        condition: service_healthy
+    environment:
+      ETL_MINIO_ENDPOINT: http://minio:9000
+      ETL_MINIO_BUCKET: sindusfarma
+      ETL_MINIO_ACCESS_KEY: minioadmin
+      ETL_MINIO_SECRET_KEY: minioadmin
+      ETL_MINIO_INPUT_PREFIX: landing
+      ETL_DUCKDB_PATH: /data/warehouse.duckdb
+      PREFECT_API_URL: http://prefect-server:4200/api
     volumes:
       - duck-data:/data
       - ./src:/app/src
@@ -47,3 +102,4 @@ services:
 volumes:
   minio-data:
   duck-data:
+  prefect-data:

@@ -1,0 +1,110 @@
+table PUB_C01_CICLO
+
+	measure 'Qtd Pesquisas' = SUM(PUB_C01_CICLO[qtd_pesquisas])
+		formatString: #,0
+
+	measure 'Media Dias Validacao' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_validacao]), SUM(PUB_C01_CICLO[qtd_validacao_disponivel]))
+		formatString: #,0.0
+
+	measure 'Base Valida Validacao' = SUM(PUB_C01_CICLO[qtd_validacao_disponivel])
+		formatString: #,0
+
+	measure 'Media Dias Coleta' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_coleta]), SUM(PUB_C01_CICLO[qtd_coleta_disponivel]))
+		formatString: #,0.0
+
+	measure 'Base Valida Coleta' = SUM(PUB_C01_CICLO[qtd_coleta_disponivel])
+		formatString: #,0
+
+	measure 'Media Dias Tabulacao' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_tabulacao]), SUM(PUB_C01_CICLO[qtd_tabulacao_disponivel]))
+		formatString: #,0.0
+
+	measure 'Base Valida Tabulacao' = SUM(PUB_C01_CICLO[qtd_tabulacao_disponivel])
+		formatString: #,0
+
+	measure 'Media Dias Ciclo Total' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_ciclo_total]), SUM(PUB_C01_CICLO[qtd_ciclo_total_disponivel]))
+		formatString: #,0.0
+
+	measure 'Base Valida Ciclo Total' = SUM(PUB_C01_CICLO[qtd_ciclo_total_disponivel])
+		formatString: #,0
+
+	measure 'Taxa de Prorrogacao' = "Indisponivel: coluna de prorrogacao nao publicada no cubo BI (ver docs/indicadores-publicaveis-bi.md, I05)"
+
+	column area
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: area
+
+	column status
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: status
+
+	column tipo
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: tipo
+
+	column qtd_pesquisas
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_pesquisas
+
+	column soma_dias_validacao
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: soma_dias_validacao
+
+	column qtd_validacao_disponivel
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_validacao_disponivel
+
+	column soma_dias_coleta
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: soma_dias_coleta
+
+	column qtd_coleta_disponivel
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_coleta_disponivel
+
+	column soma_dias_tabulacao
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: soma_dias_tabulacao
+
+	column qtd_tabulacao_disponivel
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_tabulacao_disponivel
+
+	column soma_dias_ciclo_total
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: soma_dias_ciclo_total
+
+	column qtd_ciclo_total_disponivel
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_ciclo_total_disponivel
+
+	partition PUB_C01_CICLO = m
+		mode: import
+		source =
+				let
+					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_C01_CICLO.parquet"))
+				in
+					Origem

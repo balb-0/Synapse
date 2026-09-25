@@ -1,0 +1,37 @@
+table PUB_QUALIDADE_CAMPO
+
+	measure Completude = DIVIDE(SUM(PUB_QUALIDADE_CAMPO[qtd_preenchidas]), SUM(PUB_QUALIDADE_CAMPO[qtd_linhas]))
+		formatString: 0.0%
+
+	measure 'Base Valida Completude' = SUM(PUB_QUALIDADE_CAMPO[qtd_linhas])
+		formatString: #,0
+
+	column tabela
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tabela
+
+	column campo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: campo
+
+	column qtd_linhas
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_linhas
+
+	column qtd_preenchidas
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_preenchidas
+
+	partition PUB_QUALIDADE_CAMPO = m
+		mode: import
+		source =
+				let
+					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_QUALIDADE_CAMPO.parquet"))
+				in
+					Origem

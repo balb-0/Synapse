@@ -12,72 +12,72 @@ table(DIM_TEMPO) {
   + sk_tempo : PK
   + data
   + ano
-  + mes
   + trimestre
-  + flag_dia_util
+  + mes
+  + dia
+  + dia_semana
+  + fim_mes
 }
 
 table(DIM_PESQUISA) {
   + sk_pesquisa : PK
-  + id_origem_planilha
+  + pesquisa_id : chave durável
   + titulo
-  + objetivos
-  + ano_edicao
 }
 
 table(DIM_EMPRESA) {
   + sk_empresa : PK
-  + id_empresa_durable
+  + empresa_id : chave durável
   + nome_fantasia
-  + pct_mercado
-  + faixa_share
+  + part_mercado
   + nacionalidade
-  + flag_associado
+  + associado
   + tipo_associado
   + cidade
   + estado
-  + regiao
   + pais
-  + flag_ja_participou
-  + qtd_participacoes
-  + data_primeira_participacao
-  + data_ultima_participacao
-  + faixa_engajamento
 }
 
 table(DIM_PESSOA) {
   + sk_pessoa : PK
-  + id_pessoa_durable
-  + sk_empresa : FK
-  + cargo
+  + cliente_id : chave de origem
+  + empresa_id
+  + cargo : restrito
+  + departamento : restrito
   + nivel_hierarquico
-  + departamento
   + agrupamento_departamento
-  + qtd_participacoes
-  + flag_respondente_recorrente
-  + data_inclusao
-  + base_legal_finalidade
-  + flag_titular_anonimizado
-  + data_anonimizacao
 }
 
 fact(FATO_PARTICIPACAO) {
-  + sk_pesquisa : FK
-  + sk_empresa : FK
-  + sk_pessoa : FK
-  + sk_data_pesquisa : FK
-  + sk_data_resposta : FK
+  + source_checksum : PK composta VARCHAR NOT NULL
+  + source_offset : PK composta UBIGINT NOT NULL
+  + sk_pesquisa : FK NOT NULL
+  + sk_empresa : FK NOT NULL
+  + sk_pessoa : FK anulável
+  + sk_data_pesquisa : FK anulável
+  + sk_data_resposta : FK anulável
   --
-  + qtd_participacao
-  + seq_ocorrencia
-  + minutos_preenchimento
-  + pct_mercado_na_participacao
+  + qtd_participacao : INTEGER NOT NULL = 1
+  + seq_ocorrencia : anulável
+  + minutos_preenchimento : anulável
+  + motivo_minutos_indisponivel : anulável
+  + pct_mercado_na_participacao : anulável
 }
 
-DIM_TEMPO "1" -- "0..n" FATO_PARTICIPACAO : sk_data_pesquisa
-DIM_TEMPO "1" -- "0..n" FATO_PARTICIPACAO : sk_data_resposta
+DIM_TEMPO "0..1" -- "0..n" FATO_PARTICIPACAO : sk_data_pesquisa
+DIM_TEMPO "0..1" -- "0..n" FATO_PARTICIPACAO : sk_data_resposta
 DIM_PESQUISA "1" -- "0..n" FATO_PARTICIPACAO : sk_pesquisa
 DIM_EMPRESA "1" -- "0..n" FATO_PARTICIPACAO : sk_empresa
-DIM_PESSOA "1" -- "0..n" FATO_PARTICIPACAO : sk_pessoa
+DIM_PESSOA "0..1" -- "0..n" FATO_PARTICIPACAO : sk_pessoa quando conciliado
+
+note bottom of FATO_PARTICIPACAO
+  Uma linha por ocorrência do snapshot selecionado,
+  identificada pela PK (source_checksum, source_offset).
+  Não há chave natural confirmada para respondentes.
+  respondent_id de respostas não identifica cliente_id.
+  FKs de pessoa e tempo são anuláveis; pesquisa e empresa
+  são obrigatórias e usam a chave desconhecida quando órfãs.
+  Minutos nulos exigem motivo_minutos_indisponivel.
+end note
 
 @enduml

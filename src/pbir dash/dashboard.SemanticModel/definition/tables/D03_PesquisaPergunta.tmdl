@@ -1,0 +1,75 @@
+/// C04 — Resultados e Questionários. Fato de associação derivado de bi.vw_pesquisa_pergunta.
+table D03_PesquisaPergunta
+	lineageTag: 89fc1385-8b42-4a7a-bf3b-448d91a070ac
+
+	column sk_pesquisa_pergunta
+		dataType: int64
+		isNullable: false
+		lineageTag: fdd0b860-0d2f-41d6-a214-e7a8ce96cbd6
+		sourceColumn: sk_pesquisa_pergunta
+
+	column pesquisa_id_origem
+		dataType: string
+		lineageTag: 2f886bf3-ae7a-47cf-b921-cd3786221aae
+		sourceColumn: pesquisa_id_origem
+
+	column titulo
+		dataType: string
+		lineageTag: d199721d-4a2d-471d-a5d0-3a97a9a48932
+		sourceColumn: titulo
+
+	column data_pesquisa
+		dataType: dateTime
+		lineageTag: cfce20fa-ff48-4715-a499-65d6a0b7c899
+		sourceColumn: data_pesquisa
+
+	column pergunta_id_origem
+		dataType: string
+		lineageTag: 49a4e14c-999c-4d6b-972b-f461111a9209
+		sourceColumn: pergunta_id_origem
+
+	column enunciado_exibicao
+		dataType: string
+		lineageTag: fbdedb8f-4ef2-48ef-9231-bfd7f46cd66c
+		sourceColumn: enunciado_exibicao
+
+	column tipo_questao
+		dataType: string
+		lineageTag: 83e3c6b5-37ff-438f-9955-2de30b7e4636
+		sourceColumn: tipo_questao
+
+	column qtd_alternativas
+		dataType: int64
+		lineageTag: 6dcf573f-4612-4100-b43e-fdf05e1c96be
+		sourceColumn: qtd_alternativas
+
+	column formato_arquivo_origem
+		dataType: string
+		lineageTag: c182756f-f42b-492e-ad3e-03a901e72028
+		sourceColumn: formato_arquivo_origem
+
+	column versao_instrumento
+		dataType: string
+		lineageTag: 899abf8f-680d-45ee-9eaa-4ca8f229a11d
+		sourceColumn: versao_instrumento
+
+	column tipo_vinculo
+		dataType: string
+		lineageTag: 24bf8514-7bb5-4ff4-be55-cb4480826f99
+		sourceColumn: tipo_vinculo
+
+	column estado_reconciliacao
+		dataType: string
+		lineageTag: b307bf78-93ea-43d8-a11a-984b37266a94
+		sourceColumn: estado_reconciliacao
+
+	partition D03_PesquisaPergunta = m
+		mode: import
+		source =
+				let
+				    Fonte = Csv.Document(File.Contents("C:\\Users\\Inteli\\Documents\\projetos_inteli\\g05\\data\\powerbi_gold_simulada\\vw_pesquisa_pergunta.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Cabecalhos, {{"sk_pesquisa_pergunta", Int64.Type}, {"data_pesquisa", type date}, {"qtd_alternativas", Int64.Type}})
+				in
+				    Tipos
+

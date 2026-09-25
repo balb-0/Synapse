@@ -1,0 +1,14 @@
+# Ferramentas locais do ambiente de desenvolvimento
+.agents/
+.codex/
+
+# Dependências instaladas localmente pelo APM
+apm_modules/
+
+# Estado e cache local do Power BI
+**/.pbi/
+**/*.abf
+**/*.cache
+
+# Arquivos binários/exportados locais do Power BI
+*.pbix

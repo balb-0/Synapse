@@ -547,6 +547,19 @@ class DuckDbLoadRepository:
             self._conn.execute(f"SELECT count(*) FROM {quote(table_name(source))}").fetchone()[0]
         )
 
+    def fetch_compatibility_records(self, source: str) -> list[dict[str, Any]]:
+        """Lê todas as colunas de negócio da view de compatibilidade da fonte.
+
+        Interface pública para a montagem de referências da orquestração:
+        devolve uma lista de dicionários coluna→valor, sem expor a
+        conexão interna. A view tem o nome sem prefixo (ex.: ``empresas``) e
+        espelha a tabela de ingestão (ver ``create_legacy_view``).
+        """
+
+        cursor = self._conn.execute(f"SELECT * FROM {quote(source)}")
+        columns = [description[0] for description in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
 
 def _cell(value: Any) -> Any:
     """Converte valores para o que o driver aceita (listas viram JSON)."""

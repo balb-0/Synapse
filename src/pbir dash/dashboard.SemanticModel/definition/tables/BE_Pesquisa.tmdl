@@ -1,0 +1,50 @@
+table BE_Pesquisa
+	lineageTag: bca6b918-1f3c-5f9a-9396-be2da67684dc
+
+	column 'ID Pesquisa'
+		dataType: string
+		lineageTag: f660d017-1881-5629-a0ca-d9f0f1c9c2fc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [ID Pesquisa]
+
+	column Pesquisa
+		dataType: string
+		lineageTag: dbbd91bb-49e5-5a75-bdb5-abc13af7fcc7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Pesquisa]
+
+	column Ano
+		dataType: int64
+		lineageTag: 8626db2b-1484-5bbd-a6b5-32fae8d03374
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ano]
+
+	column Área
+		dataType: string
+		lineageTag: 7f98c6cc-1235-54d7-8eff-cb68a7af3d02
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Área]
+
+	column Tipo
+		dataType: string
+		lineageTag: 75c7455a-2a06-52f7-b547-b31631888535
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tipo]
+
+	partition BE_Pesquisa = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS (
+				    FILTER ( D01_CicloPesquisa, NOT ISBLANK ( D01_CicloPesquisa[pesquisa_id_origem] ) ),
+				    "ID Pesquisa", D01_CicloPesquisa[pesquisa_id_origem],
+				    "Pesquisa", D01_CicloPesquisa[titulo] & " [" & D01_CicloPesquisa[pesquisa_id_origem] & "]",
+				    "Ano", IF ( NOT ISBLANK ( D01_CicloPesquisa[data_divulgacao] ), YEAR ( D01_CicloPesquisa[data_divulgacao] ) ),
+				    "Área", D01_CicloPesquisa[area],
+				    "Tipo", D01_CicloPesquisa[tipo]
+				)
+

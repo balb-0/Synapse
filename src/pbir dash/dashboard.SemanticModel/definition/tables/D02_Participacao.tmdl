@@ -1,0 +1,178 @@
+/// C02 — Participação e Representatividade. Snapshot derivado de bi.vw_participacao.
+table D02_Participacao
+	lineageTag: d82d5d8c-07ea-4744-ba85-e5340acedfef
+
+	/// Volume de participações observadas. Não representa adesão, market share ou desempenho.
+	measure 'Participações Observadas' = SUM('D02_Participacao'[qtd_participacao])
+		formatString: #,0
+		displayFolder: 10. Benchmark externo
+		lineageTag: a871b1b2-b635-4e6e-84bb-dea5adaa403a
+
+	/// Pesquisas distintas com participação observada no recorte.
+	measure 'Pesquisas com Participação' = DISTINCTCOUNT('D02_Participacao'[pesquisa_id_origem])
+		formatString: #,0
+		displayFolder: 10. Benchmark externo
+		lineageTag: bafc13e1-e13e-487a-a484-4c6154303fec
+
+	/// Quantidade de empresas no conjunto comparável, preservando os demais filtros do recorte.
+	measure 'Empresas no Benchmark' = CALCULATE(DISTINCTCOUNT('D02_Participacao'[empresa_id_duravel]), REMOVEFILTERS('D02_Participacao'[empresa_id_duravel], 'D02_Participacao'[empresa]))
+		formatString: #,0
+		displayFolder: 10. Benchmark externo
+		lineageTag: 0981ba6a-2c0a-4da1-8b56-7897f4612d40
+
+	/// Média de participações observadas por empresa no conjunto comparável, preservando filtros de pesquisa/cargo/departamento/período e removendo apenas a seleção da empresa.
+	measure 'Média de Participações do Benchmark' =
+			VAR EmpresasComparaveis =
+			    CALCULATETABLE (
+			        VALUES ( 'D02_Participacao'[empresa_id_duravel] ),
+			        REMOVEFILTERS ( 'D02_Participacao'[empresa_id_duravel], 'D02_Participacao'[empresa] )
+			    )
+			RETURN
+			    AVERAGEX (
+			        EmpresasComparaveis,
+			        CALCULATE (
+			            [Participações Observadas],
+			            REMOVEFILTERS ( 'D02_Participacao'[empresa] )
+			        )
+			    )
+		formatString: #,0.0
+		displayFolder: 10. Benchmark externo
+		lineageTag: a11ad3d1-3e06-4d1a-b5f3-39038566465b
+
+	/// Diferença percentual de participações observadas da empresa selecionada em relação à média comparável.
+	measure 'Diferença vs Média do Benchmark' = DIVIDE([Participações Observadas] - [Média de Participações do Benchmark], [Média de Participações do Benchmark])
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 10. Benchmark externo
+		lineageTag: 6eb6f55b-2b87-4862-9a9a-708257a953d6
+
+	/// Posição da empresa selecionada pelo volume de participações observadas dentro do conjunto comparável; 1 é o maior volume. Não mede qualidade, adesão ou desempenho.
+	measure 'Posição por Participações' =
+			IF (
+			    HASONEVALUE ( 'D02_Participacao'[empresa_id_duravel] ),
+			    RANKX (
+			        CALCULATETABLE (
+			            VALUES ( 'D02_Participacao'[empresa_id_duravel] ),
+			            REMOVEFILTERS ( 'D02_Participacao'[empresa_id_duravel], 'D02_Participacao'[empresa] )
+			        ),
+			        CALCULATE (
+			            [Participações Observadas],
+			            REMOVEFILTERS ( 'D02_Participacao'[empresa] )
+			        ),
+			        ,
+			        DESC,
+			        DENSE
+			    )
+			)
+		formatString: #,0
+		displayFolder: 10. Benchmark externo
+		lineageTag: 399df75f-45f7-4f80-9b24-f4c579a37019
+
+	/// Percentil da empresa pelo volume de participações observadas no conjunto comparável.
+	measure 'Percentil de Participação' = VAR Posicao = [Posição por Participações] VAR TotalEmpresas = [Empresas no Benchmark] RETURN IF(NOT ISBLANK(Posicao) && TotalEmpresas > 1, 1 - DIVIDE(Posicao - 1, TotalEmpresas - 1))
+		formatString: 0.0%
+		displayFolder: 10. Benchmark externo
+		lineageTag: 1304221c-719e-4979-8ac8-fb6d0ba53c2d
+
+	/// Faixa de quartil pelo volume de participações observadas; não mede qualidade ou adesão.
+	measure 'Quartil de Participação' = VAR Percentil = [Percentil de Participação] RETURN SWITCH(TRUE(), ISBLANK(Percentil), BLANK(), Percentil >= 0.75, "Quartil superior", Percentil >= 0.50, "Segundo quartil", Percentil >= 0.25, "Terceiro quartil", "Quarto quartil")
+		displayFolder: 10. Benchmark externo
+		lineageTag: 554b615d-6758-4d5a-bd71-a30ceaef6de0
+
+	column sk_participacao
+		dataType: int64
+		isNullable: false
+		lineageTag: 757347b3-0eb0-4c1c-80d7-f0541d9ef2cd
+		sourceColumn: sk_participacao
+
+	column pesquisa_id_origem
+		dataType: string
+		lineageTag: ca278463-4dfc-4554-a068-27339cb19867
+		sourceColumn: pesquisa_id_origem
+
+	column titulo
+		dataType: string
+		lineageTag: 076250dd-ca5d-4b44-b520-206705726211
+		sourceColumn: titulo
+
+	column empresa_id_duravel
+		dataType: string
+		lineageTag: 4222f9b1-7d1e-43cb-ac24-769ba1276d73
+		sourceColumn: empresa_id_duravel
+
+	column empresa
+		dataType: string
+		lineageTag: 1178b5c8-bb5d-49fc-b443-7e64a64de5bd
+		sourceColumn: empresa
+
+	column pessoa_id_duravel
+		dataType: string
+		lineageTag: dea102c1-7509-4668-8b21-b6d03cf38bc9
+		sourceColumn: pessoa_id_duravel
+
+	column cargo_agrupado
+		dataType: string
+		lineageTag: b73ad590-d2da-4b37-a3e9-73ad30a277fc
+		sourceColumn: cargo_agrupado
+
+	column departamento_agrupado
+		dataType: string
+		lineageTag: 23328a78-0468-41ce-be03-bd3431137be6
+		sourceColumn: departamento_agrupado
+
+	column nivel_hierarquico
+		dataType: string
+		lineageTag: dddbffec-a9f7-4c18-a115-53c66c426137
+		sourceColumn: nivel_hierarquico
+
+	column data_pesquisa
+		dataType: dateTime
+		lineageTag: 48205714-31ef-46f0-a39b-91e398291c0e
+		sourceColumn: data_pesquisa
+
+	column data_resposta
+		dataType: dateTime
+		lineageTag: 6f1bd0c3-6a3a-43b9-820d-4c63e8a189a3
+		sourceColumn: data_resposta
+
+	column qtd_participacao
+		dataType: int64
+		isNullable: false
+		lineageTag: ecba420d-5d86-4cde-a697-51d019064cd1
+		sourceColumn: qtd_participacao
+
+	column seq_ocorrencia
+		dataType: int64
+		isNullable: false
+		lineageTag: 408bd861-7b48-4b73-8665-f8b80125eb6a
+		sourceColumn: seq_ocorrencia
+
+	column minutos_preenchimento
+		dataType: int64
+		lineageTag: ce539f83-a673-4c82-9ae5-bb15dc0285fd
+		sourceColumn: minutos_preenchimento
+
+	column pct_mercado_na_participacao
+		dataType: decimal
+		lineageTag: 6ee6524e-d2e1-49c1-af86-cdb28606b891
+		sourceColumn: pct_mercado_na_participacao
+
+	column estado_market_share
+		dataType: string
+		lineageTag: 13563473-8c5b-4fef-8618-22933450ce51
+		sourceColumn: estado_market_share
+
+	column estado_reconciliacao
+		dataType: string
+		lineageTag: 50cccc96-0fd9-4210-b6b3-5ff91b1e2559
+		sourceColumn: estado_reconciliacao
+
+	partition D02_Participacao = m
+		mode: import
+		source =
+				let
+				    Fonte = Csv.Document(File.Contents("C:\\Users\\Inteli\\Documents\\projetos_inteli\\g05\\data\\powerbi_gold_simulada\\vw_participacao.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Cabecalhos, {{"sk_participacao", Int64.Type}, {"data_pesquisa", type date}, {"data_resposta", type date}, {"qtd_participacao", Int64.Type}, {"seq_ocorrencia", Int64.Type}, {"minutos_preenchimento", Int64.Type}, {"pct_mercado_na_participacao", type number}})
+				in
+				    Tipos
+

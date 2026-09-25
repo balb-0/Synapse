@@ -1,0 +1,42 @@
+table BE_Faixa
+	lineageTag: 953c9597-0765-5d4c-bb30-fe8265d76074
+
+	column Faixa
+		dataType: string
+		lineageTag: 0835beda-733b-518f-9b08-7460b47f7ee2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Faixa]
+		sortByColumn: Ordem
+
+	column Ordem
+		dataType: int64
+		isHidden
+		lineageTag: d179e0cd-643c-51fc-8e10-24ffaf461c28
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ordem]
+
+	column Minimo
+		dataType: int64
+		isHidden
+		lineageTag: b56f9f5a-708d-5a90-a588-a47796ae14b2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Minimo]
+
+	column Maximo
+		dataType: int64
+		isHidden
+		lineageTag: d66909be-2475-5ba9-95fe-c510bf5821d1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Maximo]
+
+	partition BE_Faixa = calculated
+		mode: import
+		source =
+				DATATABLE ( "Faixa", STRING, "Ordem", INTEGER, "Minimo", INTEGER, "Maximo", INTEGER,
+				    { { "0", 0, 0, 0 }, { "1", 1, 1, 1 }, { "2 a 3", 2, 2, 3 },
+				      { "4 a 6", 3, 4, 6 }, { "7 a 12", 4, 7, 12 }, { "13 ou mais", 5, 13, BLANK () } } )
+

@@ -1,0 +1,22 @@
+table DIM_AREA
+
+	column area
+		dataType: string
+		summarizeBy: none
+		sourceColumn: area
+
+	partition DIM_AREA = calculated
+		mode: import
+		source = ```
+				SELECTCOLUMNS(
+					DISTINCT(
+						UNION(
+							ALLNOBLANKROW(PUB_C01_CICLO[area]),
+							ALLNOBLANKROW(PUB_C02_PARTICIPACAO[area]),
+							ALLNOBLANKROW(PUB_C03_PIPELINE_MENSAL[area]),
+							ALLNOBLANKROW(PUB_C04_INSTRUMENTO[area])
+						)
+					),
+					"area", [area]
+				)
+				```
