@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 from minio import Minio
 
-from etl.orchestration import backfill, configure_json_logging
+from etl.orchestration import backfill
 
 
 def _client() -> Minio:
@@ -39,7 +39,6 @@ def _seed(sources: list[str], bucket: str, prefix: str) -> None:
 
 
 def main() -> None:
-    configure_json_logging()
     ap = argparse.ArgumentParser()
     ap.add_argument("--sources", nargs="+", default=["empresas"])
     ap.add_argument("--reprocess", action="store_true")
