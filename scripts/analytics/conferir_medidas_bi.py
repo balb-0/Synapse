@@ -28,7 +28,7 @@ REFERENCIAS = [
     Referencia(
         medida="Qtd Pesquisas",
         valor=366,
-        fonte="docs/resultados_analise.txt, T1 (\"pesquisas: 366\")",
+        fonte='docs/resultados_analise.txt, T1 ("pesquisas: 366")',
         tolerancia="Snapshot da apuração é anterior à geração conferida: o valor atual pode ser maior, nunca menor.",
     ),
     Referencia(
@@ -40,7 +40,7 @@ REFERENCIAS = [
     Referencia(
         medida="Qtd Participacoes",
         valor=18735,
-        fonte="docs/dmc.md, seção 3.2 (\"aproximadamente 18.735 linhas no snapshot atual\")",
+        fonte='docs/dmc.md, seção 3.2 ("aproximadamente 18.735 linhas no snapshot atual")',
         tolerancia="Valor aproximado já na fonte; e o snapshot da apuração pode ser anterior à geração conferida.",
     ),
 ]
@@ -109,7 +109,9 @@ def main() -> None:
     args = parser.parse_args()
     resultado = conferir(args.geracao)
     print(json.dumps(resultado, indent=2, ensure_ascii=False))
-    if any(linha["status"] == "diverge (menor que a referencia, investigar)" for linha in resultado):
+    if any(
+        linha["status"] == "diverge (menor que a referencia, investigar)" for linha in resultado
+    ):
         raise SystemExit(1)
 
 
