@@ -683,7 +683,7 @@ estão em [`visao-computacional-etl.md`](visao-computacional-etl.md).
 | :--- | :--- | :--- |
 | Casos de uso | [`assets/uml/casos-de-uso-etl.plantuml`](assets/uml/casos-de-uso-etl.plantuml) | [`assets/uml/casos-de-uso-etl.svg`](assets/uml/casos-de-uso-etl.svg) |
 | Componentes | [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) | [`assets/uml/componentes-etl.svg`](assets/uml/componentes-etl.svg) |
-| Sequência da ingestão | [`assets/uml/sequencia-ingestao-etl.plantuml`](assets/uml/sequencia-ingestao-etl.plantuml) | Entregue pelo AR-08 |
+| Sequência da ingestão | [`assets/uml/sequencia-ingestao-etl.plantuml`](assets/uml/sequencia-ingestao-etl.plantuml) | [`assets/uml/sequencia-ingestao-etl.svg`](assets/uml/sequencia-ingestao-etl.svg) |
 | Decisões arquiteturais | [`adrs/index.md`](adrs/index.md) | — |
 | Escopo da sprint | [`checklist-entregaveis-sprint3.md`](checklist-entregaveis-sprint3.md) | — |
 | Rastreabilidade | [`matriz-rastreabilidade-sprint3.md`](matriz-rastreabilidade-sprint3.md) | — |
