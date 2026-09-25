@@ -118,11 +118,9 @@ def _build_references(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
     sources: dict[str, list[dict]] = {}
     for parent, _fields in RELATIONS[source]:
         keys = KEYS[parent]
-        cursor = repo._conn.execute(f'SELECT * FROM "{parent}"')
-        columns = [description[0] for description in cursor.description]
         records = []
-        for row in cursor.fetchall():
-            record = dict(zip(columns, row))
+        for record in repo.fetch_compatibility_records(parent):
+            record = dict(record)
             for key in keys:
                 record[key] = str(record[key])
             for name in ("alternativas", "linhas_matriz", "colunas_matriz"):
