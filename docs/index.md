@@ -23,6 +23,7 @@
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 | [`usabilidade/`](usabilidade/) | Plano de usabilidade dos dashboards: perfis e critérios, tarefas de navegação, detalhamento e comparação, roteiro de execução e limitações |
 | [`solucao-dashboards/`](solucao-dashboards/) | Documento da solução de dashboards: implementação a partir dos cubos, plano/execução/avaliação de qualidade e checklist contra os critérios |
+| [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md) | Estimativa paramétrica dos ambientes local, piloto e de produção, com premissas, fórmulas, fontes e limites |
 
 O levantamento e o mapa da estrutura dos dashboards estão em
 [`solucao-dashboards/estrutura-dashboards.md`](solucao-dashboards/estrutura-dashboards.md).
