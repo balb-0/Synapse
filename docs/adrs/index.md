@@ -18,6 +18,7 @@ Deploy Contínuo, que está fora do escopo da sprint.
 | [0003](0003-convergencia-do-insert-no-reprocessamento-do-lote.md) | Convergência do insert principal ao reexecutar um lote já carregado | **Aceito** | Insert da tabela de ingestão com `ON CONFLICT (idempotency_key) DO NOTHING`, preservação da proveniência da primeira gravação |
 | [0004](0004-execucao-local-e-integracao-continua.md) | Execução local e integração contínua do ETL | **Proposto** | Ambiente local em contêineres, agendamento em processo, ferramenta e escopo do CI, framework de testes, exclusão do Deploy Contínuo |
 | [0005](0005-checkpoint-confirmado-lote-a-lote-na-retomada.md) | Checkpoint confirmado lote a lote na retomada após falha parcial | **Aceito** | Confirmação do checkpoint de cada lote assim que ele termina de carregar, em vez de só ao final de todos os lotes do objeto |
+| [0006](0006-ratificacao-do-padrao-de-observabilidade-para-a-sprint-4.md) | Ratificação do padrão de observabilidade para a Sprint 4 | **Aceito** | Confirma Elastic Stack sem reabrir a escolha; redefine `task_id` como o `task_run.id` do Prefect; remove `event_id` do padrão; exige evento de transformação por lote |
 
 ## Cobertura do checklist de decisões técnicas
 
@@ -27,7 +28,7 @@ Deploy Contínuo, que está fora do escopo da sprint.
 | Arquitetura | 0001 | Plano de dados em Python, plano de controle no Prefect, contratos independentes de tecnologia |
 | Substituição de ClickHouse por DuckDB | 0001 | Autorização registrada; evidências e pendências em [`matriz-rastreabilidade-sprint3.md`](../matriz-rastreabilidade-sprint3.md) |
 | Orquestrador | 0001 e 0004 | Prefect como plano de controle (0001); forma de servir o deployment (0004) |
-| Observabilidade | 0001 | Elastic Stack decidida; **não integrada ao `develop`**, conforme a matriz de rastreabilidade |
+| Observabilidade | 0001 e 0006 | Elastic Stack decidida (0001); **não integrada ao `develop`**, conforme a matriz de rastreabilidade; correlação por `task_id`/`event_id` esclarecida para a Sprint 4 (0006) |
 | Estratégia de execução local e CI | 0004 | Registra o ambiente declarado e o escopo real do pipeline de CI |
 | Modelo de dados da ingestão | 0002 | Grão, identidade e versionamento da tabela de ingestão |
 
@@ -80,6 +81,16 @@ todos os lotes do objeto tiverem passado — uma falha parcial preserva os
 lotes já confirmados, e a retomada não reextrai nem retransmite o que já foi
 carregado. Está implementada em `src/etl/orchestration/flow.py` e coberta por
 `tests/orchestration/test_resumption.py`.
+
+## Situação do ADR 0006
+
+Decisão **Aceito** da Sprint 4 (OB-02): ratifica o padrão de observabilidade
+do ADR 0001 sem trocar de stack, e resolve três divergências achadas pelo
+inventário OB-01 — `task_id` passa a ser o `task_run.id` do Prefect,
+`event_id` sai do padrão por nunca ter sido implementado como campo próprio,
+e a transformação passa a ter um evento de log por lote, simétrico ao de
+extração e carga. Implementação fica com OB-03/OB-04; esta decisão não altera
+código.
 
 ## Nota de numeração
 

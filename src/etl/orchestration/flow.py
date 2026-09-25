@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 
 from prefect import flow, get_run_logger, task
 from prefect.cache_policies import NO_CACHE
+from prefect.runtime import flow_run, task_run
 
 from etl.extraction import (
     ClientesExtractor,
@@ -52,6 +53,18 @@ INGEST_OBJECT_EVENT = "orchestration.ingest_object.emitted"
 BACKFILL_EVENT = "orchestration.backfill.emitted"
 
 
+def _current_task_id() -> str | None:
+    """Identificador de correlação do Prefect para o marco atual (ADR 0006).
+
+    Dentro de uma ``@task`` (``extract``/``transform``/``load``), cada
+    tentativa tem seu próprio ``task_run.id``. Marcos publicados direto no
+    corpo de um ``@flow`` (``ingest_object``, ``backfill``) não têm task run
+    — usam o ``flow_run.id`` da própria execução. Fora de qualquer contexto
+    do Prefect (chamada direta em teste unitário), os dois vêm `None`.
+    """
+    return task_run.id or flow_run.id
+
+
 def _log_event(logger, event: str, **attributes: object) -> None:
     """Publica um marco no mesmo formato técnico da extração e da carga (ADR 0001).
 
@@ -60,6 +73,7 @@ def _log_event(logger, event: str, **attributes: object) -> None:
     campo depois que o log chegar à plataforma de observabilidade. ``None``
     fica de fora, como em ``ExtractionBatchLogEvent.as_dict``/``LoadBatchLogEvent.as_dict``.
     """
+    attributes.setdefault("task_id", _current_task_id())
     payload = {"event": event, "stage": ORCHESTRATION_STAGE, **attributes}
     logger.info(event, extra={key: value for key, value in payload.items() if value is not None})
 

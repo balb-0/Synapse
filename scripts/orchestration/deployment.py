@@ -15,9 +15,11 @@ histórico do Prefect registra os parâmetros de cada run.
 
 import os
 
+from etl.orchestration import configure_json_logging
 from etl.orchestration.flow import ingest_object
 
 if __name__ == "__main__":
+    configure_json_logging()
     ingest_object.serve(
         name="agendado",
         cron="0 3 * * *",  # diariamente às 03:00 (janela de baixa carga)
