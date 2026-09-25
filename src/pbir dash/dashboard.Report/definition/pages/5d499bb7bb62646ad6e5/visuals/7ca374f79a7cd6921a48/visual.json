@@ -3,10 +3,10 @@
   "name": "7ca374f79a7cd6921a48",
   "position": {
     "x": 760,
-    "y": 720,
+    "y": 754,
     "z": 19000,
-    "height": 337.14285714285717,
-    "width": 1127.1428571428571,
+    "height": 304,
+    "width": 1128,
     "tabOrder": 19000
   },
   "visual": {
@@ -104,21 +104,6 @@
               "queryRef": "D01_CicloPesquisa.data_entrega",
               "nativeQueryRef": "Entrega",
               "displayName": "Entrega"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
-                    }
-                  },
-                  "Property": "flag_prorrogada"
-                }
-              },
-              "queryRef": "D01_CicloPesquisa.flag_prorrogada",
-              "nativeQueryRef": "Prorrogada",
-              "displayName": "Prorrogada"
             }
           ]
         }
@@ -315,7 +300,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Acompanhamento das pesquisas'"
+                  "Value": "'Acompanhamento das Pesquisas'"
                 }
               }
             },

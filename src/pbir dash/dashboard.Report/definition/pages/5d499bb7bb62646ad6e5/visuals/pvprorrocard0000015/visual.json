@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "pvprorrocard0000015",
   "position": {
-    "x": 297.14285714285717,
-    "y": 720,
+    "x": 298,
+    "y": 754,
     "z": 8000,
-    "height": 117.14285714285715,
-    "width": 448.57142857142861,
+    "height": 104,
+    "width": 448,
     "tabOrder": 8000
   },
   "visual": {

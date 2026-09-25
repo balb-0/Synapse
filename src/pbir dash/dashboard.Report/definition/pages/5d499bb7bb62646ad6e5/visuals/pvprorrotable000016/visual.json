@@ -3,9 +3,9 @@
   "name": "pvprorrotable000016",
   "position": {
     "x": 298,
-    "y": 850,
+    "y": 872,
     "z": 9000,
-    "height": 208,
+    "height": 186,
     "width": 448,
     "tabOrder": 9000
   },
@@ -58,10 +58,10 @@
                     "Entity": "D01_CicloPesquisa"
                   }
                 },
-                "Property": "dias_ciclo_total_corridos"
+                "Property": "area"
               }
             },
-            "direction": "Descending"
+            "direction": "Ascending"
           }
         ]
       }
@@ -240,7 +240,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Pesquisas prorrogadas'"
+                  "Value": "'Pesquisas Prorrogadas'"
                 }
               }
             },

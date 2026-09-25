@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "pvstatus0000000009",
   "position": {
-    "x": 938.33333333333337,
-    "y": 271.66666666666669,
+    "x": 938,
+    "y": 272,
     "z": 10000,
-    "height": 431.66666666666669,
+    "height": 466,
     "width": 450,
     "tabOrder": 6000
   },
@@ -266,7 +266,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Pesquisas por status'"
+                  "Value": "'Pesquisas por Status'"
                 }
               }
             },

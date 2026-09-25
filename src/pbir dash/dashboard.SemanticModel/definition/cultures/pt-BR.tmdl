@@ -358,19 +358,7 @@ cultureInfo pt-BR
 			          "ConceptualProperty": "flag_prorrogada"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Prorrogada": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "d01_ciclopesquisa.taxa_de_finalização": {
 			      "Definition": {

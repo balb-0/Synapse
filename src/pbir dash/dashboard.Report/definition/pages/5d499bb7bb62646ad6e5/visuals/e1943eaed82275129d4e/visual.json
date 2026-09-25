@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "e1943eaed82275129d4e",
   "position": {
-    "x": 298.33333333333337,
-    "y": 271.66666666666669,
+    "x": 298,
+    "y": 272,
     "z": 21000,
-    "height": 432,
+    "height": 466,
     "width": 628,
     "tabOrder": 21000
   },
@@ -117,6 +117,20 @@
                       "Value": "'#152D49'"
                     }
                   }
+                }
+              }
+            },
+            "labelDisplayUnits": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "labelPrecision": {
+              "expr": {
+                "Literal": {
+                  "Value": "0L"
                 }
               }
             }
@@ -333,7 +347,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Tempo por etapa e tipo (dias corridos)'"
+                  "Value": "'Tempo por Etapa e Tipo (dias úteis)'"
                 }
               }
             },
