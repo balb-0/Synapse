@@ -21,7 +21,8 @@ são alcançadas por adaptadores que implementam protocolos declarados em
 - `etl.orchestration` conhece os três, e nenhuma regra de negócio vive nele.
 
 É essa separação que permite testar extração, transformação e carga sem serviço
-externo, com as 19 suítes de `tests/`.
+externo. A quantidade de testes é obtida pela coleta do runner, e não mantida
+como número fixo neste documento.
 
 ## Componentes
 
@@ -43,6 +44,21 @@ externo, com as 19 suítes de `tests/`.
 | Banco de ingestão | DuckDB | SQL | Persistir dados conformes, rejeições e controles | Substituir a cópia imutável da origem | Implementado |
 | Log estruturado | [`log_events.py`](../src/etl/extraction/log_events.py) | `ExtractionLogSink.emit(event)`, `StandardLoggingSink` | Emitir o evento JSON do lote extraído | Transportar telemetria a um coletor | Implementado parcialmente |
 | Telemetria | — | Logstash, Elasticsearch, Kibana | Centralizar logs, métricas e painéis | Controlar o estado do pipeline | **Planejado** (ADR 0001) |
+
+### Componentes acrescentados ao fluxo servido
+
+| Componente | Entrada | Saída | Responsabilidade verificável | Estado em `develop` |
+| :--- | :--- | :--- | :--- | :--- |
+| Servidor de deployment | Parâmetros do deployment `ingest-object/agendado` | Flow run do Prefect | Manter o deployment disponível para agenda e disparo manual | Implementado em `scripts/orchestration/deployment.py`; inicialização manual |
+| Emissor de eventos da carga | `LoadResult` e `BatchMetadata` | `LoadBatchLogEvent` | Publicar status, duração e contagens sem conteúdo de negócio | Implementado em `src/etl/load/log_events.py` |
+| Sink de logging padrão | Evento técnico | Registro JSON no logger Python | Serializar o evento sem acoplar o repositório ao transporte | Implementado para extração e carga |
+| Coletor de telemetria | Log JSON | Índice/painel central | Transportar e reter sinais operacionais | Ausente no Compose da base auditada |
+| Camada analítica | Views tratadas e controles | Dimensões, fatos e cubos | Materializar o contrato dimensional | Dependência CB-02 a CB-06; não integrada |
+
+O servidor Prefect e o coletor são componentes distintos: servir um deployment
+não instala nem configura observabilidade centralizada. Da mesma forma, emitir
+JSON estruturado não comprova que o evento chegou a Elasticsearch ou a um
+painel.
 
 ## Contratos de dados entre componentes
 
@@ -74,6 +90,24 @@ registros. Um lote inconsistente não chega à transformação.
 | `MetadataSink` | `contracts.py` | **Nenhuma** |
 | `FailureRecorder` | `failures.py` | Fornecido pelo chamador |
 | `ExtractionLogSink` | `log_events.py` | `StandardLoggingSink` |
+
+### Interfaces do caminho servido e da telemetria
+
+O ponto de entrada servido é o próprio flow `ingest_object`. O script de
+deployment fornece nome, cron e parâmetros padrão; execuções pela agenda, UI ou
+CLI chegam à mesma assinatura e produzem o mesmo histórico de estados.
+
+| Fronteira | Contrato | Falha observável |
+| :--- | :--- | :--- |
+| Operador/Prefect → flow | `source`, `bucket`, `key`, `version_id`, `event_id`, `reprocess`, `db_path` | Parâmetro inválido encerra a execução antes da leitura. |
+| Flow → MinIO | `ObjectReference` e `ObjectReader.open()` | Falha transitória pode repetir; falha permanente termina a task. |
+| Flow → repositório | `load_batch()` seguido de `commit(checkpoint)` | A confirmação não ocorre se carga ou reconciliação falhar. |
+| Repositório → logging | `LoadLogSink.emit(LoadBatchLogEvent)` | Falha do sink não reverte uma carga já confirmada. |
+| Logging → coletor | Linha JSON em stdout/stderr | Transporte externo não está configurado na base auditada. |
+
+A responsabilidade pela decisão de confirmar é da orquestração; o repositório
+apenas oferece a operação persistente `commit`. Essa separação impede que uma
+carga parcial avance o checkpoint por efeito colateral interno.
 
 ## Fluxo de controle da ingestão
 
@@ -112,6 +146,18 @@ arquivo do DuckDB e, esgotado o prazo, levanta `WriteLockTimeoutError`. Um erro
 que não seja de lock propaga na primeira tentativa.
 
 ## Divergências entre contrato e implementação
+
+O estado abaixo é deliberadamente explícito para não confundir dependência de
+Sprint 4 com componente já integrado:
+
+| Capacidade | Implementação verificável | Situação |
+| :--- | :--- | :--- |
+| Execução manual parametrizada | `ingest_object(...)` e scripts `run_ingest.py`/`run_backfill.py` | Disponível |
+| Deployment servido e agendado | `deployment.py` chama `ingest_object.serve()` | Disponível, iniciado pelo operador |
+| Logs estruturados de extração e carga | `StandardLoggingSink` nos dois pacotes | Disponível localmente |
+| Métricas/traces exportados | Nenhum exportador na base auditada | Dependência OB-06/OB-07 |
+| Coletor, painel e alerta | Nenhum serviço correspondente no Compose | Dependência OB-08/OB-09 |
+| Publicação dos cubos para BI | Nenhum adaptador analítico integrado | Dependência CB-09 |
 
 Registradas aqui porque o critério de avaliação exige que a visão corresponda ao
 código, e não ao contrato idealizado.

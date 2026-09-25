@@ -10,6 +10,21 @@ O ambiente e o pipeline de verificação estão registrados no
 
 ## Execução
 
+### Topologia servida da Sprint 4
+
+| Unidade de implantação | Processo/serviço | Porta ou volume | Inicialização | Estado na base auditada |
+| :--- | :--- | :--- | :--- | :--- |
+| Armazenamento de objetos | `minio/minio` | `9000`, `9001`, `minio-data:/data` | Docker Compose | Configurado |
+| Preparação do bucket | `minio/mc` | rede interna | Após MinIO | Configurado |
+| Runner ETL | imagem do `Dockerfile` | `duck-data:/data`, `src` e `scripts` | Docker Compose | Configurado |
+| Servidor Prefect | `python scripts/orchestration/deployment.py` | API/UI conforme configuração Prefect | Comando do operador | Implementado, não iniciado pelo Compose |
+| Coletor e painel | Logstash/Elasticsearch/Kibana | não definido | — | Não configurado em `develop` |
+
+O deployment servido mantém o flow disponível para agendamento e disparo
+manual, mas não equivale a uma instalação produtiva. A persistência local fica
+nos volumes nomeados do Compose; credenciais de exemplo destinam-se somente ao
+ambiente de desenvolvimento.
+
 O ambiente local é declarado em `docker-compose.yml`, na raiz do repositório.
 
 | Serviço | Imagem | Papel | Portas |
@@ -95,8 +110,29 @@ O flow e o repositório leem o mesmo `ETL_DUCKDB_PATH`; no Compose ele aponta pa
 
 ## Orquestração
 
-O plano de controle é o Prefect, executado em processo. Não há servidor,
-agente nem worker remoto no ambiente declarado.
+### Agendamento e parâmetros efetivos
+
+`scripts/orchestration/deployment.py` serve o deployment `agendado` do flow
+`ingest-object` com cron `0 3 * * *`. Na configuração versionada, a execução é
+diária às 03:00 no fuso do servidor Prefect; não há `timezone` explícito no
+script. Os parâmetros padrão são `source=empresas`, bucket vindo de
+`ETL_MINIO_BUCKET` (ou `sindusfarma`) e chave `landing/empresas.csv`.
+
+| Controle | Valor/fonte | Efeito operacional |
+| :--- | :--- | :--- |
+| Agenda | `0 3 * * *` | Uma execução diária enquanto o processo servido estiver ativo. |
+| Reprocessamento | `reprocess=false` por padrão | Checksum já concluído é ignorado. |
+| Timeout de acesso | `ETL_SOURCE_TIMEOUT_SECONDS` | Limita operações com a fonte. |
+| Tentativas | `ETL_SOURCE_MAX_ATTEMPTS` | Restringe retry de falha transitória. |
+| Espera | `ETL_SOURCE_RETRY_INITIAL_SECONDS` e `ETL_SOURCE_RETRY_MAX_SECONDS` | Controla backoff limitado. |
+| Banco | argumento `db_path` ou `ETL_DUCKDB_PATH` | Mantém o mesmo destino entre agenda, UI e CLI. |
+
+Execução manual e backfill devem informar seus parâmetros no histórico do
+Prefect; alterar o script não é necessário para uma reexecução pontual.
+
+O plano de controle é o Prefect. O repositório oferece um processo servidor por
+`flow.serve()`; não há agente ou worker remoto declarado no Compose, nem prova
+de disponibilidade contínua fora da máquina do operador.
 
 | Mecanismo | Implementação | Parâmetros |
 | :--- | :--- | :--- |
@@ -167,6 +203,25 @@ sequenceDiagram
 ```
 
 ## Métricas e telemetria
+
+### Sinais, coleta e alertas
+
+| Sinal | Produção | Coleta/retenção | Alerta |
+| :--- | :--- | :--- | :--- |
+| Estado do flow/task | Prefect | Histórico do servidor ativo | Interface do Prefect; regra externa não versionada |
+| Lote extraído | `ExtractionBatchLogEvent` | Logger Python | Não configurado |
+| Lote carregado/falho | `LoadBatchLogEvent` | Logger Python | Não configurado |
+| Contagens conciliadas | DuckDB, `reconciliacao_execucao` | Volume `duck-data` | Consulta/health check manual |
+| Saúde do banco | `run_health_check()` | Saída do comando | Não configurado |
+
+Logs locais já carregam correlação por `run_id`, `task_id` e `batch_id`. A
+centralização, o painel e alertas automáticos continuam dependências dos cards
+OB-07 a OB-09; a ausência desses serviços não deve ser mascarada como uma
+integração existente.
+
+Na recuperação, o último checkpoint confirmado define a retomada. O lote atual
+só avança depois de persistência e reconciliação; retry esgotado mantém o
+checkpoint anterior e deixa a falha visível no histórico e no evento técnico.
 
 O que existe hoje:
 

@@ -1,0 +1,32 @@
+table PUB_QUALIDADE_DUPLICIDADE
+
+	measure 'Taxa de Duplicidade' = DIVIDE(SUM(PUB_QUALIDADE_DUPLICIDADE[qtd_linhas]) - SUM(PUB_QUALIDADE_DUPLICIDADE[qtd_chaves_distintas]), SUM(PUB_QUALIDADE_DUPLICIDADE[qtd_linhas]))
+		formatString: 0.0%
+
+	measure 'Base Valida Duplicidade' = SUM(PUB_QUALIDADE_DUPLICIDADE[qtd_linhas])
+		formatString: #,0
+
+	column tabela
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tabela
+
+	column qtd_linhas
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_linhas
+
+	column qtd_chaves_distintas
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: qtd_chaves_distintas
+
+	partition PUB_QUALIDADE_DUPLICIDADE = m
+		mode: import
+		source =
+				let
+					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_QUALIDADE_DUPLICIDADE.parquet"))
+				in
+					Origem

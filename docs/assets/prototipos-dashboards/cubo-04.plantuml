@@ -12,49 +12,53 @@ table(DIM_TEMPO) {
   + sk_tempo : PK
   + data
   + ano
-  + mes
   + trimestre
-  + flag_dia_util
+  + mes
+  + dia
+  + dia_semana
+  + fim_mes
 }
 
 table(DIM_PESQUISA) {
   + sk_pesquisa : PK
-  + id_origem_planilha
-  + id_pesquisa_externo
-  + flag_metodo_costura
+  + pesquisa_id : chave durável
   + titulo
-  + titulo_normalizado
-  + ano_edicao
+  + objetivos
 }
 
 table(DIM_PERGUNTA) {
   + sk_pergunta : PK
-  + id_pergunta
+  + pesquisa_id
+  + pergunta_id
   + enunciado
-  + tipo_pergunta
+  + tipo
   + qtd_alternativas
   + alternativas
   + linhas_matriz
   + colunas_matriz
-  + nivel_confianca
-  + formato_arquivo_origem
+  + confianca
+  + formato_arquivo
   + col_origem
-  + flag_pergunta_perfil
+  + observacoes
 }
 
-fact(FATO_INSTRUMENTO) {
-  + sk_pesquisa : FK
-  + sk_pergunta : FK
-  + sk_data_pesquisa : FK
-  --
-  + qtd_pergunta
-  + qtd_alternativas
-  + qtd_linhas_matriz
-  + qtd_colunas_matriz
+fact(FATO_PESQUISA_PERGUNTA) {
+  + sk_pesquisa : FK NOT NULL / PK composta
+  + sk_pergunta : FK NOT NULL / PK composta UNIQUE
+  + sk_data_pesquisa : FK anulável
 }
 
-DIM_TEMPO "1" -- "0..n" FATO_INSTRUMENTO : sk_data_pesquisa
-DIM_PESQUISA "1" -- "0..n" FATO_INSTRUMENTO : sk_pesquisa
-DIM_PERGUNTA "1" -- "0..n" FATO_INSTRUMENTO : sk_pergunta
+DIM_TEMPO "0..1" -- "0..n" FATO_PESQUISA_PERGUNTA : sk_data_pesquisa
+DIM_PESQUISA "1" -- "0..n" FATO_PESQUISA_PERGUNTA : sk_pesquisa
+DIM_PERGUNTA "1" -- "0..1" FATO_PESQUISA_PERGUNTA : sk_pergunta UNIQUE
+
+note bottom of FATO_PESQUISA_PERGUNTA
+  Fato sem medidas: uma associação por
+  (pesquisa_id de origem, pergunta_id).
+  A PK é (sk_pesquisa, sk_pergunta); sk_pergunta é UNIQUE.
+  qtd_pergunta é COUNT(*) das associações distintas;
+  qtd_alternativas pertence à DIM_PERGUNTA.
+  Ano de edição não tem origem homologada.
+end note
 
 @enduml

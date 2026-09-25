@@ -1,13 +1,14 @@
 # Índice das decisões arquiteturais (AN-03)
 
-Registro das decisões técnicas do ETL da Sprint 3, com o status **verbatim** de
+Registro das decisões técnicas do ETL das Sprints 3 e 4, com o status **verbatim** de
 cada ADR e o ponto do checklist do enunciado que ela cobre. O índice não altera
 nenhuma decisão: ele mostra o que já foi decidido, por quem, em que estado, e o
 que ainda falta para cada decisão ser considerada firme.
 
-O enunciado exige justificativa de linguagem, arquitetura, frameworks e
-ferramentas. As cinco ADRs abaixo cobrem esses pontos. Nenhuma delas pressupõe
-Deploy Contínuo, que está fora do escopo da sprint.
+O enunciado exige justificativa de linguagem, arquitetura, frameworks,
+ferramentas, observabilidade e consumo analítico. As sete ADRs abaixo cobrem
+esses pontos. Nenhuma delas pressupõe Deploy Contínuo ou publicação automática
+em produção, que permanecem fora do escopo.
 
 ## Decisões registradas
 
@@ -18,6 +19,8 @@ Deploy Contínuo, que está fora do escopo da sprint.
 | [0003](0003-convergencia-do-insert-no-reprocessamento-do-lote.md) | Convergência do insert principal ao reexecutar um lote já carregado | **Aceito** | Insert da tabela de ingestão com `ON CONFLICT (idempotency_key) DO NOTHING`, preservação da proveniência da primeira gravação |
 | [0004](0004-execucao-local-e-integracao-continua.md) | Execução local e integração contínua do ETL | **Proposto** | Ambiente local em contêineres, agendamento em processo, ferramenta e escopo do CI, framework de testes, exclusão do Deploy Contínuo |
 | [0005](0005-checkpoint-confirmado-lote-a-lote-na-retomada.md) | Checkpoint confirmado lote a lote na retomada após falha parcial | **Aceito** | Confirmação do checkpoint de cada lote assim que ele termina de carregar, em vez de só ao final de todos os lotes do objeto |
+| [0006](0006-observabilidade-estruturada-do-etl.md) | Observabilidade estruturada do ETL | **Proposto** | Sinais, transporte pela Elastic Stack, desacoplamento da carga e limites de implantação |
+| [0007](0007-consumo-analitico-controlado.md) | Consumo analítico controlado dos cubos | **Proposto** | Acesso aos cubos por views governadas, perfis de leitura e separação entre contrato e implantação |
 
 ## Cobertura do checklist de decisões técnicas
 
@@ -27,9 +30,10 @@ Deploy Contínuo, que está fora do escopo da sprint.
 | Arquitetura | 0001 | Plano de dados em Python, plano de controle no Prefect, contratos independentes de tecnologia |
 | Substituição de ClickHouse por DuckDB | 0001 | Autorização registrada; evidências e pendências em [`matriz-rastreabilidade-sprint3.md`](../matriz-rastreabilidade-sprint3.md) |
 | Orquestrador | 0001 e 0004 | Prefect como plano de controle (0001); forma de servir o deployment (0004) |
-| Observabilidade | 0001 | Elastic Stack decidida; **não integrada ao `develop`**, conforme a matriz de rastreabilidade |
+| Observabilidade | 0001 e 0006 | Elastic Stack decidida; o ADR 0006 detalha sinais, transporte e limites, mas a pilha **não está integrada ao `develop`** |
 | Estratégia de execução local e CI | 0004 | Registra o ambiente declarado e o escopo real do pipeline de CI |
 | Modelo de dados da ingestão | 0002 | Grão, identidade e versionamento da tabela de ingestão |
+| Consumo dos cubos | 0007 | Define views governadas e perfis de leitura; os cubos continuam propostos e não materializados |
 
 ## Situação do ADR 0001
 
@@ -80,6 +84,20 @@ todos os lotes do objeto tiverem passado — uma falha parcial preserva os
 lotes já confirmados, e a retomada não reextrai nem retransmite o que já foi
 carregado. Está implementada em `src/etl/orchestration/flow.py` e coberta por
 `tests/orchestration/test_resumption.py`.
+
+## Situação do ADR 0006
+
+Decisão **Proposta** na Sprint 4. Define a Elastic Stack como destino da
+telemetria estruturada e determina que indisponibilidade observacional não
+interfira na transação nem no checkpoint. O ambiente versionado ainda não
+inclui coletor, índice, painel ou alerta; a ADR não declara implantação.
+
+## Situação do ADR 0007
+
+Decisão **Proposta** na Sprint 4. Define consumo somente por views governadas,
+com perfis separados para detalhe interno e agregados publicáveis. Os quatro
+cubos permanecem contratos documentais: a ADR não declara materialização,
+usuários, reports publicados ou automação produtiva.
 
 ## Nota de numeração
 
