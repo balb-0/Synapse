@@ -133,6 +133,14 @@ Prefect, logs, consulta ao DuckDB, CI e troubleshooting — está em
 
 * 0.1.0 - Sprint 1 - 14/08/2026
     * Contexto Organizacional, Modelagem Quantitativa dos Dados e Data Model Canvas
+* 0.2.0 - Sprint 2 - 28/08/2026
+    * Governança de dados e contratos iniciais do ETL
+* 0.3.0 - Sprint 3 - 11/09/2026
+    * ETL, testes e documentação de execução e rastreabilidade
+* 0.4.0 - Sprint 4 - 25/09/2026
+    * Camada analítica, modelo semântico Power BI, dashboards e observabilidade
+* 0.5.0 - Sprint 5 - 09/10/2026 (previsão)
+    * Em andamento; entregas ainda não registradas neste histórico
 
 ## 📋 Licença/License
 
