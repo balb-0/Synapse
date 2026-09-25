@@ -53,3 +53,43 @@ A tela utiliza principalmente o cubo C01 — Portfólio e Ciclo. Os principais
 recortes são status, área, tipo, complexidade e tempo, com `data_solicitacao`
 como marco temporal padrão quando aplicável.
 
+## Benchmark Externo
+
+![Tela Benchmark Externo](../assets/dashboard/benchmark.png)
+
+### Objetivo
+
+Permitir que uma empresa compare sua participação observada com as demais
+empresas do recorte selecionado.
+
+O termo **participação observada** é utilizado porque o painel não representa
+adesão, desempenho ou participação de mercado homologada.
+
+### Filtros
+
+| Filtro | Uso |
+| :--- | :--- |
+| Empresa | Seleciona a empresa analisada. |
+| Pesquisa | Restringe o conjunto de pesquisas. |
+| Ano | Define o período da comparação. |
+| Área | Restringe a comparação à área selecionada. |
+| Tipo | Restringe a comparação ao tipo de pesquisa selecionado. |
+
+### Indicadores e visuais
+
+| Visual | Informação apresentada |
+| :--- | :--- |
+| Pesquisas com participação | Quantidade de pesquisas com participação observada. |
+| Empresas no recorte | Quantidade de empresas observadas. |
+| Pesquisas no recorte | Quantidade de pesquisas consideradas na comparação. |
+| Perfil de participação | Participação da empresa em comparação com o benchmark por área. |
+| Evolução da participação | Comparação anual entre a empresa selecionada e o benchmark. |
+| Posição no benchmark | Distribuição das empresas por faixa de participação. |
+| Participação por pesquisa | Pesquisas, percentual agregado das demais empresas e participação da empresa selecionada. |
+
+### Base analítica
+
+A tela utiliza principalmente o cubo C02 — Participação e Representatividade,
+com apoio das dimensões de pesquisa e tempo. O campo de participação de
+mercado permanece sujeito à homologação da fonte oficial e não é tratado como
+medida definitiva enquanto essa validação não existir.
