@@ -115,7 +115,7 @@ Compose e é executado pelos entrypoints em `scripts/orchestration/`:
 
 ```bash
 docker compose up -d
-docker compose exec runner python scripts/orchestration/run_ingest.py --source empresas
+docker compose run --rm --no-deps runner python scripts/orchestration/run_ingest.py --source empresas
 PYTHONPATH=src python -m unittest discover -s tests -v   # testes
 ```
 

@@ -68,7 +68,9 @@ Serviços definidos em `docker-compose.yml`:
   http://localhost:9001 (usuário/senha de desenvolvimento: `minioadmin`/`minioadmin`).
 - `createbucket`: cria o bucket `sindusfarma` na subida (`mc mb --ignore-existing`).
 - `runner`: contêiner Python com Prefect e DuckDB (`Dockerfile`), com `src/` e
-  `scripts/` montados; permanece ativo (`sleep infinity`) para executar comandos.
+  `scripts/` montados; permanece ativo (`sleep infinity`) para comandos
+  interativos, enquanto o smoke usa containers one-shot para que o stdout seja
+  coletado pelo driver GELF.
 - `elasticsearch`: armazena a telemetria na porta 9200 (`discovery.type=single-node`,
   segurança desligada — só para desenvolvimento local).
 - `logstash`: coletor (OB-07/ADR 0001); recebe UDP/GELF na porta 12201, decodifica
@@ -94,10 +96,9 @@ transformação, orquestração — OB-06/OB-07). O painel só consulta esse ín
 nenhuma camada do ETL fala com o Kibana. Objetos salvos (index pattern, 5
 visualizações e o dashboard) estão versionados em
 `observability/kibana/painel-operacional.ndjson`, gerados uma vez a partir do
-mapeamento de campos dos eventos. Não foi possível confirmar a importação
-num Kibana real neste ambiente (Docker indisponível no WSL2 usado no
-desenvolvimento) — ver a MR do OB-08 para o detalhe do que foi e não foi
-validado. Para importar, com a stack no ar:
+mapeamento de campos dos eventos. A importação real foi validada na stack Docker do OB-11; as consultas e os
+resultados da evidência ficam na descrição do MR, sem screenshots versionados
+no repositório. Para importar, com a stack no ar:
 
 ```bash
 curl -s -X POST http://localhost:5601/api/saved_objects/_import?overwrite=true \
@@ -133,7 +134,7 @@ banco de ingestão aceita conexão/consulta/persistência (reaproveita o mesmo
 health check da carga, `etl.load.environment.run_health_check`):
 
 ```bash
-docker compose exec runner python scripts/orchestration/health_check.py
+docker compose run --rm --no-deps runner python scripts/orchestration/health_check.py
 ```
 
 Sai com código 1 se qualquer checagem falhar, e publica um evento
@@ -155,29 +156,29 @@ O servidor Prefect publicado em OQ-03 roda no host (`prefect server start` +
 deste `docker-compose.yml`. Rodando `health_check.py` **dentro** do
 container `runner`, `PREFECT_API_URL=http://localhost:4200/api` aponta para
 o próprio container, não para o host — usar
-`http://host.docker.internal:4200/api` (o runner já sai por essa rede, mesma
-observação de resolução de nome feita para o `gelf-address` do Logstash na
-MR do OB-07). Rodando o script fora do container (ambiente local sem
+`http://host.docker.internal:4200/api` (o Compose fornece esse alias no Linux,
+e o endereço GELF usa a porta publicada do host porque é resolvido pelo
+daemon Docker). Rodando o script fora do container (ambiente local sem
 Docker), `localhost:4200` funciona normalmente.
 
 ### Alertas mínimos (Kibana Alerting, OB-09)
 
 O schema de saved object de uma regra de alerta do Kibana (`type: "alert"`)
 muda com mais frequência entre versões do que o de dashboard/visualização
-(OB-08) e não há como confirmar a importação neste ambiente (Docker
-indisponível). Uma regra de alerta mal formada falha silenciosamente — pior
-do que simplesmente não existir — por isso as duas regras mínimas abaixo
-ficam documentadas para criação manual em **Stack Management → Rules →
+(OB-08) e as regras de alerta não são importadas por NDJSON. Uma regra mal formada
+falha silenciosamente — pior do que simplesmente não existir — por isso as
+duas regras mínimas abaixo ficam documentadas para criação manual em **Stack Management → Rules →
 Create rule → Elasticsearch query**, em vez de um NDJSON não verificável:
 
 | Regra | Índice | Campo de tempo | Consulta (KQL) | Condição | Janela | Frequência |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| ETL - falha de execução | `etl-logs-*` | `@timestamp` | `tags: "_jsonparsefailure" or (event: "orchestration.health_check.emitted" and status: "degraded")` | contagem **acima de** 0 | últimos 5 min | a cada 1 min |
+| ETL - falha de execução | `etl-logs-*` | `@timestamp` | `tags: "etl_error" or (event: "orchestration.health_check.emitted" and status: "degraded")` | contagem **acima de** 0 | últimos 5 min | a cada 1 min |
 | ETL - fila parada | `etl-logs-*` | `@timestamp` | `stage: "orchestration"` | contagem **abaixo de** 1 | últimas 26 h | a cada 30 min |
 
 A primeira regra cobre tanto uma falha real do pipeline (traceback do Python
-vazando pro stdout, capturado pelo Logstash com a tag `_jsonparsefailure` —
-ver `observability/logstash/pipeline/etl.conf`) quanto uma falha detectada
+vazando no stdout/stderr, capturado pelo Logstash com a tag `etl_error` —
+ver `observability/logstash/pipeline/etl.conf`; JSON inválido também recebe a
+tag de diagnóstico `_jsonparsefailure`) quanto uma falha detectada
 pelo próprio health check acima. A segunda cobre o deployment agendado
 parar de rodar (cron diário às 03:00, `scripts/orchestration/deployment.py`)
 — 26h dá margem sobre as 24h de intervalo esperado. Nenhuma das duas precisa
@@ -209,7 +210,7 @@ alerta sozinho**. Os cenários e o que capturar como evidência:
   `RetryExecutor` (OB-06), então este cenário não produz
   `extraction.retry.emitted`, só a falha em si. Evidência: a regra "ETL -
   falha de execução" (ver seção anterior) ativa em **Kibana → Alerts**; a
-  linha com `tags:_jsonparsefailure` no Elasticsearch (o traceback cru que
+  linha com `tags:etl_error` no Elasticsearch (o traceback cru que
   `run_ingest.py` deixa propagar até o topo, capturado pelo Logstash —
   OB-07); o marco JSON limpo do próprio Prefect para a mesma falha
   (`prefect.flow_runs`, `level: ERROR`), sinal adicional sem a tag de erro.
@@ -222,14 +223,12 @@ alerta sozinho**. Os cenários e o que capturar como evidência:
   uma ferramenta de falha de rede mais cirúrgica (ex.: toxiproxy), que esta
   stack não tem.
 
-**Este roteiro não foi executado de ponta a ponta neste repositório**: o
-ambiente de desenvolvimento usado não tem Docker disponível (mesma limitação
-das MRs de OB-07/OB-08/OB-09). O script e os comandos foram escritos e
-validados por leitura e por um teste isolado no venv (confirmando, sem
-Docker, que a falha do leitor MinIO propaga até o topo de `ingest_object`
-antes da task de extração rodar) — não por execução real contra a stack
-inteira. Quem rodar isto pela primeira vez deve conferir cada passo antes de
-anexá-lo como evidência ao card.
+**Este roteiro foi validado de ponta a ponta em uma stack Docker isolada**: o
+health check respondeu `ok`, a ingestão de `empresas` terminou `loaded`, o
+Elasticsearch recebeu os eventos estruturados sem `_jsonparsefailure`, e a
+falha controlada com MinIO parado recebeu `etl_error`. A importação do painel
+no Kibana retornou sete objetos salvos. As consultas e os resultados detalhados
+ficam na descrição do MR, sem screenshots versionados no repositório.
 
 Verificar o banco de ingestão local (cria o arquivo se não existir e roda
 consulta smoke + verificação de persistência):
@@ -243,7 +242,7 @@ PYTHONPATH=src python scripts/load/duckdb_env.py
 Ingestão de uma fonte (semeia o fixture no MinIO e roda o flow `ingest-object`):
 
 ```bash
-docker compose exec runner python scripts/orchestration/run_ingest.py --source empresas
+docker compose run --rm --no-deps runner python scripts/orchestration/run_ingest.py --source empresas
 ```
 
 - Fontes válidas: `pesquisas`, `empresas`, `clientes`, `respondentes`,
@@ -261,8 +260,8 @@ Backfill controlado de várias fontes, com parâmetros registrados no histórico
 do run:
 
 ```bash
-docker compose exec runner python scripts/orchestration/run_backfill.py --sources empresas pesquisas
-docker compose exec runner python scripts/orchestration/run_backfill.py --sources empresas --reprocess
+docker compose run --rm --no-deps runner python scripts/orchestration/run_backfill.py --sources empresas pesquisas
+docker compose run --rm --no-deps runner python scripts/orchestration/run_backfill.py --sources empresas --reprocess
 ```
 
 `--reprocess` ignora o controle de idempotência por objeto; a deduplicação por
