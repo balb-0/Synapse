@@ -203,20 +203,33 @@ def extract(reader, reference, source: str, run_id: str, checkpoint=None) -> lis
 
 @task(timeout_seconds=120, cache_policy=NO_CACHE)
 def transform(batches: list, source: str, references, previous: dict, run_id: str) -> list:
-    """Transforma cada lote; acumula o offset absoluto entre lotes."""
+    """Transforma cada lote na posição absoluta que o próprio extrator calculou.
+
+    ``source_offset`` vem de ``batch.metadata``, não de um contador local que
+    reiniciava em zero a cada chamada desta task — o que incluía as
+    retomadas, já que ``batches`` aqui só contém os lotes *novos* depois do
+    checkpoint. Duas ocorrências em posições físicas diferentes da fonte
+    recebiam o mesmo offset lógico (0-based a partir da retomada, não da
+    fonte inteira) e podiam colidir de identidade em fontes que usam
+    checksum+posição (``respondentes``).
+    """
     logger = get_run_logger()
     started = time.monotonic()
     ingested_at = datetime.now(timezone.utc)
-    results, offset = [], 0
+    results = []
     for batch in batches:
+        if batch.metadata.source_offset is None:
+            raise ValueError(
+                f"o extrator de {source!r} não informou source_offset no lote "
+                f"{batch.metadata.batch_id!r}"
+            )
         result = transform_batch(
             batch,
             references=references,
             previous=previous,
-            source_offset=offset,
+            source_offset=batch.metadata.source_offset,
             ingested_at=ingested_at,
         )
-        offset += len(batch.records)
         results.append((result, batch.metadata, batch.checkpoint))
     total = sum(r.metrics["accepted_count"] for r, _, _ in results)
     _log_event(

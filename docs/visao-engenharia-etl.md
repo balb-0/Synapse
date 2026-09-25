@@ -182,14 +182,17 @@ O que existe hoje:
   `StandardLoggingSink`, para o `logging` da biblioteca padrão;
 - o Prefect registra estado, duração e parâmetros de cada run.
 
-**O que não existe no `develop`:** módulo de observabilidade, envio de métricas
-ou traces a um coletor, índice no Elasticsearch, painel no Kibana, health check
-exposto da orquestração e regra de alerta. A decisão pela Elastic Stack está no
-ADR 0001 e o trabalho vive nas branches `task-196-ov-05` a `task-199-ov-08`, que
-não foram integradas e precedem a camada de carga.
-
-Até a integração, a verificação operacional disponível é consultar as views de
-reconciliação no DuckDB e o histórico de runs do Prefect.
+**Atualização (Sprint 4, OB-07/OB-08/OB-09):** o envio de métricas e traces ao
+coletor (Logstash → Elasticsearch), o painel operacional no Kibana, o health
+check exposto da orquestração e as regras mínimas de alerta foram
+implementados — ver `docs/runbook-execucao.md` e `observability/`. A nota
+anterior descrevia isso como ausente do `develop` e apontava para as branches
+`task-196-ov-05` a `task-199-ov-08` da Sprint 3, que de fato não chegaram a
+ser integradas; o trabalho foi refeito do zero na Sprint 4. Nesta data as
+branches correspondentes ainda não foram mergeadas — confirmar o estado do
+merge antes de tratar esta seção como refletindo o `develop`. Até lá, a
+verificação operacional disponível continua sendo as views de reconciliação
+no DuckDB e o histórico de runs do Prefect.
 
 ## Verificação automatizada
 

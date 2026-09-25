@@ -101,6 +101,21 @@ class WriteLockTimeoutError(RuntimeError):
     """Não foi possível abrir o arquivo: outro processo mantinha a escrita."""
 
 
+class UnbalancedLoadError(RuntimeError):
+    """A reconciliação do lote não fechou: extraído != carregado+rejeitado+duplicado.
+
+    Hoje isso acontece quando uma ocorrência é idêntica a outra já carregada
+    por um lote anterior do mesmo objeto: ``transform_batch`` só compara contra
+    identidades já confirmadas em execuções passadas (``previous``, carregado
+    uma vez no início do flow) e contra o próprio lote — não vê o que um lote
+    anterior desta mesma execução acabou de carregar. A linha é classificada
+    como aceita, mas o ``INSERT ... ON CONFLICT DO NOTHING`` não grava nada.
+    Bloquear a confirmação aqui não resolve essa lacuna (classificação global
+    de identidade entre lotes do objeto) — só impede que ela vire uma carga
+    incompleta confirmada silenciosamente como sucesso.
+    """
+
+
 def _emit_connect_retry(
     *, status: str, attempts: int, duration_ms: float, logger: logging.Logger | None = None
 ) -> None:
@@ -351,13 +366,22 @@ class DuckDbLoadRepository:
             self._converge_previous_rejections(metadata)
             self._record_rejections(result.rejected)
             loaded, rejected_count = self._confirmed_counts(metadata)
+            duplicated = len(result.duplicates)
+            extracted = result.metrics["extracted_count"]
+            if extracted != loaded + rejected_count + duplicated:
+                raise UnbalancedLoadError(
+                    f"lote {metadata.batch_id!r} da fonte {source!r} (run_id="
+                    f"{metadata.run_id!r}) não reconciliou: extraído={extracted} "
+                    f"carregado={loaded} rejeitado={rejected_count} "
+                    f"duplicado={duplicated}"
+                )
             status = BATCH_STATUS_LOADED_WITH_REJECTIONS if result.rejected else BATCH_STATUS_LOADED
             self._record_batch(
                 metadata,
                 status=status,
                 accepted=loaded,
                 rejected=rejected_count,
-                duplicated=len(result.duplicates),
+                duplicated=duplicated,
             )
             self._conn.execute("COMMIT")
         except Exception:
