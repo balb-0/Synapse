@@ -125,8 +125,19 @@ continua impedindo duplicatas.
   leitura são reexecutadas dentro da extração (`RetryExecutor`, configurável
   por `ETL_EXTRACTION_*`).
 - Deployment agendado: `python scripts/orchestration/deployment.py` serve o
-  deployment `ingest-object/agendado` (cron `0 3 * * *`). Execução manual com
-  parâmetros explícitos:
+  deployment `ingest-object/agendado` (cron `0 3 * * *`). Os deployments
+  `ingest-object/manual` e `backfill`, declarados em `prefect.yaml`, são
+  publicados pela CLI a partir da raiz do repositório (com o ambiente no ar):
+
+  ```bash
+  export PREFECT_API_URL=http://localhost:4200/api
+  prefect work-pool create default --type process   # idempotente
+  prefect deploy --all
+  prefect deployment ls
+  ```
+
+  Execução manual com parâmetros explícitos (também pela UI em
+  http://localhost:4200):
 
   ```bash
   prefect deployment run 'ingest-object/agendado' -p source=empresas \
