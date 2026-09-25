@@ -67,14 +67,4 @@ Para cada tarefa executada, registrar ID e conclusão (sim/com assistência/não
 
 **Propostas prioritárias:** conectar páginas finais à mesma geração Parquet e redesenhar visuais incompatíveis com o grão, ou aprovar publicação detalhada e seus controles de privacidade; definir calendário de dias úteis e feriados antes de alterar medida/rótulo; implementar hierarquia temporal e drill-through onde o contrato permitir; executar S1–S4 e conferência de valores; verificar renderização e interação no Power BI Desktop. São propostas, não resultados alcançados.
 
-**Pendências que impedem fechar o barema:** geração Parquet real com manifesto e prova de refresh; decisão aprovada sobre grão e divulgação por pesquisa/empresa; regra de dias úteis; fichas S1–S4 e testes de precisão, granularidade, filtros, desempenho e erros; páginas/resultados de instrumento e qualidade caso o escopo final inclua C03, C04 e qualidade. A documentação histórica em [`solucao-dashboards/`](solucao-dashboards/) descreve o planejamento de quatro telas; o estado comprovado acima prevalece para a entrega atual. A verificação da especificação ETL está em [revisão do pipeline](revisao-barema-pipeline.md).
-
-### Última revisão adversarial
-
-Uma avaliação independente ainda poderia descontar pontos por três lacunas reais:
-o report exibido não consome os cubos publicados, as sessões moderadas não
-foram executadas e os recursos de drill-down/drill-through pedidos no barema
-não estão comprovados nas páginas. Nenhuma dessas lacunas pode ser resolvida
-apenas com texto; os artefatos e os registros necessários estão especificados
-acima. A revisão dos documentos não encontrou outro resultado de teste que
-permita marcar esses critérios como atendidos.
+**Pendências para concluir a validação:** geração Parquet real com manifesto e prova de refresh; decisão aprovada sobre grão e divulgação por pesquisa/empresa; regra de dias úteis; fichas S1–S4 e testes de precisão, granularidade, filtros, desempenho e erros; páginas/resultados de instrumento e qualidade caso o escopo final inclua C03, C04 e qualidade. O planejamento de quatro telas está em [`solucao-dashboards/`](solucao-dashboards/); o estado implementado está descrito neste documento.
