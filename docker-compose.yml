@@ -8,9 +8,8 @@
 # o envio é descartado silenciosamente pelo SO, sem bloquear o processo do
 # runner nem atrasar a carga (ADR 0001: indisponibilidade do transporte de
 # telemetria não pode corromper nem interromper a carga). Verificação de
-# ponta a ponta (subir a stack e confirmar que um log chega ao Elasticsearch)
-# fica para OB-10/OB-11 — não foi possível rodar Docker neste ambiente para
-# validar isso empiricamente.
+# A verificação de ponta a ponta (subir a stack e confirmar que um log chega ao
+# Elasticsearch) é o smoke de OB-11.
 services:
   minio:
     image: minio/minio:latest
@@ -44,6 +43,13 @@ services:
     depends_on:
       - minio
     environment:
+      # O valor pode apontar para um Prefect no host; o padrão vazio mantém o
+      # health check explícito quando a API não foi configurada.
+      PREFECT_API_URL: ${PREFECT_API_URL:-}
+      # O stdout/stderr do container é a fonte de telemetria do Docker GELF.
+      # Desligar o console humano do Prefect evita duplicar linhas sem JSON e
+      # transformar mensagens informativas em falsos eventos de erro.
+      PREFECT_LOGGING_SETTINGS_PATH: /app/observability/prefect-logging.yml
       ETL_MINIO_ENDPOINT: http://minio:9000
       ETL_MINIO_BUCKET: sindusfarma
       ETL_MINIO_ACCESS_KEY: minioadmin
@@ -54,12 +60,19 @@ services:
       - duck-data:/data
       - ./src:/app/src
       - ./scripts:/app/scripts
+      - ./observability:/app/observability:ro
+    # O Prefect roda no host durante o smoke; em Linux esse alias não existe
+    # por padrão, por isso o Compose o aponta explicitamente para o gateway.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     # Sem `condition: service_healthy`: o runner não pode esperar nem falhar
     # por causa do coletor (mesma garantia de não-interrupção do ADR 0001).
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://logstash:12201"
+        # O endereço é resolvido pelo daemon Docker, não pelo DNS interno dos
+        # containers. O Logstash publica esta porta UDP no host.
+        gelf-address: "udp://127.0.0.1:12201"
         tag: "etl-runner"
 
   elasticsearch:

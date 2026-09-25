@@ -35,9 +35,9 @@ Comandos de execução:
 
 ```bash
 docker compose up -d
-docker compose exec runner python scripts/orchestration/run_ingest.py --source empresas
-docker compose exec runner python scripts/orchestration/run_backfill.py --sources empresas
-docker compose exec runner python scripts/orchestration/deployment.py
+docker compose run --rm --no-deps runner python scripts/orchestration/run_ingest.py --source empresas
+docker compose run --rm --no-deps runner python scripts/orchestration/run_backfill.py --sources empresas
+docker compose run --rm --no-deps runner python scripts/orchestration/deployment.py
 ```
 
 ## Rede e comunicação

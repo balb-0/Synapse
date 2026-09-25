@@ -1,7 +1,7 @@
 """Health check do orquestrador (Prefect) e do banco de ingestão (OB-09).
 
 Uso (dentro do runner):
-    docker compose exec runner python scripts/orchestration/health_check.py
+    docker compose run --rm --no-deps runner python scripts/orchestration/health_check.py
 
 Publica um evento estruturado (``orchestration.health_check.emitted``) no
 mesmo índice do painel operacional (OB-08) e sai com código 1 se qualquer
