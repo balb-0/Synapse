@@ -67,6 +67,10 @@ Serviços definidos em `docker-compose.yml`:
 - `minio`: armazenamento de objetos na porta 9000; console web em
   http://localhost:9001 (usuário/senha de desenvolvimento: `minioadmin`/`minioadmin`).
 - `createbucket`: cria o bucket `sindusfarma` na subida (`mc mb --ignore-existing`).
+- `prefect-server`: backend persistente do Prefect com UI de pipelines em
+  http://localhost:4200 e health check em http://localhost:4200/api/health
+  (volume `prefect-data`: agendamentos e histórico sobrevivem a
+  `docker compose down/up`).
 - `runner`: contêiner Python com Prefect e DuckDB (`Dockerfile`), com `src/` e
   `scripts/` montados; permanece ativo (`sleep infinity`) para executar comandos.
 
