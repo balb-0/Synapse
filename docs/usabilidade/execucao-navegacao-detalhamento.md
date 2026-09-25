@@ -14,11 +14,18 @@ Registro das sessões que executam os blocos A (navegação), B (filtros) e C
 
 | Campo | Valor |
 | :--- | :--- |
-| Alvo (telas RP-08 ou protótipo/piloto) | _a preencher_ |
-| Versão/commit do alvo | _a preencher_ |
+| Alvo | Telas Power BI de Operação (RP-03) e Participação (RP-04), mergeadas na `develop`; telas de Resultados e Qualidade pendentes (MR aberto) |
+| Versão/commit do alvo | _a preencher na sessão (commit da develop no dia)_ |
 | Datas das sessões | _a preencher_ |
 | Moderador | _a preencher_ |
 | Observador | _a preencher_ |
+
+Tarefas executáveis nesta rodada (alvo disponível): T-NAV-01, T-FIL-01,
+T-FIL-02, T-FIL-03, T-FIL-04, T-DET-01, T-DET-02. Bloqueadas até as telas de
+Resultados/Qualidade entrarem na `develop`: T-NAV-02 (percurso completo das
+quatro telas), T-DET-03 (detalhamento entre telas via D03) e T-DET-04
+(regra de qualidade na D04) — executá-las antes exige o protótipo como alvo,
+registrado como tal.
 
 ## Ficha S1 — P1 (UC01, analista da Central)
 
