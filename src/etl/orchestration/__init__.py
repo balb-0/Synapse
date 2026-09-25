@@ -7,6 +7,5 @@ implementadas em `extraction/`, `transformation/` e `load/`.
 """
 
 from .flow import backfill, ingest_object
-from .logging_config import configure_json_logging
 
-__all__ = ["backfill", "configure_json_logging", "ingest_object"]
+__all__ = ["backfill", "ingest_object"]

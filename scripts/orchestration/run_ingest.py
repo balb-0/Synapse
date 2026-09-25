@@ -14,7 +14,7 @@ from urllib.parse import urlsplit
 
 from minio import Minio
 
-from etl.orchestration import configure_json_logging, ingest_object
+from etl.orchestration import ingest_object
 
 
 def _upload(local: Path, bucket: str, key: str) -> None:
@@ -32,7 +32,6 @@ def _upload(local: Path, bucket: str, key: str) -> None:
 
 
 def main() -> None:
-    configure_json_logging()
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", default="empresas")
     ap.add_argument("--key")

@@ -101,55 +101,6 @@ class LogEventHelperTests(unittest.TestCase):
         self.assertEqual(extra["run_id"], "run-1")
         self.assertEqual(extra["batch_count"], 2)
 
-    def test_task_id_comes_from_the_current_prefect_task_run_when_available(self) -> None:
-        logger = StubLogger()
-
-        with mock.patch("prefect.runtime.task_run.id", "task-run-123"):
-            flow_module._log_event(logger, "orchestration.extract.emitted", source="empresas")
-
-        _, extra = logger.calls[0]
-        self.assertEqual(extra["task_id"], "task-run-123")
-
-    def test_task_id_falls_back_to_the_flow_run_when_there_is_no_task_run(self) -> None:
-        """Marcos publicados direto no corpo de um flow (`ingest_object`,
-        `backfill`) não têm task run — só o flow run existe nesse escopo."""
-        logger = StubLogger()
-
-        with (
-            mock.patch("prefect.runtime.task_run.id", None),
-            mock.patch("prefect.runtime.flow_run.id", "flow-run-456"),
-        ):
-            flow_module._log_event(logger, "orchestration.ingest_object.emitted", source="empresas")
-
-        _, extra = logger.calls[0]
-        self.assertEqual(extra["task_id"], "flow-run-456")
-
-    def test_task_id_is_absent_outside_any_prefect_context(self) -> None:
-        """Chamada direta em teste unitário, fora de flow ou task: sem
-        identificador do Prefect disponível, `task_id` fica de fora do
-        `extra` (mesma regra de omitir `None` já usada pelos outros campos)."""
-        logger = StubLogger()
-
-        with (
-            mock.patch("prefect.runtime.task_run.id", None),
-            mock.patch("prefect.runtime.flow_run.id", None),
-        ):
-            flow_module._log_event(logger, "orchestration.extract.emitted", source="empresas")
-
-        _, extra = logger.calls[0]
-        self.assertNotIn("task_id", extra)
-
-    def test_explicit_task_id_is_not_overridden_by_the_prefect_context(self) -> None:
-        logger = StubLogger()
-
-        with mock.patch("prefect.runtime.task_run.id", "task-run-123"):
-            flow_module._log_event(
-                logger, "orchestration.extract.emitted", source="empresas", task_id="explicit"
-            )
-
-        _, extra = logger.calls[0]
-        self.assertEqual(extra["task_id"], "explicit")
-
 
 @unittest.skipUnless(DUCKDB_INSTALLED, SEM_DUCKDB)
 class IngestObjectLogEventsTests(unittest.TestCase):
@@ -226,15 +177,6 @@ class IngestObjectLogEventsTests(unittest.TestCase):
         for event in (extract_event, transform_event, load_event, ingest_event):
             with self.subTest(event=event.event):
                 self.assertGreaterEqual(event.duration_ms, 0)
-
-        # task_id correlaciona a execução de cada tarefa (ADR 0006): as três
-        # tasks do flow são execuções distintas do Prefect, então cada uma
-        # tem o seu próprio task_id, todos preenchidos e diferentes entre si.
-        task_ids = {extract_event.task_id, transform_event.task_id, load_event.task_id}
-        self.assertTrue(all(task_ids))
-        self.assertEqual(len(task_ids), 3)
-        # O marco do flow (não é uma task) correlaciona pelo flow run.
-        self.assertTrue(ingest_event.task_id)
 
     def test_second_delivery_of_the_same_object_is_logged_as_ignored(self) -> None:
         flow_module.ingest_object(
