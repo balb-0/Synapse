@@ -16,11 +16,11 @@ As decisões que justificam cada escolha estão em
 | :--- | :--- | :--- | :--- | :--- |
 | Linguagem | Python | `python:3.12-slim` | `Dockerfile` | Em uso |
 | Armazenamento de objetos | MinIO (servidor) | `minio/minio:latest` | `docker-compose.yml` | Em uso |
-| Cliente de objetos | `minio` (SDK Python) | `>=7.2,<8` | `requirements.txt` | Em uso |
-| HTTP | `urllib3` | `>=2,<3` | `requirements.txt` | Em uso |
-| Certificados | `certifi` | `>=2024` | `requirements.txt` | Em uso |
-| Orquestração | Prefect | `>=3,<4` | `requirements.txt` | Em uso |
-| Banco de ingestão | DuckDB | `>=1.1` | `requirements.txt` | Em uso |
+| Cliente de objetos | `minio` (SDK Python) | `==7.2.20` | `requirements.txt` | Em uso |
+| HTTP | `urllib3` | `==2.7.0` | `requirements.txt` | Em uso |
+| Certificados | `certifi` | `==2026.07.22` | `requirements.txt` | Em uso |
+| Orquestração | Prefect | `==3.8.5` | `requirements.txt` | Em uso |
+| Banco de ingestão | DuckDB | `==1.5.5` | `requirements.txt` | Em uso |
 | Ferramenta de bucket | `minio/mc` | `latest` | `docker-compose.yml` | Em uso |
 | Testes | `unittest` (biblioteca padrão) | Acompanha o Python | `tests/` | Em uso |
 | Cobertura | `coverage` | `==7.16.0` | `requirements-transformation-dev.txt` | Em uso no CI |
@@ -142,7 +142,7 @@ discordam entre si.
 | Divergência | Declarações conflitantes | Risco |
 | :--- | :--- | :--- |
 | Versão do Python | resolvida na Sprint 3 (VB-06/VB-07): `Dockerfile`, CI (`python:3.12-slim`), `ruff.toml` (`py312`) e `README.md` (3.12+) alinhados em 3.12 | — |
-| Dependências sem pin | `requirements.txt` usa faixas para `minio`, `urllib3`, `prefect` e `duckdb` | Uma atualização de terceiros pode alterar o comportamento sem mudança no repositório |
+| Dependências sem pin | resolvida: `requirements.txt` fixa `minio`, `urllib3`, `certifi`, `prefect` e `duckdb` com `==` | — |
 
 ## Tecnologias consideradas e não adotadas
 

@@ -97,6 +97,9 @@ temp/
 *.tmp
 *.bak
 *.orig
+# Relatórios gerados pelo CI localmente (também publicados como artefatos).
+test-reports/
+coverage-etl.xml
 # Estado local do adaptador de disparo por objeto (não versionar).
 .watch_landing_seen.json
 
