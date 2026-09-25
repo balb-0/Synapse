@@ -678,14 +678,14 @@ estão em [`visao-computacional-etl.md`](visao-computacional-etl.md).
 
 ## 4.7 Diagramas UML e decisões arquiteturais
 
-| Artefato | Onde |
-| :--- | :--- |
-| Casos de uso | [`assets/uml/casos-de-uso-etl.plantuml`](assets/uml/casos-de-uso-etl.plantuml) |
-| Componentes | [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) |
-| Sequência da ingestão | [`assets/uml/sequencia-ingestao-etl.plantuml`](assets/uml/sequencia-ingestao-etl.plantuml) |
-| Decisões arquiteturais | [`adrs/index.md`](adrs/index.md) |
-| Escopo da sprint | [`checklist-entregaveis-sprint3.md`](checklist-entregaveis-sprint3.md) |
-| Rastreabilidade | [`matriz-rastreabilidade-sprint3.md`](matriz-rastreabilidade-sprint3.md) |
+| Artefato | Fonte | Renderização |
+| :--- | :--- | :--- |
+| Casos de uso | [`assets/uml/casos-de-uso-etl.plantuml`](assets/uml/casos-de-uso-etl.plantuml) | [`assets/uml/casos-de-uso-etl.svg`](assets/uml/casos-de-uso-etl.svg) |
+| Componentes | [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) | [`assets/uml/componentes-etl.svg`](assets/uml/componentes-etl.svg) |
+| Sequência da ingestão | [`assets/uml/sequencia-ingestao-etl.plantuml`](assets/uml/sequencia-ingestao-etl.plantuml) | Entregue pelo AR-08 |
+| Decisões arquiteturais | [`adrs/index.md`](adrs/index.md) | — |
+| Escopo da sprint | [`checklist-entregaveis-sprint3.md`](checklist-entregaveis-sprint3.md) | — |
+| Rastreabilidade | [`matriz-rastreabilidade-sprint3.md`](matriz-rastreabilidade-sprint3.md) | — |
 
 # 5. Modelagem Dimensional e Cubos OLAP
 
