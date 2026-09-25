@@ -206,7 +206,7 @@ contrato específico.
 
 - Rascunho do parceiro: `rascunho-relatorio-01.png`.
 - Rascunho do parceiro: `rascunho-relatorio-10.png`.
-- [Proposta dos dashboards da Sprint 4](../proposta-dashboards-sprint-4.md).
+- [Implementação dos relatórios da Sprint 4](implementacao-reports.md).
 - [Data Model Canvas](../dmc.md), utilizado como referência conceitual para os
   temas e indicadores já existentes no projeto.
 
