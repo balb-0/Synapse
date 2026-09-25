@@ -182,17 +182,16 @@ O que existe hoje:
   `StandardLoggingSink`, para o `logging` da biblioteca padrão;
 - o Prefect registra estado, duração e parâmetros de cada run.
 
-**Atualização (Sprint 4, OB-07/OB-08/OB-09):** o envio de métricas e traces ao
-coletor (Logstash → Elasticsearch), o painel operacional no Kibana, o health
-check exposto da orquestração e as regras mínimas de alerta foram
-implementados — ver `docs/runbook-execucao.md` e `observability/`. A nota
-anterior descrevia isso como ausente do `develop` e apontava para as branches
-`task-196-ov-05` a `task-199-ov-08` da Sprint 3, que de fato não chegaram a
-ser integradas; o trabalho foi refeito do zero na Sprint 4. Nesta data as
-branches correspondentes ainda não foram mergeadas — confirmar o estado do
-merge antes de tratar esta seção como refletindo o `develop`. Até lá, a
-verificação operacional disponível continua sendo as views de reconciliação
-no DuckDB e o histórico de runs do Prefect.
+**Atualização (Sprint 4, OB-07/OB-08/OB-09):** o envio de telemetria ao coletor
+(Logstash → Elasticsearch), o painel operacional no Kibana, o health check da
+orquestração e as instruções para criar os alertas foram implementados nos
+MRs !233, !234 e !235, mesclados em branches encadeadas da Sprint 4 — ver
+`docs/runbook-execucao.md` e `observability/` nesta branch. Eles ainda não
+estão no `develop`. As branches `task-196-ov-05` a `task-199-ov-08` da Sprint 3
+não foram integradas; o trabalho foi refeito na Sprint 4. As views de
+reconciliação no DuckDB e o histórico de runs do Prefect continuam disponíveis
+para verificação; nesta branch, a telemetria da Elastic Stack também pode ser
+verificada quando a stack Docker está em execução.
 
 ## Verificação automatizada
 
@@ -209,11 +208,15 @@ PYTHONPATH=src python -m unittest discover -s tests
 
 ## Limitações desta visão
 
-- O disparo por evento e a área intermediária `bronze` são contrato, não
-  implementação.
-- A observabilidade prevista no ADR 0001 não pode ser exercitada no ambiente
-  declarado, que não inclui a Elastic Stack.
+- O `develop` já contém o disparo por evento em
+  `scripts/orchestration/watch_landing.py` (MR !200); a área intermediária
+  `bronze` permanece como contrato, sem implementação.
+- A observabilidade da Elastic Stack depende da stack Docker descrita em
+  `docker-compose.yml`; sem ela, permanecem disponíveis as views de
+  reconciliação no DuckDB e o histórico de runs do Prefect.
 - Os testes do flow substituem apenas o armazenamento de objetos por leitor em
   memória; a integração real com MinIO requer Docker e permanece como smoke
   operacional documentado.
-- O agendamento não sobrevive à parada do processo que o serve.
+- O `develop` inclui o serviço `scheduler` com reinício automático e histórico
+  persistido no Prefect Server (MR !198); esta branch ainda não incorpora
+  essa configuração.
