@@ -10,21 +10,18 @@
 #     `prefect-server` (OQ-03). O runner usa por padrão
 #     PREFECT_API_URL=http://prefect-server:4200/api; para um Prefect no host,
 #     exporte PREFECT_API_URL=http://host.docker.internal:4200/api (OB-09).
-#   - As duas regras de alerta do OB-09 já criadas manualmente no Kibana
-#     (Stack Management -> Rules) — não são importáveis por NDJSON.
+#   - As duas regras de alerta do OB-09 já criadas no Kibana, pela UI ou pela
+#     API de Alerting (comandos no runbook) — não são importáveis por NDJSON.
 #
-# IMPORTANTE — o que este cenário B prova e o que não prova (confirmado
-# empiricamente rodando ingest_object com um leitor MinIO quebrado, sem
-# Docker, direto no venv de teste): `ingest_object` calcula o checksum do
-# objeto (`_object_checksum`, flow.py) ANTES de chamar a task `extract` —
-# e esse cálculo não passa pelo `RetryExecutor` (OB-06), só a leitura de
-# fato dentro da task passa. Um MinIO totalmente fora do ar derruba o flow
-# bem nesse cálculo, ANTES da task de extração sequer começar — então este
-# script prova a falha real e o alerta correspondente (a exceção propaga
-# até `run_ingest.py`, que não a captura; o traceback cru vai pro stderr e
-# o Docker GELF o entrega ao Logstash com a marca `etl_error`), mas **não**
-# produz `extraction.retry.emitted` de forma confiável — isso exigiria
-# derrubar o MinIO só depois do checksum e só durante a leitura da task, uma
+# IMPORTANTE — o que este cenário B prova e o que não prova (confirmado na
+# execução real de 25/09/2026, docs/smoke-observabilidade-sprint4.md): com o
+# MinIO fora do ar, `run_ingest.py` falha já no upload do fixture (`_upload`,
+# erro `MaxRetryError` para `minio:9000`), antes de chamar `ingest_object`.
+# Nenhum flow run é criado nesse caso. O script prova a falha real e o alerta
+# correspondente (a exceção propaga até o topo; o traceback cru vai para o
+# stderr e o Docker GELF o entrega ao Logstash com a marca `etl_error`), mas
+# **não** produz `extraction.retry.emitted` — isso exigiria derrubar o MinIO
+# só depois do upload e do checksum e só durante a leitura da task, uma
 # janela estreita demais para cronometrar de fora sem uma ferramenta de
 # falha de rede mais cirúrgica (ex.: toxiproxy), que esta stack não tem.
 # A prova determinística do mecanismo de retry já existe nos testes
@@ -53,8 +50,8 @@ cat <<'EVIDENCIA'
 EVIDENCIA
 
 echo
-echo "=== Cenário B: falha controlada (checksum sem MinIO) + alerta ==="
-echo ">>> Parando o MinIO para forçar a falha no cálculo do checksum..."
+echo "=== Cenário B: falha controlada (MinIO parado) + alerta ==="
+echo ">>> Parando o MinIO para forçar a falha de acesso à fonte..."
 docker compose stop minio
 
 set +e
@@ -76,11 +73,6 @@ cat <<'EVIDENCIA'
       (ver docs/runbook-execucao.md, seção Alertas mínimos);
     - a linha com tags:etl_error no Elasticsearch (traceback cru
       que run_ingest.py deixa propagar até o topo, sem capturar);
-    - o marco JSON limpo do próprio Prefect para a mesma falha
-      (prefect.flow_runs, level ERROR, "Encountered exception during
-      execution") — sinal adicional, sem tag de erro, útil pra confirmar
-      que os dois caminhos (stderr cru e stdout estruturado) descrevem o
-      mesmo evento.
     curl -s 'http://localhost:9200/etl-logs-*/_search?q=tags:etl_error&sort=@timestamp:desc&size=5&pretty'
 EVIDENCIA
 
