@@ -1,0 +1,228 @@
+/// C01 — Portfólio e Ciclo. Snapshot derivado de bi.vw_ciclo_pesquisa.
+table D01_CicloPesquisa
+	lineageTag: 188b461d-479c-4ff1-b59f-8becb3919142
+
+	/// Contagem distinta de pesquisas no recorte atual.
+	measure Pesquisas = DISTINCTCOUNT('D01_CicloPesquisa'[pesquisa_id_origem])
+		formatString: #,0
+		displayFolder: 01. Operação
+		lineageTag: 5ce5e560-779a-49a7-80e9-61b9debe51d7
+
+	/// Pesquisas finalizadas no recorte atual.
+	measure 'Pesquisas Finalizadas' = CALCULATE([Pesquisas], KEEPFILTERS('D01_CicloPesquisa'[status] = "Finalizada"))
+		formatString: #,0
+		displayFolder: 01. Operação
+		lineageTag: c14d8be9-3bc9-41ea-9e28-e61dd1133f5b
+
+	/// Pesquisas com status Em andamento no recorte atual.
+	measure 'Pesquisas em Andamento' = CALCULATE([Pesquisas], KEEPFILTERS('D01_CicloPesquisa'[status] = "Em andamento"))
+		formatString: #,0
+		displayFolder: 01. Operação
+		lineageTag: 1b3a91fc-1269-4a08-b4ae-6c2e3edfa282
+
+	/// Proporção de pesquisas finalizadas no conjunto filtrado.
+	measure 'Taxa de Finalização' = DIVIDE([Pesquisas Finalizadas], [Pesquisas])
+		formatString: 0.0%
+		displayFolder: 01. Operação
+		lineageTag: c7093831-5dbd-4b0f-a5d1-c0152ac6f2ac
+
+	/// Proporção de pesquisas prorrogadas no conjunto filtrado.
+	measure 'Taxa de Prorrogação' = DIVIDE(CALCULATE([Pesquisas], KEEPFILTERS('D01_CicloPesquisa'[flag_prorrogada] = TRUE())), [Pesquisas])
+		formatString: 0.0%
+		displayFolder: 01. Operação
+		lineageTag: 5e453da0-7ca2-4320-a811-291f66d7dca9
+
+	/// Média dos ciclos concluídos com duração disponível; medida em dias corridos, não úteis.
+	measure 'Ciclo Médio em Dias Corridos' = AVERAGE('D01_CicloPesquisa'[dias_ciclo_total_corridos])
+		formatString: 0.0
+		displayFolder: 01. Operação
+		lineageTag: fb174f94-42b7-415c-882e-0b20b3ec24ee
+
+	/// Média de dias corridos entre solicitação e aprovação no recorte atual.
+	measure 'Ciclo Médio Validação em Dias Corridos' = AVERAGE ( D01_CicloPesquisa[dias_validacao_corridos] )
+		displayFolder: 01. Operação
+		lineageTag: bc780d30-8c1f-4755-8234-183036eb4661
+
+	/// Média de dias corridos da etapa de coleta no recorte atual.
+	measure 'Ciclo Médio Coleta em Dias Corridos' = AVERAGE ( D01_CicloPesquisa[dias_coleta_corridos] )
+		displayFolder: 01. Operação
+		lineageTag: 540e1c1e-61b9-4919-af4b-3105ba6b73d7
+
+	/// Média de dias corridos da etapa de tabulação no recorte atual.
+	measure 'Ciclo Médio Tabulação em Dias Corridos' = AVERAGE ( D01_CicloPesquisa[dias_tabulacao_corridos] )
+		displayFolder: 01. Operação
+		lineageTag: 977ee54e-4c37-4287-b479-f8995e6917ac
+
+	/// Média de empresas participantes por pesquisa no recorte atual.
+	measure 'Empresas Médias por Pesquisa' = AVERAGE ( D01_CicloPesquisa[qtd_empresas_na_pesquisa] )
+		displayFolder: 01. Operação
+		lineageTag: b19e75a9-86fb-42ac-a025-5c62cd7e1cd8
+
+	/// Pesquisas marcadas como prorrogadas no recorte atual.
+	measure 'Pesquisas Prorrogadas' = CALCULATE ( [Pesquisas], KEEPFILTERS ( D01_CicloPesquisa[flag_prorrogada] = TRUE () ) )
+		displayFolder: 01. Operação
+		lineageTag: c6a1def5-55f9-45ae-85a0-79f246263c06
+
+	/// Pesquisas não finalizadas no recorte atual, cobrindo os status disponíveis no cubo.
+	measure 'Pesquisas em Aberto' = CALCULATE ( [Pesquisas], KEEPFILTERS ( 'D01_CicloPesquisa'[status] IN { "Em andamento", "Em tabulação", "Planejada" } ) )
+		formatString: #,0
+		displayFolder: 01. Operação
+		lineageTag: c912a364-6449-4b24-9acd-61440c7159d7
+
+	column sk_ciclo_pesquisa
+		dataType: int64
+		isNullable: false
+		lineageTag: b8fd1a04-fa04-443d-ae7f-6ed506240be3
+		sourceColumn: sk_ciclo_pesquisa
+
+	column pesquisa_id_origem
+		dataType: string
+		lineageTag: 2ca6d97d-d9ba-4365-a56a-a912fd84e3da
+		sourceColumn: pesquisa_id_origem
+
+	column titulo
+		dataType: string
+		lineageTag: c5b9ac1b-25cb-46dd-b9e6-31db81f29e79
+		sourceColumn: titulo
+
+	column objetivos
+		dataType: string
+		lineageTag: 0319eb09-9158-4201-b55e-d8549a87a7bc
+		sourceColumn: objetivos
+
+	column ano_edicao
+		dataType: int64
+		lineageTag: 715e6e50-8927-4ad4-98f0-123dc3fc04ef
+		sourceColumn: ano_edicao
+
+	column status
+		dataType: string
+		lineageTag: bbdc8bd9-9608-48a0-8f31-df4ca2c5b96b
+		sourceColumn: status
+
+	column area
+		dataType: string
+		lineageTag: c684aba6-4aa3-4466-b78a-3f278b004953
+		sourceColumn: area
+
+	column tipo
+		dataType: string
+		lineageTag: 8966afb3-4e9a-4821-8c14-911160b342ce
+		sourceColumn: tipo
+
+	column complexidade
+		dataType: string
+		lineageTag: 9ce1b1cd-1dc1-437e-9cfd-a077ed78b6d4
+		sourceColumn: complexidade
+
+	column tipo_resposta
+		dataType: string
+		lineageTag: 15812e76-2020-4f67-b0eb-4498b739f05a
+		sourceColumn: tipo_resposta
+
+	column familia
+		dataType: string
+		lineageTag: 9f3cda6c-2388-4c2c-898b-30fa30f45871
+		sourceColumn: familia
+
+	column flag_prorrogada
+		dataType: boolean
+		isNullable: false
+		lineageTag: 26475aa0-0356-4b71-b672-33592fce37b9
+		sourceColumn: flag_prorrogada
+
+	column qtd_empresas_na_pesquisa
+		dataType: int64
+		lineageTag: 39c2f75f-247a-4bd8-8339-47459469f67f
+		sourceColumn: qtd_empresas_na_pesquisa
+
+	column data_solicitacao
+		dataType: dateTime
+		lineageTag: a446515f-d557-4928-99cf-cbd11f0930a4
+		sourceColumn: data_solicitacao
+
+	column data_aprovacao
+		dataType: dateTime
+		lineageTag: 5c03bf41-d4ee-4f85-a0eb-e947740567c0
+		sourceColumn: data_aprovacao
+
+	column data_divulgacao
+		dataType: dateTime
+		lineageTag: 87bb0b9c-8943-41f4-804f-74abae68a5a0
+		sourceColumn: data_divulgacao
+
+	column data_limite_coleta
+		dataType: dateTime
+		lineageTag: 5485a60c-ad07-418e-8bbf-a7241fed9be7
+		sourceColumn: data_limite_coleta
+
+	column data_prorrogacao
+		dataType: dateTime
+		lineageTag: d09bee8c-4a31-4a9d-9828-786a22ec6387
+		sourceColumn: data_prorrogacao
+
+	column data_entrega
+		dataType: dateTime
+		lineageTag: fa6621d9-2069-40b2-8175-f406618019f3
+		sourceColumn: data_entrega
+
+	column dias_validacao_corridos
+		dataType: int64
+		lineageTag: d51ee77d-0dda-462a-b343-11bd64946215
+		sourceColumn: dias_validacao_corridos
+
+	column dias_coleta_corridos
+		dataType: int64
+		lineageTag: 381daab5-6dd2-425a-8d0f-176b0440a7c0
+		sourceColumn: dias_coleta_corridos
+
+	column dias_tabulacao_corridos
+		dataType: int64
+		lineageTag: bcc1af1b-c578-4193-90e6-0f2fe76d090b
+		sourceColumn: dias_tabulacao_corridos
+
+	column dias_ciclo_total_corridos
+		dataType: int64
+		lineageTag: a008bf2d-6930-4dbc-96a6-51c54a06da3d
+		sourceColumn: dias_ciclo_total_corridos
+
+	column unidade_duracao
+		dataType: string
+		lineageTag: 0affae17-a49c-4ad4-9443-125726bd882a
+		sourceColumn: unidade_duracao
+
+	column estado_reconciliacao
+		dataType: string
+		lineageTag: 005f500e-9ab9-46fd-8c5f-7641d286b289
+		sourceColumn: estado_reconciliacao
+
+	column sistema_origem
+		dataType: string
+		lineageTag: c33da005-5f90-4c61-8bd3-072b36114b8f
+		sourceColumn: sistema_origem
+
+	column arquivo_origem
+		dataType: string
+		lineageTag: 3c7caf9c-2764-4f17-960e-430e1bbfa8c7
+		sourceColumn: arquivo_origem
+
+	column execucao_id
+		dataType: string
+		lineageTag: 22d8835e-e542-4967-abd6-b4b361614e5d
+		sourceColumn: execucao_id
+
+	column versao_regra
+		dataType: string
+		lineageTag: 6840a857-baac-4d84-b2f3-ad8f306edca6
+		sourceColumn: versao_regra
+
+	partition D01_CicloPesquisa = m
+		mode: import
+		source =
+				let
+				    Fonte = Csv.Document(File.Contents("C:\\Users\\Inteli\\Documents\\projetos_inteli\\g05\\data\\powerbi_gold_simulada\\vw_ciclo_pesquisa.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Cabecalhos = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+				    Tipos = Table.TransformColumnTypes(Cabecalhos, {{"sk_ciclo_pesquisa", Int64.Type}, {"ano_edicao", Int64.Type}, {"flag_prorrogada", type logical}, {"qtd_empresas_na_pesquisa", Int64.Type}, {"data_solicitacao", type date}, {"data_aprovacao", type date}, {"data_divulgacao", type date}, {"data_limite_coleta", type date}, {"data_prorrogacao", type date}, {"data_entrega", type date}, {"dias_validacao_corridos", Int64.Type}, {"dias_coleta_corridos", Int64.Type}, {"dias_tabulacao_corridos", Int64.Type}, {"dias_ciclo_total_corridos", Int64.Type}})
+				in
+				    Tipos
+

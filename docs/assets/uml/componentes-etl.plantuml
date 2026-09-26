@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 
 skinparam shadowing false
 skinparam nodesep 30
@@ -27,12 +28,13 @@ node "MinIO" as MINIO {
   port "S3 API" as S3PORT
 }
 
-component "Adaptador de eventos" as ADAPTER <<planejado>>
+component "Adaptador de eventos\n(watch_landing.py)" as ADAPTER
 
 node "Prefect" as PREFECT {
   component "Flow ingest-object" as FLOWINGEST
   component "Flow backfill" as FLOWBACKFILL
-  component "Deployment agendado" as DEPLOYMENT
+  component "Deployment servido\nagendado" as DEPLOYMENT
+  component "Prefect server\n(UI, histórico)" as PREFECTSERVER
 }
 
 node "Plano de dados em Python" as PYTHON {
@@ -44,7 +46,12 @@ node "Plano de dados em Python" as PYTHON {
   component "Consistência\n(etl.transformation.consistency)" as REFERENCES
   component "Repositório de carga\n(etl.load.duckdb_repository)" as REPOSITORY
   component "Contrato físico\n(etl.load.ddl)" as DDL
-  component "Log estruturado\n(etl.extraction.log_events)" as LOGEVENTS
+  component "Log da extração\n(etl.extraction.log_events)" as LOGEVENTS
+  component "Log da transformação\n(etl.transformation.log_events)" as TRANSLOGS
+  component "Log da carga\n(etl.load.log_events)" as LOADLOGS
+  component "Logging JSON\n(etl.orchestration.logging_config)" as JSONLOG
+  component "Health check\n(etl.orchestration.health)" as HEALTH
+  component "Camada analítica\n(etl.analytics: C01–C04, publish)" as ANALYTICS
 }
 
 database "DuckDB" as DUCKDB {
@@ -52,12 +59,15 @@ database "DuckDB" as DUCKDB {
   component "rejected / rejected_reason" as REJECTED
   component "_control_object / _loaded_identity\n_checkpoint / _batch_metadata" as CONTROL
   component "execucao / reconciliacao_execucao" as VIEWS
+  component "DIM_* / FATO_* (C01–C04)" as CUBES
 }
 
-node "Elastic Stack" as ELASTIC <<planejado>> {
-  component "Logstash" as LOGSTASH <<planejado>>
-  database "Elasticsearch" as ES <<planejado>>
-  component "Kibana" as KIBANA <<planejado>>
+artifact "Parquet publicado\n(PUB_C01..C04, PUB_QUALIDADE_*)" as PARQUET
+
+node "Elastic Stack" as ELASTIC {
+  component "Logstash\n(GELF UDP 12201)" as LOGSTASH
+  database "Elasticsearch\n(etl-logs-*)" as ES
+  component "Kibana\n(painel e alertas)" as KIBANA
 }
 
 interface "ObjectReader" as IREADER
@@ -65,11 +75,13 @@ interface "Extractor" as IEXTRACTOR
 interface "CheckpointStore" as ICHECKPOINT
 interface "MetadataSink" as ISINK
 interface "ExtractionLogSink" as ILOGSINK
+interface "LoadLogSink" as ILOADLOGSINK
 
 READER -up- IREADER
 EXTRACTORS -up- IEXTRACTOR
 REPOSITORY -up- ICHECKPOINT
 LOGEVENTS -up- ILOGSINK
+LOADLOGS -up- ILOADLOGSINK
 ISINK .. REPOSITORY : não implementado
 
 PUB --> S3PORT : publica objeto
@@ -92,33 +104,63 @@ EXTRACTORS --> LOGEVENTS
 EXTRACTORS --> TRANSFORM : ExtractedBatch
 REFERENCES --> TRANSFORM : ReferenceData
 TRANSFORM --> REPOSITORY : TransformationResult
+TRANSFORM --> TRANSLOGS
 REPOSITORY --> DDL : statements()
+REPOSITORY --> LOADLOGS : LoadBatchLogEvent
 REPOSITORY --> TABLES
 REPOSITORY --> REJECTED
 REPOSITORY --> CONTROL
 CONTROL --> VIEWS
+ANALYTICS --> TABLES : lê ingestão conciliada
+ANALYTICS --> CUBES
+ANALYTICS --> PARQUET : publish
+HEALTH --> PREFECTSERVER : /api/health
+HEALTH --> DUCKDB : conexão e persistência
+FLOWINGEST --> PREFECTSERVER : estados e logs
 EXTRACTORS ..> BRONZE : representação intermediária
 
-LOGEVENTS ..> LOGSTASH : log JSON
-FLOWINGEST ..> LOGSTASH : log JSON
-LOGSTASH ..> ES
-ES ..> KIBANA
+LOGEVENTS --> JSONLOG
+TRANSLOGS --> JSONLOG
+LOADLOGS --> JSONLOG
+FLOWINGEST --> JSONLOG
+HEALTH --> JSONLOG
+JSONLOG ..> LOGSTASH : stdout JSON via driver GELF\n(best-effort, não bloqueia a carga)
+LOGSTASH --> ES
+ES --> KIBANA
 
 note bottom of ADAPTER
-  Contrato do ADR 0001.
-  Sem módulo correspondente no develop.
+  scripts/orchestration/watch_landing.py:
+  webhook s3:ObjectCreated ou polling.
+  Chama ingest_object por objeto novo.
 end note
 
 note bottom of ELASTIC
-  Decidida no ADR 0001.
-  Código nas branches OV-05 a OV-08,
-  não integradas ao develop.
+  ADR 0001/0006/0008. Serviços no
+  docker-compose.yml; pipeline e painel
+  versionados em observability/.
+end note
+
+note bottom of BRONZE
+  Zona intermediária prevista; a extração
+  atual vai de landing direto à ingestão.
+end note
+
+note right of DEPLOYMENT
+  scripts/orchestration/deployment.py
+  serve ingest-object com cron 0 3 * * *.
+  Inicialização feita pelo operador.
 end note
 
 note right of REFERENCES
-  Montada por _build_references,
-  que hoje consulta o DuckDB pelo
-  atributo privado do repositório.
+  Montada por _build_references pela
+  interface pública do repositório
+  (fetch_compatibility_records).
+end note
+
+note right of TRANSFORM
+  transform_object decide a identidade
+  uma vez sobre todos os lotes do objeto,
+  com source_offset absoluto do extrator.
 end note
 
 @enduml

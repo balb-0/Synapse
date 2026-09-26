@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 
 skinparam shadowing false
 skinparam sequenceMessageAlign first
@@ -12,17 +13,22 @@ skinparam note {
 }
 
 actor "Operador de dados" as OPE
-participant "Adaptador de eventos\n(planejado)" as ADAPTER
+participant "Adaptador de eventos\n(watch_landing.py)" as ADAPTER
 participant "Flow ingest-object\n(Prefect)" as FLOW
 participant "MinioObjectReader" as READER
 participant "Extrator" as EXTRACTOR
-participant "transform_batch" as TRANSFORM
+participant "transform_object\n(transform_batch por lote)" as TRANSFORM
 participant "DuckDbLoadRepository" as REPO
+participant "LoadLogSink" as LOADLOG
 database "DuckDB" as DB
-participant "Logstash\n(planejado)" as LOGS
+participant "Logstash\n(via driver GELF)" as LOGS
 
 group Execução normal
-  OPE -> FLOW : ingest_object(source, bucket, key)
+  alt disparo por evento
+    ADAPTER -> FLOW : ingest_object(source, bucket, key, version_id, event_id)
+  else disparo manual, backfill ou agenda
+    OPE -> FLOW : ingest_object(source, bucket, key)
+  end
   FLOW -> READER : open(reference)
   READER -> FLOW : fluxo de bytes
   FLOW -> FLOW : SHA-256 do objeto
@@ -30,25 +36,50 @@ group Execução normal
   REPO -> DB : SELECT em _control_object
   DB --> REPO : nenhuma linha
   REPO --> FLOW : false
-  FLOW -> REPO : loaded_identities(source) e load(source)
-  REPO --> FLOW : identidades e checkpoint
-  FLOW -> EXTRACTOR : read(run_id, checkpoint)
+  FLOW -> REPO : fetch_compatibility_records(pais), loaded_identities(source) e load(source)
+  REPO --> FLOW : referências, identidades e checkpoint
+  FLOW -> EXTRACTOR : read(run_id, task_id, checkpoint)
   EXTRACTOR -> READER : open(reference)
-  EXTRACTOR --> FLOW : ExtractedBatch
-  EXTRACTOR -->> LOGS : evento JSON do lote
-  FLOW -> TRANSFORM : transform_batch(batch, references, previous)
-  TRANSFORM --> FLOW : TransformationResult
-  FLOW -> REPO : load_batch(result, metadata)
-  REPO -> DB : BEGIN TRANSACTION
-  REPO -> DB : INSERT nas tabelas de ingestão
-  REPO -> DB : INSERT em rejected e rejected_reason
-  REPO -> DB : contagem por run_id e batch_id
-  DB --> REPO : carregados e rejeitados
-  REPO -> DB : INSERT em _batch_metadata (carregado)
-  REPO -> DB : COMMIT
-  REPO --> FLOW : LoadResult balanceado
+  EXTRACTOR --> FLOW : lotes com checkpoint e source_offset absoluto
+  EXTRACTOR -->> LOGS : evento JSON de extração por lote
+  FLOW -> TRANSFORM : transform_object(lotes, references, previous)
+  note right of TRANSFORM
+    Identidade decidida uma vez sobre
+    todos os lotes do objeto: repetição
+    idêntica vira duplicata; versões
+    divergentes viram IDENTITY_CONFLICT.
+  end note
+  TRANSFORM -->> LOGS : evento JSON de transformação por lote
+  TRANSFORM --> FLOW : TransformationResult por lote
+  loop para cada lote transformado
+    FLOW -> REPO : load_batch(result, metadata)
+    REPO -> DB : BEGIN TRANSACTION
+    REPO -> DB : confere identidades contra _loaded_identity
+    REPO -> DB : INSERT aceitos e rejeitados
+    REPO -> DB : contagem por run_id e batch_id
+    DB --> REPO : carregados e rejeitados
+    REPO -> REPO : extraído = carregados + rejeitados + duplicados?
+    REPO -> DB : INSERT em _batch_metadata
+    REPO -> DB : COMMIT
+    REPO -->> LOADLOG : LoadBatchLogEvent
+    LOADLOG -->> LOGS : evento JSON de carga
+    REPO --> FLOW : LoadResult balanceado
+    FLOW -> REPO : commit(checkpoint do lote)
+    REPO -> DB : UPSERT em _checkpoint
+    note right of FLOW
+      O checkpoint só avança depois do
+      COMMIT e da reconciliação do lote.
+    end note
+  end
+  FLOW -> FLOW : todas as reconciliações balanced?
   FLOW -> REPO : mark_object_loaded(source, checksum, run_id)
-  FLOW -> REPO : commit(checkpoint)
+  REPO -> DB : UPSERT em _control_object
+  note right of FLOW
+    Só é chamado se todos os lotes do
+    objeto reconciliaram; caso contrário
+    levanta UnbalancedLoadError e o
+    objeto não é marcado como concluído.
+  end note
   FLOW -->> LOGS : estado final da execução
   FLOW --> OPE : status loaded
 end
@@ -67,6 +98,7 @@ group Falha transitória com retry limitado
   else limite esgotado
     EXTRACTOR --> FLOW : RetryLimitExceededError
     FLOW -> FLOW : _should_retry devolve false
+    FLOW -->> LOGS : erro correlacionado e tentativas esgotadas
     FLOW --> OPE : execução falha sem nova tentativa
     note right of FLOW
       Checkpoint e hash não são confirmados.
@@ -74,6 +106,25 @@ group Falha transitória com retry limitado
       e a próxima execução relê o trecho.
     end note
   end
+end
+
+group Falha durante carga ou reconciliação
+  FLOW -> REPO : load_batch(result, metadata)
+  REPO -> DB : BEGIN + escritas do lote
+  DB --> REPO : erro de escrita ou contagem divergente
+  REPO -> REPO : UnbalancedLoadError se a reconciliação não fecha
+  REPO -> DB : ROLLBACK
+  REPO -> DB : INSERT _batch_metadata (falha, contagens zero)
+  REPO -->> LOADLOG : evento status=failed
+  LOADLOG -->> LOGS : lote falho com run_id e batch_id
+  REPO --> FLOW : exceção
+  FLOW -> FLOW : _should_retry: UnbalancedLoadError não repete
+  FLOW --> OPE : flow run failed
+  note right of REPO
+    Não há commit do checkpoint.
+    O lote será relido desde a última
+    posição confirmada.
+  end note
 end
 
 group Falha permanente
@@ -84,6 +135,7 @@ group Falha permanente
   EXTRACTOR -> EXTRACTOR : classify_source_failure -> permanente
   EXTRACTOR --> FLOW : PermanentSourceError
   FLOW -> FLOW : _should_retry devolve false
+  FLOW -->> LOGS : falha permanente correlacionada
   FLOW --> OPE : execução falha imediatamente
 end
 

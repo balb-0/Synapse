@@ -1,5 +1,16 @@
-# Ambiente local do ETL orquestrado (OV-02): MinIO como entrada e o runner
-# Prefect/DuckDB. A Elastic Stack (observabilidade) é acrescentada no OV-07.
+# Ambiente local do ETL orquestrado (OV-02/OQ-03): MinIO como entrada, o
+# servidor Prefect (histórico, UI e agendamento), o scheduler dos deployments,
+# o runner Prefect/DuckDB e a Elastic Stack (observabilidade, OB-07/OB-08,
+# ADR 0001/0006/0008).
+#
+# O runner e o scheduler nunca falam com o Logstash diretamente: eles só
+# escrevem JSON estruturado no stdout (etl.orchestration.logging_config,
+# OB-03). O driver de log `gelf` do Docker embrulha cada linha e a envia por
+# UDP ao Logstash. UDP é fire-and-forget: se o Logstash ou o Elasticsearch
+# caírem, o envio é descartado pelo SO, sem bloquear o processo nem atrasar a
+# carga (ADR 0006: indisponibilidade do transporte de telemetria não pode
+# corromper nem interromper a carga). A verificação de ponta a ponta (subir a
+# stack e confirmar que um log chega ao Elasticsearch) é o smoke de OB-11.
 services:
   minio:
     image: minio/minio:latest
@@ -28,11 +39,81 @@ services:
       mc mb --ignore-existing local/sindusfarma &&
       echo 'bucket sindusfarma pronto'"
 
+  # Backend persistente do Prefect: histórico de execução consultável
+  # e UI de pipelines (`http://localhost:4200`). Sem ele, cada processo do
+  # runner fala com uma API efêmera própria, sem histórico entre execuções
+  # nem visualização. Reaproveita a imagem do runner (mesma versão do
+  # Prefect, fixada em `requirements.txt`).
+  prefect-server:
+    build: .
+    command: ["prefect", "server", "start", "--host", "0.0.0.0"]
+    ports:
+      - "4200:4200"
+    volumes:
+      - prefect-data:/root/.prefect
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4200/api/health', timeout=3)"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Serve os deployments com agendamento: mantém
+  # `ingest-object/agendado` (cron `0 3 * * *`, ver
+  # `scripts/orchestration/deployment.py`) ativo enquanto o ambiente roda.
+  # `restart: unless-stopped` faz o agendamento sobreviver ao reinício do
+  # contêiner; os agendamentos e o histórico vivem no `prefect-server`
+  # (volume `prefect-data`), não neste processo — derrubar e subir o
+  # ambiente (`docker compose down/up`) preserva ambos.
+  scheduler:
+    build: .
+    depends_on:
+      minio:
+        condition: service_started
+      prefect-server:
+        condition: service_healthy
+    command: ["python", "scripts/orchestration/deployment.py"]
+    # Mesmo ambiente do `runner`: o `.serve()` executa o flow neste processo,
+    # então precisa das mesmas credenciais e do mesmo `ETL_DUCKDB_PATH` —
+    # sem isso, o agendado falharia ou escreveria em outro banco.
+    environment:
+      # Mesmo perfil de logging do runner: execuções agendadas também chegam
+      # ao coletor como JSON estruturado.
+      PREFECT_LOGGING_SETTINGS_PATH: /app/observability/prefect-logging.yml
+      ETL_MINIO_ENDPOINT: http://minio:9000
+      ETL_MINIO_BUCKET: sindusfarma
+      ETL_MINIO_ACCESS_KEY: minioadmin
+      ETL_MINIO_SECRET_KEY: minioadmin
+      ETL_MINIO_INPUT_PREFIX: landing
+      ETL_DUCKDB_PATH: /data/warehouse.duckdb
+      PREFECT_API_URL: http://prefect-server:4200/api
+    volumes:
+      - duck-data:/data
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./observability:/app/observability:ro
+    restart: unless-stopped
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "etl-scheduler"
+
   runner:
     build: .
     depends_on:
-      - minio
+      minio:
+        condition: service_started
+      prefect-server:
+        condition: service_healthy
     environment:
+      # Padrão: o `prefect-server` deste Compose. Pode ser sobrescrito para um
+      # Prefect no host (`http://host.docker.internal:4200/api`); o health
+      # check (OB-09) acusa a API ausente ou indisponível.
+      PREFECT_API_URL: ${PREFECT_API_URL:-http://prefect-server:4200/api}
+      # O stdout/stderr do container é a fonte de telemetria do Docker GELF.
+      # Desligar o console humano do Prefect evita duplicar linhas sem JSON e
+      # transformar mensagens informativas em falsos eventos de erro.
+      PREFECT_LOGGING_SETTINGS_PATH: /app/observability/prefect-logging.yml
       ETL_MINIO_ENDPOINT: http://minio:9000
       ETL_MINIO_BUCKET: sindusfarma
       ETL_MINIO_ACCESS_KEY: minioadmin
@@ -43,7 +124,86 @@ services:
       - duck-data:/data
       - ./src:/app/src
       - ./scripts:/app/scripts
+      - ./observability:/app/observability:ro
+    # Permite apontar PREFECT_API_URL para um Prefect no host; em Linux esse
+    # alias não existe por padrão, por isso o Compose o aponta para o gateway.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Sem `condition: service_healthy`: o runner não pode esperar nem falhar
+    # por causa do coletor (mesma garantia de não-interrupção do ADR 0001).
+    logging:
+      driver: gelf
+      options:
+        # O endereço é resolvido pelo daemon Docker, não pelo DNS interno dos
+        # containers. O Logstash publica esta porta UDP no host.
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "etl-runner"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    # Sem autenticação (`xpack.security.enabled=false`) e porta publicada no
+    # host: aceitável só neste ambiente local de desenvolvimento, mesmo
+    # padrão do MinIO já usado neste arquivo (`minioadmin`/`minioadmin`). Não
+    # copiar esta configuração para um host compartilhado ou produção sem
+    # habilitar autenticação e revisar a exposição da porta.
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s http://localhost:9200/_cluster/health | grep -Eq '\"status\":\"(green|yellow)\"'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.0
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./observability/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "12201:12201/udp"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    # Sem autenticação, mesmo padrão do Elasticsearch acima
+    # (`xpack.security.enabled=false`): aceitável só neste ambiente local de
+    # desenvolvimento. Não copiar para um host compartilhado ou produção sem
+    # habilitar autenticação.
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      # Sem essa chave o Kibana gera uma efêmera a cada subida e as regras de
+      # alerta (OB-09) ficam ilegíveis depois de um `docker compose down` —
+      # Alerting usa essa chave para (des)criptografar os parâmetros salvos
+      # das regras mesmo com xpack.security.enabled=false. Valor fixo só para
+      # ter 32+ caracteres estáveis neste ambiente de desenvolvimento; não é
+      # segredo real, não reaproveitar fora daqui.
+      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: "dev-only-nao-use-em-producao-32chars"
+    ports:
+      - "5601:5601"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s http://localhost:5601/api/status | grep -Eq '\"level\":\"available\"'",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
 volumes:
   minio-data:
   duck-data:
+  prefect-data:
+  es-data:

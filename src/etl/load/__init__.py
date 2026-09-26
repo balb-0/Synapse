@@ -16,9 +16,9 @@ dependências de outra frente.
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .duckdb_repository import DuckDbLoadRepository, LoadResult
+    from .duckdb_repository import DuckDbLoadRepository, LoadResult, UnbalancedLoadError
 
-__all__ = ["DuckDbLoadRepository", "LoadResult"]
+__all__ = ["DuckDbLoadRepository", "LoadResult", "UnbalancedLoadError"]
 
 
 def __getattr__(name: str) -> Any:

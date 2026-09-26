@@ -39,8 +39,9 @@ Este documento cobre a retomada de um objeto cuja carga falhou entre lotes:
   transformação e do [ADR 0002](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md);
   este documento não muda o que conta como duplicata.
 - **Uma identidade repetida em dois lotes diferentes da mesma leitura (não
-  entre tentativas).** Risco preexistente e aceito, com causa própria — ver a
-  seção "Negativas e riscos" do ADR 0005.
+  entre tentativas).** Tratada à parte na Sprint 4 por `transform_object` e
+  pela conferência contra o estado persistido na carga — ver a seção
+  "Negativas e riscos" do ADR 0005.
 - **Testes gray-box de ponta a ponta contra uma instância real.** Este
   documento descreve o comportamento por trás dos testes da tarefa `load`; um
   roteiro de integração mais amplo é um documento à parte.
@@ -100,7 +101,9 @@ Depois de uma falha entre lotes, o estado gravado é:
 Ao reprocessar o mesmo objeto (mesma referência, mesmo conteúdo), o flow lê o
 checkpoint confirmado e o repassa à extração. Como a versão do objeto não
 mudou, o checkpoint continua válido e a extração pula as linhas já
-confirmadas, emitindo somente os lotes a partir do que ficou pendente. Esses
+confirmadas, emitindo somente os lotes a partir do que ficou pendente — cada
+um com a posição absoluta (`source_offset`) que tinha na fonte inteira, e não
+uma posição reiniciada em zero. Esses
 lotes são os únicos retransformados e recarregados: os que já tinham sido
 confirmados não voltam a ser lidos, então seu registro de execução não é
 tocado de novo.
@@ -119,4 +122,6 @@ A suíte cobre: que uma sequência de lotes bem-sucedidos avança o checkpoint
 até o último; que um lote que falha não avança o checkpoint além do último
 lote confirmado antes dele, e que o lote que falhou não grava nada; e que
 retomar com apenas o lote pendente completa a carga sem perder nem duplicar
-registro algum.
+registro algum. `tests/orchestration/test_integridade_entre_lotes.py` cobre a
+retomada de participações repetidas legitimamente (identidade por posição) e
+duplicatas e conflitos atravessando a fronteira entre lotes.

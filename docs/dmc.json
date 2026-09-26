@@ -75,7 +75,7 @@
       "DR01 — Universo elegível de empresas e pessoas. Impacto: I08 e I11 permanecem indisponíveis sem denominador. Estado: pendente de fonte e regra do parceiro.",
       "DR02 — Fonte autoritativa de participação de mercado. Impacto: divergências bloqueiam a homologação de I09. Estado: pendente de decisão do parceiro.",
       "DR03 — Ponte entre participação, pessoa e elemento de resposta. Impacto: impede afirmar respondentes únicos entre fontes. Estado: pendente de reconciliação.",
-      "DR04 — Metadados de carga, catálogo, versão, autorização e logs. Impacto: limita I15 e I21–I25. Estado: depende de integração futura.",
+      "DR04 — Metadados de carga, catálogo, versão, autorização e logs. Impacto: limita I15 e I21–I25. Estado: metadados de carga e execução já entregues (_batch_metadata, _control_object, _checkpoint, views execucao e reconciliacao_execucao, DIM_EXECUCAO_CARGA, manifest.json da geração publicada e telemetria na Elastic Stack); permanecem dependentes de integração futura o catálogo operacional, a versão do questionário (I15), as decisões de autorização e os logs de acesso ao consumo (I25).",
       "DR05 — Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo. Impacto: define a implementação e os controles operacionais. Estado: proposta da equipe a validar.",
       "DR06 — Campos incompletos, inválidos ou identificáveis. Impacto: exigem tratamento, minimização e controle antes de detalhar ou exportar. Estado: risco observado, condicionado à governança."
     ]
@@ -91,7 +91,7 @@
     "etico": "Uso restrito às finalidades documentadas das pesquisas setoriais. Registros inválidos, órfãos ou suspeitos devem ser classificados e colocados em quarentena para auditoria e reconciliação, nunca apagados ou corrigidos silenciosamente; somente dados aprovados seguem para consumo ou publicação, preservando a confidencialidade de empresas e respondentes.",
     "catalogo": "Catálogo proposto e versionado para pesquisas, empresas, clientes, respondentes, questões e respostas. Cada fonte e campo deve registrar descrição, tipo esperado, nulabilidade ou aplicabilidade, domínio, chave e origem, destino analítico, classificação, responsável, regra de qualidade, versão e estado observado/em reconciliação/proposto; a implantação do catálogo e seus registros de execução dependem da integração futura.",
     "kpis": "KPIs calculáveis pelo perfilamento atual: completude por campo e aplicabilidade, unicidade/duplicidade por chave, integridade referencial, parseabilidade por tipo e divergência de título, sempre com numerador, denominador, unidade, grão, fonte e regra registrados. KPIs dependentes do pipeline: frescor por timestamp de carga, cobertura de linhagem, publicação autorizada, cobertura de processamento das fontes e conformidade de acesso; enquanto faltarem catálogo, execução, política, decisão ou log, o resultado deve ser indisponível, nunca zero estimado.",
-    "maturidade": "Estado observado: fontes fragmentadas, cruzamentos e atualizações manuais, linhagem parcial e ausência de catálogo operacional, timestamps de carga, política homologada e logs de acesso. Estado-alvo proposto: fonte integrada e governada com contratos versionados, execução rastreável, qualidade mensurada e decisões de acesso e publicação auditáveis; não há evidência de que esse estado-alvo já opere em produção.",
+    "maturidade": "Estado observado na origem: fontes fragmentadas, cruzamentos e atualizações manuais e ausência de catálogo operacional, política homologada e logs de acesso. Estado entregue pelo pipeline (ambiente local): contratos versionados, timestamps e linhagem de carga por execução e lote, reconciliação auditável e telemetria centralizada. Estado-alvo proposto: fonte integrada e governada com qualidade mensurada e decisões de acesso e publicação auditáveis; não há evidência de que esse estado-alvo já opere em produção.",
     "evolucao": "Evolução proposta por gates: (1) versionar catálogo, regras e baseline de qualidade; (2) implantar o MVP com banco central e ao menos um pipeline registrando fonte, versão, execução, resultado e timestamp; (3) ampliar ingestão e linhagem para as fontes aprovadas; (4) habilitar dashboards e publicação somente após perfis, logs, agregação, autorização e controles de retirada/correção serem validados. Automação completa e integração do acervo permanecem metas futuras, não capacidades atuais."
   },
   "cubos": [
@@ -129,11 +129,11 @@
         "metadadosObrigatorios": "ID da pesquisa, título, marcos do ciclo, área, status, tipo, complexidade, tipo de resposta, fonte, versão e execução de carga.",
         "kpiQualidade": "Cobertura dos marcos: pesquisas com data válida sobre pesquisas elegíveis, por marco; pares incompletos ficam fora das durações e entram no denominador de cobertura.",
         "kpiGovernanca": "Cobertura de linhagem: pesquisas com fonte, versão e execução registradas sobre pesquisas carregadas.",
-        "diagramaMermaid": "flowchart LR\n    DP[DIM_PESQUISA] --> F1[FATO_CICLO_PESQUISA]\n    DT[DIM_TEMPO - 7 papeis] --> F1\n    DS[DIM_STATUS_PESQUISA] --> F1\n    DA[DIM_AREA] --> F1\n    DTI[DIM_TIPO_PESQUISA] --> F1\n    DPE[DIM_PERFIL_PESQUISA] --> F1\n    DF[DIM_FAMILIA_PESQUISA] --> F1\n    DFO[DIM_FONTE_DADO] --> F1\n    DC[DIM_EXECUCAO_CARGA] --> F1"
+        "diagramaMermaid": "flowchart LR\n    DP[DIM_PESQUISA] --> F1[FATO_CICLO_PESQUISA]\n    DT[DIM_TEMPO - 6 papeis] --> F1\n    DS[DIM_STATUS_PESQUISA] --> F1\n    DA[DIM_AREA] --> F1\n    DTI[DIM_TIPO_PESQUISA] --> F1\n    DPE[DIM_PERFIL_PESQUISA] --> F1\n    DF[DIM_FAMILIA_PESQUISA] --> F1\n    DFO[DIM_FONTE_DADO] --> F1\n    DC[DIM_EXECUCAO_CARGA] --> F1"
       },
       "lists": {
         "grao": [
-          "Uma linha por pesquisa, totalizando aproximadamente 366 linhas no snapshot atual.",
+          "Uma linha corrente por pesquisa_id, pela versão corrente da relação de pesquisas.",
           "A linha acumula os principais marcos do processo: solicitação, aprovação, divulgação, limite de coleta, prorrogação e entrega.",
           "O fato é um acumulador, atualizado conforme a pesquisa avança pelos marcos do ciclo."
         ],
@@ -146,48 +146,47 @@
           "Entrega registrada"
         ],
         "metricas": [
-          "dias_uteis_validacao: data_aprov menos data_solicitacao; até a homologação do calendário, calcular e rotular apenas a diferença em dias corridos, sem apresentá-la como dias úteis; cobertura de 5,5% (20 de 366), sempre com denominador e excluídos.",
-          "dias_uteis_coleta: data_limite, ou prorrogada_ate quando existir, menos data_divulgacao; até a homologação do calendário, calcular e rotular apenas dias corridos; não misturar as duas convenções.",
-          "dias_uteis_tabulacao: data_entrega menos data_limite, ou prorrogada_ate quando existir; até a homologação do calendário, calcular e rotular apenas dias corridos; pares incompletos produzem NULL.",
-          "dias_uteis_ciclo_total: data_entrega menos data_solicitacao; métrica não aditiva, usada sem soma com as fases para evitar dupla contagem.",
-          "qtd_empresas_na_pesquisa: contagem declarada na coluna participantes do CSV; métrica não aditiva, lida somente no nível da pesquisa e distinta da contagem observada no C02.",
-          "qtd_respondentes_na_pesquisa: métrica removida de C01; contagens de respondentes devem ser calculadas no C02 a partir de respondentes.csv, usando participação ou pessoa conciliada conforme denominador aprovado.",
-          "flag_prorrogada: booleano 1 quando prorrogada_ate não é nulo e 0 caso contrário; usado como filtro."
+          "dias_corridos_validacao: data_aprov - data_solicitacao quando ambas existem e o fim não antecede o início; duração em dias corridos, anulável e com denominador de pares válidos.",
+          "dias_corridos_coleta: COALESCE(prorrogada_ate, data_limite) - data_divulgacao quando o par é válido; duração por pesquisa, sem somar com o ciclo total.",
+          "dias_corridos_tabulacao: data_entrega - COALESCE(prorrogada_ate, data_limite) quando o par é válido; duração por pesquisa, sem somar com o ciclo total.",
+          "dias_corridos_ciclo_total: data_entrega - data_solicitacao quando o par é válido; não aditiva em relação às fases.",
+          "qtd_empresas_na_pesquisa: valor declarado em participantes; não aditivo entre pesquisas e distinto das empresas observadas em C02.",
+          "flag_prorrogada: prorrogada_ate IS NOT NULL; usar como filtro, não somar."
         ],
         "dimensoes": [
-          "sk_pesquisa: DIM_PESQUISA, com atributos da pesquisa como título, objetivos e ano da edição.",
-          "sk_data_solicitacao: DIM_TEMPO para a data de solicitação.",
-          "sk_data_aprovacao: DIM_TEMPO para a data de aprovação.",
-          "sk_data_divulgacao: DIM_TEMPO para a data de divulgação.",
-          "sk_data_limite_coleta: DIM_TEMPO para a data limite original.",
-          "sk_data_prorrogacao: DIM_TEMPO para a data limite prorrogada, quando existir.",
-          "sk_data_entrega: DIM_TEMPO para a data de entrega.",
-          "sk_area: DIM_AREA, derivada da coluna area de pesquisas.csv.",
-          "sk_status: DIM_STATUS_PESQUISA, derivada da coluna status de pesquisas.csv.",
-          "sk_tipo: DIM_TIPO_PESQUISA, derivada da coluna tipo de pesquisas.csv.",
-          "sk_perfil: DIM_PERFIL_PESQUISA, com atributos imutáveis como complexidade e tipo de resposta.",
-          "sk_familia: DIM_FAMILIA_PESQUISA, derivada do título para agrupar edições recorrentes.",
-          "sk_fonte: DIM_FONTE_DADO, dimensão de linhagem do sistema de origem.",
-          "sk_carga: DIM_EXECUCAO_CARGA, dimensão de governança da execução de ETL."
+          "sk_pesquisa: DIM_PESQUISA, com título e objetivos; ano_edicao não tem coluna de origem ou derivação homologada e fica indisponível.",
+          "sk_data_solicitacao: DIM_TEMPO para data_solicitacao.",
+          "sk_data_aprovacao: DIM_TEMPO para data_aprov.",
+          "sk_data_divulgacao: DIM_TEMPO para data_divulgacao.",
+          "sk_data_limite_coleta: DIM_TEMPO para data_limite.",
+          "sk_data_prorrogacao: DIM_TEMPO para prorrogada_ate, quando existir.",
+          "sk_data_entrega: DIM_TEMPO para data_entrega.",
+          "sk_area: DIM_AREA, derivada da área da pesquisa.",
+          "sk_status: DIM_STATUS_PESQUISA, derivada do status corrente.",
+          "sk_tipo: DIM_TIPO_PESQUISA, derivada do tipo da pesquisa.",
+          "sk_perfil: DIM_PERFIL_PESQUISA, com complexidade e tipo de resposta.",
+          "sk_familia: DIM_FAMILIA_PESQUISA, proposta determinística por título normalizado, pendente de homologação e não aprovada para publicação.",
+          "sk_fonte: DIM_FONTE_DADO para linhagem.",
+          "sk_carga: DIM_EXECUCAO_CARGA para execução de ETL."
         ],
         "fontes": [
-          "pesquisas.csv"
+          "ingestao_pesquisas_atual; pesquisa_id na versão corrente."
         ],
         "transformacoes": [
-          "Validar e converter datas sem transformar sentinelas ou valores inválidos em datas válidas.",
-          "Calcular diferenças em dias corridos entre pares válidos; só calcular dias úteis quando houver calendário homologado.",
-          "Quando houver prorrogação, usar prorrogada_ate como fim efetivo da coleta e referência da tabulação.",
-          "Derivar flag_prorrogada pela presença de prorrogada_ate e DIM_FAMILIA_PESQUISA pela normalização controlada do título.",
-          "Preservar chaves recebidas como chaves de origem, sem criar identidade canônica antes da reconciliação."
+          "Validar e converter datas; calcular somente diferenças em dias corridos entre pares presentes, válidos e não invertidos; durações úteis ficam indisponíveis sem calendário homologado.",
+          "Usar COALESCE(prorrogada_ate, data_limite) como fim efetivo da coleta e referência da tabulação.",
+          "Derivar flag_prorrogada pela presença de prorrogada_ate.",
+          "Tratar a família baseada em título normalizado como proposta pendente de homologação; não derivar ano_edicao sem origem ou regra homologada.",
+          "Preservar a chave de origem e usar pesquisa_id corrente."
         ],
         "qualidade": [
-          "Os pesquisa_id 424, 1116, 1139 e 1147 não existem em pesquisas.csv e permanecem como Não mapeado até reconciliação.",
-          "data_aprov possui cobertura de 20 em 366 pesquisas, ou 5,5%; métricas dependentes devem declarar denominador e valores excluídos.",
-          "DIM_FAMILIA_PESQUISA deve ser homologada pelo Sindusfarma antes de uso oficial.",
-          "O cubo não contém dados individuais de respondentes e toda publicação depende da política de agregação aprovada."
+          "data_aprov tinha cobertura de 20 em 366 pesquisas no snapshot anteriormente analisado (5,5%); métricas dependentes declaram denominador e excluídos.",
+          "ano_edicao não tem coluna de origem ou derivação homologada e permanece indisponível.",
+          "A família baseada em título permanece pendente de homologação e não é classificação oficial.",
+          "O cubo não contém dados individuais de respondentes e publicação depende da política de agregação aprovada."
         ],
         "scd": [
-          "Aplicar SCD1 a correções sem valor histórico e SCD2 somente a atributos cuja mudança histórica precise ser preservada após regra aprovada.",
+          "Portfólio (C01) — política por atributo. Implementado nesta entrega como SCD1 (valor corrente, sem vigência): DIM_PESQUISA.titulo e DIM_PESQUISA.objetivos (correções editoriais sem valor histórico); DIM_AREA.area, DIM_TIPO_PESQUISA.tipo, DIM_PERFIL_PESQUISA.complexidade/tipo_resposta e DIM_STATUS_PESQUISA.status são dimensões de domínio (tipo 0: o valor não muda, muda a chave que o fato aponta). A mudança de status/área/tipo/perfil de uma pesquisa atualiza sk_status/sk_area/sk_tipo/sk_perfil no FATO_CICLO_PESQUISA (snapshot acumulativo); o histórico mensal do status é preservado pelo FATO_PIPELINE_MENSAL (C03), sem reconstruir transições ausentes. Candidatos a SCD2, somente após regra aprovada pelo parceiro: área responsável e tipo da pesquisa (reclassificação retroativa), com início/fim de vigência e fonte da mudança.",
           "Usar chaves duráveis para identidade e chaves substitutas para versões dimensionais.",
           "Manter chaves de origem, vigência e linhagem de carga para auditoria e reconciliação."
         ]
@@ -231,9 +230,9 @@
       },
       "lists": {
         "grao": [
-          "Uma linha por participação, totalizando aproximadamente 18.735 linhas no snapshot atual.",
+          "Uma linha por ocorrência do snapshot selecionado de respondentes, identificado por source_checksum e source_offset; o volume de 18.735 é do snapshot anteriormente analisado.",
           "Cada linha representa um registro de participação de respondentes.csv, não uma resposta individual a uma questão, e não acumula estados.",
-          "O cubo suporta contagem bruta de participações e contagem distinta quando filtrado por seq_ocorrencia."
+          "Contagem bruta usa ocorrências do snapshot selecionado; contagem distinta só é possível por pessoa conciliada e regra de deduplicação aprovada."
         ],
         "fatos": [
           "Participação registrada",
@@ -243,36 +242,37 @@
         ],
         "metricas": [
           "qtd_participacao: sempre 1, pois cada linha é uma participação; métrica aditiva que não representa quantidade de respostas a questões.",
-          "seq_ocorrencia: número sequencial para duplicatas de pesquisa e pessoa; métrica não aditiva usada como filtro para deduplicação.",
-          "minutos_preenchimento: diferença entre hora_termino e hora_inicio em minutos; aditiva onde existir, com cobertura aproximada de 4,3%.",
+          "seq_ocorrencia: ordenação determinística das ocorrências para (pesquisa_id, cliente_id) quando cliente_id existe; atributo de deduplicação, não medida aditiva.",
+          "minutos_preenchimento: diferença em minutos completos entre hora_termino e hora_inicio somente para par válido e ordenado; anulável, média com denominador de pares válidos.",
           "pct_mercado_na_participacao: market_share de respondentes.csv no nível da participação; não aditiva e não homologada enquanto houver conflito com empresas.csv. Após decisão da fonte autoritativa, I09 soma uma vez por pesquisa o valor normalizado de cada empresa participante distinta."
         ],
         "dimensoes": [
           "sk_pesquisa: DIM_PESQUISA, a pesquisa respondida.",
-          "sk_empresa: DIM_EMPRESA, com nome, nacionalidade, cidade, tipo de associado e share de mercado atual.",
+          "sk_empresa: DIM_EMPRESA, com nome, nacionalidade, cidade, estado, país, tipo de associado e share; regiao fica indisponível sem campo de origem ou mapa estadual homologado.",
           "sk_pessoa: DIM_PESSOA, com cargo, departamento, nível hierárquico e agrupamento de departamento para anonimização; sem e-mail.",
           "sk_data_pesquisa: DIM_TEMPO herdada de data_divulgacao em pesquisas.csv, chave temporal primária.",
           "sk_data_resposta: DIM_TEMPO extraída de hora_inicio em respondentes.csv, chave opcional para sazonalidade e tempo de preenchimento."
         ],
         "fontes": [
-          "respondentes.csv",
-          "pesquisas.csv para data_divulgacao da pesquisa",
-          "clientes.csv para atributos da pessoa respondente",
-          "empresas.csv para atributos da empresa"
+          "ingestao_respondentes: última execução completa e conciliada, por source_checksum e source_offset; reexportações não são somadas como novas participações.",
+          "ingestao_pesquisas_atual para data_divulgacao da pesquisa.",
+          "ingestao_clientes_atual para atributos da pessoa, somente quando cliente_id for conciliado.",
+          "ingestao_empresas_atual para atributos da empresa."
         ],
         "transformacoes": [
-          "Criar qtd_participacao como 1 para cada linha preservada.",
-          "Criar seq_ocorrencia para numerar ocorrências de pesquisa e pessoa; usar seq_ocorrencia = 1 quando a análise exigir deduplicação.",
-          "Calcular minutos_preenchimento somente quando hora_inicio e hora_termino forem válidas e consistentes.",
-          "Usar data_divulgacao como chave temporal primária enquanto hora_inicio tiver baixa cobertura.",
-          "Não escolher automaticamente entre market_share de respondentes.csv e percentual de mercado de empresas.csv; bloquear I09 até homologação."
+          "Selecionar o checksum da última execução completa e conciliada de respondentes; usar source_offset para identificar a ocorrência e tornar reprocessamento idempotente.",
+          "Criar qtd_participacao como 1 para cada ocorrência carregada do snapshot selecionado.",
+          "Criar seq_ocorrencia somente para (pesquisa_id, cliente_id) quando cliente_id existir; sem cliente_id não atribuir sequência fictícia.",
+          "Calcular minutos_preenchimento em minutos completos somente quando os dois horários forem válidos e a ordem for válida; registrar motivo da ausência ou invalidade.",
+          "Usar data_divulgacao como data da pesquisa e hora_inicio como papel opcional de data da resposta.",
+          "Não escolher automaticamente entre market_share de respondentes e part_mercado de empresas; bloquear I09 até homologação."
         ],
         "qualidade": [
-          "Foram observadas 838 ocorrências adicionais da mesma pessoa na mesma pesquisa; elas devem ser numeradas, não apagadas.",
-          "hora_inicio e hora_termino têm cobertura aproximada de 4,3%; análises temporais devem declarar o denominador.",
+          "As 838 ocorrências adicionais da mesma pessoa na mesma pesquisa foram observadas no snapshot anterior; numerar ocorrências sem apagar registros.",
+          "A cobertura aproximada de 4,3% para horários pertence ao snapshot anteriormente analisado; declarar denominador por versão.",
           "market_share de respondentes.csv diverge do percentual de mercado de empresas.csv e exige decisão de fonte autoritativa.",
           "Cargo e departamento brutos são restritos e combinações com baixa frequência podem reidentificar pessoas.",
-          "As 55 participações com id_pesq 304 permanecem órfãs até reconciliação."
+          "regiao não tem coluna de origem nem mapa estadual homologado; fica indisponível."
         ],
         "scd": [
           "Usar id_empresa_durable e id_pessoa_durable para contagens distintas entre versões.",
@@ -321,18 +321,17 @@
         "grao": [
           "Uma linha por combinação de mês, status, área, tipo e perfil.",
           "O fato é um instantâneo periódico que captura o estado do pipeline no fim de cada mês.",
-          "A fonte é derivada do Cubo 1, mas sem reconstrução histórica de status anteriores."
+          "A fonte é o estado de C01 observado após o início da captura; não reconstruir snapshots históricos por ingested_at, que não é tempo de negócio."
         ],
         "fatos": [
-          "Estado mensal da pesquisa no status",
-          "Entrada no status durante o mês",
-          "Saída do status durante o mês",
-          "Fechamento mensal do pipeline"
+          "Estado de cada pesquisa no fechamento mensal observado.",
+          "Entrada e saída de status, indisponíveis sem histórico de transições.",
+          "Fechamento mensal do pipeline."
         ],
         "metricas": [
-          "qtd_pesquisas_no_status: estoque de pesquisas naquele status no último dia do mês; semi-aditiva entre categorias disjuntas do mesmo fechamento e nunca somada entre meses.",
-          "qtd_entradas_no_mes: fluxo de pesquisas que chegaram ao status durante o mês; aditiva no tempo somente quando houver histórico de transições, pois diferenças de snapshots mostram apenas mudança líquida.",
-          "qtd_saidas_no_mes: fluxo de pesquisas que saíram do status durante o mês; aditiva no tempo e indisponível enquanto não houver histórico de transições."
+          "qtd_pesquisas_no_status: contagem de pesquisas distintas no fechamento observado; semi-aditiva entre grupos disjuntos do mesmo mês e nunca somada entre meses; sem fechamento, não há linha histórica.",
+          "qtd_entradas_no_mes: fluxo anulável e indisponível sem histórico de transições; diferenças entre snapshots mostram apenas mudança líquida.",
+          "qtd_saidas_no_mes: fluxo anulável e indisponível sem histórico de transições."
         ],
         "dimensoes": [
           "sk_data_fim_mes: DIM_TEMPO para o último dia do mês.",
@@ -342,21 +341,20 @@
           "sk_perfil: DIM_PERFIL_PESQUISA, com atributos imutáveis como complexidade e tipo de resposta."
         ],
         "fontes": [
-          "Cubo 1 como contrato dimensional de origem",
-          "pesquisas.csv como baseline inicial dos atributos de pesquisa",
-          "Histórico de transições produzido após o go-live"
+          "FATO_CICLO_PESQUISA / estado corrente de C01 observado no fechamento, após início da captura.",
+          "Histórico de transições gerado após o início da captura, para entradas e saídas."
         ],
         "transformacoes": [
-          "Gerar o snapshot após o fechamento de cada mês, com competência e execução explícitas.",
-          "Usar papel específico de DIM_TEMPO para sk_data_fim_mes.",
-          "Calcular entradas e saídas pelo histórico de transições, nunca apenas pela diferença líquida entre snapshots.",
-          "Calcular pesquisas a finalizar na camada semântica com flag_conta_como_a_finalizar, sem armazenar qtd_a_finalizar."
+          "Gerar um snapshot ao fechamento de cada mês com competência, instante de fechamento e execução identificados; a origem é o estado de C01 observado após o início da captura.",
+          "Não reconstruir estado histórico usando ingested_at; este campo não é tempo de negócio.",
+          "Calcular entradas e saídas somente a partir do histórico de transições, nunca da diferença líquida entre snapshots.",
+          "Calcular pesquisas a finalizar na camada semântica com flag_conta_como_a_finalizar; não armazenar qtd_a_finalizar."
         ],
         "qualidade": [
           "Não existe histórico antes do go-live; backfill inferido é proibido.",
           "Estoques mensais não podem ser somados entre meses.",
           "Entradas e saídas permanecem indisponíveis enquanto o histórico de transições não existir.",
-          "DIM_STATUS_PESQUISA deve registrar flag_em_aberto, flag_conta_como_a_finalizar e flag_terminal."
+          "flag_em_aberto, flag_conta_como_a_finalizar e flag_terminal ficam anuláveis até aprovação da regra dos status; status desconhecido não recebe classificação inventada."
         ],
         "scd": [
           "Manter snapshots mensais imutáveis a partir do go-live.",
@@ -389,7 +387,7 @@
         "dadoPessoal": false,
         "dadoSensivel": false,
         "dadoCritico": true,
-        "criticidade": "Cobre somente parte do acervo e é extensão para futura FATO_RESPOSTA; não contém respostas individuais conciliadas.",
+        "criticidade": "Associação factless do instrumento; volumes e cobertura da v3 exigem apuração atualizada; não contém respostas individuais conciliadas.",
         "perfisAutorizados": "Central de Pesquisas e áreas técnicas; gestores e público externo apenas sobre resultados agregados e autorizados.",
         "controleAcesso": "Exibir indisponibilidade fora da cobertura; não liberar resposta individual nem segmento sem autorização e limiar de anonimização.",
         "trilhaAuditoria": "Registrar arquivo, pesquisa_id original, vínculo direto ou fallback, título comparado, versão da pergunta e confiança da extração.",
@@ -403,10 +401,10 @@
       },
       "lists": {
         "grao": [
-          "Uma linha por pergunta em uma pesquisa, totalizando 231 linhas no snapshot analisado na Sprint 2.",
-          "A cobertura observada naquele snapshot era de 10 das 366 pesquisas, aproximadamente 2,7% do acervo.",
-          "O fato é de associação, conectando pesquisa e pergunta sem medidas numéricas tradicionais para soma.",
-          "Observação da auditoria VB-10 (11/09/2026): os volumes e a cobertura deste cubo foram medidos no snapshot anterior à versão v3 dos arquivos; na v3, questoes.csv passou a 3.297 registros (inventario-fontes-etl.md), e volumes, cobertura do acervo e percentuais de vínculo precisam ser recalculados antes do uso oficial."
+          "Uma associação por (pesquisa_id de origem, pergunta_id) na versão corrente de questoes.",
+          "O registro histórico de 231 linhas e 10/366 pesquisas pertence ao snapshot analisado antes da versão v3; não representa cobertura ou volume atual.",
+          "A versão v3 tem outro volume; reapurar vínculo e cobertura antes de afirmar disponibilidade.",
+          "O fato é FATO_PESQUISA_PERGUNTA, sem medidas armazenadas."
         ],
         "fatos": [
           "Associação entre pesquisa e pergunta",
@@ -414,31 +412,34 @@
           "Metadados de pergunta disponíveis para análise futura"
         ],
         "metricas": [
-          "qtd_pergunta: COUNT(*) derivado das associações distintas entre pesquisa e pergunta no grão consultado; não é medida constante armazenada no fato.",
-          "qtd_alternativas: atributo de DIM_PERGUNTA, não uma medida do fato; totais e médias devem considerar perguntas distintas e declarar o denominador."
+          "qtd_pergunta: COUNT(*) das associações distintas no recorte; contagem derivada, não é coluna do fato.",
+          "qtd_alternativas: atributo de DIM_PERGUNTA, não medida do fato; totais e médias consideram perguntas distintas e declaram denominador."
         ],
         "dimensoes": [
-          "sk_pesquisa: DIM_PESQUISA, pesquisa que contém a pergunta.",
-          "sk_pergunta: DIM_PERGUNTA, com enunciado, tipo de questão, número de alternativas, formato de arquivo de origem e outras características.",
-          "sk_data_pesquisa: DIM_TEMPO herdada da data_divulgacao de pesquisas.csv."
+          "sk_pesquisa: DIM_PESQUISA, pesquisa que contém a pergunta; ano_edicao fica indisponível sem origem ou derivação homologada.",
+          "sk_pergunta: DIM_PERGUNTA, com enunciado, tipo, alternativas e metadados de origem; linhas_matriz e colunas_matriz são atributos quando necessários.",
+          "sk_data_pesquisa: papel opcional de DIM_TEMPO herdado de data_divulgacao da pesquisa corrente."
         ],
         "fontes": [
-          "questoes.csv",
-          "pesquisas.csv para vínculo com DIM_PESQUISA e data_divulgacao"
+          "ingestao_questoes_atual.",
+          "ingestao_pesquisas_atual para vínculo e data_divulgacao da pesquisa."
         ],
         "transformacoes": [
-          "Deduplicar a associação pesquisa e pergunta no grão declarado, preservando a linha de origem.",
+          "Deduplicar a associação no grão (pesquisa_id de origem, pergunta_id), preservando a origem da linha.",
           "Derivar qtd_pergunta por COUNT(*) das associações distintas; manter qtd_alternativas como atributo de DIM_PERGUNTA.",
-          "Ligar diretamente por ID as pesquisas 112, 238, 274, 377, 414 e 415.",
-          "Para 424, 1116, 1139 e 1147, registrar estado em reconciliação; fallback por título exige correspondência exata e trilha auditável.",
+          "Ligar por ID quando houver pesquisa corrente correspondente.",
+          "Para pesquisa_id sem correspondência por ID, usar título normalizado somente se houver correspondência exata e única; registrar método, ID original e alvo. Ambiguidade ou ausência mantém chave desconhecida controlada e o órfão em reconciliação.",
+          "Não criar medidas qtd_linhas_matriz ou qtd_colunas_matriz; manter linhas_matriz e colunas_matriz como atributos de DIM_PERGUNTA quando necessários.",
           "Não ligar respondent_id a clientes ou participações sem contrato de identidade aprovado."
         ],
         "qualidade": [
-          "questoes.csv cobre 10 das 366 pesquisas, aproximadamente 2,7% do acervo.",
-          "Quatro pesquisa_id não existem em pesquisas.csv: 424, 1116, 1139 e 1147.",
-          "A ligação direta por ID cobre 188 das 231 linhas, aproximadamente 81,4%.",
-          "Consultas fora das 10 pesquisas cobertas devem retornar indisponível, nunca zero.",
-          "Distribuições agregadas de respostas não autorizam consulta individual nem união presumida de identidades."
+          "Os volumes de 231 linhas, cobertura de 10/366 e vínculo direto de 188/231 descrevem apenas o snapshot anterior à versão v3.",
+          "A versão v3 alterou o volume de questoes; recalcular cobertura do acervo e vínculo antes de declarar disponibilidade.",
+          "Quatro IDs órfãos (424, 1116, 1139 e 1147) foram observados no snapshot anterior; qualquer ligação por título requer correspondência exata e única com trilha auditável.",
+          "Consultas sem pergunta associada no recorte corrente devem retornar indisponível, nunca zero.",
+          "Respostas não integram o fato, e sua existência não autoriza consulta individual nem união presumida de identidades.",
+          "Atendimento parcial formalmente delimitado — PB10/I12–I13: o contrato de extensão é FATO_RESPOSTA_AGREGADA, grão pesquisa × pergunta × categoria de resposta, medidas qtd_elementos_validos e qtd_respondentes_distintos (COUNT DISTINCT de respondent_id da própria fonte de respostas), vínculos a DIM_PESQUISA e DIM_PERGUNTA por (pesquisa_id, pergunta_id); não há vínculo a DIM_PESSOA, DIM_EMPRESA nem à participação do C02, porque respondent_id não tem ponte homologada com cliente_id. Segmentos só entram com ponte aprovada; nesta entrega o C04 atende a associação pesquisa–pergunta e I12/I13 ficam fora da camada publicada.",
+          "Atendimento parcial formalmente delimitado — PB13/I15: o contrato de extensão é DIM_VERSAO_QUESTIONARIO (versao_id, pesquisa_id, numero_versao, area_revisora, estado_validacao, decidido_em, fonte_decisao) referenciada pela associação do C04 como sk_versao; nenhuma fonte atual fornece versão, área revisora, decisão ou timestamp, então I15 permanece indisponível e é sinalizado como bloqueado, sem estado inferido."
         ],
         "scd": [
           "Versionar DIM_PERGUNTA quando enunciado, tipo, alternativas ou metadados de origem mudarem.",
@@ -536,18 +537,18 @@
   "etl": {
     "fields": {
       "orquestrador": "Prefect como plano de controle; regras de extração, transformação e carga permanecem em módulos Python testáveis.",
-      "frequencia": "Disparo por evento s3:ObjectCreated; agendamento adicional somente após definição da janela operacional pelo parceiro.",
-      "janelaExecucao": "Parametrizada por deployment e backfill; SLA, horário e frequência produtivos ainda dependem de homologação.",
-      "dependencias": "MinIO landing/raw -> SHA-256 -> extração -> bronze -> transformação/quarentena -> DuckDB -> reconciliação -> checkpoint; Elastic Stack recebe apenas telemetria sanitizada.",
+      "frequencia": "Duas vias implementadas no ambiente local: (a) disparo por evento s3:ObjectCreated via scripts/orchestration/watch_landing.py (webhook do MinIO ou polling do prefixo landing/); (b) agendamento diário cron 0 3 * * * no deployment ingest-object/agendado, servido pelo serviço scheduler contra o prefect-server. Execução manual e backfill pelos deployments manual/backfill. SLA e horário produtivos dependem de homologação do parceiro.",
+      "janelaExecucao": "Agenda diária às 03:00 no deployment servido; execução manual e backfill parametrizados por fonte, prefixo e modo. SLA e janela produtivos ainda dependem de homologação.",
+      "dependencias": "MinIO landing/raw (objeto bruto imutável) -> SHA-256 -> extração em lotes com posição absoluta -> transformação/quarentena com identidade decidida por objeto -> DuckDB ingestão tratada -> reconciliação por lote -> checkpoint -> objeto concluído -> carga analítica C01–C04 no DuckDB -> geração Parquet publicada; Elastic Stack recebe apenas telemetria sanitizada.",
       "estrategiaCarga": "Carregar registros tecnicamente conformes no DuckDB, persistir rejeições em tabela própria e serializar decisões por identidade; confirmar sucesso somente após reconciliar contagens.",
       "idempotencia": "Fonte + versão + SHA-256 + lote ou identidade do registro; uma entrada já concluída é registrada como ignorada, sem nova carga.",
       "reprocessamento": "Execução manual ou backfill parametrizado por fonte, janela e modo, sempre a partir do último checkpoint confirmado e da origem imutável.",
       "tratamentoFalha": "Falha permanente interrompe sem retry; falha transitória recebe tentativas limitadas e espera progressiva; nenhuma falha de carga ou reconciliação confirma checkpoint.",
-      "metricasTelemetria": "Duração, registros recebidos, carregados, rejeitados e duplicados, bytes, tentativas, latência, status por etapa, run_id, task_id e event_id.",
-      "alertas": "Falha permanente, retries esgotados, timeout, divergência de reconciliação e indisponibilidade de MinIO, Prefect ou DuckDB; falha da telemetria não confirma nem corrompe a carga.",
-      "linhagem": "run_id, task_id, event_id, fonte, bucket, objeto, versão, SHA-256, batch_id, posição, schema_version, contract_version e timestamps.",
-      "custoEstimado": "Separar processamento, armazenamento MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção. Valor monetário indisponível até aprovar volume futuro, frequência, ambiente e retenção; software sem licença não significa infraestrutura sem custo.",
-      "diagramaMermaid": "flowchart LR\n    A[Arquivos ou APIs] -->|publicam objeto| B[MinIO landing/raw]\n    B -->|s3:ObjectCreated| C[Adaptador de eventos]\n    C --> P[Deployment Prefect]\n    P --> H[Verificacao SHA-256]\n    H --> I{Ja concluido?}\n    I -->|Sim| J[Registrar ignorado]\n    I -->|Nao| E[Extrator Python]\n    E --> F[MinIO bronze]\n    F --> T[Transformacoes essenciais]\n    T --> V{Registro valido?}\n    V -->|Sim| D[DuckDB ingestion]\n    V -->|Nao| Q[DuckDB rejected]\n    D --> R[Reconciliacao]\n    Q --> R\n    R --> K[Confirmar checkpoint e hash]\n    P -. logs .-> L[Logstash]\n    E -. logs .-> L\n    T -. logs .-> L\n    D -. logs .-> L\n    L --> ES[Elasticsearch]\n    ES --> KB[Kibana]"
+      "metricasTelemetria": "Implementado: duração, registros recebidos, aceitos, carregados, rejeitados e duplicados, bytes, tentativas, latência e status por etapa, correlacionados por run_id, task_id (task_run.id do Prefect) e batch_id, em eventos JSON das quatro etapas coletados por Logstash/Elasticsearch e exibidos no painel Kibana.",
+      "alertas": "Implementado no ambiente local: regra 'ETL - falha de execução' (erro do pipeline ou health check degradado do Prefect/DuckDB) e regra 'ETL - fila parada' (nenhum evento de orquestração em 26 h). Divergência de reconciliação interrompe o lote com UnbalancedLoadError e aparece como falha. Falha da telemetria não confirma nem corrompe a carga.",
+      "linhagem": "run_id, task_id, fonte, bucket, objeto, versão, SHA-256, batch_id, source_offset, schema_version, contract_version e timestamps; event_id do disparo é incorporado ao run_id (ADR 0008).",
+      "custoEstimado": "Estimativa paramétrica em docs/estimativa-custos-ambiente.md (data-base 24/09/2026, USD): ambiente local medido com custo incremental zero; piloto e produção de referência projetados separando processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção. Valores projetados não são cotação e dependem de volume, frequência, ambiente e retenção aprovados; software sem licença não significa infraestrutura sem custo.",
+      "diagramaMermaid": "flowchart LR\n    A[Arquivos ou APIs] -->|publicam objeto| B[MinIO landing/raw]\n    B -->|s3:ObjectCreated| C[watch_landing webhook ou polling]\n    S[Scheduler cron 0 3] --> P\n    C --> P[Flow Prefect ingest-object]\n    P --> H[Verificacao SHA-256]\n    H --> I{Ja concluido?}\n    I -->|Sim| J[Registrar ignorado]\n    I -->|Nao| E[Extrator Python]\n    E --> T[Transformacoes essenciais]\n    T --> V{Registro valido?}\n    V -->|Sim| D[DuckDB ingestao]\n    V -->|Nao| Q[DuckDB rejected]\n    D --> R[Reconciliacao]\n    Q --> R\n    R --> K[Confirmar checkpoint e hash]\n    K --> AN[Carga analitica C01-C04]\n    AN --> PQ[Parquet publicado]\n    PQ --> BI[Power BI]\n    P -. logs .-> L[Logstash]\n    E -. logs .-> L\n    T -. logs .-> L\n    D -. logs .-> L\n    L --> ES[Elasticsearch]\n    ES --> KB[Kibana]"
     },
     "lists": {
       "fontesExtracao": [
@@ -559,12 +560,12 @@
         "respostas.csv — uma linha por elemento de resposta; snapshot CSV em lotes; recorte por versão, SHA-256 e row:N."
       ],
       "camadas": [
-        "Landing/raw no MinIO — objeto recebido imutável, identificado por versão e hash.",
-        "Bronze no MinIO — representação intermediária preservada por execução e lote.",
-        "Ingestão tratada no DuckDB — registros tipados e conformes com metadados técnicos.",
-        "Rejeição/quarentena — referência à origem, regra violada e estado de tratamento, com acesso restrito.",
-        "Controle e reconciliação — execuções, hashes, checkpoints, contagens e decisões de carga.",
-        "Dimensional/consumo — fatos, dimensões e agregações autorizadas após homologação."
+        "Landing/raw no MinIO — implementado: objeto recebido imutável, identificado por versão e hash SHA-256; é a origem de reprocessamento.",
+        "Bronze no MinIO — prevista, não implementada: a extração atual lê landing/raw e grava direto na ingestão tratada do DuckDB.",
+        "Ingestão tratada no DuckDB — implementado: registros tipados e conformes com metadados técnicos (ingestao_<fonte>).",
+        "Rejeição/quarentena — implementado: rejected e rejected_reason, com referência à origem e regra violada, acesso restrito.",
+        "Controle e reconciliação — implementado: _control_object, _loaded_identity, _checkpoint, _batch_metadata e views de execução/reconciliação.",
+        "Dimensional/consumo — implementado: DIM_* e FATO_* de C01–C04 materializados no DuckDB por src/etl/analytics e geração Parquet agregada (4 PUB_C0x + 3 PUB_QUALIDADE_*) para o Power BI; publicação a consumidores externos condicionada à política de acesso."
       ],
       "verificacoes": [
         "Validar schema, cabeçalhos, encoding, delimitador e contrato do lote; falha estrutural interrompe a carga.",

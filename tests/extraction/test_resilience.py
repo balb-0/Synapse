@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import sys
 import unittest
 from collections.abc import Iterator
@@ -30,6 +31,15 @@ from etl.extraction import (  # noqa: E402
     classify_source_failure,
 )
 from tests.extraction.helpers import csv_payload  # noqa: E402
+
+
+class LogRecordCollector(logging.Handler):
+    def __init__(self) -> None:
+        super().__init__()
+        self.records: list[logging.LogRecord] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.records.append(record)
 
 
 class RecordingFailureRecorder:
@@ -153,7 +163,7 @@ class ExtractionResilienceTests(unittest.TestCase):
             [TimeoutError("endpoint-secreto"), TimeoutError("endpoint-secreto")],
         )
 
-        batches = list(_extractor(reader, executor).read(run_id="run-retry"))
+        batches = list(_extractor(reader, executor).read(run_id="run-retry", task_id="task-retry"))
 
         self.assertEqual(reader.attempts, 3)
         self.assertEqual(delays, [0.1, 0.2])
@@ -163,6 +173,7 @@ class ExtractionResilienceTests(unittest.TestCase):
             [FailureCategory.TIMEOUT, FailureCategory.TIMEOUT],
         )
         self.assertTrue(all(failure.retry_scheduled for failure in recorder.failures))
+        self.assertTrue(all(failure.duration_ms >= 0 for failure in recorder.failures))
 
     def test_discards_partial_buffer_before_retrying_read(self) -> None:
         payload = _payload()
@@ -186,7 +197,7 @@ class ExtractionResilienceTests(unittest.TestCase):
             retry_executor=executor,
         )
 
-        batch = next(extractor.read(run_id="run-partial-read"))
+        batch = next(extractor.read(run_id="run-partial-read", task_id="task-partial-read"))
 
         self.assertEqual(reader.attempts, 2)
         self.assertEqual(batch.metadata.byte_count, len(payload))
@@ -211,7 +222,9 @@ class ExtractionResilienceTests(unittest.TestCase):
         )
 
         with self.assertRaises(RetryLimitExceededError) as context:
-            list(_extractor(reader, executor).read(run_id="run-exhausted"))
+            list(
+                _extractor(reader, executor).read(run_id="run-exhausted", task_id="task-exhausted")
+            )
 
         self.assertEqual(reader.attempts, 3)
         self.assertEqual(delays, [0.25, 0.5])
@@ -234,7 +247,7 @@ class ExtractionResilienceTests(unittest.TestCase):
         )
 
         with self.assertRaises(PermanentSourceError) as context:
-            list(_extractor(reader, executor).read(run_id="run-auth"))
+            list(_extractor(reader, executor).read(run_id="run-auth", task_id="task-auth"))
 
         self.assertEqual(reader.attempts, 1)
         self.assertEqual(delays, [])
@@ -252,13 +265,16 @@ class ExtractionResilienceTests(unittest.TestCase):
         reader = ControlledObjectReader(malformed_payload, [])
 
         with self.assertRaises(MalformedSourceError):
-            list(_extractor(reader, executor).read(run_id="run-malformed"))
+            list(
+                _extractor(reader, executor).read(run_id="run-malformed", task_id="task-malformed")
+            )
 
         self.assertEqual(reader.attempts, 1)
         self.assertEqual(len(recorder.failures), 1)
         self.assertEqual(recorder.failures[0].operation, "parse")
         self.assertEqual(recorder.failures[0].category, FailureCategory.MALFORMED)
         self.assertFalse(recorder.failures[0].retryable)
+        self.assertGreaterEqual(recorder.failures[0].duration_ms, 0)
 
     def test_classifies_rate_limit_as_transient(self) -> None:
         classification = classify_source_failure(HttpSourceError(429))
@@ -279,11 +295,47 @@ class ExtractionResilienceTests(unittest.TestCase):
         )
 
         with self.assertRaises(RetryLimitExceededError):
-            list(_extractor(reader, executor).read(run_id="run-safe-record"))
+            list(
+                _extractor(reader, executor).read(
+                    run_id="run-safe-record", task_id="task-safe-record"
+                )
+            )
 
         attributes = str(recorder.failures[0].as_dict())
         self.assertNotIn("token=nao-pode-aparecer", attributes)
         self.assertEqual(recorder.failures[0].exception_type, "TimeoutError")
+
+    def test_default_recorder_publishes_a_structured_retry_event(self) -> None:
+        """Sem recorder injetado, a tentativa não pode ser descartada (era o
+        comportamento de ``_NullFailureRecorder`` antes do OB-06)."""
+        logger = logging.getLogger("etl.extraction")
+        collector = LogRecordCollector()
+        previous_level = logger.level
+        logger.handlers.append(collector)
+        logger.setLevel(logging.INFO)
+        self.addCleanup(logger.handlers.remove, collector)
+        self.addCleanup(logger.setLevel, previous_level)
+
+        executor = RetryExecutor(
+            policy=RetryPolicy(max_attempts=2, initial_delay_seconds=0, max_delay_seconds=0),
+            sleep=lambda _: None,
+        )
+        reader = ControlledObjectReader(_payload(), [TimeoutError("sem recorder")])
+
+        list(_extractor(reader, executor).read(run_id="run-default-recorder", task_id="task-1"))
+
+        retry_events = [
+            record
+            for record in collector.records
+            if getattr(record, "event", None) == "extraction.retry.emitted"
+        ]
+        self.assertEqual(len(retry_events), 1)
+        record = retry_events[0]
+        self.assertEqual(record.event, "extraction.retry.emitted")
+        self.assertEqual(record.stage, "extraction")
+        self.assertEqual(record.category, FailureCategory.TIMEOUT.value)
+        self.assertGreaterEqual(record.duration_ms, 0)
+        self.assertNotIn("sem recorder", str(vars(record)))
 
     def test_minio_reader_configures_timeout_without_hidden_retry(self) -> None:
         settings = ExtractionSettings(

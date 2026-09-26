@@ -16,23 +16,27 @@ from datetime import datetime, timezone
 
 from prefect import flow, get_run_logger, task
 from prefect.cache_policies import NO_CACHE
+from prefect.runtime import flow_run, task_run
 
 from etl.extraction import (
     ClientesExtractor,
     EmpresasExtractor,
     ExtractionError,
+    FailureNature,
     MinioObjectReader,
     ObjectReference,
     PesquisasExtractor,
     QuestoesExtractor,
     RespondentesExtractor,
     RespostasExtractor,
+    RetryExecutor,
+    classify_source_failure,
     load_extraction_settings,
 )
-from etl.load import DuckDbLoadRepository
+from etl.load import DuckDbLoadRepository, UnbalancedLoadError
 from etl.load.config import load_duckdb_settings
 from etl.transformation.consistency import RELATIONS, ReferenceData
-from etl.transformation.pipeline import transform_batch
+from etl.transformation.pipeline import transform_object
 from etl.transformation.schema import KEYS
 
 EXTRACTORS = {
@@ -52,6 +56,18 @@ INGEST_OBJECT_EVENT = "orchestration.ingest_object.emitted"
 BACKFILL_EVENT = "orchestration.backfill.emitted"
 
 
+def _current_task_id() -> str | None:
+    """Identificador de correlação do Prefect para o marco atual (ADR 0008).
+
+    Dentro de uma ``@task`` (``extract``/``transform``/``load``), cada
+    tentativa tem seu próprio ``task_run.id``. Marcos publicados direto no
+    corpo de um ``@flow`` (``ingest_object``, ``backfill``) não têm task run
+    — usam o ``flow_run.id`` da própria execução. Fora de qualquer contexto
+    do Prefect (chamada direta em teste unitário), os dois vêm `None`.
+    """
+    return task_run.id or flow_run.id
+
+
 def _log_event(logger, event: str, **attributes: object) -> None:
     """Publica um marco no mesmo formato técnico da extração e da carga (ADR 0001).
 
@@ -59,9 +75,21 @@ def _log_event(logger, event: str, **attributes: object) -> None:
     atributos de correlação e contagem vão em ``extra``, consultáveis por
     campo depois que o log chegar à plataforma de observabilidade. ``None``
     fica de fora, como em ``ExtractionBatchLogEvent.as_dict``/``LoadBatchLogEvent.as_dict``.
+
+    A chamada a ``logger.info`` fica isolada num try/except (OB-10): mesma
+    garantia do ADR 0001 já aplicada em extração/carga/transformação — um
+    coletor fora do ar não pode corromper nem interromper a orquestração.
+    Diferente das outras camadas, aqui não há um sink injetável separado do
+    logger; o próprio ``logger.info`` é o único ponto de falha.
     """
+    attributes.setdefault("task_id", _current_task_id())
     payload = {"event": event, "stage": ORCHESTRATION_STAGE, **attributes}
-    logger.info(event, extra={key: value for key, value in payload.items() if value is not None})
+    try:
+        logger.info(
+            event, extra={key: value for key, value in payload.items() if value is not None}
+        )
+    except Exception:
+        pass
 
 
 def _minio_client(settings):
@@ -116,11 +144,9 @@ def _build_references(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
     sources: dict[str, list[dict]] = {}
     for parent, _fields in RELATIONS[source]:
         keys = KEYS[parent]
-        cursor = repo._conn.execute(f'SELECT * FROM "{parent}"')
-        columns = [description[0] for description in cursor.description]
         records = []
-        for row in cursor.fetchall():
-            record = dict(zip(columns, row))
+        for record in repo.fetch_compatibility_records(parent):
+            record = dict(record)
             for key in keys:
                 record[key] = str(record[key])
             for name in ("alternativas", "linhas_matriz", "colunas_matriz"):
@@ -132,21 +158,40 @@ def _build_references(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
 
 
 def _should_retry(task, task_run, state) -> bool:
-    """Repete só falha transitória inesperada; permanente ou já esgotada, não.
+    """Repete só falha transitória; permanente ou já esgotada, não.
 
     A extração já reexecuta falhas transitórias internamente (RetryExecutor). No
-    nível do Prefect só faz sentido repetir um erro inesperado; falha permanente
-    (credencial/schema/objeto ausente) e limite de retry esgotado falham rápido.
+    nível do Prefect só faz sentido repetir um erro transitório: falha
+    permanente da extração (credencial/schema/objeto ausente), S3 permanente
+    (ex.: ``NoSuchKey``) e limite de retry esgotado falham rápido.
     """
     try:
         state.result(raise_on_failure=True)
-    except (ExtractionError, ValueError, KeyError):
+    except (ExtractionError, ValueError, KeyError, UnbalancedLoadError):
         # Erros da extração já chegam terminais (transitório foi reexecutado
         # internamente); config/schema/objeto ausente também não se repetem.
+        # Reconciliação desbalanceada é determinística para os mesmos lotes:
+        # repetir a task reproduziria o mesmo bloqueio.
         return False
-    except Exception:
-        return True
+    except Exception as error:
+        return _is_transient_unexpected(error)
     return False
+
+
+def _is_transient_unexpected(error: Exception) -> bool:
+    """Erro inesperado repete, exceto S3 permanente (ex.: ``NoSuchKey``).
+
+    O ``minio`` é importado tarde para não virar dependência dura do módulo:
+    sem ele instalado, todo erro inesperado continua repetindo.
+    """
+
+    try:
+        from minio.error import S3Error
+    except ImportError:
+        return True
+    if isinstance(error, S3Error):
+        return classify_source_failure(error).nature is FailureNature.TRANSIENT
+    return True
 
 
 @task(
@@ -156,41 +201,75 @@ def _should_retry(task, task_run, state) -> bool:
     timeout_seconds=120,
     cache_policy=NO_CACHE,
 )
-def extract(reader, reference, source: str, run_id: str, checkpoint=None) -> list:
-    """Lê o objeto do MinIO (retomando do checkpoint, se houver) e emite os lotes."""
+def extract(reader, reference, source: str, run_id: str, checkpoint=None, settings=None) -> list:
+    """Lê o objeto do MinIO (retomando do checkpoint, se houver) e emite os lotes.
+
+    ``settings`` (``ExtractionSettings``) aplica o tamanho de lote e a
+    política de retry configurados por ``ETL_EXTRACTION_*``; sem ele, valem os
+    padrões do extrator.
+    """
     logger = get_run_logger()
     started = time.monotonic()
-    extractor = EXTRACTORS[source](object_reader=reader, object_reference=reference)
-    batches = list(extractor.read(run_id=run_id, checkpoint=checkpoint))
+    task_id = _current_task_id()
+    options = {}
+    if settings is not None:
+        options = {
+            "batch_size": settings.batch_size,
+            "retry_executor": RetryExecutor.from_settings(settings),
+        }
+    extractor = EXTRACTORS[source](object_reader=reader, object_reference=reference, **options)
+    batches = list(extractor.read(run_id=run_id, task_id=task_id, checkpoint=checkpoint))
     _log_event(
         logger,
         EXTRACT_TASK_EVENT,
         status="success",
         source=source,
         run_id=run_id,
+        task_id=task_id,
         batch_count=len(batches),
         duration_ms=round((time.monotonic() - started) * 1000, 3),
     )
     return batches
 
 
-@task(timeout_seconds=120, cache_policy=NO_CACHE)
+@task(
+    retries=2,
+    retry_delay_seconds=1,
+    retry_condition_fn=_should_retry,
+    timeout_seconds=120,
+    cache_policy=NO_CACHE,
+)
 def transform(batches: list, source: str, references, previous: dict, run_id: str) -> list:
-    """Transforma cada lote; acumula o offset absoluto entre lotes."""
+    """Transforma os lotes do objeto com posição absoluta e decisão global de identidade.
+
+    ``source_offset`` vem de ``batch.metadata``, calculado pelo extrator a
+    partir da posição física na fonte inteira — inclusive na retomada, em que
+    ``batches`` só contém os lotes posteriores ao checkpoint. Um contador
+    local reiniciado em zero faria duas ocorrências em posições físicas
+    diferentes receberem a mesma identidade em fontes identificadas por
+    checksum+posição (``respondentes``).
+
+    A duplicidade é decidida por ``transform_object`` uma única vez sobre
+    todos os lotes do objeto, contra as identidades já confirmadas
+    (``previous``): repetição idêntica em outro lote vira duplicata e versões
+    divergentes da mesma identidade viram conflito em todas as ocorrências.
+    """
     logger = get_run_logger()
     started = time.monotonic()
     ingested_at = datetime.now(timezone.utc)
-    results, offset = [], 0
     for batch in batches:
-        result = transform_batch(
-            batch,
-            references=references,
-            previous=previous,
-            source_offset=offset,
-            ingested_at=ingested_at,
-        )
-        offset += len(batch.records)
-        results.append((result, batch.metadata, batch.checkpoint))
+        if batch.metadata.source_offset is None:
+            raise ValueError(
+                f"o extrator de {source!r} não informou source_offset no lote "
+                f"{batch.metadata.batch_id!r}"
+            )
+    transformed = transform_object(
+        batches, references=references, previous=previous, ingested_at=ingested_at
+    )
+    results = [
+        (result, batch.metadata, batch.checkpoint)
+        for result, batch in zip(transformed, batches, strict=True)
+    ]
     total = sum(r.metrics["accepted_count"] for r, _, _ in results)
     _log_event(
         logger,
@@ -210,7 +289,13 @@ def transform(batches: list, source: str, references, previous: dict, run_id: st
 # (~7 s por lote de 1.000), matando a task no meio de um lote e exigindo
 # retomada. Uma hora acomoda objetos na casa das centenas de milhares de
 # registros sem remover o limite, que continua existindo.
-@task(timeout_seconds=3600, cache_policy=NO_CACHE)
+@task(
+    retries=2,
+    retry_delay_seconds=1,
+    retry_condition_fn=_should_retry,
+    timeout_seconds=3600,
+    cache_policy=NO_CACHE,
+)
 def load(db_path: str, results: list, tuning: dict, *, source: str, run_id: str) -> list:
     """Grava aceitos e rejeitados no DuckDB, reconciliando as contagens lote a lote.
 
@@ -315,10 +400,21 @@ def ingest_object(
         if checkpoint and checkpoint.source_version != f"sha256:{checksum}":
             checkpoint = None  # checkpoint é de outra versão do objeto: lê do início
 
-    batches = extract(reader, reference, source, run_id=run_id, checkpoint=checkpoint)
+    batches = extract(
+        reader, reference, source, run_id=run_id, checkpoint=checkpoint, settings=settings
+    )
     results = transform(batches, source, references, previous, run_id)
     reconciliations = load(db_path, results, tuning, source=source, run_id=run_id)
 
+    # `load_batch` já recusa confirmar um lote desbalanceado; a checagem aqui
+    # garante que o objeto só é marcado como concluído quando *todos* os lotes
+    # reconciliaram — sucesso significa todos os registros classificados e
+    # persistidos, nunca uma carga parcial.
+    unbalanced = [r["batch_id"] for r in reconciliations if not r["balanced"]]
+    if unbalanced:
+        raise UnbalancedLoadError(
+            f"objeto {key!r} da fonte {source!r} não reconciliou nos lotes {unbalanced}"
+        )
     with DuckDbLoadRepository(db_path, **tuning) as repo:
         # O checkpoint de cada lote já foi confirmado dentro de `load`, lote a
         # lote; só falta marcar o objeto inteiro como concluído.

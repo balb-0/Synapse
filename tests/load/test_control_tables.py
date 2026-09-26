@@ -14,6 +14,7 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest import mock
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
@@ -49,7 +50,7 @@ DUCKDB_INSTALLED = importlib.util.find_spec("duckdb") is not None
 if DUCKDB_INSTALLED:
     import duckdb
 
-    from etl.load.duckdb_repository import DuckDbLoadRepository, LoadResult
+    from etl.load.duckdb_repository import DuckDbLoadRepository, LoadResult, UnbalancedLoadError
 
 SEM_DUCKDB = "duckdb não instalado; use pip install -r requirements.txt"
 RENDER_SCRIPT = REPOSITORY_ROOT / "scripts/load/render_ddl.py"
@@ -327,11 +328,14 @@ class ControlTablesWrittenByTheLoadTests(LoadRepositoryTestCase):
 
 
 class ConfirmedCountsComeFromTheDatabaseTests(LoadRepositoryTestCase):
-    """`loaded`/`rejected` vêm de um SELECT no banco, não de `len()` em memória.
+    """`_confirmed_counts` vem de um SELECT no banco, não de `len()` em memória.
 
-    Uma linha inserida por fora do `load_batch`, para o mesmo run_id/batch_id,
-    só aparece na contagem devolvida se ela de fato veio de uma consulta ao
-    banco — `len(result.accepted)`/`len(result.rejected)` nunca saberiam dela.
+    Testado direto no método privado, não mais via `load_batch`: a
+    reconciliação agora bloqueia qualquer lote cujas contas não fechem
+    (``UnbalancedLoadError``, ver ``UnbalancedBatchIsNotConfirmedTests``), e
+    uma linha órfã sob o mesmo run_id/batch_id sempre desbalanceia o lote —
+    esse é exatamente o tipo de anomalia que o bloqueio existe para pegar, não
+    algo que `load_batch` deveria mais engolir em silêncio.
     """
 
     def test_loaded_count_includes_a_row_the_batch_itself_did_not_insert(self) -> None:
@@ -356,9 +360,9 @@ class ConfirmedCountsComeFromTheDatabaseTests(LoadRepositoryTestCase):
             ],
         )
 
-        result = self._load([RAW["pesquisas"]], metadata)
+        loaded, _rejected = self.repository._confirmed_counts(metadata)
 
-        self.assertEqual(result.loaded, 2)
+        self.assertEqual(loaded, 1)
 
     def test_rejected_count_includes_a_row_the_batch_itself_did_not_insert(self) -> None:
         metadata = _metadata(1)
@@ -368,9 +372,9 @@ class ConfirmedCountsComeFromTheDatabaseTests(LoadRepositoryTestCase):
             ["e" * 64, "pesquisas", 999, metadata.run_id, metadata.batch_id, NOW],
         )
 
-        result = self._load([{"titulo": "sem id"}], metadata)
+        _loaded, rejected = self.repository._confirmed_counts(metadata)
 
-        self.assertEqual(result.rejected, 2)
+        self.assertEqual(rejected, 1)
 
 
 class FailedBatchIsStillRecordedTests(LoadRepositoryTestCase):
@@ -434,6 +438,103 @@ class FailedBatchIsStillRecordedTests(LoadRepositoryTestCase):
             self.repository.load_batch(self.result, _metadata(2))
 
         self.assertIn("ingestao_pesquisas", str(context.exception))
+
+
+class IdentityPersistedByAnEarlierBatchTests(LoadRepositoryTestCase):
+    """A carga confere a identidade contra o estado persistido, não só o retrato inicial.
+
+    Cenário do feedback da Sprint 3: a mesma ocorrência aparece em dois lotes
+    transformados contra o mesmo retrato de ``_loaded_identity``. Antes, o
+    segundo lote chegava como aceito, o ``INSERT ... ON CONFLICT DO NOTHING``
+    não gravava nada e a carga confirmava extraído=1, carregado=0,
+    rejeitado=0, duplicado=0 com ``balanced=False``. Agora a carga reclassifica
+    dentro da transação e a reconciliação fecha com a decisão correta.
+    """
+
+    def test_identical_row_from_an_earlier_batch_is_counted_as_duplicate(self) -> None:
+        self._load([RAW["pesquisas"]], _metadata(1, batch_id="pesquisas-000001"))
+
+        outcome = self._load([RAW["pesquisas"]], _metadata(1, batch_id="pesquisas-000002"))
+
+        self.assertEqual(
+            (outcome.extracted, outcome.loaded, outcome.rejected, outcome.duplicates),
+            (1, 0, 0, 1),
+        )
+        self.assertTrue(outcome.is_balanced())
+        self.assertEqual(self._rows("SELECT count(*) FROM ingestao_pesquisas"), [(1,)])
+
+    def test_different_content_for_a_persisted_identity_is_rejected_as_conflict(self) -> None:
+        self._load([RAW["pesquisas"]], _metadata(1, batch_id="pesquisas-000001"))
+        changed = {**RAW["pesquisas"], "titulo": "Outro título"}
+
+        outcome = self._load([changed], _metadata(1, batch_id="pesquisas-000002"))
+
+        self.assertEqual((outcome.loaded, outcome.rejected, outcome.duplicates), (0, 1, 0))
+        self.assertTrue(outcome.is_balanced())
+        self.assertEqual(
+            self._rows(
+                "SELECT code FROM rejected_reason WHERE rejection_id IN ("
+                "SELECT rejection_id FROM rejected WHERE batch_id = 'pesquisas-000002')"
+            ),
+            [("IDENTITY_CONFLICT",)],
+        )
+        self.assertEqual(
+            self._rows("SELECT status FROM _batch_metadata WHERE batch_id = 'pesquisas-000002'"),
+            [(BATCH_STATUS_LOADED_WITH_REJECTIONS,)],
+        )
+
+    def test_retry_of_a_committed_batch_whose_checkpoint_was_lost_still_balances(self) -> None:
+        # Commit do lote feito, checkpoint perdido: a tentativa seguinte
+        # transforma contra um retrato que já contém a identidade, então a
+        # linha chega como duplicata. Ela é a própria linha gravada por este
+        # run_id+batch_id e deve contar como carregada, não duplicada.
+        metadata = _metadata(1, batch_id="pesquisas-000001")
+        self._load([RAW["pesquisas"]], metadata)
+        previous = self.repository.loaded_identities("pesquisas")
+
+        retry = self.repository.load_batch(
+            _transform([RAW["pesquisas"]], metadata, previous=previous), metadata
+        )
+
+        self.assertEqual((retry.loaded, retry.rejected, retry.duplicates), (1, 0, 0))
+        self.assertTrue(retry.is_balanced())
+
+
+class UnbalancedBatchIsNotConfirmedTests(LoadRepositoryTestCase):
+    """A reconciliação ainda bloqueia a confirmação quando as contas não fecham."""
+
+    def _load_with_miscounted_database(self):
+        metadata = _metadata(1, batch_id="pesquisas-000001")
+        result = _transform([RAW["pesquisas"]], metadata)
+        with mock.patch.object(DuckDbLoadRepository, "_confirmed_counts", return_value=(0, 0)):
+            self.repository.load_batch(result, metadata)
+
+    def test_counts_that_do_not_close_raise_before_the_commit(self) -> None:
+        with self.assertRaises(UnbalancedLoadError):
+            self._load_with_miscounted_database()
+
+    def test_the_blocked_batch_is_rolled_back(self) -> None:
+        with self.assertRaises(UnbalancedLoadError):
+            self._load_with_miscounted_database()
+
+        self.assertEqual(self._rows("SELECT count(*) FROM ingestao_pesquisas"), [(0,)])
+        self.assertEqual(self._rows("SELECT count(*) FROM _loaded_identity"), [(0,)])
+
+    def test_the_blocked_batch_is_recorded_as_failed_not_silently_dropped(self) -> None:
+        with self.assertRaises(UnbalancedLoadError):
+            self._load_with_miscounted_database()
+
+        self.assertEqual(
+            self._rows("SELECT status FROM _batch_metadata WHERE batch_id = 'pesquisas-000001'"),
+            [(BATCH_STATUS_FAILED,)],
+        )
+
+    def test_a_batch_that_balances_still_commits_normally(self) -> None:
+        # Guarda-costas: o bloqueio não pode virar falso positivo numa carga
+        # comum, sem duplicata entre lotes.
+        outcome = self._load([RAW["pesquisas"]], _metadata(1, batch_id="pesquisas-000001"))
+
+        self.assertTrue(outcome.is_balanced())
 
 
 def _statement_for(table: str) -> str:

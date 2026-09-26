@@ -1,0 +1,46 @@
+# Perfil do Prefect para o runner do Compose.
+#
+# O driver GELF coleta stdout e stderr juntos. O perfil mantém o handler da
+# API (histórico do Prefect) e deixa os loggers observados receberem também o
+# StructuredJsonFormatter da aplicação, mas remove o console humano para não
+# indexar linhas duplicadas e não estruturadas no Logstash.
+version: 1
+disable_existing_loggers: false
+
+handlers:
+  api:
+    level: 0
+    class: prefect.logging.handlers.APILogHandler
+  "null":
+    class: logging.NullHandler
+
+loggers:
+  prefect:
+    level: "${PREFECT_LOGGING_LEVEL}"
+  prefect.extra:
+    level: "${PREFECT_LOGGING_LEVEL}"
+    handlers: [api]
+    propagate: false
+  prefect.flow_runs:
+    level: NOTSET
+    handlers: [api]
+  prefect.task_runs:
+    level: NOTSET
+    handlers: [api]
+  prefect.workers:
+    level: NOTSET
+    handlers: [api]
+  prefect.server:
+    level: "${PREFECT_SERVER_LOGGING_LEVEL}"
+  prefect.client:
+    level: "${PREFECT_LOGGING_LEVEL}"
+  prefect.infrastructure:
+    level: "${PREFECT_LOGGING_LEVEL}"
+  prefect._internal:
+    level: "${PREFECT_INTERNAL_LOGGING_LEVEL}"
+    propagate: false
+    handlers: ["null"]
+
+root:
+  level: WARNING
+  handlers: ["null"]

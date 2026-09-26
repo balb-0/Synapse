@@ -44,7 +44,13 @@ NOW = datetime(2026, 9, 10, 12, tzinfo=timezone.utc)
 SOURCE_VERSION = "sha256:" + "a" * 64
 
 
-def _batch(rows: list[dict], *, sequence: int, run_id: str = "run-1") -> ExtractedBatch:
+def _batch(
+    rows: list[dict],
+    *,
+    sequence: int,
+    run_id: str = "run-1",
+    source_offset: int | None = 0,
+) -> ExtractedBatch:
     metadata = BatchMetadata(
         "pesquisas",
         run_id,
@@ -56,6 +62,7 @@ def _batch(rows: list[dict], *, sequence: int, run_id: str = "run-1") -> Extract
         100,
         "1.0",
         SOURCE_VERSION.removeprefix("sha256:"),
+        source_offset=source_offset,
     )
     checkpoint = ExtractionCheckpoint("pesquisas", f"row:{sequence}", sequence, SOURCE_VERSION)
     return ExtractedBatch(rows, checkpoint, metadata)
@@ -188,6 +195,54 @@ class TransformForwardsTheBatchCheckpointTests(unittest.TestCase):
         _, metadata, checkpoint = results[0]
         self.assertEqual(metadata, batch.metadata)
         self.assertEqual(checkpoint, batch.checkpoint)
+
+
+@unittest.skipUnless(DUCKDB_INSTALLED and PREFECT_INSTALLED, SEM_DEPENDENCIAS)
+class TransformUsesTheExtractorAbsoluteOffsetTests(unittest.TestCase):
+    """`transform` não pode reiniciar o offset em zero numa retomada.
+
+    Antes, cada chamada de `transform` mantinha um contador local que sempre
+    começava em zero — inclusive quando ``batches`` já vinha só com o que
+    sobrou depois de um checkpoint confirmado (a extração não reenvia o que já
+    foi confirmado). Isso fazia o primeiro lote de uma retomada usar offset 0,
+    colidindo com a posição física real de uma ocorrência anterior em fontes
+    cuja identidade usa checksum+posição (``respondentes``).
+    """
+
+    def setUp(self) -> None:
+        logger_patch = mock.patch.object(
+            flow_module, "get_run_logger", return_value=mock.MagicMock()
+        )
+        logger_patch.start()
+        self.addCleanup(logger_patch.stop)
+
+    def test_offset_comes_from_the_batch_metadata_not_a_local_counter(self) -> None:
+        # Simula uma retomada: só o lote "novo" é passado a `transform`, mas
+        # ele começa na linha física 5 da fonte inteira, não na linha 0.
+        batch = _batch([{"id": "6", "titulo": "F"}], sequence=6, source_offset=5)
+
+        results = flow_module.transform.fn([batch], "pesquisas", ReferenceData({}), {}, "run-1")
+
+        result, _, _ = results[0]
+        accepted = result.accepted[0]
+        self.assertEqual(accepted.metadata["source_offset"], 5)
+
+    def test_a_second_batch_continues_from_the_first_one_own_offset(self) -> None:
+        batch1 = _batch([{"id": "1", "titulo": "A"}], sequence=1, source_offset=0)
+        batch2 = _batch([{"id": "2", "titulo": "B"}], sequence=2, source_offset=1)
+
+        results = flow_module.transform.fn(
+            [batch1, batch2], "pesquisas", ReferenceData({}), {}, "run-1"
+        )
+
+        offsets = [result.accepted[0].metadata["source_offset"] for result, _, _ in results]
+        self.assertEqual(offsets, [0, 1])
+
+    def test_raises_a_clear_error_when_the_extractor_did_not_set_the_offset(self) -> None:
+        batch = _batch([{"id": "7", "titulo": "G"}], sequence=7, source_offset=None)
+
+        with self.assertRaisesRegex(ValueError, "source_offset"):
+            flow_module.transform.fn([batch], "pesquisas", ReferenceData({}), {}, "run-1")
 
 
 if __name__ == "__main__":

@@ -1,12 +1,3 @@
-<Table>
-  <tr>
-    <td><a href= "link"><img src="img/logo.png" alt="Nome" border="0"></td>
-    <td>
-      <a href= "https://www.inteli.edu.br/"><img src="img/logo-Inteli.png" alt="Inteli - Instituto de Tecnologia e Liderança" border="0"></a>
-    </td>
-  </tr>
-</table>
-
 # Governança de Dados do Projeto — Central de Pesquisas do Sindusfarma
 
 ## Nome do Grupo: Synapse

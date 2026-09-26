@@ -44,6 +44,10 @@ BOM, detalhados em [`inventario-fontes-etl.md`](inventario-fontes-etl.md).
 ocorrência física, formada por `source_checksum` e `source_offset`
 (`POSITIONAL_KEY` em [`ddl.py`](../src/etl/load/ddl.py)). A consequência está
 registrada no ADR 0002: a fonte é reingerida por inteiro a cada reexportação.
+A posição é calculada pelo extrator sobre a fonte inteira e transportada em
+`BatchMetadata.source_offset`, inclusive na retomada após checkpoint; duas
+participações idênticas em linhas diferentes continuam sendo duas ocorrências
+legítimas.
 
 Frequência de atualização, fuso horário, tipo de carga e forma de acesso
 permanecem **pendentes de confirmação com o parceiro**. Enquanto isso, cada
@@ -132,7 +136,12 @@ com a carga. As rejeições reais vivem no DuckDB.
 
 `classify_duplicates` ([`identity.py`](../src/etl/transformation/identity.py))
 compara cada candidato com as identidades já carregadas, obtidas da tabela de
-controle `_loaded_identity`, e classifica em três resultados:
+controle `_loaded_identity`, e classifica em três resultados. No flow, a
+classificação é chamada por `transform_object` **uma única vez sobre todos os
+lotes do objeto**, na ordem da fonte, de modo que a mesma identidade em lotes
+diferentes recebe a mesma decisão que receberia dentro de um lote. Na carga,
+`load_batch` repete a conferência contra `_loaded_identity` dentro da
+transação, cobrindo identidades gravadas depois do retrato inicial:
 
 | Resultado | Condição | Destino |
 | :--- | :--- | :--- |
@@ -175,7 +184,10 @@ Ao fim de cada lote, `load_batch` conta no próprio banco, por `run_id` e
 com o que o lote extraído declarava. O resultado é um `LoadResult`, cujo método
 `is_balanced()` verifica a equação `extraído = carregado + rejeitado +
 duplicado`. A contagem vem do banco, e não das listas em memória, para que a
-conta não feche apenas porque as duas pontas nasceram do mesmo objeto.
+conta não feche apenas porque as duas pontas nasceram do mesmo objeto. Se a
+equação não fecha, `load_batch` levanta `UnbalancedLoadError` **antes** do
+`COMMIT`: a transação é desfeita, o checkpoint do lote não avança e o objeto
+não é marcado como concluído em `_control_object`.
 
 Um lote revertido é registrado em `_batch_metadata` com status `falha` e
 contagens zeradas, já fora da transação desfeita. Sem esse registro, a perda
@@ -198,12 +210,71 @@ A política completa está em
 [`Governança-de-Dados-do-Projeto.md`](Governança-de-Dados-do-Projeto.md) e em
 [`dev-rules.md`](dev-rules.md).
 
+## Camada analítica derivada
+
+A Sprint 4 prolonga a cadeia informacional sem alterar a fonte de verdade da
+ingestão. As tabelas analíticas devem ser derivadas exclusivamente das views
+`ingestao_<fonte>_atual` e dos controles de execução; nunca dos CSVs brutos nem
+de uma segunda transformação mantida pela ferramenta de BI.
+
+```mermaid
+flowchart LR
+    A[CSV no MinIO] --> B[ExtractedBatch]
+    B --> C[AcceptedRecord / RejectedRecord]
+    C --> D[ingestao_fonte + controles]
+    D --> E[dimensões conformadas]
+    D --> F[fatos analíticos]
+    E --> G[cubos C01 a C04]
+    F --> G
+    G --> H[consumo BI somente leitura]
+```
+
+| Saída analítica | Fontes tratadas necessárias | Grão esperado |
+| :--- | :--- | :--- |
+| C01 — Portfólio e ciclo | `pesquisas` e datas conformadas | Uma pesquisa por versão válida |
+| C02 — Participação e representatividade | `respondentes`, `empresas`, `clientes`, `pesquisas` | Uma participação em uma pesquisa |
+| C03 — Pipeline mensal | Marcos de `pesquisas` e dimensão calendário | Uma pesquisa em um período de referência |
+| C04 — Resultados e questionários | `questoes`, `respostas`, `pesquisas` | Uma resposta a uma questão versionada |
+
+O contrato lógico dos quatro cubos permanece em [`dmc.json`](dmc.json). A DDL e
+a rotina de carga da camada analítica são dependências dos cards CB-02 a CB-06;
+até sua integração, o diagrama acima descreve a cadeia-alvo, não tabelas já
+presentes na base `develop`.
+
+### Linhagem entre ingestão e cubos
+
+Cada fato analítico deve preservar uma referência verificável à execução que o
+originou. A linhagem mínima é composta por `run_id`, `source_checksum`,
+`schema_version` e o instante de atualização; para fatos formados por mais de
+uma fonte, a carga deve registrar o conjunto de checksums participantes.
+
+| Pergunta de auditoria | Metadado que responde | Origem canônica |
+| :--- | :--- | :--- |
+| Qual execução produziu o valor? | `run_id` | `_batch_metadata` e linhas de ingestão |
+| Qual snapshot foi usado? | `source_checksum` | `_control_object` e linhas de ingestão |
+| Qual contrato tipou o dado? | `schema_version` | `BatchMetadata` e destino tratado |
+| O lote fechou as contagens? | extraído, aceito, rejeitado e duplicado | `reconciliacao_execucao` |
+| Quando o cubo foi atualizado? | `generation` e instante da publicação | `manifest.json` da geração publicada por `etl.analytics.publish` |
+
+O BI consome somente tabelas ou views publicadas. Campos técnicos podem ser
+ocultados da camada semântica, mas não removidos do caminho auditável que liga
+uma medida ao snapshot tratado.
+
 ## Limites desta visão
 
-A visão termina na tabela de ingestão tratada. Cubos, dimensões, fatos e
-indicadores do [`dmc.json`](dmc.json) **não** são construídos nesta sprint: eles
-funcionam como contrato de destino que restringe nomes e tipos, conforme
-[`inventario-contratos-dimensionais.md`](inventario-contratos-dimensionais.md).
+A implementação integrada na base auditada termina na ingestão tratada. Cubos,
+dimensões e fatos do [`dmc.json`](dmc.json) funcionam como contrato de destino
+enquanto as dependências CB-02 a CB-06 não forem incorporadas. Esta distinção
+evita apresentar desenho lógico como dado já consultável.
+
+| Informação desejada | Estado | Motivo verificável |
+| :--- | :--- | :--- |
+| Volume e estado das pesquisas | Disponível na ingestão tratada | `pesquisas` possui identidade e datas tipadas. |
+| Participação por empresa | Parcial | Existe participação, mas a qualidade do vínculo pessoa–empresa precisa ser preservada. |
+| Taxa de resposta | Indisponível | Não há denominador confirmado para população convidada. |
+| Representatividade por segmento | Indisponível | Não existe regra aprovada de população-base e ponderação. |
+| Resultado agregado por questão | Parcial | Questões e respostas existem; publicação depende das regras de agregação e privacidade. |
+| Série histórica anterior aos snapshots | Indisponível | A origem entregue não contém histórico retroativo completo. |
 
 Não há política de retenção definida para as versões acumuladas na tabela de
 ingestão, e a ponte entre `respostas.respondent_id` e a base de participação

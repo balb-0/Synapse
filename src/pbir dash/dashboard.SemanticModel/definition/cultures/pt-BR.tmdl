@@ -1,0 +1,831 @@
+cultureInfo pt-BR
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "d01_ciclopesquisa.area": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "area"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Área": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "area": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.pesquisas": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "Pesquisas"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Pesquisas": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.pesquisas_finalizadas": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "Pesquisas Finalizadas"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Pesquisas Finalizadas": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.pesquisas_em_aberto": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "Pesquisas em Aberto"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Pesquisas em Aberto": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.ciclo_médio_em_dias_corridos": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "Ciclo Médio em Dias Corridos"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Ciclo Médio em Dias Corridos": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.pesquisas_prorrogadas": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "Pesquisas Prorrogadas"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Prorrogadas": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.ano_edicao": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "ano_edicao"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "ano_edicao": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.complexidade": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "complexidade"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "complexidade": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.status": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "status"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Status": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.tipo": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "tipo"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Tipo": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.ciclo_médio_validação_em_dias_corridos": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "Ciclo Médio Validação em Dias Corridos"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Validação": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.ciclo_médio_coleta_em_dias_corridos": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "Ciclo Médio Coleta em Dias Corridos"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Coleta": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.ciclo_médio_tabulação_em_dias_corridos": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "Ciclo Médio Tabulação em Dias Corridos"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Tabulação": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.titulo": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "titulo"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Pesquisa": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.dias_ciclo_total_corridos": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "dias_ciclo_total_corridos"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Ciclo total": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.data_entrega": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "data_entrega"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Entrega": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "d01_ciclopesquisa.flag_prorrogada": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "flag_prorrogada"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "d01_ciclopesquisa.taxa_de_finalização": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "D01_CicloPesquisa",
+			          "ConceptualProperty": "Taxa de Finalização"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Taxa de finalização": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_pesquisa.tipo": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Pesquisa",
+			          "ConceptualProperty": "Tipo"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Tipo": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_pesquisa.ano": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Pesquisa",
+			          "ConceptualProperty": "Ano"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Ano": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_pesquisa.área": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Pesquisa",
+			          "ConceptualProperty": "Área"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Área": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_pesquisa.pesquisa": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Pesquisa",
+			          "ConceptualProperty": "Pesquisa"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Pesquisa": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be_empresas_sem_registro_selecionado": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Empresas sem registro selecionado"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "be_empresa.be_percentual_sem_registro": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Percentual sem registro"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "be_empresa.be_pesquisas_da_empresa": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Pesquisas da empresa"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Pesquisas com participação": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be_empresas_por_faixa": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Empresas por faixa"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Demais empresas": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be_selecionada_por_faixa": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Selecionada por faixa"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Faixa da sua empresa": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be_demais_empresas": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Demais empresas"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "be_empresa.be_empresas_observadas": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Empresas observadas"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Empresas no recorte": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be_pesquisas_no_recorte": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Pesquisas no recorte"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Pesquisas no recorte": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be_empresa_participou": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Empresa participou"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Sua empresa participou": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Sua empresa": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be_percentual_observado": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Percentual observado"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "% agregado": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be_pesquisas_por_ano": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Pesquisas por ano"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Sua empresa": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.empresa": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "Empresa"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Empresa": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_faixa.faixa": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Faixa",
+			          "ConceptualProperty": "Faixa"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Faixa": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be__empresa_por_área": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE % empresa por área"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Sua empresa": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be__demais_por_área": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE % demais por área"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Demais empresas": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Benchmark agregado": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be_contexto_da_empresa": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Contexto da empresa"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "be_empresa.be_média_demais_por_ano": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE Média demais por ano"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Benchmark agregado": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Média das demais empresas": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "be_empresa.be__observado_top_8": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "BE_Empresa",
+			          "ConceptualProperty": "BE % observado Top 8"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "% agregado das demais empresas": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

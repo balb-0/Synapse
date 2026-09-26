@@ -12,6 +12,20 @@ O contexto de negócio vem de
 
 ## Objetivo
 
+Na Sprint 4, o objetivo deixa de terminar na disponibilidade técnica da
+ingestão: a cadeia deve permitir consumo analítico controlado dos cubos por uma
+ferramenta de BI, mantendo rastreabilidade até o snapshot tratado. O valor de
+negócio é reduzir a montagem manual de relatórios sem publicar indicadores cujo
+dado ou regra ainda não existe.
+
+O sucesso é observado quando:
+
+- o operador identifica execução, atualização e qualidade antes de liberar o
+  consumo;
+- o analista consulta medidas aprovadas sem acesso de escrita ao warehouse;
+- cada indicador publicado possui numerador, denominador, grão e origem;
+- uma indisponibilidade é mostrada como tal, não substituída por zero ou proxy.
+
 A Central de Pesquisas do Sindusfarma conduz pesquisas setoriais cujos dados
 hoje vivem dispersos em planilhas, sistemas distintos e arquivos reexportados
 manualmente. Cruzar informações exige trabalho manual repetido, a origem de cada
@@ -32,6 +46,14 @@ Este é o insumo para os cubos e painéis descritos no Data Model Canvas, que
 
 ## Partes interessadas
 
+| Parte interessada | Decisão apoiada | Forma de consumo | Limite |
+| :--- | :--- | :--- | :--- |
+| Central de Pesquisas | priorizar operação, prazos e qualidade | dashboards e detalhe agregado | não expor resposta individual |
+| Liderança do Sindusfarma | acompanhar portfólio e representatividade | indicadores executivos | somente métricas com regra aprovada |
+| Analista de dados | validar cubos e investigar variações | acesso BI somente leitura | sem alterar dado tratado |
+| Operador do ETL | executar, retomar e reconciliar cargas | Prefect, logs e controles DuckDB | não redefine regra de negócio |
+| Governança/privacidade | autorizar publicação e retenção | evidências de linhagem e catálogo | bloqueia indicador sem base adequada |
+
 | Parte interessada | Relação com o pipeline | O que espera |
 | :--- | :--- | :--- |
 | Central de Pesquisas | Consumidora principal | Base confiável sobre portfólio, ciclo e participação das pesquisas |
@@ -47,6 +69,24 @@ responsáveis técnicos — estão registrados no [`dmc.json`](dmc.json) e em
 **baseline documental sujeito a homologação**, não como atribuição formalizada.
 
 ## Escopo de negócio
+
+### Consumo analítico controlado
+
+O caminho aprovado é: ingestão tratada reconciliada → carga dos cubos →
+publicação somente leitura → modelo semântico do BI. A ferramenta de BI não
+transforma a origem, não corrige rejeições e não escreve no DuckDB. A liberação
+de uma atualização exige conciliação da execução e identificação do snapshot.
+
+| Etapa | Responsável | Evidência para avançar |
+| :--- | :--- | :--- |
+| Ingestão | Operador do ETL | execução concluída e `reconciliacao_execucao` balanceada |
+| Camada analítica | Rotina de carga dos cubos | contagens de origem e destino reconciliadas |
+| Publicação | Responsável por dados | snapshot, data de atualização e conjunto de medidas aprovados |
+| Consumo | Analista/gestor | filtro, unidade e período visíveis no relatório |
+
+Não há entrega automatizada em produção nesta arquitetura. Credenciais,
+gateway, atualização agendada da ferramenta de BI e permissões corporativas
+dependem do ambiente do parceiro.
 
 O pipeline entrega, nesta sprint:
 
@@ -117,10 +157,11 @@ flowchart LR
     OPE([Operador de dados])
     MIN([MinIO])
     PRE([Prefect])
-    ELK([Elastic Stack - planejada])
+    ELK([Elastic Stack])
+    BI([Power BI])
 
     UC1[Publicar objeto na area de entrada]
-    UC2[Disparar execucao por evento - planejado]
+    UC2[Disparar execucao por evento s3 ObjectCreated]
     UC3[Executar ingestao sob demanda]
     UC4[Executar backfill por fonte e janela]
     UC5[Verificar hash e ignorar entrada concluida]
@@ -130,7 +171,8 @@ flowchart LR
     UC9[Encerrar falha permanente sem repeticao]
     UC10[Retomar a partir do checkpoint confirmado]
     UC11[Consultar historico de execucoes]
-    UC12[Monitorar execucao e alertas - planejado]
+    UC12[Monitorar execucao saude e alertas]
+    UC13[Consultar cubos publicados em Parquet]
 
     PUB --> UC1
     MIN --> UC2
@@ -145,13 +187,32 @@ flowchart LR
     PRE --> UC9
     PRE --> UC10
     ELK --> UC12
+    BI --> UC13
 ```
 
-Os casos marcados como planejados não têm implementação no `develop` e estão
-registrados como pendência na
-[matriz de rastreabilidade](matriz-rastreabilidade-sprint3.md).
+Todos os casos acima estão implementados no ambiente local: o disparo por
+evento em `scripts/orchestration/watch_landing.py`, o monitoramento pela Elastic
+Stack (painel Kibana, health check e alertas mínimos) e o consumo pelos Parquet
+publicados por `etl.analytics.publish`. A publicação em serviço Power BI com
+acesso por perfil permanece fora do escopo desta entrega (sem Deploy Contínuo).
 
 ## Riscos de negócio reconhecidos
+
+### Indicadores publicáveis e indisponíveis
+
+| Indicador | Situação | Regra/limite |
+| :--- | :--- | :--- |
+| Quantidade de pesquisas por status e período | Publicável após carga do C01 | Contagem distinta de pesquisa no grão documentado. |
+| Duração entre marcos disponíveis | Publicável com ressalva | Somente pares de datas presentes; valores ausentes não viram zero. |
+| Participações por pesquisa/empresa | Publicável agregado | Sujeito a limiar de privacidade e qualidade do vínculo. |
+| Taxa de resposta | Indisponível | Falta denominador confirmado de convidados elegíveis. |
+| Representatividade do setor | Indisponível | Falta população-base e regra de ponderação aprovadas. |
+| Atraso contratual | Indisponível | Não existe regra única de prazo e prorrogação aprovada. |
+| Série histórica completa | Indisponível | Os snapshots entregues não cobrem retrospectivamente todos os marcos. |
+
+Indicador indisponível deve aparecer no catálogo como bloqueado, com motivo e
+dependência, e não em um dashboard com valor estimado. Essa regra preserva o
+limite entre análise sustentada pelos dados e hipótese de negócio.
 
 - **Dependência de confirmação do parceiro.** Frequência, fuso horário, tipo de
   carga e forma de acesso continuam pendentes; até lá, a automação opera sobre
@@ -161,5 +222,9 @@ registrados como pendência na
   recorte exige limiar de agregação homologado.
 - **Falsa sensação de completude.** Consultas fora da cobertura das fontes devem
   retornar indisponível, nunca zero.
-- **Observabilidade ausente.** Sem telemetria integrada, uma falha silenciosa só
-  é percebida na consulta seguinte ao banco.
+- **Observabilidade best-effort.** A telemetria estruturada chega à Elastic
+  Stack com painel, health check e alertas mínimos, mas o transporte GELF/UDP
+  não tem fila durável: com o coletor fora do ar, eventos se perdem. O estado
+  autoritativo continua no DuckDB (`reconciliacao_execucao`) e no histórico do
+  Prefect, e a indisponibilidade do coletor não corrompe nem confirma carga
+  (ADR 0006).

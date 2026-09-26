@@ -1,0 +1,87 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 463.20001220703125,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "nodeIndex": "D01_CicloPesquisa",
+          "nodeLineageTag": "188b461d-479c-4ff1-b59f-8becb3919142",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 284,
+            "y": 0
+          },
+          "nodeIndex": "D02_Participacao",
+          "nodeLineageTag": "d82d5d8c-07ea-4744-ba85-e5340acedfef",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 568,
+            "y": 0
+          },
+          "nodeIndex": "D03_PesquisaPergunta",
+          "nodeLineageTag": "89fc1385-8b42-4a7a-bf3b-448d91a070ac",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 852,
+            "y": 0
+          },
+          "nodeIndex": "D04_PipelineMensal",
+          "nodeLineageTag": "78d517d2-2bf7-42b6-bcb0-4cc99ec94736",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1136,
+            "y": 14
+          },
+          "nodeIndex": "D04_QualidadeGovernanca",
+          "nodeLineageTag": "a0d3ecdb-c0f6-4a1e-bd8b-fb0389fc13aa",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas as tabelas",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas as tabelas",
+  "defaultDiagram": "Todas as tabelas"
+}

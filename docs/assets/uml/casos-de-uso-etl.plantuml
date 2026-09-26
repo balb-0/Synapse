@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 
 left to right direction
 
@@ -20,15 +21,19 @@ skinparam usecase {
 
 actor "Publicador da fonte" as PUB
 actor "Operador de dados" as OPE
+actor "Analista de dados" as ANALISTA
+actor "Responsável por governança" as GOV
 actor "MinIO" as MINIO <<sistema>>
 actor "Prefect" as PREFECT <<sistema>>
-actor "Elastic Stack" as ELASTIC <<sistema planejado>>
+actor "Elastic Stack" as ELASTIC <<sistema>>
+actor "Ferramenta de BI" as BI <<sistema>>
 
 rectangle "Pipeline de ingestão do ETL" {
   usecase "Publicar objeto na área de entrada" as UC01
-  usecase "Disparar execução por evento s3:ObjectCreated" as UC02 <<planejado>>
+  usecase "Disparar execução por evento s3:ObjectCreated" as UC02
   usecase "Executar ingestão de um objeto" as UC03
   usecase "Executar backfill por fonte e janela" as UC04
+  usecase "Servir deployment com agenda diária" as UC18
   usecase "Verificar SHA-256 do objeto" as UC05
   usecase "Registrar entrada já concluída como ignorada" as UC06
   usecase "Extrair a fonte em lotes" as UC07
@@ -41,7 +46,10 @@ rectangle "Pipeline de ingestão do ETL" {
   usecase "Encerrar falha permanente sem repetição" as UC14
   usecase "Retomar a partir do checkpoint confirmado" as UC15
   usecase "Consultar histórico de execuções" as UC16
-  usecase "Monitorar execução, saúde e alertas" as UC17 <<planejado>>
+  usecase "Monitorar execução, saúde e alertas" as UC17
+  usecase "Publicar geração analítica conciliada" as UC19
+  usecase "Consultar cubos publicados" as UC20
+  usecase "Publicar no serviço Power BI com acesso por perfil" as UC21 <<planejado>>
 }
 
 PUB --> UC01
@@ -50,11 +58,17 @@ OPE --> UC03
 OPE --> UC04
 OPE --> UC16
 OPE --> UC17
+OPE --> UC18
+ANALISTA --> UC20
+GOV --> UC19
+GOV --> UC21
 PREFECT --> UC03
 PREFECT --> UC04
+PREFECT --> UC18
 PREFECT --> UC13
 PREFECT --> UC14
 ELASTIC --> UC17
+BI --> UC20
 
 UC02 ..> UC03 : <<include>>
 UC03 ..> UC05 : <<include>>
@@ -64,22 +78,41 @@ UC03 ..> UC10 : <<include>>
 UC03 ..> UC11 : <<include>>
 UC03 ..> UC12 : <<include>>
 UC04 ..> UC03 : <<include>>
+UC18 ..> UC03 : <<include>>
 UC08 ..> UC09 : <<include>>
 UC06 ..> UC05 : <<extend>>
 UC13 ..> UC07 : <<extend>>
 UC14 ..> UC07 : <<extend>>
 UC15 ..> UC07 : <<extend>>
+UC20 ..> UC19 : <<include>>
 
 note right of UC02
-  Contrato do ADR 0001.
-  Não implementado no develop:
-  o disparo real é manual ou agendado.
+  scripts/orchestration/watch_landing.py:
+  webhook s3:ObjectCreated do MinIO
+  ou polling do prefixo landing/.
+end note
+
+note right of UC18
+  Implementado por ingest_object.serve()
+  com cron 0 3 * * *; o processo é
+  iniciado pelo operador.
+end note
+
+note right of UC20
+  Geração Parquet agregada (7 arquivos)
+  publicada por etl.analytics.publish e
+  importada pelo modelo semântico TMDL.
+end note
+
+note right of UC21
+  Fora do escopo desta entrega:
+  sem publicação em serviço nem CD.
 end note
 
 note right of UC17
-  Depende da Elastic Stack,
-  decidida no ADR 0001 e
-  ainda não integrada.
+  Logstash -> Elasticsearch -> Kibana
+  (docker-compose.yml, observability/),
+  health_check.py e alertas mínimos.
 end note
 
 @enduml
