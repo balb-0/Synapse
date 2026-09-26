@@ -1,70 +1,316 @@
-# Solução de dashboard — implementação e validação
+# Dashboard da Central de Pesquisas
 
-**Atualizado em 25/09/2026.** Este documento apresenta as páginas do report, o modelo semântico dos cubos publicados pela ETL e o roteiro de validação com usuários. As definições TMDL/JSON registram a configuração; os resultados das interações serão incorporados às fichas de sessão.
+## Visão geral
 
-## 1. Cubos, fontes e alcance
+O dashboard organiza a leitura da operação da Central de Pesquisas em duas
+perspectivas complementares:
 
-| Artefato | Fonte e grão | Entrega documentada |
+- acompanhamento do volume e do ciclo das pesquisas;
+- comparação da participação observada de uma empresa com o benchmark do
+  recorte;
+
+A estrutura das telas foi definida a partir dos relatórios e rascunhos
+fornecidos pelo parceiro, preservando a finalidade de cada painel e adaptando
+os visuais aos indicadores e dimensões disponíveis no modelo analítico.
+
+## Produção e Volume
+
+![Tela Produção e Volume](assets/dashboard/relatorio-producao-volume.png)
+
+### Objetivo
+
+Apresentar uma visão operacional do portfólio de pesquisas, permitindo
+acompanhar volume, situação do ciclo, duração das etapas e prorrogações.
+
+### Filtros
+
+| Filtro | Uso |
+| :--- | :--- |
+| Ano | Define o período analisado. |
+| Área | Restringe o portfólio à área selecionada. |
+| Tipo | Restringe o portfólio ao tipo de pesquisa selecionado. |
+| Status | Permite analisar as pesquisas por situação no ciclo. |
+| Complexidade | Permite comparar o portfólio por nível de complexidade. |
+
+### Indicadores e visuais
+
+| Visual | Informação apresentada |
+| :--- | :--- |
+| Taxa de finalização | Percentual de pesquisas finalizadas no recorte. |
+| Pesquisas | Quantidade total de pesquisas. |
+| Pesquisas finalizadas | Quantidade de pesquisas finalizadas. |
+| Pesquisas em aberto | Quantidade de pesquisas ainda abertas. |
+| Ciclo médio em dias corridos | Duração média do ciclo completo. |
+| Tempo por etapa e tipo | Duração média das etapas de validação, coleta e tabulação por tipo, apresentada em dias corridos nesta versão. |
+| Pesquisas por status | Distribuição do portfólio por situação. |
+| Volume por área | Distribuição das pesquisas por área. |
+| Pesquisas prorrogadas | Quantidade e relação das pesquisas com prorrogação. |
+| Acompanhamento das pesquisas | Pesquisa, status, área, tipo, ciclo total e entrega. |
+
+### Base analítica
+
+A tela está alinhada ao tema do cubo C01 — Portfólio e Ciclo. Os principais
+recortes são status, área, tipo, complexidade e ano da edição. A dimensão
+temporal por `data_solicitacao` está definida no modelo analítico para a
+evolução das comparações por período.
+
+## Implementação técnica — Produção e Volume
+
+No modelo semântico do report, o tema do cubo C01 é representado pela tabela
+`D01_CicloPesquisa`. Os visuais da tela utilizam as medidas abaixo. Os campos
+de corte são mantidos na própria tabela do cubo porque esta versão do modelo
+utiliza os atributos categóricos diretamente na tabela importada.
+
+| Visual | Medida ou campos utilizados | Dimensões/cortes |
 | :--- | :--- | :--- |
-| [PBIP demonstrativo](../src/pbir%20dash/dashboard.Report/) e [modelo](../src/pbir%20dash/dashboard.SemanticModel/) | CSVs locais `vw_ciclo_pesquisa.csv` (pesquisa) e `vw_participacao.csv` (ocorrência) | Páginas **Produção e Volume** e **Benchmark Externo — V2**, com medidas e visuais versionados para a demonstração. |
-| [Modelo de consumo](../powerbi/CentralPesquisasBI.SemanticModel/) | Sete Parquet de uma geração: C01–C04 agregados e três tabelas de qualidade | Importações, medidas e relacionamentos definidos em TMDL para o consumo analítico. |
+| Taxa de finalização | `Taxa de Finalização` | `status`, `area`, `tipo`, `complexidade`, `ano_edicao` |
+| Pesquisas | `Pesquisas` | `pesquisa_id_origem`, `status`, `area`, `tipo`, `complexidade`, `ano_edicao` |
+| Pesquisas finalizadas | `Pesquisas Finalizadas` | `status`, `area`, `tipo`, `complexidade`, `ano_edicao` |
+| Pesquisas em aberto | `Pesquisas em Aberto` | `status`, `area`, `tipo`, `complexidade`, `ano_edicao` |
+| Ciclo médio em dias corridos | `Ciclo Médio em Dias Corridos` | `area`, `tipo`, `status`, `ano_edicao` |
+| Tempo por etapa e tipo | `Ciclo Médio Validação em Dias Corridos`, `Ciclo Médio Coleta em Dias Corridos` e `Ciclo Médio Tabulação em Dias Corridos` | `tipo` e etapa do ciclo |
+| Pesquisas por status | `Pesquisas` | `status` |
+| Volume por área | `Pesquisas` | `area` |
+| Pesquisas prorrogadas — cartão | `Pesquisas Prorrogadas` | `flag_prorrogada = TRUE()` |
+| Pesquisas prorrogadas — tabela | Atributos do ciclo | `titulo`, `area`; filtro do visual por `flag_prorrogada` |
+| Acompanhamento das pesquisas | Atributos do ciclo | `titulo`, `status`, `area`, `tipo`, `dias_ciclo_total_corridos`, `data_entrega` |
 
-Os cubos físicos C01 (portfólio e ciclo), C02 (participação), C03 (snapshot mensal do pipeline) e C04 (instrumento) alimentam o [publicador](../src/etl/analytics/publish.py). Os Parquet `PUB_C01_CICLO`, `PUB_C02_PARTICIPACAO`, `PUB_C03_PIPELINE_MENSAL` e `PUB_C04_INSTRUMENTO` são recortes **agregados** dos fatos. O pacote inclui também `PUB_QUALIDADE_CAMPO`, `PUB_QUALIDADE_RELACAO` e `PUB_QUALIDADE_DUPLICIDADE`; ver [acesso](acesso-cubos-bi.md) e [indicadores publicáveis](indicadores-publicaveis-bi.md). Para levar a tabela por pesquisa e o benchmark individual à publicação, a próxima etapa é definir o grão e as regras de privacidade correspondentes.
+As colunas de duração são medidas em dias corridos. Valores ausentes não são
+convertidos em zero: a função `AVERAGE` considera somente os valores
+disponíveis, e um par de datas incompleto não representa uma duração válida.
 
-### Visuais das duas páginas demonstrativas
+## Benchmark Externo
 
-| Página/visual | Medida ou campo | Dimensão/filtro e ressalva |
+![Tela Benchmark Externo](assets/dashboard/benchmark.png)
+
+### Objetivo
+
+Permitir que uma empresa compare sua participação observada com as demais
+empresas do recorte selecionado.
+
+O termo **participação observada** é utilizado porque o painel não representa
+adesão, desempenho ou participação de mercado homologada.
+
+### Filtros
+
+| Filtro | Uso |
+| :--- | :--- |
+| Empresa | Seleciona a empresa analisada. |
+| Pesquisa | Restringe o conjunto de pesquisas. |
+| Ano | Define o período da comparação. |
+| Área | Restringe a comparação à área selecionada. |
+| Tipo | Restringe a comparação ao tipo de pesquisa selecionado. |
+
+### Indicadores e visuais
+
+| Visual | Informação apresentada |
+| :--- | :--- |
+| Pesquisas com participação | Quantidade de pesquisas com participação observada. |
+| Empresas no recorte | Quantidade de empresas observadas. |
+| Pesquisas no recorte | Quantidade de pesquisas consideradas na comparação. |
+| Perfil de participação | Participação da empresa em comparação com o benchmark por área. |
+| Evolução da participação | Comparação anual entre a empresa selecionada e o benchmark. |
+| Posição no benchmark | Distribuição das empresas por faixa de participação. |
+| Participação por pesquisa | Pesquisas, percentual agregado das demais empresas e participação da empresa selecionada. |
+
+### Base analítica
+
+A tela está alinhada ao tema do cubo C02 — Participação e Representatividade,
+com apoio dos recortes de pesquisa e tempo. A comparação utiliza
+**participação observada**, preservando a distinção em relação à medida de
+participação de mercado sujeita à homologação da fonte oficial.
+
+## Implementação técnica — Benchmark Externo
+
+No modelo semântico do report, o tema do cubo C02 é representado pela tabela
+`D02_Participacao`. O relatório também utiliza as tabelas calculadas
+`BE_Empresa`, `BE_Pesquisa` e `BE_Faixa` para representar a empresa escolhida,
+o catálogo de pesquisas e as faixas do benchmark.
+
+| Visual | Medida ou campos utilizados | Dimensões/cortes |
 | :--- | :--- | :--- |
-| Produção: cartões de pesquisas, finalizadas e em aberto | `D01_CicloPesquisa[Pesquisas]` (`DISTINCTCOUNT` de pesquisa), `Pesquisas Finalizadas`, `Pesquisas em Aberto` | Segmentadores `ano_edicao`, `area`, `tipo`, `status`, `complexidade` da própria D01. `ano_edicao` não é hierarquia de `data_solicitacao`. |
-| Produção: taxa de finalização | `Taxa de Finalização` = finalizadas / pesquisas com `DIVIDE` | Mesmo contexto D01; denominador zero gera vazio. Não é taxa de adesão. |
-| Produção: ciclo e etapas por tipo | Médias de `dias_ciclo_total_corridos`, `dias_validacao_corridos`, `dias_coleta_corridos`, `dias_tabulacao_corridos` | Tipo e demais segmentadores D01. **As medidas atuais são em dias corridos.** A solicitação de dias úteis está registrada para evolução; `AVERAGE` ignora nulos. |
-| Produção: volume por área/status | `Pesquisas` | `area` ou `status` da D01. |
-| Produção: prorrogações e tabelas | `Pesquisas Prorrogadas`; `flag_prorrogada`, título, área, tipo, status, duração, entrega | Filtro visual de `flag_prorrogada` na tabela de prorrogações. Detalhe por pesquisa só no CSV demonstrativo. |
-| Benchmark: cartões | `BE Pesquisas da empresa`, `BE Empresas observadas`, `BE Pesquisas no recorte` | `BE_Empresa[Empresa]`, `BE_Pesquisa[Pesquisa/Ano/Área/Tipo]`. Ano deriva de `data_divulgacao`, diferente do ano de edição da Produção. |
-| Benchmark: perfil por área e evolução anual | `BE % empresa por área`, `BE % demais por área`, `BE Pesquisas por ano`, `BE Média demais por ano` | Área, ano e empresa. Perfil por área é fração das pesquisas observadas da empresa distribuída entre áreas; não é taxa de adesão por área. Evolução usa contagens e média dos demais. |
-| Benchmark: faixa e detalhe | `BE Empresas por faixa`, `BE Selecionada por faixa`, `BE Percentual observado`, `BE Empresa participou`, `BE % observado Top 8` | Faixa, pesquisa e empresa. Percentual usa o conjunto de empresas registrado, sem universo de convidadas; não é participação de mercado. |
+| Pesquisas com participação | `Pesquisas com Participação` ou `BE Pesquisas por empresa` | `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]`, `BE_Empresa[Empresa]` |
+| Empresas no recorte | `BE Empresas observadas` | `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]`, `BE_Pesquisa[Área]`, `BE_Pesquisa[Tipo]` |
+| Pesquisas no recorte | `BE Pesquisas no recorte` | `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]`, `BE_Pesquisa[Área]`, `BE_Pesquisa[Tipo]` |
+| Perfil de participação | `BE % empresa por área` e `BE % demais por área` | `BE_Pesquisa[Área]`, `BE_Empresa[Empresa]` |
+| Evolução da participação | `BE Pesquisas por ano` e `BE Média demais por ano` | `BE_Pesquisa[Ano]`, `BE_Empresa[Empresa]` |
+| Posição no benchmark | `BE Empresas por faixa` e `BE Selecionada por faixa` | `BE_Faixa[Faixa]`, `BE_Empresa[Empresa]` |
+| Participação por pesquisa | `BE Percentual observado`, `BE % observado Top 8` e `BE Empresa participou` | `BE_Pesquisa[Pesquisa]`, `BE_Empresa[Empresa]` |
 
-Os JSON dos [visuais de Produção](../src/pbir%20dash/dashboard.Report/definition/pages/5d499bb7bb62646ad6e5/visuals/) e [Benchmark](../src/pbir%20dash/dashboard.Report/definition/pages/e18bd740de609936581b/visuals/) e as medidas [D01](../src/pbir%20dash/dashboard.SemanticModel/definition/tables/D01_CicloPesquisa.tmdl) e [BE](../src/pbir%20dash/dashboard.SemanticModel/definition/tables/BE_Empresa.tmdl) sustentam esse mapeamento das duas páginas apresentadas.
+O filtro de ano do Benchmark é derivado de `BE_Pesquisa[Ano]`, calculado a
+partir de `D01_CicloPesquisa[data_divulgacao]`. Os filtros de área e tipo
+também são disponibilizados por `BE_Pesquisa` e aplicados ao fato de
+participação pela chave de pesquisa.
 
-### Relacionamentos, segmentações e hierarquias
+## Relacionamentos e propagação de filtros
 
-No report de demonstração, D01 e D02 são importações independentes. `BE_Pesquisa` deriva da D01; medidas de benchmark aplicam IDs de pesquisa e empresa à D02 com `TREATAS`. `BE_Faixa` fornece limites às medidas. `KEEPFILTERS`, `REMOVEFILTERS`, `ALLSELECTED` e `HASONEVALUE` controlam o contexto. A sincronização entre páginas será conferida durante os testes de interação.
+Os fatos `D01_CicloPesquisa` e `D02_Participacao` são tabelas importadas
+independentes. Não há relacionamento fato–fato entre elas. O relacionamento
+entre a seleção do Benchmark e o fato de participação é virtual, aplicado
+pelas medidas DAX com `TREATAS`:
 
-No modelo Parquet, `DIM_AREA` filtra C01–C04; `DIM_TIPO_PESQUISA`, C01–C03; `DIM_STATUS_PESQUISA`, C01/C03; `DIM_TIPO_PERGUNTA`, C04; e `DIM_TEMPO`, o mês da resposta de C02 e o fechamento de C03. Os [relacionamentos TMDL](../powerbi/CentralPesquisasBI.SemanticModel/definition/relationships.tmdl) são muitos-para-um, com direção única da dimensão ao fato. A hierarquia de calendário atende os fatos com vínculo temporal e pode ser ampliada ao C01 quando o contrato de publicação incluir o marco de solicitação. O filtro `area` representa área de negócio. A navegação por drill-down e drill-through integra o roteiro de evolução e validação. C03 usa o último snapshot do período, preservando a semântica de estoque mensal.
+- `BE_Pesquisa[ID Pesquisa]` é aplicado sobre
+  `D02_Participacao[pesquisa_id_origem]`;
+- `BE_Empresa[ID Empresa]` é aplicado sobre
+  `D02_Participacao[empresa_id_duravel]`;
+- `BE_Faixa` fornece os limites `Minimo` e `Maximo` usados no cálculo das
+  faixas e não precisa de relacionamento físico com o fato.
 
-No modelo publicado, a média correta é `DIVIDE(SUM(soma_dias_*), SUM(qtd_*_disponivel))`, como no [TMDL de C01](../powerbi/CentralPesquisasBI.SemanticModel/definition/tables/PUB_C01_CICLO.tmdl). Médias e taxas de grupos não são somadas; reconciliam-se seus componentes. Só contagens de grupos disjuntos no mesmo grão são diretamente aditivas.
+`BE_Pesquisa` é derivada de `D01_CicloPesquisa`, enquanto `BE_Empresa` é
+derivada de `D02_Participacao`. Por isso, os filtros dessas tabelas auxiliares
+não devem ser interpretados como relacionamentos físicos tradicionais entre
+os cubos. A propagação é controlada explicitamente pelas medidas, evitando
+criar uma relação direta entre participação e ciclo que poderia duplicar ou
+alterar a granularidade dos dados.
 
-## 2. Plano de tarefas de usabilidade
+Na tela Produção e Volume, os filtros são aplicados diretamente às colunas de
+`D01_CicloPesquisa`. Na tela Benchmark, os filtros de empresa, pesquisa, ano,
+área e tipo são aplicados pelas medidas sobre o recorte de `D02_Participacao`.
+Quando uma medida precisa comparar a empresa selecionada com as demais, ela
+remove somente o filtro de empresa e preserva os demais filtros do usuário.
 
-O [roteiro moderado](usabilidade/roteiro-execucao.md) define quatro perfis exercidos, ordem, cronômetro, conclusão, desvios, erros e debrief. Os 15 cenários se dividem entre [navegação/filtros](usabilidade/tarefas-navegacao-filtros.md), [detalhamento](usabilidade/tarefas-detalhamento.md) e [comparação/segmentação](usabilidade/tarefas-comparacao-segmentacao.md).
+## Regras DAX dos indicadores
 
-| Bloco | Interação e critério observável | Condição no alvo atual |
+As medidas personalizadas implementam as regras de negócio abaixo:
+
+| Medida | Regra de cálculo |
+| :--- | :--- |
+| `Pesquisas` | Conta pesquisas distintas por `pesquisa_id_origem` no contexto atual. |
+| `Pesquisas Finalizadas` | Aplica `status = "Finalizada"` sobre `Pesquisas`. |
+| `Pesquisas em Aberto` | Considera os status `Em andamento`, `Em tabulação` e `Planejada`. |
+| `Taxa de Finalização` | Divide `Pesquisas Finalizadas` por `Pesquisas` usando `DIVIDE`, evitando erro de denominador zero. |
+| `Pesquisas Prorrogadas` | Filtra `flag_prorrogada = TRUE()` e conta pesquisas distintas. |
+| `Ciclo Médio em Dias Corridos` | Calcula a média de `dias_ciclo_total_corridos`, ignorando valores nulos. |
+| `Pesquisas com Participação` | Conta pesquisas distintas no fato `D02_Participacao`. |
+| `BE Empresas observadas` | Conta empresas distintas não nulas, removendo apenas o filtro da empresa e preservando o recorte de pesquisas. |
+| `BE Pesquisas da empresa` | Exige uma única empresa selecionada e aplica sua chave ao fato com `TREATAS`. |
+| `BE Demais empresas` | Remove a empresa selecionada e conta somente as demais empresas no mesmo recorte. |
+| `BE Percentual observado` | Divide as demais empresas pelo denominador observado do recorte; denominador zero resulta em vazio. |
+| `BE % empresa por área` | Divide as pesquisas da empresa pelo total da própria empresa nas áreas selecionadas. |
+| `BE % demais por área` | Calcula a média do percentual das demais empresas, preservando as áreas selecionadas. |
+| `BE Empresas por faixa` | Conta empresas dentro dos limites `Minimo` e `Maximo` da faixa selecionada, excluindo a empresa analisada. |
+| `BE Selecionada por faixa` | Marca a faixa que contém a quantidade de pesquisas da empresa selecionada. |
+| `BE Empresa participou` | Retorna `Sim` ou `Não` conforme exista registro da empresa na pesquisa; sem seleção única, solicita a seleção de uma empresa. |
+| `BE % observado Top 8` | Usa `RANKX` para limitar a exibição às oito pesquisas mais relevantes sem alterar a medida base. |
+
+As medidas do Benchmark usam `HASONEVALUE` para evitar interpretações sem uma
+empresa selecionada, `REMOVEFILTERS` para construir o grupo comparável,
+`KEEPFILTERS` para preservar os filtros ativos e `ALLSELECTED` para manter o
+recorte escolhido pelo usuário ao calcular denominadores e percentuais.
+
+As medidas representam participação observada no conjunto disponível. Elas não
+calculam adesão, desempenho ou participação de mercado oficial. O campo
+`pct_mercado_na_participacao` permanece fora dos indicadores oficiais até que
+a fonte autoritativa seja homologada.
+
+## Consumo dos cubos publicados
+
+O projeto também contém o
+[`CentralPesquisasBI.SemanticModel`](../powerbi/CentralPesquisasBI.SemanticModel/),
+preparado para importar a geração Parquet produzida pela ETL. A publicação
+reúne quatro recortes analíticos — C01 (ciclo), C02 (participação), C03
+(pipeline mensal) e C04 (instrumento) — e três tabelas de qualidade. O
+[manifesto da geração](acesso-cubos-bi.md) identifica os arquivos e suas contagens
+para a conferência de cada geração.
+
+Nesse modelo, as dimensões de área, tipo de pesquisa e status oferecem cortes
+compartilhados aos cubos correspondentes. A dimensão de tempo organiza o mês
+de resposta de C02 e o fechamento mensal de C03. Os relacionamentos
+[`DIM_* → PUB_*`](../powerbi/CentralPesquisasBI.SemanticModel/definition/relationships.tmdl)
+usam filtro da dimensão para o fato. A média de duração de C01 utiliza a soma
+dos dias dividida pela quantidade de durações disponíveis, preservando a
+ponderação quando o usuário combina grupos. O estoque de C03 representa o
+fechamento do período selecionado.
+
+As páginas de Produção e Benchmark usam o grão por pesquisa e empresa da
+camada de demonstração. O modelo Parquet publica agregados por categoria; essa
+separação preserva a finalidade de cada artefato e orienta a adaptação dos
+visuais à geração oficial.
+
+## Plano de tarefas de usabilidade
+
+O [roteiro de execução](usabilidade/roteiro-execucao.md) organiza 15 tarefas
+para quatro perfis de uso. As atividades reproduzem consultas típicas da
+Central e associam cada interação a um resultado observável.
+
+| Grupo de tarefas | Interação proposta | Evidência registrada |
 | :--- | :--- | :--- |
-| T-NAV/T-FIL | Abrir página, aplicar ano/área/tipo/status, combinar cortes, limpar filtro e distinguir vazio de erro; conferir cartões, gráficos e tabela no mesmo recorte | Anunciar que Produção usa ano de edição e Benchmark usa ano de divulgação. |
-| T-DET | Sair do agregado e localizar a pesquisa na tabela; explicar o valor | As tabelas das duas páginas permitem avaliar a leitura do detalhe; o roteiro inclui a evolução para drill-down temporal e drill-through entre páginas. |
-| T-CMP | Comparar períodos equivalentes e explicar medida temporal | A comparação por `data_solicitacao` será aplicada quando esse marco integrar a publicação; médias serão recalculadas com bases válidas. |
-| T-SEG | Aplicar dois ou três filtros e cruzar leitura entre cartões, gráficos e tabela | Registrar filtros, valor exibido, referência no mesmo recorte e tempo de resposta. Cruzamento **entre páginas** exige evidência própria. |
+| [Navegação e filtros](usabilidade/tarefas-navegacao-filtros.md) | Localizar o painel, selecionar ano, área, tipo e status e combinar segmentações. | Contexto selecionado, mudança dos visuais e leitura do resultado. |
+| [Detalhamento](usabilidade/tarefas-detalhamento.md) | Partir de um indicador agregado e localizar a pesquisa correspondente na tabela. | Caminho percorrido e explicação do número apresentado. |
+| [Comparação e segmentação](usabilidade/tarefas-comparacao-segmentacao.md) | Comparar períodos e aplicar recortes simultâneos. | Valores do mesmo recorte, interpretação da medida e resposta dos painéis. |
 
-Os roteiros abrangem a evolução prevista de D01–D04. Antes de cada sessão, o moderador identifica a versão do report e seleciona as tarefas correspondentes aos recursos disponíveis. As páginas de demonstração permitem avaliar a leitura da interface; a conferência dos cubos publicados usará páginas ligadas à mesma geração Parquet, o manifesto e consultas ao DuckDB no mesmo recorte.
+O plano prevê registro de conclusão, tempo, desvios, erros de interpretação e
+observações do participante. Cada sessão identifica a versão das páginas e
+os filtros utilizados, permitindo reproduzir a leitura feita pelo usuário.
 
-## 3. Execução e resultados
+## Execução e validação
 
-**Rodada 0, 25/09/2026:** as [fichas de navegação](usabilidade/execucao-navegacao-detalhamento.md) e [comparação](usabilidade/execucao-comparacao-segmentacao.md) registram a demonstração ao parceiro com dados de exemplo. O parceiro elogiou a expansão das tabelas e a leitura por tipo e sugeriu apresentar o ciclo em **dias úteis** e dar maior destaque à duração média. Esses achados orientam a evolução dos reports e as sessões moderadas.
+Em 25/09/2026, o grupo apresentou as páginas de Produção e Benchmark ao
+parceiro com dados de demonstração. O
+[registro da Rodada 0](usabilidade/execucao-navegacao-detalhamento.md)
+destaca a boa recepção das tabelas expansíveis e da leitura por tipo de
+pesquisa. O parceiro também sugeriu priorizar o tempo médio de duração e
+expressar o ciclo em dias úteis; essas sugestões orientam a evolução das
+medidas e da hierarquia visual.
 
-**Sessões S1–S4:** o roteiro e as fichas estão preparados para registrar conclusão, valores versus referência, filtros, estabilidade, latência e navegação no Power BI Desktop. As sessões constam como **próxima etapa de validação**. O [diretório de evidências](usabilidade/evidencias/) receberá capturas identificadas por sessão e recorte.
+As fichas das sessões S1–S4 estão preparadas em
+[`execucao-navegacao-detalhamento.md`](usabilidade/execucao-navegacao-detalhamento.md)
+e
+[`execucao-comparacao-segmentacao.md`](usabilidade/execucao-comparacao-segmentacao.md).
+Elas organizam a conferência dos valores exibidos com a fonte de referência,
+a resposta dos filtros, a leitura entre níveis de detalhe e o tempo de
+resposta. Para médias e percentuais, a conferência usa seus componentes no
+mesmo recorte; para C03, compara o fechamento selecionado. Os resultados
+serão consolidados nessas fichas após cada sessão.
 
-Para cada tarefa executada, registrar ID e conclusão (sim/com assistência/não), tempo, filtros e marco temporal, valor exibido, referência, reconciliação por grão, resposta dos visuais, erro/lentidão e captura. Para média ou taxa, comparar numerador e denominador, não a soma das médias ou taxas detalhadas. Falhas recebem impacto, causa sustentada por evidência e proposta no [registro de limitações](usabilidade/limitacoes-e-propostas.md).
+## Qualidade técnica e funcional
 
-## 4. Avaliação técnica, visual e pendências
+A solução reúne identidade visual consistente, filtros agrupados, cartões de
+síntese, gráficos de distribuição e tabelas de acompanhamento. Os dois temas
+analíticos atendem a perguntas distintas: Produção e Volume acompanha o ciclo
+das pesquisas; Benchmark Externo compara a participação observada da empresa
+selecionada com o conjunto disponível.
 
-| Critério | Evidência atual | Estado |
-| :--- | :--- | :--- |
-| Cubos, dimensões e medidas | Medidas DAX nas páginas e modelo de consumo dos cubos publicado em TMDL | **Implementado nos respectivos modelos**; integração das páginas é a próxima etapa |
-| Plano de usabilidade | Roteiro, perfis, 15 cenários e fichas | **Preparado para execução** |
-| Precisão e validação funcional | Demonstração ao parceiro e roteiro de conferência por recorte | **Sessões moderadas e conciliação previstas no plano** |
-| Clareza visual e interação | Duas páginas e [capturas](assets/dashboard/); retorno positivo sobre tabelas e leitura por tipo | **Apresentado ao parceiro**; critérios de acessibilidade integram o roteiro |
-| Arquitetura analítica | Modelo Parquet com dimensões conformadas e report de demonstração | **Contratos e modelos definidos**; integração visual é a próxima etapa |
+A qualidade técnica é acompanhada pelo vínculo entre cada visual, sua medida
+DAX e o recorte aplicado. A qualidade funcional é acompanhada pelas tarefas
+de navegação, detalhamento e comparação, com conferência de valores e registro
+das observações em [`docs/usabilidade/`](usabilidade/). As evoluções
+identificadas nas sessões são tratadas em
+[`limitacoes-e-propostas.md`](usabilidade/limitacoes-e-propostas.md).
 
-**Próximas etapas:** conectar páginas finais à mesma geração Parquet e adaptar os visuais ao grão publicado, ou aprovar publicação detalhada com os controles de privacidade correspondentes; definir calendário de dias úteis e feriados; ampliar a navegação temporal e por detalhe; executar S1–S4, conferir valores e verificar a interação no Power BI Desktop.
+## Acessibilidade e identidade visual
 
-**Evidências a registrar na próxima rodada:** geração Parquet e manifesto usados pelas páginas; regra de divulgação por pesquisa/empresa; convenção de dias úteis; fichas S1–S4 com precisão, granularidade, filtros, desempenho e erros; resultados das telas de instrumento e qualidade conforme o escopo de D03–D04. O planejamento das quatro telas está em [`solucao-dashboards/`](solucao-dashboards/).
+As telas utilizam uma identidade visual única, com navegação lateral, títulos
+descritivos, filtros agrupados e hierarquia visual consistente. Os indicadores
+foram organizados para que o usuário consiga identificar o contexto antes de
+interpretar os valores.
+
+Foram priorizados os seguintes critérios:
+
+- títulos que descrevem o conteúdo do visual;
+- rótulos que preservam o significado original das medidas;
+- unidades e períodos identificáveis;
+- contraste entre texto, fundo e elementos gráficos;
+- tabelas para leitura dos valores detalhados;
+- indicação textual para resultados bloqueados ou indisponíveis;
+- ordem de leitura coerente entre filtros, indicadores e visuais.
+
+A verificação final de contraste, foco e navegação por teclado deve ser
+realizada no Power BI Desktop com as telas finais abertas, pois esses aspectos
+dependem também da renderização do ambiente.
+
+## Integração com a camada Gold
+
+O layout e a organização das páginas foram apresentados com uma camada de
+dados de demonstração em CSV, adequada à validação da composição, dos filtros
+e da leitura dos indicadores. O repositório também disponibiliza o modelo
+semântico de consumo dos cubos publicados em Parquet, descrito em
+[`acesso-cubos-bi.md`](acesso-cubos-bi.md). A integração das páginas a uma
+geração publicada é a etapa seguinte do report analítico.
+
+## Referência de estrutura
+
+A seleção das páginas, filtros, visuais e indicadores está detalhada em
+[`estrutura-dashboards.md`](solucao-dashboards/estrutura-dashboards.md), que consolida a relação
+entre os relatórios do parceiro, os cubos analíticos e a finalidade de cada
+tela.
