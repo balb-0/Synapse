@@ -6,10 +6,8 @@ evidência apontada** (link ou âncora); item que depende de entrega pendente
 fica **parcial**, com o que falta declarado — o estado de cada um reflete a
 data da conferência.
 
-**Data da revisão:** 25/09/2026. O checklist abaixo era o planejamento de
-23/09. O estado verificado dos artefatos atuais consta em
-[`solucao_dashboard.md`](../solucao_dashboard.md); nenhum item de
-implementação/validação passa a atendido somente pela existência do plano.
+**Conferência atualizada em 25/09/2026.** A descrição das páginas e do modelo
+analítico está em [`solucao_dashboard.md`](../solucao_dashboard.md).
 
 ## Checklist
 
@@ -22,7 +20,7 @@ implementação/validação passa a atendido somente pela existência do plano.
 | Plano de tarefas de validação | [`plano-execucao-avaliacao.md` §1](plano-execucao-avaliacao.md) e os cinco documentos de [`docs/usabilidade/`](../usabilidade/) (15 tarefas + roteiro com participantes e métricas) | **Atendido** |
 | Validação funcional | Critérios de aceite por RF (§6.1.1 do [`projeto.md`](../projeto.md)) e testes de usuário (§6.1.2); execução de usabilidade com fichas prontas ([execução §2](plano-execucao-avaliacao.md)) | **Parcial** — critérios e fichas prontos; sessões aguardam RP-08 |
 | Qualidade visual dos reports | Critérios objetivos em [`plano-execucao-avaliacao.md` §4](plano-execucao-avaliacao.md); protótipo já demonstra WCAG AA, tabela equivalente, reflow 320px e rótulos honestos ([README do protótipo](../assets/prototipos-dashboards/README.md)) | **Parcial** — demonstrado no protótipo; a reverificar nas telas finais |
-| Aderência à arquitetura analítica | Visual→cubo previsto na [Tabela 1 da implementação](implementacao-reports.md); o PBIP demonstrativo usa CSVs sintéticos e o modelo Parquet é agregado ([estado verificado](../solucao_dashboard.md)) | **Parcial** — páginas finais conectadas aos Parquet ainda sem evidência |
+| Aderência à arquitetura analítica | Visual→cubo previsto na [Tabela 1 da implementação](implementacao-reports.md); as páginas demonstram a interface e o modelo Parquet define o consumo agregado ([detalhes](../solucao_dashboard.md)) | **Parcial** — integração das páginas à geração publicada é a próxima etapa |
 
 <sup>Material produzido pelos autores (2026)</sup>
 
