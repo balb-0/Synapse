@@ -79,9 +79,11 @@ documento principal.
 - Visões ISO/IEC 10746: [negócio](visao-negocio-etl.md) (AN-04), [informação](visao-informacao-etl.md) (AN-05), [computacional](visao-computacional-etl.md) (AN-06), [engenharia](visao-engenharia-etl.md) (AN-07) e [tecnologia](visao-tecnologia-etl.md) (AN-08).
 - Diagramas UML em [`assets/uml/`](assets/uml/): [casos de uso](assets/uml/casos-de-uso-etl.plantuml) (AN-09), [componentes](assets/uml/componentes-etl.plantuml) (AN-10) e [sequência da ingestão](assets/uml/sequencia-ingestao-etl.plantuml) (AN-11).
 
-As visões descrevem o estado observado no repositório. Capacidade decidida e
-ainda não integrada — observabilidade, adaptador de eventos e consolidação do
-CI — aparece marcada como planejada, nunca como implementada.
+As visões descrevem o estado observado no repositório em 25/09/2026.
+Observabilidade (Elastic Stack, painel, health check e alertas), disparo por
+evento (`watch_landing.py`), camada analítica e CI consolidado estão
+integrados; permanece marcado como planejado apenas o que não existe no código
+(por exemplo, a área `bronze` do MinIO e a publicação em serviço Power BI).
 
 ## Evidências e protótipos
 

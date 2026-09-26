@@ -1,5 +1,18 @@
 # Inventário da orquestração e requisitos operacionais descobertos
 
+> **Situação em 25/09/2026:** este inventário é a fotografia de abertura da
+> Sprint 4 (OQ-01). Todas as lacunas abaixo foram fechadas pelas tasks OQ-02 a
+> OQ-10: `prefect-server` com UI, volume e `/api/health` no Compose; `scheduler`
+> com `restart: unless-stopped`; `prefect.yaml` com os deployments `manual` e
+> `backfill`; `retries` com `_should_retry` em `extract`, `transform` e `load`
+> (`tests/orchestration/test_retry_reexecucao.py`); disparo por evento em
+> `scripts/orchestration/watch_landing.py`; `_build_references` pela interface
+> pública `fetch_compatibility_records` (sem `repo._conn`); `requirements.txt`
+> com versões exatas; relatório JUnit (`xmlrunner` + `reports:junit`) no CI; e
+> smoke registrado em [`smoke-orquestracao-sprint4.md`](smoke-orquestracao-sprint4.md).
+> O estado corrente de cada requisito está em
+> [`requisitos-operacionais-etl.md`](requisitos-operacionais-etl.md#estado-verificado-em-25092026).
+
 Matriz que liga cada requisito operacional da Sprint 4 (orquestração servida,
 agendamento, reexecução, disparo por evento e dívida técnica) a uma evidência
 executável no `develop` ou a uma lacuna declarada. Base: os requisitos

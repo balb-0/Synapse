@@ -125,7 +125,7 @@ ou metadado.
 | DR01 | Universo elegível de empresas e pessoas | I08 e I11 permanecem indisponíveis sem denominador. | Pendente de fonte e regra do parceiro. |
 | DR02 | Fonte autoritativa de participação de mercado | Divergências bloqueiam a homologação de I09. | Pendente de decisão do parceiro. |
 | DR03 | Ponte entre participação, pessoa e elemento de resposta | Impede afirmar respondentes únicos entre fontes. | Pendente de reconciliação. |
-| DR04 | Metadados de carga, catálogo, versão, autorização e logs | Limita I15 e I21–I25. | Depende de integração futura. |
+| DR04 | Metadados de carga, catálogo, versão, autorização e logs | Limita I15 e I21–I25. | Metadados de carga e execução entregues (`_batch_metadata`, `_control_object`, `_checkpoint`, views de execução e reconciliação, `DIM_EXECUCAO_CARGA`, `manifest.json`, telemetria na Elastic Stack); catálogo operacional, versão do questionário, autorização e logs de acesso ao consumo dependem de integração futura. |
 | DR05 | Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo | Define a implementação e os controles operacionais. | Proposta da equipe a validar. |
 | DR06 | Campos incompletos, inválidos ou identificáveis | Exigem tratamento, minimização e controle antes de detalhar ou exportar. | Risco observado, condicionado à governança. |
 
@@ -219,9 +219,13 @@ resultado deve ser indisponível, nunca zero estimado.
 
 ### 2.11 Maturidade
 
-**Estado observado:** fontes fragmentadas, cruzamentos e atualizações manuais,
-linhagem parcial e ausência de catálogo operacional, timestamps de carga,
-política homologada e logs de acesso.
+**Estado observado na origem:** fontes fragmentadas, cruzamentos e
+atualizações manuais e ausência de catálogo operacional, política homologada e
+logs de acesso.
+
+**Estado entregue pelo pipeline (ambiente local):** contratos versionados,
+timestamps e linhagem de carga por execução e lote, reconciliação auditável e
+telemetria centralizada na Elastic Stack.
 
 **Estado-alvo proposto:** fonte integrada e governada, com contratos
 versionados, execução rastreável, qualidade mensurada e decisões de acesso e
@@ -357,8 +361,17 @@ determinística pendente de homologação.
 `ano_edicao` fica indisponível; família derivada exige homologação; o cubo não
 recebe detalhe individual de respondentes.
 
-**Histórico/SCD:** usar SCD2 somente após aprovação das regras; manter chave
-durável, chave de origem, início/fim de vigência, versão e linhagem de carga.
+**Histórico/SCD (por atributo):**
+
+| Atributo | Política nesta entrega | Histórico |
+| :--- | :--- | :--- |
+| `DIM_PESQUISA.titulo`, `DIM_PESQUISA.objetivos` | SCD1 (valor corrente) | Correção editorial sem valor histórico |
+| `DIM_STATUS_PESQUISA.status` | Domínio (tipo 0); o fato aponta para o status corrente | Preservado mês a mês pelo `FATO_PIPELINE_MENSAL` (C03), sem reconstruir transições ausentes |
+| `DIM_AREA.area`, `DIM_TIPO_PESQUISA.tipo` | Domínio (tipo 0); o fato aponta para o valor corrente | Candidatos a SCD2 com início/fim de vigência e fonte da mudança, somente após regra de reclassificação aprovada pelo parceiro |
+| `DIM_PERFIL_PESQUISA.complexidade`, `tipo_resposta` | Domínio (tipo 0) | Sem histórico previsto |
+
+Chave durável (`pesquisa_id`), chave de origem e linhagem de carga
+(`sk_carga`) são mantidas em todos os casos.
 
 #### Otimização e governança do C01
 
@@ -687,6 +700,17 @@ recorte atual. Uma possível reutilização futura não as torna conformadas hoj
 | PB12 | RF12 | I17, I19, I21, I24 | Perfilamento de qualidade e governança | D04 |
 | PB13 | RF13 | I14, I15 | C04; metadados de versão e validação dependem de integração | D03 |
 
+#### Delimitação formal de PB10 e PB13
+
+| Pergunta | Atendido nesta entrega | Estrutura de extensão (contrato) | Vínculos permitidos | Bloqueio |
+| :--- | :--- | :--- | :--- | :--- |
+| PB10 (I12, I13) | Associação pesquisa–pergunta no C04 (`FATO_PESQUISA_PERGUNTA`) e cobertura do instrumento | `FATO_RESPOSTA_AGREGADA`: grão pesquisa × pergunta × categoria; medidas `qtd_elementos_validos` e `qtd_respondentes_distintos` (distintos de `respondent_id` na própria fonte de respostas) | `DIM_PESQUISA` e `DIM_PERGUNTA` por (`pesquisa_id`, `pergunta_id`) | Sem vínculo a pessoa, empresa ou participação do C02: `respondent_id` não tem ponte homologada com `cliente_id`; segmentos só com ponte aprovada |
+| PB13 (I15) | I14 (perguntas por pesquisa) no C04 | `DIM_VERSAO_QUESTIONARIO`: `versao_id`, `pesquisa_id`, `numero_versao`, `area_revisora`, `estado_validacao`, `decidido_em`, `fonte_decisao`, referenciada pelo C04 como `sk_versao` | `DIM_PESQUISA` | Nenhuma fonte atual fornece versão, área revisora, decisão ou timestamp; I15 aparece como bloqueado, sem estado inferido |
+
+Os dois casos são **atendimento parcial declarado**, não capacidades atuais: I12,
+I13 e I15 não estão na geração Parquet publicada e constam em
+`DIM_INDICADORES_BLOQUEADOS` do modelo semântico.
+
 ## 5. Táticas arquiteturais
 
 ### 5.1 Idempotência por conteúdo e checkpoint tardio
@@ -779,20 +803,20 @@ incremental técnico é a versão do objeto e seu SHA-256.
 | Camada | Conteúdo | Produzida por |
 | :--- | :--- | :--- |
 | Landing/raw no MinIO | Objeto recebido, imutável, identificado por versão e hash | Publicador da fonte ou futuro coletor de API |
-| Bronze no MinIO | Representação intermediária preservada por execução/lote | Extratores Python |
+| Bronze no MinIO | **Prevista, não implementada**: a extração lê landing/raw e grava direto na ingestão tratada | — |
 | Ingestão tratada no DuckDB | Registros tipados e tecnicamente conformes, com metadados | Transformação e repositório de carga |
 | Rejeição/quarentena | Referência à origem, regra violada e estado de tratamento; acesso restrito | Transformação |
 | Controle e reconciliação | Execuções, hashes, checkpoints, contagens e decisões de carga | Orquestração e carga |
-| Dimensional/consumo | Fatos, dimensões e agregações autorizadas dos quatro cubos | Evolução posterior à ingestão homologada |
+| Dimensional/consumo | `DIM_*` e `FATO_*` de C01–C04 no DuckDB e geração Parquet agregada (4 `PUB_C0x` + 3 `PUB_QUALIDADE_*`) | `src/etl/analytics` (implementado); publicação externa condicionada à política de acesso |
 
 ### 6.3 Orquestração
 
 | Campo | Definição |
 | :--- | :--- |
 | Orquestrador | Prefect como plano de controle; regras de negócio permanecem em Python. |
-| Frequência | Por evento de criação do objeto; schedule adicional somente após definição da janela operacional. |
-| Janela de execução | Parametrizada no deployment; não há SLA ou horário homologado pelo parceiro. |
-| Dependências | MinIO → verificação do hash → extração → bronze → transformação/quarentena → DuckDB → reconciliação → checkpoint. |
+| Frequência | Implementadas no ambiente local: disparo por evento `s3:ObjectCreated` (`watch_landing.py`, webhook ou polling) e agenda diária `0 3 * * *` (`ingest-object/agendado`, serviço `scheduler`); manual e backfill pelos deployments `manual` e `backfill`. |
+| Janela de execução | Agenda diária às 03:00 no deployment servido; SLA e horário produtivos pendentes de homologação pelo parceiro. |
+| Dependências | MinIO landing → verificação do hash → extração com posição absoluta → transformação/quarentena (identidade decidida por objeto) → DuckDB → reconciliação por lote → checkpoint → objeto concluído → carga analítica C01–C04 → Parquet publicado. |
 
 ### 6.4 Carga e reprocessamento
 
@@ -818,30 +842,33 @@ incremental técnico é a versão do objeto e seu SHA-256.
 
 | Campo | Definição |
 | :--- | :--- |
-| Métricas coletadas | Duração, recebidos, carregados, rejeitados, duplicados, bytes, tentativas, latência e estado por etapa. |
-| Alertas | Falha permanente, retries esgotados, timeout, divergência de reconciliação e indisponibilidade dos serviços essenciais. |
-| Linhagem | `run_id`, `task_id`, `event_id`, fonte, bucket, objeto, versão, hash, lote, schema e timestamps. |
-| Custo estimado | Deve separar processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção. Valor monetário permanece indisponível sem volume futuro, frequência, ambiente e retenção aprovados. |
+| Métricas coletadas | Implementadas: duração, recebidos, carregados, rejeitados, duplicados, bytes, tentativas, latência e estado por etapa, em eventos JSON das quatro etapas coletados pela Elastic Stack e exibidos no painel Kibana. |
+| Alertas | Implementados no ambiente local: "ETL - falha de execução" (erro do pipeline ou health check degradado de Prefect/DuckDB) e "ETL - fila parada" (26 h sem evento de orquestração); divergência de reconciliação interrompe o lote (`UnbalancedLoadError`). |
+| Linhagem | `run_id`, `task_id`, fonte, bucket, objeto, versão, hash, lote, `source_offset`, schema e timestamps; o `event_id` do disparo compõe o `run_id` (ADR 0008). |
+| Custo estimado | Estimativa paramétrica em [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md): local medido com custo incremental zero; piloto e produção projetados por componente (processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção). Valores projetados não são cotação. |
 
 ### 6.7 Fluxo ponta a ponta
 
 ```mermaid
 flowchart LR
     A[Arquivos ou APIs] -->|publicam objeto| B[MinIO landing/raw]
-    B -->|s3:ObjectCreated| C[Adaptador de eventos]
-    C --> P[Deployment Prefect]
+    B -->|s3:ObjectCreated| C[watch_landing webhook ou polling]
+    S[Scheduler cron 0 3] --> P
+    C --> P[Flow Prefect ingest-object]
     P --> H[Verificação SHA-256]
     H --> I{Já concluído?}
     I -->|sim| J[Registrar ignorado]
     I -->|não| E[Extrator Python]
-    E --> F[MinIO bronze]
-    F --> T[Transformações essenciais]
+    E --> T[Transformações essenciais]
     T --> V{Registro válido?}
     V -->|sim| D[DuckDB ingestion]
     V -->|não| Q[DuckDB rejected]
     D --> R[Reconciliação]
     Q --> R
     R --> K[Confirmar checkpoint e hash]
+    K --> AN[Carga analítica C01-C04]
+    AN --> PQ[Parquet publicado]
+    PQ --> BI[Power BI]
     P -. logs .-> L[Logstash]
     E -. logs .-> L
     T -. logs .-> L

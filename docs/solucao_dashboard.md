@@ -79,9 +79,9 @@ As colunas de duração são medidas em dias corridos. Valores ausentes não sã
 convertidos em zero: a função `AVERAGE` considera somente os valores
 disponíveis, e um par de datas incompleto não representa uma duração válida.
 
-## Benchmark Externo
+## Benchmark Externo — V2
 
-![Tela Benchmark Externo](assets/dashboard/benchmark.png)
+![Tela Benchmark Externo — V2](assets/dashboard/benchmark.png)
 
 ### Objetivo
 
@@ -120,7 +120,7 @@ com apoio dos recortes de pesquisa e tempo. A comparação utiliza
 **participação observada**, preservando a distinção em relação à medida de
 participação de mercado sujeita à homologação da fonte oficial.
 
-## Implementação técnica — Benchmark Externo
+## Implementação técnica — Benchmark Externo — V2
 
 No modelo semântico do report, o tema do cubo C02 é representado pela tabela
 `D02_Participacao`. O relatório também utiliza as tabelas calculadas
@@ -129,7 +129,7 @@ o catálogo de pesquisas e as faixas do benchmark.
 
 | Visual | Medida ou campos utilizados | Dimensões/cortes |
 | :--- | :--- | :--- |
-| Pesquisas com participação | `Pesquisas com Participação` ou `BE Pesquisas por empresa` | `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]`, `BE_Empresa[Empresa]` |
+| Pesquisas com participação | `BE Pesquisas da empresa` (rótulo do cartão: "Pesquisas com participação") | `BE_Empresa[Empresa]`, `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]` |
 | Empresas no recorte | `BE Empresas observadas` | `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]`, `BE_Pesquisa[Área]`, `BE_Pesquisa[Tipo]` |
 | Pesquisas no recorte | `BE Pesquisas no recorte` | `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]`, `BE_Pesquisa[Área]`, `BE_Pesquisa[Tipo]` |
 | Perfil de participação | `BE % empresa por área` e `BE % demais por área` | `BE_Pesquisa[Área]`, `BE_Empresa[Empresa]` |
@@ -227,7 +227,28 @@ camada de demonstração. O modelo Parquet publica agregados por categoria; essa
 separação preserva a finalidade de cada artefato e orienta a adaptação dos
 visuais à geração oficial.
 
-## Plano de tarefas de usabilidade
+## Hierarquias, drill-down e drill-through
+
+| Recurso | Onde está implementado | Estado |
+| :--- | :--- | :--- |
+| Hierarquia temporal Ano → Trimestre → Mês | `DIM_TEMPO.Calendario` no [modelo de consumo](../powerbi/CentralPesquisasBI.SemanticModel/definition/tables/DIM_TEMPO.tmdl), ligada a C02 (mês de resposta) e C03 (fechamento mensal) | Implementado no modelo semântico |
+| Hierarquia Área → Tipo → Perfil | `PUB_C03_PIPELINE_MENSAL.'Area, Tipo e Perfil'` no [modelo de consumo](../powerbi/CentralPesquisasBI.SemanticModel/definition/tables/PUB_C03_PIPELINE_MENSAL.tmdl) | Implementado no modelo semântico |
+| Filtro cruzado entre visuais | Gráficos "Pesquisas por status" e "Volume por área" filtram os demais visuais de Produção e Volume (cross-highlight) | Implementado nas páginas |
+| Do agregado ao detalhe | Selecionar status ou área filtra a tabela "Acompanhamento das pesquisas", que mostra a pesquisa individual; em Benchmark, a tabela "Participação por pesquisa" detalha o recorte dos cartões | Implementado nas páginas |
+| Drill-down por nível hierárquico e drill-through para página de detalhe | Dependem das hierarquias acima, disponíveis no modelo de consumo | Não implementado nas páginas de demonstração; previsto para a Sprint 5 |
+
+As duas páginas usam colunas planas das tabelas de demonstração
+(`D01_CicloPesquisa`, `D02_Participacao`, `BE_*`). Por isso, o detalhamento é
+feito por filtro cruzado e tabela de detalhe, e não por drill hierárquico.
+**Atendimento parcial delimitado:** a navegação por nível (Ano → Trimestre →
+Mês, Área → Tipo → Perfil) e o drill-through serão concluídos na **Sprint 5**, quando as páginas forem
+ligadas à geração Parquet (ver [Integração com a camada Gold](#integração-com-a-camada-gold)).
+As tarefas T-DET de [`tarefas-detalhamento.md`](usabilidade/tarefas-detalhamento.md)
+estão escritas para os dois modos. Para medidas não aditivas, a coerência
+entre níveis é verificada pelos componentes da medida (numerador e
+denominador). Estoque mensal não é somado entre meses.
+
+
 
 O [roteiro de execução](usabilidade/roteiro-execucao.md) organiza 15 tarefas
 para quatro perfis de uso. As atividades reproduzem consultas típicas da
@@ -276,6 +297,19 @@ DAX e o recorte aplicado. A qualidade funcional é acompanhada pelas tarefas
 de navegação, detalhamento e comparação, com conferência de valores e registro
 das observações em [`docs/usabilidade/`](usabilidade/). As evoluções
 identificadas nas sessões são tratadas em
+[`limitacoes-e-propostas.md`](usabilidade/limitacoes-e-propostas.md).
+
+## Limitações e propostas
+
+| Limitação | Análise crítica | Proposta |
+| :--- | :--- | :--- |
+| Páginas sobre CSV de demonstração, não sobre a geração Parquet | Os valores validam a composição e a leitura das páginas, mas não a precisão contra os cubos publicados | Sprint 5: ligar as páginas ao `CentralPesquisasBI.SemanticModel` e conferir cada visual com o `manifest.json` |
+| Sem drill hierárquico nas páginas | O usuário chega ao detalhe por filtro cruzado, mas não desce um nível temporal ou de área | Sprint 5: trocar os eixos pelas hierarquias `Calendario` e `Area, Tipo e Perfil` e criar uma página de drill-through por pesquisa |
+| Ciclo apresentado em dias corridos | O parceiro pediu dias úteis na Rodada 0, e as duas métricas não são equivalentes | Incluir o calendário de dias úteis no C01 e rotular a unidade em cada visual |
+| Sessões moderadas S1–S4 ainda não executadas | Só a Rodada 0 (retorno do parceiro) tem resultados; ainda não há medidas de tempo nem de taxa de sucesso | Sprint 5: executar S1–S4 com as fichas preparadas depois da ligação ao Parquet |
+| Participação de mercado sem fonte homologada | Publicá-la como indicador seria incorreto | Manter como "participação observada" até a homologação (DR02) |
+
+O detalhamento das limitações L01–L08 e das encontradas nas sessões está em
 [`limitacoes-e-propostas.md`](usabilidade/limitacoes-e-propostas.md).
 
 ## Acessibilidade e identidade visual

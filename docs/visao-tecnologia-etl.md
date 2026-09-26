@@ -25,8 +25,10 @@ As decisões que justificam cada escolha estão em
 | Testes | `unittest` (biblioteca padrão) | Acompanha o Python | `tests/` | Em uso |
 | Cobertura | `coverage` | `==7.16.0` | `requirements-transformation-dev.txt` | Em uso no CI |
 | Lint e formatação | `ruff` | `==0.16.6` | `requirements-transformation-dev.txt` | Em uso no CI |
+| Relatório de testes | `unittest-xml-reporting` (xmlrunner) | `==3.2.0` | `requirements-transformation-dev.txt` | Em uso no CI |
 | Integração contínua | GitLab CI | — | `.gitlab-ci.yml` | Em uso |
-| Observabilidade | Elastic Stack (Logstash, Elasticsearch, Kibana) | — | [ADR 0001](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | **Decidida, não integrada** |
+| Observabilidade — coletor | Logstash + Elasticsearch | `8.15.0` | `docker-compose.yml`, `observability/logstash/pipeline/etl.conf` | Em uso (OB-07) |
+| Observabilidade — painel | Kibana | `8.15.0` | `docker-compose.yml`, `observability/kibana/painel-operacional.ndjson` | Em uso (OB-08) |
 | Contêineres | Docker e Docker Compose | — | `Dockerfile`, `docker-compose.yml` | Em uso |
 
 O repositório **não tem** `pyproject.toml`, `setup.py` nem `setup.cfg`. O pacote
@@ -38,15 +40,15 @@ comandos de teste.
 | Categoria | Fonte canônica | Política observada | Reprodutibilidade |
 | :--- | :--- | :--- | :--- |
 | Runtime Python | `Dockerfile` e `.gitlab-ci.yml` | imagem `python:3.12-slim` | Versão menor fixa; digest da imagem não fixado |
-| Bibliotecas de execução | `requirements.txt` | faixas compatíveis | Não produz ambiente idêntico sem lock |
+| Bibliotecas de execução | `requirements.txt` | versões exatas (`==`) | Mesmas versões no CI e no runner |
 | Ferramentas de qualidade | `requirements-transformation-dev.txt` | `coverage==7.16.0`, `ruff==0.16.6` | Versões exatas |
 | Serviços MinIO | `docker-compose.yml` | tags `latest` | Não reprodutível por versão |
+| Elastic Stack | `docker-compose.yml` | `8.15.0` | Versão exata |
 
-O card OQ-09 é responsável por fixar as dependências de execução. Enquanto essa
-alteração não estiver integrada, esta visão registra as faixas e tags reais em
-vez de declarar versões exatas inexistentes. Depois da integração, a tabela
-deve ser conferida diretamente contra os arquivos, sem duplicar um lock manual
-neste documento.
+O card OQ-09 fixou as dependências de execução com `==` em `requirements.txt`;
+o validador `scripts/architecture/validate_architecture_docs.py`, executado no
+CI, falha se uma versão desta visão divergir do arquivo. As imagens do MinIO
+continuam em `latest` e são o único ponto não fixado da pilha.
 
 ## Protocolos
 
@@ -55,27 +57,32 @@ neste documento.
 | API S3 sobre HTTP | Leitura e escrita de objetos no MinIO | `MinioObjectReader`, scripts de orquestração |
 | HTTPS | Derivado do esquema do endpoint; `secure=True` apenas com `https` | `_minio_client` em [`flow.py`](../src/etl/orchestration/flow.py) |
 | SQL | Consulta e escrita no banco de ingestão | [`ddl.py`](../src/etl/load/ddl.py), [`duckdb_repository.py`](../src/etl/load/duckdb_repository.py) |
-| Webhook HTTP | Notificação `s3:ObjectCreated` do MinIO ao adaptador | **Planejado** (ADR 0001) |
+| Webhook HTTP | Notificação `s3:ObjectCreated` do MinIO ao adaptador | `scripts/orchestration/watch_landing.py` |
+| GELF sobre UDP | Envio do stdout JSON dos contêineres ao Logstash | driver `gelf` no `docker-compose.yml` |
+| HTTP (API Prefect) | Estados, logs e health check `/api/health` | `prefect-server`, `etl.orchestration.health` |
 | Cron | Agendamento do deployment | `scripts/orchestration/deployment.py` |
 
 ### Padrão de observabilidade ratificado
 
 O padrão separa produção de sinais, transporte e consumo. Eventos de extração,
-carga e orquestração usam logging estruturado com correlação; métricas e traces
-devem preservar `run_id`, `task_id`, `batch_id` e `source` sem incluir registros
-de negócio ou segredos.
+transformação, carga e orquestração usam logging JSON com correlação por
+`run_id`, `task_id`, `batch_id` e `source`, sem registros de negócio ou
+segredos (ADR 0006 e 0008). Métricas de tempo, volume, status, retry,
+latência e disponibilidade são campos desses eventos, agregados no Kibana; a
+escolha da Elastic Stack em vez de Prometheus/OpenTelemetry está justificada no
+ADR 0001 e ratificada no ADR 0008.
 
 | Camada | Tecnologia/contrato | Situação verificável |
 | :--- | :--- | :--- |
-| Produção | `logging` Python, `ExtractionBatchLogEvent`, `LoadBatchLogEvent`, estados Prefect | Implementada |
-| Serialização | JSON com campos técnicos e contagens | Implementada para eventos de lote |
-| Transporte | saída do processo para coletor compatível | Não configurado em `docker-compose.yml` |
-| Armazenamento | Elasticsearch | Decidido, não integrado |
-| Consulta e painel | Kibana | Decidido, não integrado |
-| Alertas | regra sobre falha, retry esgotado e health check | Não versionada na base auditada |
+| Produção | `logging` Python, `ExtractionBatchLogEvent`, `TransformationBatchLogEvent`, `LoadBatchLogEvent`, marcos `orchestration.*`, estados Prefect | Implementada |
+| Serialização | JSON (`etl.orchestration.logging_config`, `observability/prefect-logging.yml`) | Implementada nas quatro etapas |
+| Transporte | stdout → driver GELF → Logstash (`observability/logstash/pipeline/etl.conf`) | Implementado no `docker-compose.yml` |
+| Armazenamento | Elasticsearch, índice `etl-logs-*` | Implementado |
+| Consulta e painel | Kibana, `observability/kibana/painel-operacional.ndjson` | Implementado |
+| Alertas | regras "falha de execução" e "fila parada" sobre `etl-logs-*` | Especificadas no runbook; criadas manualmente no Kibana |
 
-Assim, “padrão ratificado” significa contrato tecnológico escolhido e emissão
-local existente; não significa que Elastic Stack esteja executando em produção.
+O ambiente é local: a Elastic Stack roda sem autenticação e sem política de
+retenção, e não há implantação em produção nem Deploy Contínuo.
 
 ## Formatos
 
@@ -84,7 +91,10 @@ local existente; não significa que Elastic Stack esteja executando em produçã
 | CSV com separador `;`, UTF-8 com BOM | As seis fontes de origem |
 | JSON | Log estruturado, serialização de listas na carga e [`dmc.json`](dmc.json) |
 | SQL | Contrato físico versionado em `sql/duckdb/001_ingestao_tratada.sql` |
-| Cobertura (XML) | Artefato `coverage-transformation.xml` do CI |
+| Cobertura (XML) | Artefato `coverage-etl.xml` do CI (Cobertura) |
+| JUnit (XML) | Artefato `test-reports/*.xml` do CI (`reports:junit`) |
+| Parquet | Geração publicada dos cubos (`PUB_*.parquet`) e `manifest.json` |
+| TMDL/PBIR | Modelo semântico e relatório Power BI versionados |
 | PlantUML e Mermaid | Diagramas em [`assets/uml/`](assets/uml/) e embutidos nas visões |
 
 ## Integração contínua
@@ -98,18 +108,24 @@ estágios.
 | Imagem | `python:3.12-slim` |
 | Variáveis | `PYTHONPATH: src`, `PIP_DISABLE_PIP_VERSION_CHECK: "1"` |
 | Gatilhos | Eventos de merge request e qualquer branch com commit |
-| Artefato | `coverage-etl.xml`, publicado como relatório Cobertura |
+| Artefato | `coverage-etl.xml` (relatório Cobertura) e `test-reports/` (relatório JUnit por caso de teste) |
+| Bloqueio | Qualquer falha de lint, formatação, validação, teste ou cobertura abaixo de 85% reprova o job |
 
 Passos executados, na ordem:
 
 1. `lint`: `pip install -r requirements-transformation-dev.txt`,
    `ruff check src scripts tests` e `ruff format --check src scripts tests`
 2. `test`: `pip install -r requirements.txt -r requirements-transformation-dev.txt`,
+   `python scripts/architecture/validate_architecture_docs.py`,
    `python scripts/transformation/render_schema.py --check`,
-   `coverage run --branch --source=etl -m unittest discover -s tests -v`,
+   `coverage run --branch --source=etl -m xmlrunner discover -s tests -o test-reports -v`,
    `coverage report --fail-under=85` e `coverage xml -o coverage-etl.xml`
 
-A configuração do `ruff` está em `ruff.toml`:
+O `ruff` cumpre o papel de análise estática que o enunciado exemplifica com
+flake8/pylint: aplica as regras do pyflakes (`F`), os erros de sintaxe e de
+comando do pycodestyle (`E4`, `E7`, `E9`) e a ordenação de imports (`I`) num
+único binário, mais rápido e com formatação
+integrada. A configuração do `ruff` está em `ruff.toml`:
 `target-version = "py312"` e `line-length = 100`. O lint de transformação
 legado (`ruff-transformation.toml`) foi absorvido pelo pipeline consolidado.
 

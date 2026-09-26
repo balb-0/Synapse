@@ -633,10 +633,11 @@ A pilha do pipeline foi decidida na Sprint 3 e registrada no
 [ADR 0001](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md): Python no
 plano de dados, Prefect no plano de controle, MinIO como entrada de objetos,
 DuckDB como banco de ingestão tratada e Elastic Stack como plataforma de
-observabilidade, esta última decidida e ainda não integrada. A execução local em
-contêineres e o escopo da integração contínua estão no
-[ADR 0004](adrs/0004-execucao-local-e-integracao-continua.md). Ferramenta de BI
-e mecanismo de autenticação permanecem decisões futuras.
+observabilidade, integrada ao ambiente local na Sprint 4 (ADR 0006 e 0008). A
+execução local em contêineres e o escopo da integração contínua estão no
+[ADR 0004](adrs/0004-execucao-local-e-integracao-continua.md). O consumo
+analítico usa Power BI sobre Parquet publicados (ADR 0007); o mecanismo de
+autenticação de produção permanece decisão futura.
 
 O inventário de versões, protocolos, formatos e divergências observadas está em
 [`visao-tecnologia-etl.md`](visao-tecnologia-etl.md).
@@ -647,9 +648,11 @@ A engenharia recebe snapshots identificados por hash, valida schema e encoding,
 preserva valores de origem, cria uma camada tipada, classifica anomalias e
 confirma checkpoint somente depois da carga e da reconciliação. Falhas de schema
 interrompem a carga; nulos condicionais, sentinelas e chaves órfãs seguem regras
-distintas. O pipeline está implementado até a tabela de ingestão e é executado
-localmente por contêineres; o disparo por evento e a telemetria centralizada
-permanecem como contrato não implementado.
+distintas. O pipeline está implementado da entrada à publicação dos cubos
+(ingestão tratada, camada analítica C01–C04 e Parquet) e é executado localmente
+por contêineres, com disparo por evento (`watch_landing.py`), agendamento no
+Prefect e telemetria centralizada na Elastic Stack; a área `bronze` do MinIO
+permanece como contrato não implementado.
 
 Execução, rede, armazenamento, orquestração, recuperação e métricas estão em
 [`visao-engenharia-etl.md`](visao-engenharia-etl.md).

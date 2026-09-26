@@ -1,5 +1,14 @@
 # Divergências entre arquitetura e implementação — Sprint 4
 
+> **Situação em 25/09/2026:** as divergências D01 a D12 foram tratadas pelos
+> cards AR-02 a AR-08 e pela integração de OB/OQ: a camada analítica existe em
+> `src/etl/analytics/` (D01, D07); adaptador de eventos e Elastic Stack estão
+> integrados (D02, D05); o `prefect-server` e o `scheduler` sobem pelo Compose
+> (D04); `requirements.txt` fixa `minio==7.2.20`, `prefect==3.8.5` e
+> `duckdb==1.5.5` (D06); os diagramas foram atualizados e renderizados em SVG
+> (D08 a D11); e as visões não fixam contagem de testes (D12). A tabela abaixo
+> é mantida como registro do diagnóstico inicial.
+
 Este inventário compara as cinco visões ISO/IEC 10746, os diagramas UML e o
 código executável no início da Sprint 4. O objetivo é localizar diferenças; a
 correção de cada visão pertence aos cards AR-02 a AR-08.

@@ -44,6 +44,10 @@ BOM, detalhados em [`inventario-fontes-etl.md`](inventario-fontes-etl.md).
 ocorrência física, formada por `source_checksum` e `source_offset`
 (`POSITIONAL_KEY` em [`ddl.py`](../src/etl/load/ddl.py)). A consequência está
 registrada no ADR 0002: a fonte é reingerida por inteiro a cada reexportação.
+A posição é calculada pelo extrator sobre a fonte inteira e transportada em
+`BatchMetadata.source_offset`, inclusive na retomada após checkpoint; duas
+participações idênticas em linhas diferentes continuam sendo duas ocorrências
+legítimas.
 
 Frequência de atualização, fuso horário, tipo de carga e forma de acesso
 permanecem **pendentes de confirmação com o parceiro**. Enquanto isso, cada
@@ -132,7 +136,12 @@ com a carga. As rejeições reais vivem no DuckDB.
 
 `classify_duplicates` ([`identity.py`](../src/etl/transformation/identity.py))
 compara cada candidato com as identidades já carregadas, obtidas da tabela de
-controle `_loaded_identity`, e classifica em três resultados:
+controle `_loaded_identity`, e classifica em três resultados. No flow, a
+classificação é chamada por `transform_object` **uma única vez sobre todos os
+lotes do objeto**, na ordem da fonte, de modo que a mesma identidade em lotes
+diferentes recebe a mesma decisão que receberia dentro de um lote. Na carga,
+`load_batch` repete a conferência contra `_loaded_identity` dentro da
+transação, cobrindo identidades gravadas depois do retrato inicial:
 
 | Resultado | Condição | Destino |
 | :--- | :--- | :--- |
@@ -175,7 +184,10 @@ Ao fim de cada lote, `load_batch` conta no próprio banco, por `run_id` e
 com o que o lote extraído declarava. O resultado é um `LoadResult`, cujo método
 `is_balanced()` verifica a equação `extraído = carregado + rejeitado +
 duplicado`. A contagem vem do banco, e não das listas em memória, para que a
-conta não feche apenas porque as duas pontas nasceram do mesmo objeto.
+conta não feche apenas porque as duas pontas nasceram do mesmo objeto. Se a
+equação não fecha, `load_batch` levanta `UnbalancedLoadError` **antes** do
+`COMMIT`: a transação é desfeita, o checkpoint do lote não avança e o objeto
+não é marcado como concluído em `_control_object`.
 
 Um lote revertido é registrado em `_batch_metadata` com status `falha` e
 contagens zeradas, já fora da transação desfeita. Sem esse registro, a perda
@@ -242,7 +254,7 @@ uma fonte, a carga deve registrar o conjunto de checksums participantes.
 | Qual snapshot foi usado? | `source_checksum` | `_control_object` e linhas de ingestão |
 | Qual contrato tipou o dado? | `schema_version` | `BatchMetadata` e destino tratado |
 | O lote fechou as contagens? | extraído, aceito, rejeitado e duplicado | `reconciliacao_execucao` |
-| Quando o cubo foi atualizado? | instante e identificador da carga analítica | controle da camada analítica, dependência CB-06 |
+| Quando o cubo foi atualizado? | `generation` e instante da publicação | `manifest.json` da geração publicada por `etl.analytics.publish` |
 
 O BI consome somente tabelas ou views publicadas. Campos técnicos podem ser
 ocultados da camada semântica, mas não removidos do caminho auditável que liga

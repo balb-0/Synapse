@@ -77,6 +77,7 @@ class BatchMetadata:
     schema_version: str
     source_checksum: str | None = None
     contract_version: str = CONTRACT_VERSION
+    source_offset: int | None = None
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -99,6 +100,11 @@ class BatchMetadata:
             raise ValueError("record_count não pode ser negativo")
         if self.byte_count < 0:
             raise ValueError("byte_count não pode ser negativo")
+        if self.source_offset is not None:
+            if isinstance(self.source_offset, bool) or not isinstance(self.source_offset, int):
+                raise ValueError("source_offset deve ser um inteiro")
+            if self.source_offset < 0:
+                raise ValueError("source_offset não pode ser negativo")
 
     def as_dict(self) -> dict[str, str | int | None]:
         return {

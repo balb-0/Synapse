@@ -13,7 +13,7 @@ from etl.transformation import conversion as c
 from etl.transformation.consistency import ReferenceData
 from etl.transformation.identity import canonical_json, classify_duplicates, digest
 from etl.transformation.normalization import normalize_record, string_list
-from etl.transformation.pipeline import transform_batch
+from etl.transformation.pipeline import transform_batch, transform_object
 from etl.transformation.quarantine import QuarantineStore
 from etl.transformation.schema import SCHEMAS
 from etl.transformation.validation import conditional_fields, missing
@@ -405,3 +405,89 @@ class DeliveryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def object_batch(rows, *, sequence, source_offset):
+    return ExtractedBatch(
+        rows,
+        ExtractionCheckpoint("pesquisas", f"row:{sequence}", sequence),
+        BatchMetadata(
+            "pesquisas",
+            "run-1",
+            "task",
+            f"pesquisas-{sequence:06d}",
+            NOW,
+            NOW,
+            len(rows),
+            100,
+            "1.0",
+            "a" * 64,
+            source_offset=source_offset,
+        ),
+    )
+
+
+class TransformObjectTests(unittest.TestCase):
+    """Decisão de identidade global entre os lotes de um objeto (feedback Sprint 3, item 3)."""
+
+    def run_object(self, *lotes, previous=None):
+        batches = [
+            object_batch(rows, sequence=i + 1, source_offset=sum(len(r) for r in lotes[:i]))
+            for i, rows in enumerate(lotes)
+        ]
+        return transform_object(
+            batches, references=refs(), previous=previous or {}, ingested_at=NOW
+        )
+
+    def test_same_identity_and_content_in_a_later_batch_is_duplicate(self):
+        first, second = self.run_object([RAW["pesquisas"]], [RAW["pesquisas"]])
+
+        self.assertEqual(len(first.accepted), 1)
+        self.assertEqual((len(second.accepted), len(second.duplicates)), (0, 1))
+
+    def test_divergent_versions_across_batches_are_conflict_in_every_occurrence(self):
+        changed = {**RAW["pesquisas"], "titulo": "Outro"}
+        first, second = self.run_object([RAW["pesquisas"]], [changed])
+
+        for result in (first, second):
+            with self.subTest(batch=result.metrics["batch_id"]):
+                self.assertEqual(len(result.accepted), 0)
+                self.assertEqual(
+                    [v.code for r in result.rejected for v in r.violations], ["IDENTITY_CONFLICT"]
+                )
+
+    def test_cross_batch_decision_matches_the_single_batch_decision(self):
+        changed = {**RAW["pesquisas"], "titulo": "Outro"}
+        (split_a, split_b) = self.run_object([RAW["pesquisas"]], [changed])
+        (single,) = self.run_object([RAW["pesquisas"], changed])
+
+        self.assertEqual(len(split_a.rejected) + len(split_b.rejected), len(single.rejected))
+
+    def test_offsets_come_from_the_extractor_metadata(self):
+        (result,) = transform_object(
+            [object_batch([RAW["pesquisas"]], sequence=4, source_offset=3)],
+            references=refs(),
+            previous={},
+            ingested_at=NOW,
+        )
+
+        self.assertEqual(result.accepted[0].metadata["source_offset"], 3)
+
+    def test_missing_offset_is_a_contract_error(self):
+        with self.assertRaisesRegex(ValueError, "SOURCE_OFFSET_REQUIRED"):
+            transform_object(
+                [object_batch([RAW["pesquisas"]], sequence=1, source_offset=None)],
+                references=refs(),
+                previous={},
+                ingested_at=NOW,
+            )
+
+    def test_every_batch_still_reconciles_on_its_own(self):
+        results = self.run_object([RAW["pesquisas"], {"titulo": "sem id"}], [RAW["pesquisas"]])
+
+        for result in results:
+            m = result.metrics
+            self.assertEqual(
+                m["extracted_count"],
+                m["accepted_count"] + m["rejected_count"] + m["duplicate_count"],
+            )

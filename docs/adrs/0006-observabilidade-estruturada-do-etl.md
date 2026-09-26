@@ -1,16 +1,16 @@
 # ADR 0006 — Observabilidade estruturada do ETL
 
-- **Status:** Proposto
-- **Data:** 24/09/2026
+- **Status:** Aceito
+- **Data:** 24/09/2026 (proposta) · 25/09/2026 (aceite)
 - **Responsável pela decisão:** equipe de dados
 - **Complementa:** [ADR 0001](0001-arquitetura-etl-python-prefect-minio-duckdb.md)
 
 ## Contexto
 
-O ETL já produz estados de execução no Prefect, registros de carga no DuckDB e
-eventos estruturados por lote. Esses sinais são suficientes para diagnóstico
-local, mas ainda não existe transporte para um coletor, índice central,
-painel ou alerta no ambiente versionado. A Sprint 4 precisa definir como esses
+No momento da proposta (24/09/2026), o ETL já produzia estados de execução no
+Prefect, registros de carga no DuckDB e eventos estruturados por lote, mas não
+havia transporte para um coletor, índice central, painel ou alerta no ambiente
+versionado. A Sprint 4 precisa definir como esses
 sinais serão correlacionados sem transformar a telemetria em requisito para a
 confirmação de uma carga válida.
 
@@ -78,8 +78,11 @@ indisponibilidade observacional altere a consistência do dado tratado.
 
 ## Limite de implantação
 
-Esta ADR define o contrato e a topologia-alvo. Ela **não afirma que Logstash,
-Elasticsearch, Kibana, painéis ou alertas estejam implantados**, nem autoriza
-publicação automática em produção. O repositório continua representando um
-ambiente local/versionado; implantação produtiva exige configuração, segredos,
-capacidade, retenção, controles de acesso e aprovação operacional próprios.
+O aceite em 25/09/2026 acompanha a integração de OB-03 a OB-11: no **ambiente
+local versionado**, Logstash, Elasticsearch e Kibana estão declarados no
+`docker-compose.yml`, o pipeline do coletor e o painel estão em
+`observability/`, o health check em `scripts/orchestration/health_check.py` e
+as duas regras mínimas de alerta estão especificadas no runbook. A ADR **não
+autoriza publicação automática em produção**: implantação produtiva exige
+configuração, segredos, autenticação, capacidade, retenção, controles de acesso
+e aprovação operacional próprios.

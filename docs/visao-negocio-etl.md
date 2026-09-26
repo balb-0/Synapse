@@ -157,10 +157,11 @@ flowchart LR
     OPE([Operador de dados])
     MIN([MinIO])
     PRE([Prefect])
-    ELK([Elastic Stack - planejada])
+    ELK([Elastic Stack])
+    BI([Power BI])
 
     UC1[Publicar objeto na area de entrada]
-    UC2[Disparar execucao por evento - planejado]
+    UC2[Disparar execucao por evento s3 ObjectCreated]
     UC3[Executar ingestao sob demanda]
     UC4[Executar backfill por fonte e janela]
     UC5[Verificar hash e ignorar entrada concluida]
@@ -170,7 +171,8 @@ flowchart LR
     UC9[Encerrar falha permanente sem repeticao]
     UC10[Retomar a partir do checkpoint confirmado]
     UC11[Consultar historico de execucoes]
-    UC12[Monitorar execucao e alertas - planejado]
+    UC12[Monitorar execucao saude e alertas]
+    UC13[Consultar cubos publicados em Parquet]
 
     PUB --> UC1
     MIN --> UC2
@@ -185,11 +187,14 @@ flowchart LR
     PRE --> UC9
     PRE --> UC10
     ELK --> UC12
+    BI --> UC13
 ```
 
-Os casos marcados como planejados não têm implementação no `develop` e estão
-registrados como pendência na
-[matriz de rastreabilidade](matriz-rastreabilidade-sprint3.md).
+Todos os casos acima estão implementados no ambiente local: o disparo por
+evento em `scripts/orchestration/watch_landing.py`, o monitoramento pela Elastic
+Stack (painel Kibana, health check e alertas mínimos) e o consumo pelos Parquet
+publicados por `etl.analytics.publish`. A publicação em serviço Power BI com
+acesso por perfil permanece fora do escopo desta entrega (sem Deploy Contínuo).
 
 ## Riscos de negócio reconhecidos
 
@@ -217,5 +222,9 @@ limite entre análise sustentada pelos dados e hipótese de negócio.
   recorte exige limiar de agregação homologado.
 - **Falsa sensação de completude.** Consultas fora da cobertura das fontes devem
   retornar indisponível, nunca zero.
-- **Observabilidade ausente.** Sem telemetria integrada, uma falha silenciosa só
-  é percebida na consulta seguinte ao banco.
+- **Observabilidade best-effort.** A telemetria estruturada chega à Elastic
+  Stack com painel, health check e alertas mínimos, mas o transporte GELF/UDP
+  não tem fila durável: com o coletor fora do ar, eventos se perdem. O estado
+  autoritativo continua no DuckDB (`reconciliacao_execucao`) e no histórico do
+  Prefect, e a indisponibilidade do coletor não corrompe nem confirma carga
+  (ADR 0006).

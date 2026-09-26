@@ -4,6 +4,7 @@ import logging
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
@@ -63,7 +64,7 @@ class ExtractionLogTests(unittest.TestCase):
             log_sink=sink,
         )
 
-        batches = list(extractor.read(run_id="run-log-batches"))
+        batches = list(extractor.read(run_id="run-log-batches", task_id="task-run-log-batches"))
 
         self.assertEqual(len(batches), 2)
         self.assertEqual(len(sink.events), 2)
@@ -87,7 +88,7 @@ class ExtractionLogTests(unittest.TestCase):
             self.assertEqual(attributes["status"], "success")
             self.assertEqual(attributes["source"], "empresas")
             self.assertEqual(attributes["run_id"], "run-log-batches")
-            self.assertEqual(attributes["task_id"], "extract-empresas")
+            self.assertEqual(attributes["task_id"], "task-run-log-batches")
             self.assertEqual(attributes["byte_count"], len(payload))
             self.assertGreaterEqual(attributes["duration_ms"], 0)
             self.assertTrue(str(attributes["started_at"]).endswith("Z"))
@@ -122,7 +123,7 @@ class ExtractionLogTests(unittest.TestCase):
             log_sink=sink,
         )
 
-        next(extractor.read(run_id="run-without-pii"))
+        next(extractor.read(run_id="run-without-pii", task_id="task-without-pii"))
 
         rendered_event = str(sink.events[0].as_dict())
         self.assertNotIn(sensitive_email, rendered_event)
@@ -151,7 +152,7 @@ class ExtractionLogTests(unittest.TestCase):
             log_sink=StandardLoggingSink(logger),
         )
 
-        next(extractor.read(run_id="run-standard-logging"))
+        next(extractor.read(run_id="run-standard-logging", task_id="task-standard-logging"))
 
         self.assertEqual(len(collector.records), 1)
         record = collector.records[0]
@@ -159,7 +160,7 @@ class ExtractionLogTests(unittest.TestCase):
         self.assertEqual(record.event, EXTRACTION_BATCH_EVENT)
         self.assertEqual(record.source, "empresas")
         self.assertEqual(record.run_id, "run-standard-logging")
-        self.assertEqual(record.task_id, "extract-empresas")
+        self.assertEqual(record.task_id, "task-standard-logging")
         self.assertEqual(record.status, "success")
         self.assertEqual(record.checkpoint_position, "row:3")
 
@@ -175,11 +176,53 @@ class ExtractionLogTests(unittest.TestCase):
             log_sink=sink,
         )
 
-        next(extractor.read(run_id="run-empty-log"))
+        next(extractor.read(run_id="run-empty-log", task_id="task-empty-log"))
 
         self.assertEqual(len(sink.events), 1)
         self.assertEqual(sink.events[0].record_count, 0)
         self.assertEqual(sink.events[0].checkpoint_position, "row:0")
+
+    def test_a_sink_that_fails_does_not_break_the_extraction(self) -> None:
+        """Mesma garantia do ADR 0001 já provada em load/transformation: o
+        transporte de observabilidade fora do ar não pode corromper nem
+        interromper a extração (OB-10)."""
+
+        class FailingLogSink:
+            def emit(self, event: ExtractionBatchLogEvent) -> None:
+                raise RuntimeError("sink fora do ar")
+
+        extractor = EmpresasExtractor(
+            object_reader=MemoryObjectReader(_empresas_payload()),
+            object_reference=ObjectReference(
+                bucket="sindusfarma-data",
+                key="landing/empresas.csv",
+            ),
+            log_sink=FailingLogSink(),
+        )
+
+        batches = list(extractor.read(run_id="run-sink-down", task_id="task-sink-down"))
+
+        self.assertEqual(len(batches), 1)
+        self.assertEqual(batches[0].metadata.record_count, 3)
+
+    def test_a_bug_building_the_event_is_not_confused_with_a_sink_down(self) -> None:
+        """Só o envio ao sink é tolerante a falha (ADR 0001). Um bug na
+        construção do evento é um defeito de código, não uma falha de
+        transporte — não pode ser engolido (OB-10, espelha a mesma garantia
+        já provada em transformation.pipeline)."""
+        broken = mock.patch.object(
+            ExtractionBatchLogEvent, "from_batch", side_effect=KeyError("campo_inexistente")
+        )
+        extractor = EmpresasExtractor(
+            object_reader=MemoryObjectReader(_empresas_payload()),
+            object_reference=ObjectReference(
+                bucket="sindusfarma-data",
+                key="landing/empresas.csv",
+            ),
+        )
+
+        with broken, self.assertRaises(KeyError):
+            list(extractor.read(run_id="run-broken-event", task_id="task-broken-event"))
 
 
 if __name__ == "__main__":

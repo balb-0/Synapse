@@ -19,6 +19,7 @@ Não decide quando o pipeline executa nem contém regra de transformação.
 from __future__ import annotations
 
 import json
+import logging
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -46,10 +47,11 @@ from etl.load.ddl import (
     table_statements,
     view_statements,
 )
-from etl.load.log_events import LoadBatchLogEvent, LoadLogSink, StandardLoggingSink
-from etl.transformation.pipeline import TransformationResult
+from etl.load.log_events import LOAD_STAGE, LoadBatchLogEvent, LoadLogSink, StandardLoggingSink
+from etl.transformation.pipeline import AcceptedRecord, TransformationResult
 from etl.transformation.quarantine import RejectedRecord
 from etl.transformation.schema import destination_columns
+from etl.transformation.validation import Violation
 
 
 @dataclass(frozen=True)
@@ -93,9 +95,48 @@ WRITE_LOCK_CONFLICT_MARKERS = (
 )
 WRITE_LOCK_POLL_INTERVAL_SECONDS = 0.05
 
+CONNECT_RETRY_EVENT = "load.connect_retry.emitted"
+
 
 class WriteLockTimeoutError(RuntimeError):
     """Não foi possível abrir o arquivo: outro processo mantinha a escrita."""
+
+
+class UnbalancedLoadError(RuntimeError):
+    """A reconciliação do lote não fechou: extraído != carregado+rejeitado+duplicado.
+
+    É a última barreira antes do ``COMMIT``: a transação é desfeita, o lote é
+    registrado como falho e o checkpoint não avança. As causas conhecidas de
+    desbalanceamento (a mesma identidade em dois lotes do objeto e identidade
+    gravada entre o retrato inicial e a carga) já são classificadas antes —
+    por ``transform_object`` e por ``_reconcile_with_persisted`` —, então este
+    erro sinaliza uma divergência nova, que deve parar a carga, e não uma
+    condição a ser repetida.
+    """
+
+
+def _emit_connect_retry(
+    *, status: str, attempts: int, duration_ms: float, logger: logging.Logger | None = None
+) -> None:
+    """Publica um evento por chamada, não por tentativa de poll (OB-06).
+
+    O poll de lock roda a cada 50ms e pode iterar dezenas de vezes até o
+    arquivo liberar ou o timeout vencer — logar cada tick violaria o próprio
+    objetivo de rótulos limitados. Em vez disso, ``_connect_with_retry`` só
+    chama isto uma vez por conexão, resumindo quantas tentativas e quanto
+    tempo o wait total levou.
+    """
+    target_logger = logger or logging.getLogger("etl.load")
+    target_logger.info(
+        CONNECT_RETRY_EVENT,
+        extra={
+            "event": CONNECT_RETRY_EVENT,
+            "stage": LOAD_STAGE,
+            "status": status,
+            "attempts": attempts,
+            "duration_ms": duration_ms,
+        },
+    )
 
 
 def _connect_with_retry(database: str, timeout_seconds: float) -> duckdb.DuckDBPyConnection:
@@ -105,19 +146,35 @@ def _connect_with_retry(database: str, timeout_seconds: float) -> duckdb.DuckDBP
     Um erro que não seja de lock (arquivo sem permissão, diretório ausente)
     propaga na primeira tentativa: esperar não o resolveria.
     """
-    deadline = time.monotonic() + timeout_seconds
+    started = time.monotonic()
+    deadline = started + timeout_seconds
+    attempts = 1
     while True:
         try:
-            return duckdb.connect(database)
+            connection = duckdb.connect(database)
         except duckdb.IOException as error:
             if not any(marker in str(error) for marker in WRITE_LOCK_CONFLICT_MARKERS):
                 raise
             if time.monotonic() >= deadline:
+                _emit_connect_retry(
+                    status="timed_out",
+                    attempts=attempts,
+                    duration_ms=round((time.monotonic() - started) * 1000, 3),
+                )
                 raise WriteLockTimeoutError(
                     f"não foi possível abrir {database} em {timeout_seconds}s: "
                     f"outra carga está em andamento ({error})"
                 ) from error
+            attempts += 1
             time.sleep(WRITE_LOCK_POLL_INTERVAL_SECONDS)
+            continue
+        if attempts > 1:
+            _emit_connect_retry(
+                status="recovered",
+                attempts=attempts,
+                duration_ms=round((time.monotonic() - started) * 1000, 3),
+            )
+        return connection
 
 
 class DuckDbLoadRepository:
@@ -294,9 +351,10 @@ class DuckDbLoadRepository:
             f"({', '.join(quote(c) for c in columns)}) VALUES ({placeholders}) "
             f"ON CONFLICT ({quote(IDENTITY_COLUMN)}) DO NOTHING"
         )
-        rows = [record.as_duckdb_row() for record in result.accepted]
         self._conn.execute("BEGIN TRANSACTION")
         try:
+            accepted, duplicates, conflicts = self._reconcile_with_persisted(result, metadata)
+            rows = [record.as_duckdb_row() for record in accepted]
             if rows:
                 self._conn.executemany(
                     insert_sql, [[_cell(row.get(c)) for c in columns] for row in rows]
@@ -306,15 +364,25 @@ class DuckDbLoadRepository:
                     [[source, row["record_identity"], row["content_checksum"]] for row in rows],
                 )
             self._converge_previous_rejections(metadata)
-            self._record_rejections(result.rejected)
+            rejections = (*result.rejected, *conflicts)
+            self._record_rejections(rejections)
             loaded, rejected_count = self._confirmed_counts(metadata)
-            status = BATCH_STATUS_LOADED_WITH_REJECTIONS if result.rejected else BATCH_STATUS_LOADED
+            duplicated = len(duplicates)
+            extracted = result.metrics["extracted_count"]
+            if extracted != loaded + rejected_count + duplicated:
+                raise UnbalancedLoadError(
+                    f"lote {metadata.batch_id!r} da fonte {source!r} (run_id="
+                    f"{metadata.run_id!r}) não reconciliou: extraído={extracted} "
+                    f"carregado={loaded} rejeitado={rejected_count} "
+                    f"duplicado={duplicated}"
+                )
+            status = BATCH_STATUS_LOADED_WITH_REJECTIONS if rejections else BATCH_STATUS_LOADED
             self._record_batch(
                 metadata,
                 status=status,
                 accepted=loaded,
                 rejected=rejected_count,
-                duplicated=len(result.duplicates),
+                duplicated=duplicated,
             )
             self._conn.execute("COMMIT")
         except Exception:
@@ -329,13 +397,89 @@ class DuckDbLoadRepository:
             extracted=result.metrics["extracted_count"],
             loaded=loaded,
             rejected=rejected_count,
-            duplicates=len(result.duplicates),
+            duplicates=duplicated,
         )
         duration_ms = round((time.monotonic() - started) * 1000, 3)
         self._emit_log(
             LoadBatchLogEvent.from_result(outcome, metadata, status=status, duration_ms=duration_ms)
         )
         return outcome
+
+    def _reconcile_with_persisted(
+        self, result: TransformationResult, metadata: BatchMetadata
+    ) -> tuple[list[AcceptedRecord], list[dict], list[RejectedRecord]]:
+        """Confere a decisão de identidade da transformação com o estado persistido.
+
+        A transformação classifica contra o retrato de ``_loaded_identity``
+        lido no início do flow. Entre esse retrato e a carga, outra execução
+        (ou um lote anterior confirmado numa tentativa interrompida) pode ter
+        gravado a mesma identidade. Roda dentro da transação do lote e
+        reclassifica cada aceito:
+
+        - mesma ``idempotency_key`` já gravada por este ``run_id``+``batch_id``
+          — reexecução convergente do próprio lote (ADR 0003): continua
+          aceito e é contado pela contagem no banco;
+        - identidade já persistida com o mesmo conteúdo — duplicata;
+        - identidade já persistida com outro conteúdo — ``IDENTITY_CONFLICT``;
+        - identidade ausente — inserida.
+
+        Uma duplicata da transformação cuja chave este mesmo lote já gravou
+        numa tentativa anterior (commit feito, checkpoint não) passa a contar
+        como carregada, não duplicada: a contagem no banco já a inclui, e
+        contá-la duas vezes desbalancearia a reconciliação para sempre.
+        """
+        candidates = [record.metadata for record in result.accepted] + list(result.duplicates)
+        if not candidates:
+            return list(result.accepted), list(result.duplicates), []
+        identities = sorted({item["record_identity"] for item in candidates})
+        keys = sorted({item["idempotency_key"] for item in candidates})
+        persisted = dict(
+            self._conn.execute(
+                "SELECT record_identity, content_checksum FROM _loaded_identity "
+                "WHERE source = ? AND list_contains(?, record_identity)",
+                [metadata.source, identities],
+            ).fetchall()
+        )
+        same_batch = {
+            row[0]
+            for row in self._conn.execute(
+                f"SELECT {quote(IDENTITY_COLUMN)} FROM {quote(table_name(metadata.source))} "
+                f"WHERE run_id = ? AND batch_id = ? AND list_contains(?, {quote(IDENTITY_COLUMN)})",
+                [metadata.run_id, metadata.batch_id, keys],
+            ).fetchall()
+        }
+        accepted: list[AcceptedRecord] = []
+        duplicates: list[dict] = []
+        conflicts: list[RejectedRecord] = []
+        claimed: set[str] = set()
+        for record in result.accepted:
+            technical = record.metadata
+            key = technical["idempotency_key"]
+            known = persisted.get(technical["record_identity"])
+            if key in same_batch or known is None:
+                accepted.append(record)
+                claimed.add(key)
+            elif known == technical["content_checksum"]:
+                duplicates.append(technical)
+            else:
+                conflicts.append(
+                    RejectedRecord(
+                        technical["source"],
+                        technical["source_checksum"],
+                        technical["source_offset"],
+                        metadata.run_id,
+                        metadata.batch_id,
+                        technical["ingested_at"],
+                        (Violation("IDENTITY_CONFLICT", "identity"),),
+                    )
+                )
+        for technical in result.duplicates:
+            key = technical["idempotency_key"]
+            if key in same_batch and key not in claimed:
+                claimed.add(key)
+                continue
+            duplicates.append(technical)
+        return accepted, duplicates, conflicts
 
     def _confirmed_counts(self, metadata: BatchMetadata) -> tuple[int, int]:
         """Conta o que o banco tem para este lote, não o que ficou em memória.

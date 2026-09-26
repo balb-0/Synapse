@@ -70,13 +70,17 @@ confirmação acontece.
   checkpoint correspondente; a próxima tentativa reextrai esse lote
   específico, que converge sem duplicar linha, mas volta a sofrer o mesmo
   efeito colateral no registro de execução que esta decisão busca evitar.
-  Risco aceito: a janela é interna a uma única conexão do processo, e o pior
-  efeito remanescente é uma reclassificação de contagem no lote afetado, não
-  perda ou duplicação de dado.
-- Uma identidade repetida em dois lotes diferentes de uma mesma leitura (não
-  entre tentativas — dentro da mesma execução) continua fora do que esta
-  decisão resolve; é o risco já registrado na ADR anterior sobre a
-  convergência do insert, com causa própria e anterior a esta decisão.
+  Risco aceito: a janela é interna a uma única conexão do processo. Desde a
+  Sprint 4, a carga reconhece as linhas que o próprio `run_id`+`batch_id` já
+  gravou e as conta como carregadas, então essa reexecução também reconcilia
+  sem reclassificar contagem.
+- Uma identidade repetida em dois lotes diferentes de uma mesma leitura ficava
+  fora desta decisão. **Resolvido na Sprint 4:** `transform_object` decide a
+  identidade sobre todos os lotes do objeto e a carga confere contra o estado
+  persistido (ver a atualização do ADR 0003). A retomada também preserva a
+  posição absoluta de cada ocorrência (`BatchMetadata.source_offset`), para que
+  participações identificadas por checksum+posição não colidam após um
+  checkpoint.
 - O checkpoint continua identificado por fonte, não por execução: se duas
   versões diferentes do mesmo objeto pudessem ser processadas
   concorrentemente, a confirmação mais recente prevaleceria independente de

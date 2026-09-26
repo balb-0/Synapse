@@ -45,6 +45,40 @@ Inventário dos requisitos operacionais do pipeline orquestrado (agendamento, ex
 | Diagrama de sequência | Execução normal, falha e reprocessamento, com logs, métricas, retry e confirmação no banco | UML de sequência | Diagrama versionado | OV-10 |
 | Smoke operacional | Uma execução bem-sucedida e uma falha controlada com retry visível | Execução real + registro | Log/painel da execução e do retry | OV-11 |
 
+## Estado verificado em 25/09/2026
+
+Cada requisito acima confrontado com o artefato que o atende hoje. "Local"
+indica que a capacidade está implementada e exercitada no ambiente Docker
+Compose versionado, sem implantação produtiva (não há Deploy Contínuo).
+
+| Requisito | Estado | Evidência |
+| :--- | :--- | :--- |
+| Fluxo orquestrado | Implementado | `src/etl/orchestration/flow.py` (`ingest_object`, `backfill`; tasks `extract` → `transform` → `load`); `tests/orchestration/test_gray_box_orquestracao.py` |
+| Disparo por evento | Implementado (local) | `scripts/orchestration/watch_landing.py` (webhook `s3:ObjectCreated` ou polling); `tests/orchestration/test_watch_landing.py` |
+| Agendamento | Implementado | Serviço `scheduler` + `scripts/orchestration/deployment.py` (cron `0 3 * * *`), histórico no `prefect-server` |
+| Execução manual / backfill | Implementado | `run_ingest.py`, `run_backfill.py`, deployments `ingest-object/manual` e `backfill` em `prefect.yaml` |
+| Retry com limite | Implementado | `RetryExecutor` (`ETL_EXTRACTION_*`) + `retries=2` com `_should_retry`; `tests/extraction/test_resilience.py`, `tests/orchestration/test_retry_reexecucao.py` |
+| Timeout | Implementado | `timeout_seconds` em cada task (`flow.py`) |
+| Retomada segura | Implementado | Checkpoint lote a lote após `COMMIT` e reconciliação (ADR 0005); `source_offset` absoluto preservado na retomada; `tests/orchestration/test_resumption.py`, `test_integridade_entre_lotes.py` |
+| Confirmação condicionada à reconciliação | Implementado | `load_batch` levanta `UnbalancedLoadError` antes do `COMMIT`; `ingest_object` só marca o objeto com todos os lotes balanceados; `tests/load/test_control_tables.py`, `test_integridade_entre_lotes.py` |
+| Identidade consistente entre lotes | Implementado | `transform_object` decide duplicidade uma vez por objeto; `_reconcile_with_persisted` confere contra o estado persistido; `tests/transformation/test_transformation.py` (`TransformObjectTests`) |
+| Estado final das tarefas | Implementado | Estados do Prefect na UI (`prefect-server`) e `_batch_metadata.status` |
+| Idempotência | Implementado | SHA-256 + `_control_object`; `test_segunda_entrega_do_mesmo_objeto_e_ignorada` |
+| Histórico operacional | Implementado | `prefect-server` com volume `prefect-data`; views `execucao` e `reconciliacao_execucao` |
+| Logs estruturados correlacionados | Implementado | JSON nas quatro etapas com `run_id`, `task_id`, `batch_id` (ADR 0008 remove `event_id` como campo próprio); `tests/orchestration/test_json_logging.py` |
+| Sanitização de logs | Implementado | Eventos sem registros nem segredos; `tests/e2e/test_telemetria_e_coletor_indisponivel.py` |
+| Métricas por etapa | Implementado | `duration_ms`, `byte_count`, contagens, `attempt`/`attempts` e latência nos eventos de lote e de retry |
+| Telemetria ao coletor | Implementado (local) | GELF → Logstash (`observability/logstash/pipeline/etl.conf`) → Elasticsearch `etl-logs-*` |
+| Disponibilidade do coletor | Implementado | Transporte best-effort; `tests/e2e/test_telemetria_e_coletor_indisponivel.py` |
+| Painel operacional | Implementado (local) | `observability/kibana/painel-operacional.ndjson` (status, duração, volumes, rejeições, retries) |
+| Health checks | Implementado | `scripts/orchestration/health_check.py` (Prefect + DuckDB); `tests/orchestration/test_health.py` |
+| Alertas mínimos | Implementado (local) | Regras "falha de execução" e "fila parada" especificadas no runbook, criadas manualmente no Kibana |
+| Testes de integração | Implementado | `tests/orchestration/` e `tests/e2e/` (sucesso, falha na fonte, rejeição parcial, falha de carga, retomada) |
+| Diagrama de sequência | Implementado | `docs/assets/uml/sequencia-ingestao-etl.plantuml` e `.svg` |
+| Smoke operacional | Implementado | `scripts/orchestration/smoke_observabilidade.sh`; roteiro e resultado no runbook (OB-11) |
+
 ---
 
-**Nota de disponibilidade das dependências (revista na auditoria VB-10, 11/09/2026):** OV-05 parte de um primitivo existente (`src/etl/extraction/log_events.py`); a resiliência (OV-04) reaproveita `resilience.py`/`failures.py`. O adaptador de carga no DuckDB **já existe** em `src/etl/load/` (`duckdb_repository.py`, `ddl.py`), com testes em `tests/load/`, e o fluxo E→T→L está fechado em `src/etl/orchestration/flow.py` (`ingest_object` e `backfill`). Permanecem sem implementação no `develop`: o adaptador de eventos HTTP (disparo por `s3:ObjectCreated`), a integração com a Elastic Stack (OV-07/OV-08) e a suíte de testes ponta a ponta do fluxo orquestrado (OV-09) — esta última em trabalho nas branches de teste da Sprint 3 (VB-03 a VB-05).
+**Nota histórica (auditoria VB-10, 11/09/2026):** na Sprint 3, o adaptador de
+eventos, a suíte ponta a ponta e a integração com a Elastic Stack constavam
+como pendentes. Os três foram integrados na Sprint 4, conforme a tabela acima.

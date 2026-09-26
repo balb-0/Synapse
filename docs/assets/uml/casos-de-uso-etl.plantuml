@@ -25,12 +25,12 @@ actor "Analista de dados" as ANALISTA
 actor "Responsável por governança" as GOV
 actor "MinIO" as MINIO <<sistema>>
 actor "Prefect" as PREFECT <<sistema>>
-actor "Elastic Stack" as ELASTIC <<sistema planejado>>
-actor "Ferramenta de BI" as BI <<sistema planejado>>
+actor "Elastic Stack" as ELASTIC <<sistema>>
+actor "Ferramenta de BI" as BI <<sistema>>
 
 rectangle "Pipeline de ingestão do ETL" {
   usecase "Publicar objeto na área de entrada" as UC01
-  usecase "Disparar execução por evento s3:ObjectCreated" as UC02 <<planejado>>
+  usecase "Disparar execução por evento s3:ObjectCreated" as UC02
   usecase "Executar ingestão de um objeto" as UC03
   usecase "Executar backfill por fonte e janela" as UC04
   usecase "Servir deployment com agenda diária" as UC18
@@ -46,9 +46,10 @@ rectangle "Pipeline de ingestão do ETL" {
   usecase "Encerrar falha permanente sem repetição" as UC14
   usecase "Retomar a partir do checkpoint confirmado" as UC15
   usecase "Consultar histórico de execuções" as UC16
-  usecase "Monitorar execução, saúde e alertas" as UC17 <<planejado>>
-  usecase "Autorizar snapshot analítico" as UC19 <<planejado>>
-  usecase "Consultar cubos publicados" as UC20 <<planejado>>
+  usecase "Monitorar execução, saúde e alertas" as UC17
+  usecase "Publicar geração analítica conciliada" as UC19
+  usecase "Consultar cubos publicados" as UC20
+  usecase "Publicar no serviço Power BI com acesso por perfil" as UC21 <<planejado>>
 }
 
 PUB --> UC01
@@ -60,6 +61,7 @@ OPE --> UC17
 OPE --> UC18
 ANALISTA --> UC20
 GOV --> UC19
+GOV --> UC21
 PREFECT --> UC03
 PREFECT --> UC04
 PREFECT --> UC18
@@ -85,9 +87,9 @@ UC15 ..> UC07 : <<extend>>
 UC20 ..> UC19 : <<include>>
 
 note right of UC02
-  Contrato do ADR 0001.
-  Não implementado no develop:
-  o disparo real é manual ou agendado.
+  scripts/orchestration/watch_landing.py:
+  webhook s3:ObjectCreated do MinIO
+  ou polling do prefixo landing/.
 end note
 
 note right of UC18
@@ -97,14 +99,20 @@ note right of UC18
 end note
 
 note right of UC20
-  Depende da carga e publicação dos cubos.
-  Não existe adaptador BI no develop.
+  Geração Parquet agregada (7 arquivos)
+  publicada por etl.analytics.publish e
+  importada pelo modelo semântico TMDL.
+end note
+
+note right of UC21
+  Fora do escopo desta entrega:
+  sem publicação em serviço nem CD.
 end note
 
 note right of UC17
-  Depende da Elastic Stack,
-  decidida no ADR 0001 e
-  ainda não integrada.
+  Logstash -> Elasticsearch -> Kibana
+  (docker-compose.yml, observability/),
+  health_check.py e alertas mínimos.
 end note
 
 @enduml
