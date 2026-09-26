@@ -58,7 +58,7 @@ não corrigidas por este bloco de tarefas.
 | Pendência | Onde está | Quem resolve | Efeito enquanto não for resolvida |
 | :--- | :--- | :--- | :--- |
 | Área `bronze` do MinIO | Contrato do ADR 0001 | — | A extração lê `landing/` direto; a origem imutável é o objeto em `landing/` com SHA-256 |
-| Regras de alerta criadas manualmente | Runbook, seção Alertas mínimos | OB-09 | O formato de regra do Kibana não é importável por NDJSON; as duas regras são recriadas a partir da especificação |
+| Regras de alerta fora do NDJSON do painel | Runbook, seção Alertas mínimos | OB-09 | O formato de regra do Kibana não é importável por NDJSON; as duas regras são criadas pela API de Alerting com os comandos do runbook |
 | Imagens MinIO em `latest` | `docker-compose.yml` | — | Única parte da pilha sem versão fixada |
 
 Pendências da Sprint 3 resolvidas na Sprint 4: observabilidade integrada

@@ -72,7 +72,7 @@ Compose versionado, sem implantação produtiva (não há Deploy Contínuo).
 | Disponibilidade do coletor | Implementado | Transporte best-effort; `tests/e2e/test_telemetria_e_coletor_indisponivel.py` |
 | Painel operacional | Implementado (local) | `observability/kibana/painel-operacional.ndjson` (status, duração, volumes, rejeições, retries) |
 | Health checks | Implementado | `scripts/orchestration/health_check.py` (Prefect + DuckDB); `tests/orchestration/test_health.py` |
-| Alertas mínimos | Implementado (local) | Regras "falha de execução" e "fila parada" especificadas no runbook, criadas manualmente no Kibana |
+| Alertas mínimos | Implementado (local) | Regras "falha de execução" e "fila parada" especificadas no runbook e criadas pela API de Alerting do Kibana; alerta de falha visto ativo no smoke de 25/09 ([evidência](smoke-observabilidade-sprint4.md)) |
 | Testes de integração | Implementado | `tests/orchestration/` e `tests/e2e/` (sucesso, falha na fonte, rejeição parcial, falha de carga, retomada) |
 | Diagrama de sequência | Implementado | `docs/assets/uml/sequencia-ingestao-etl.plantuml` e `.svg` |
 | Smoke operacional | Implementado | `scripts/orchestration/smoke_observabilidade.sh`; roteiro e resultado no runbook (OB-11) |

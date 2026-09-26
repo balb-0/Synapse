@@ -1,0 +1,5 @@
+id;titulo;status;tipo;area;participantes;part_mercado;data_solicitacao;data_aprov;data_divulgacao;data_limite;prorrogada_ate;data_entrega;dias_uteis_para_entrega;complexidade;tipo de resposta;tempo_preenchimento;objetivos;dia da semana de lançamento;dias úteis aberta;dias entre a solicitação e a divulgação;dias para tabulação
+1;Pesquisa Alfa;ativa;online;farma;10;5;01/01/2026;05/01/2026;10/01/2026;20/01/2026;;25/01/2026;10;baixa;multipla;3,5;Objetivo sintético um;segunda;8;9;5
+2;Pesquisa Beta;;;;;;;;;;;;;;;;;;;;
+3;Pesquisa Gama;ativa;online;farma;5;;10/02/2026;;;;;01/02/2026;5;media;multipla;2;Objetivo sintético três;terça;5;;
+4;Pesquisa Delta;ativa;online;farma;0;0;01/03/2026;02/03/2026;03/03/2026;04/03/2026;04/03/2026;05/03/2026;0;alta;aberta;0;Objetivo sintético quatro;quarta;0;0;0

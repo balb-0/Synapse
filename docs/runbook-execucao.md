@@ -181,6 +181,27 @@ Create rule → Elasticsearch query**, em vez de um NDJSON não verificável:
 | ETL - falha de execução | `etl-logs-*` | `@timestamp` | `tags: "etl_error" or (event: "orchestration.health_check.emitted" and status: "degraded")` | contagem **acima de** 0 | últimos 5 min | a cada 1 min |
 | ETL - fila parada | `etl-logs-*` | `@timestamp` | `stage: "orchestration"` | contagem **abaixo de** 1 | últimas 26 h | a cada 30 min |
 
+As mesmas regras também podem ser criadas pela API de Alerting do Kibana,
+com a stack no ar. Esse caminho foi usado no smoke de 25/09/2026
+([evidência](smoke-observabilidade-sprint4.md)) e evita recriar as regras à
+mão após um `docker compose down -v`:
+
+```bash
+curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d '{
+  "name": "ETL - falha de execução", "rule_type_id": ".es-query", "consumer": "stackAlerts",
+  "schedule": {"interval": "1m"}, "actions": [],
+  "params": {"searchType": "esQuery", "index": ["etl-logs-*"], "timeField": "@timestamp",
+    "esQuery": "{\"query\":{\"bool\":{\"should\":[{\"match\":{\"tags\":\"etl_error\"}},{\"bool\":{\"filter\":[{\"match\":{\"event.keyword\":\"orchestration.health_check.emitted\"}},{\"match\":{\"status\":\"degraded\"}}]}}],\"minimum_should_match\":1}}}",
+    "size": 5, "thresholdComparator": ">", "threshold": [0], "timeWindowSize": 5, "timeWindowUnit": "m"}}'
+
+curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d '{
+  "name": "ETL - fila parada", "rule_type_id": ".es-query", "consumer": "stackAlerts",
+  "schedule": {"interval": "30m"}, "actions": [],
+  "params": {"searchType": "esQuery", "index": ["etl-logs-*"], "timeField": "@timestamp",
+    "esQuery": "{\"query\":{\"match\":{\"stage\":\"orchestration\"}}}",
+    "size": 5, "thresholdComparator": "<", "threshold": [1], "timeWindowSize": 26, "timeWindowUnit": "h"}}'
+```
+
 A primeira regra cobre tanto uma falha real do pipeline (traceback do Python
 vazando no stdout/stderr, capturado pelo Logstash com a tag `etl_error` —
 ver `observability/logstash/pipeline/etl.conf`; JSON inválido também recebe a
@@ -211,15 +232,14 @@ alerta sozinho**. Os cenários e o que capturar como evidência:
   MinIO no ar. Evidência: painel Kibana (OB-08) mostrando a execução com
   status `success`.
 - **Falha controlada**: MinIO parado, `run_ingest.py --source pesquisas`
-  falha ao calcular o checksum do objeto (`_object_checksum`, `flow.py`) —
-  essa etapa roda **antes** da task `extract` e não passa pelo
-  `RetryExecutor` (OB-06), então este cenário não produz
+  falha já no upload do fixture (`_upload`, `MaxRetryError` para
+  `minio:9000`), antes de `ingest_object` criar um flow run. Essa etapa não
+  passa pelo `RetryExecutor` (OB-06), então este cenário não produz
   `extraction.retry.emitted`, só a falha em si. Evidência: a regra "ETL -
   falha de execução" (ver seção anterior) ativa em **Kibana → Alerts**; a
   linha com `tags:etl_error` no Elasticsearch (o traceback cru que
   `run_ingest.py` deixa propagar até o topo, capturado pelo Logstash —
-  OB-07); o marco JSON limpo do próprio Prefect para a mesma falha
-  (`prefect.flow_runs`, `level: ERROR`), sinal adicional sem a tag de erro.
+  OB-07).
   A prova de que o retry em si funciona (a garantia "repetição visível")
   já é determinística nos testes automatizados
   (`tests/extraction/test_resilience.py`, OB-06;
@@ -419,4 +439,5 @@ os mesmos comandos.
 | Falha transitória de leitura | timeout/instabilidade do MinIO | a extração já retenta (`ETL_EXTRACTION_MAX_ATTEMPTS`); o Prefect retenta só erro transitório ou inesperado (`retries=2` com `_should_retry` nas tasks `extract`, `transform` e `load`) |
 | `DDL_DESATUALIZADA` no CI | contrato físico mudou sem regerar o SQL | `python scripts/load/render_ddl.py` e commitar `sql/duckdb/001_ingestao_tratada.sql` |
 | Nenhum log aparece no Elasticsearch | Logstash/Elasticsearch ainda subindo, ou pipeline com erro | `docker compose logs logstash`; a carga continua normalmente mesmo assim — o coletor é best-effort (ADR 0001) |
+| Logstash registra `Elasticsearch Unreachable` logo após `docker compose up` | O Logstash sobe antes de o Elasticsearch ficar saudável (`depends_on` sem condição de saúde) | Transitório: aguardar `Pipeline started` em `docker compose logs logstash`; eventos emitidos antes disso podem se perder (transporte best-effort) |
 | Painel do Kibana vazio ou import falha | Kibana ainda subindo, ou índice `etl-logs-*` sem dados ainda | aguardar o healthcheck do `kibana`; conferir se já existe pelo menos um log via `curl` no Elasticsearch antes de abrir o painel |

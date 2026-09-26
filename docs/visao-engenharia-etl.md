@@ -241,8 +241,9 @@ sequenceDiagram
 Todos os eventos carregam correlação por `run_id`, `task_id` (o `task_run.id`
 do Prefect, ADR 0008) e `batch_id`, sem payload de negócio. O painel está
 versionado em `observability/kibana/painel-operacional.ndjson`; as duas regras
-de alerta estão especificadas no runbook e são criadas manualmente no Kibana,
-porque o formato de regra muda entre versões e não é importável por NDJSON.
+de alerta estão especificadas no runbook e são criadas pela UI ou pela API de
+Alerting do Kibana, porque o formato de regra muda entre versões e não é
+importável por NDJSON.
 O roteiro OB-11 (`scripts/orchestration/smoke_observabilidade.sh`) prova uma
 execução concluída e uma falha controlada com o alerta correspondente.
 
@@ -275,7 +276,8 @@ PYTHONPATH=src python -m unittest discover -s tests
 - A notificação `s3:ObjectCreated` do MinIO ao `watch_landing.py` é configurada
   manualmente pelo operador (`mc event add`); o modo polling dispensa essa
   configuração.
-- As regras de alerta do Kibana são criadas manualmente; não há canal de
+- As regras de alerta do Kibana não fazem parte do NDJSON do painel e são
+  criadas pela API (comandos no runbook); não há canal de
   notificação (e-mail, chat) nem política de retenção do índice.
 - Os testes automatizados substituem apenas o armazenamento de objetos por
   leitor em memória; a integração real com MinIO, Prefect e Elastic Stack é

@@ -79,7 +79,7 @@ ADR 0001 e ratificada no ADR 0008.
 | Transporte | stdout → driver GELF → Logstash (`observability/logstash/pipeline/etl.conf`) | Implementado no `docker-compose.yml` |
 | Armazenamento | Elasticsearch, índice `etl-logs-*` | Implementado |
 | Consulta e painel | Kibana, `observability/kibana/painel-operacional.ndjson` | Implementado |
-| Alertas | regras "falha de execução" e "fila parada" sobre `etl-logs-*` | Especificadas no runbook; criadas manualmente no Kibana |
+| Alertas | regras "falha de execução" e "fila parada" sobre `etl-logs-*` | Especificadas no runbook; criadas pela UI ou pela API de Alerting do Kibana (comandos no runbook) |
 
 O ambiente é local: a Elastic Stack roda sem autenticação e sem política de
 retenção, e não há implantação em produção nem Deploy Contínuo.
