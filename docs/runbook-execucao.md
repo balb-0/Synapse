@@ -103,9 +103,9 @@ transformação, orquestração — OB-06/OB-07). O painel só consulta esse ín
 nenhuma camada do ETL fala com o Kibana. Objetos salvos (index pattern, 5
 visualizações e o dashboard) estão versionados em
 `observability/kibana/painel-operacional.ndjson`, gerados uma vez a partir do
-mapeamento de campos dos eventos. A importação real foi validada na stack Docker do OB-11; as consultas e os
-resultados da evidência ficam na descrição do MR, sem screenshots versionados
-no repositório. Para importar, com a stack no ar:
+mapeamento de campos dos eventos. A importação real foi validada na stack Docker do OB-11
+(evidência em [`smoke-observabilidade-sprint4.md`](smoke-observabilidade-sprint4.md)).
+Para importar, com a stack no ar:
 
 ```bash
 curl -s -X POST http://localhost:5601/api/saved_objects/_import?overwrite=true \
@@ -232,9 +232,10 @@ alerta sozinho**. Os cenários e o que capturar como evidência:
 **Este roteiro foi validado de ponta a ponta em uma stack Docker isolada**: o
 health check respondeu `ok`, a ingestão de `empresas` terminou `loaded`, o
 Elasticsearch recebeu os eventos estruturados sem `_jsonparsefailure`, e a
-falha controlada com MinIO parado recebeu `etl_error`. A importação do painel
-no Kibana retornou sete objetos salvos. As consultas e os resultados detalhados
-ficam na descrição do MR, sem screenshots versionados no repositório.
+falha controlada com MinIO parado recebeu `etl_error` e ativou a regra "ETL -
+falha de execução". A importação do painel no Kibana retornou sete objetos
+salvos. Resultados, consultas e capturas de tela da execução de 25/09/2026 estão
+em [`smoke-observabilidade-sprint4.md`](smoke-observabilidade-sprint4.md).
 
 Verificar o banco de ingestão local (cria o arquivo se não existir e roda
 consulta smoke + verificação de persistência):
@@ -252,9 +253,10 @@ docker compose run --rm --no-deps runner python scripts/orchestration/run_ingest
 ```
 
 - Fontes válidas: `pesquisas`, `empresas`, `clientes`, `respondentes`,
-  `questoes`, `respostas`. O fixture de orquestração versionado em
-  `scripts/orchestration/fixtures/` cobre apenas `empresas` (há também
-  `empresas_malformada.csv` para o cenário de rejeição); para as demais fontes,
+  `questoes`, `respostas`. Os fixtures de orquestração versionados em
+  `scripts/orchestration/fixtures/` cobrem `empresas` e `pesquisas` (usada no
+  smoke OB-11; há também `empresas_malformada.csv` para o cenário de
+  rejeição); para as demais fontes,
   aponte um arquivo com `--fixture` (e `--key` para o destino). As seis
   fixtures sintéticas completas existem em `tests/fixtures/` e servem aos
   testes, não ao `run_ingest.py`.
