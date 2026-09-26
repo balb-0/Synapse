@@ -9,6 +9,12 @@ válido para implementação; **[pendente: DX/RP]** = depende da entrega do
 modelo semântico (DX) ou da construção das telas (RP) para virar
 comportamento verificável. Nada marcado pendente é apresentado como entregue.
 
+> **Atualização de 25/09/2026:** esta seção orienta as quatro telas planejadas.
+> As páginas Produção e Volume e Benchmark Externo demonstram a interface
+> usando dados de demonstração. O modelo TMDL dos sete Parquet agregados
+> define o consumo analítico. A integração entre eles está detalhada em
+> [`solucao_dashboard.md`](../solucao_dashboard.md).
+
 ## 1. Visualizações por tela e cubo de origem
 
 <div align="center">
@@ -55,9 +61,9 @@ Estrutura em estrela conforme os contratos: **[contrato]**
   padrão, outros marcos só rotulados), tipo, área, complexidade, status.
   **[contrato; comportamento entre telas pendente: RP-07]**
 - Hierarquia de tempo: ano → trimestre → mês (→ dia onde o grão sustentar),
-  sem quebrar o total entre níveis. **[pendente: DX-06]**
+  sem quebrar o total entre níveis. **[DX-06: `DIM_TEMPO.Calendario` Ano → Trimestre → Mês no modelo de consumo; uso nas páginas previsto para a Sprint 5]**
 - Hierarquias de classificação: área → tipo → perfil da pesquisa; e a
-  hierarquia de qualidade fonte → campo → regra na D04. **[pendente: DX-06]**
+  hierarquia de qualidade fonte → campo → regra na D04. **[DX-06: `PUB_C03_PIPELINE_MENSAL.'Area, Tipo e Perfil'` implementada no modelo de consumo; uso nas páginas e hierarquia de qualidade previstos para a Sprint 5]**
 
 ## 4. Medidas personalizadas
 

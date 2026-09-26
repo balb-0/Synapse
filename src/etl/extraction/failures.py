@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import errno
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol, runtime_checkable
+
+RETRY_EVENT = "extraction.retry.emitted"
+RETRY_STAGE = "extraction"
 
 
 class FailureNature(str, Enum):
@@ -52,6 +56,7 @@ class SourceFailure:
     exception_type: str
     retry_scheduled: bool
     next_delay_seconds: float
+    duration_ms: float
 
     @property
     def retryable(self) -> bool:
@@ -71,6 +76,7 @@ class SourceFailure:
             "retryable": self.retryable,
             "retry_scheduled": self.retry_scheduled,
             "next_delay_seconds": self.next_delay_seconds,
+            "duration_ms": self.duration_ms,
         }
 
 
@@ -82,6 +88,27 @@ class FailureRecorder(Protocol):
         """Registra uma tentativa para observabilidade posterior."""
 
         ...
+
+
+class StandardFailureRecorder:
+    """Publica cada tentativa retried como evento estruturado (OB-06, ADR 0001).
+
+    Antes do OB-06, o padrão era ``RetryExecutor`` descartar toda tentativa
+    (``_NullFailureRecorder``) quando nenhum recorder era injetado — cada
+    repetição era classificada e depois jogada fora. Este é o recorder
+    padrão agora: mesmo formato técnico (evento como mensagem, atributos em
+    ``extra``) das outras etapas, com rótulos limitados por construção
+    (``SourceFailure.as_dict()`` já não carrega mensagem de exceção).
+    """
+
+    def __init__(self, logger: logging.Logger | None = None) -> None:
+        self._logger = logger or logging.getLogger("etl.extraction")
+
+    def record(self, failure: SourceFailure) -> None:
+        attributes = failure.as_dict()
+        attributes["event"] = RETRY_EVENT
+        attributes["stage"] = RETRY_STAGE
+        self._logger.info(RETRY_EVENT, extra=attributes)
 
 
 class SourceAccessError(RuntimeError):

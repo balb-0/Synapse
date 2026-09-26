@@ -1,5 +1,14 @@
 # Inventário da telemetria existente (OB-01)
 
+> **Situação em 25/09/2026:** este inventário é a fotografia de abertura da
+> Sprint 4 (OB-01). As capacidades listadas abaixo como "apenas decididas" foram
+> implementadas por OB-03 a OB-11: logging JSON e evento por lote nas quatro
+> etapas, retries e latência instrumentados, Logstash/Elasticsearch/Kibana no
+> `docker-compose.yml`, painel em `observability/kibana/`, health check
+> (`scripts/orchestration/health_check.py`), regras de alerta no runbook e smoke
+> `scripts/orchestration/smoke_observabilidade.sh`. O estado corrente está em
+> [`visao-engenharia-etl.md`](visao-engenharia-etl.md#métricas-e-telemetria).
+
 Levantamento do que a Sprint 3 já deixou pronto em telemetria, do que foi
 calculado e nunca chegou a um destino, e do que está apenas decidido em
 documento, sem uma linha de código correspondente. Serve de base para OB-02

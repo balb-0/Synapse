@@ -79,10 +79,12 @@ ficha.
 
 ## Coerência entre granularidades
 
-Para os visuais com hierarquia temporal/dimensional: o total do nível mais
-agregado deve bater com a soma dos níveis detalhados no mesmo recorte.
+Para contagens aditivas em grupos disjuntos, o total agregado deve bater com
+a soma dos níveis detalhados no mesmo recorte. Médias, taxas e estoque mensal
+não seguem essa regra: para médias e taxas, reconciliar numerador e
+denominador antes de recalcular; para estoque, comparar o mesmo snapshot.
 
-| Indicador/visual | Nível agregado (valor) | Soma dos níveis detalhados | Coerente? | Observação |
+| Indicador/visual | Nível agregado (valor) | Recomposição correta no detalhe | Coerente? | Observação |
 | :--- | :--- | :--- | :--- | :--- |
 | | | | | |
 

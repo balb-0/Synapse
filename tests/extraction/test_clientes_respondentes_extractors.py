@@ -49,7 +49,7 @@ class ClientesRespondentesExtractorTests(unittest.TestCase):
             ),
         )
 
-        batch = next(extractor.read(run_id="run-clientes"))
+        batch = next(extractor.read(run_id="run-clientes", task_id="task-clientes"))
 
         self.assertEqual(batch.records[0]["id_cliente"], "00048")
         self.assertEqual(batch.records[0]["id_empresa"], "001043")
@@ -58,7 +58,7 @@ class ClientesRespondentesExtractorTests(unittest.TestCase):
             "pessoa.sintetica@example.invalid",
         )
         self.assertEqual(batch.metadata.source, "clientes")
-        self.assertEqual(batch.metadata.task_id, "extract-clientes")
+        self.assertEqual(batch.metadata.task_id, "task-clientes")
 
     def test_respondentes_preserves_candidate_composite_key(self) -> None:
         payload = csv_payload(
@@ -82,7 +82,7 @@ class ClientesRespondentesExtractorTests(unittest.TestCase):
             ),
         )
 
-        batch = next(extractor.read(run_id="run-respondentes"))
+        batch = next(extractor.read(run_id="run-respondentes", task_id="task-respondentes"))
 
         candidate_key = (
             batch.records[0]["id_pesq"],
@@ -92,7 +92,7 @@ class ClientesRespondentesExtractorTests(unittest.TestCase):
         self.assertEqual(candidate_key, ("00414", "001043", "00048"))
         self.assertEqual(batch.records[0]["market_share"], "0,00%")
         self.assertEqual(batch.metadata.source, "respondentes")
-        self.assertEqual(batch.metadata.task_id, "extract-respondentes")
+        self.assertEqual(batch.metadata.task_id, "task-respondentes")
 
     def test_sensitive_content_is_absent_from_logs_and_attributes(self) -> None:
         sensitive_email = "dado.sensivel@example.invalid"
@@ -112,7 +112,7 @@ class ClientesRespondentesExtractorTests(unittest.TestCase):
         root_logger = logging.getLogger()
         root_logger.addHandler(collector)
         try:
-            batch = next(extractor.read(run_id="run-safe-log"))
+            batch = next(extractor.read(run_id="run-safe-log", task_id="task-safe-log"))
         finally:
             root_logger.removeHandler(collector)
 
@@ -135,7 +135,7 @@ class ClientesRespondentesExtractorTests(unittest.TestCase):
             ),
         )
 
-        batch = next(extractor.read(run_id="run-source-value"))
+        batch = next(extractor.read(run_id="run-source-value", task_id="task-source-value"))
 
         self.assertEqual(batch.records[0]["id_cliente"], "s/i")
         self.assertEqual(batch.records[0]["id_empresa"], "")

@@ -79,9 +79,9 @@ publicação não seleciona, fica indisponível na camada BI mesmo quando
 
 ## Síntese
 
-De 25 indicadores do catálogo, **9 são calculáveis na camada BI** (I01, I02,
-I04 só em média, I14, I16, I17, I18, mais I03 parcial), **16 ficam sem dado
-disponível** nessa camada — seis deles (I07, I09, I12, I13, I19, I20) porque a
+De 25 indicadores do catálogo, **7 são calculáveis na camada BI** (I01, I02,
+I04 só em média, I14, I16, I17 e I18); **I03 é parcial** e **17 estão sem
+dado disponível** nessa camada — seis deles (I07, I09, I12, I13, I19, I20) porque a
 consulta de publicação não seleciona a coluna, não porque o dado não exista
 na camada física. Essa diferença é o motivo pelo qual este documento existe
 separado de `dmc.md`: quem só olhar o catálogo da camada de dados vai esperar

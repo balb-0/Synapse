@@ -110,6 +110,16 @@ Selecionada `DO NOTHING`.
   (`previous` desatualizado entre lotes da mesma execução) é da orquestração,
   não desta camada, e fica registrada para uma correção própria.
 
+  **Resolvido na Sprint 4 (feedback da Sprint 3):** a transformação decide a
+  identidade uma vez sobre todos os lotes do objeto (`transform_object`), a
+  carga reclassifica cada aceito contra `_loaded_identity` dentro da transação
+  (`_reconcile_with_persisted`: duplicata ou `IDENTITY_CONFLICT`) e
+  `load_batch` recusa o `COMMIT` com `UnbalancedLoadError` se a conta não
+  fechar. O cenário deixou de convergir em silêncio: é classificado, e qualquer
+  divergência residual interrompe a carga. Testes em
+  `tests/orchestration/test_integridade_entre_lotes.py` e
+  `tests/load/test_control_tables.py`.
+
 ## Alternativas consideradas
 
 | Alternativa | Avaliação |

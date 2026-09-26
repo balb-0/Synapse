@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import re
+import time
 from collections.abc import Iterator
 from datetime import UTC, datetime
 from io import TextIOWrapper
@@ -163,12 +164,16 @@ class CsvObjectExtractor:
         self,
         *,
         run_id: str,
+        task_id: str,
         checkpoint: ExtractionCheckpoint | None = None,
     ) -> Iterator[ExtractedBatch]:
         if not run_id or not run_id.strip():
             raise ValueError("run_id não pode ser vazio")
+        if not task_id or not task_id.strip():
+            raise ValueError("task_id não pode ser vazio")
 
         started_at = datetime.now(UTC)
+        read_started = time.monotonic()
         resume_row, next_sequence = self._checkpoint_position(checkpoint)
 
         with SpooledTemporaryFile(
@@ -182,6 +187,7 @@ class CsvObjectExtractor:
                 yield from self._read_batches(
                     buffered_source=buffered_source,
                     run_id=run_id,
+                    task_id=task_id,
                     started_at=started_at,
                     byte_count=byte_count,
                     source_version=source_version,
@@ -194,6 +200,7 @@ class CsvObjectExtractor:
                     exc,
                     source=self.source,
                     operation_name="parse",
+                    duration_ms=round((time.monotonic() - read_started) * 1000, 3),
                 )
                 raise
 
@@ -254,6 +261,7 @@ class CsvObjectExtractor:
         *,
         buffered_source: BinaryIO,
         run_id: str,
+        task_id: str,
         started_at: datetime,
         byte_count: int,
         source_version: str,
@@ -276,6 +284,7 @@ class CsvObjectExtractor:
                 yield self._build_batch(
                     records=batch_records,
                     run_id=run_id,
+                    task_id=task_id,
                     started_at=started_at,
                     byte_count=byte_count,
                     source_version=source_version,
@@ -288,6 +297,7 @@ class CsvObjectExtractor:
                 yield self._build_batch(
                     records=(),
                     run_id=run_id,
+                    task_id=task_id,
                     started_at=started_at,
                     byte_count=byte_count,
                     source_version=source_version,
@@ -339,6 +349,7 @@ class CsvObjectExtractor:
         *,
         records: tuple[Record, ...],
         run_id: str,
+        task_id: str,
         started_at: datetime,
         byte_count: int,
         source_version: str,
@@ -354,7 +365,7 @@ class CsvObjectExtractor:
         metadata = BatchMetadata(
             source=self.source,
             run_id=run_id,
-            task_id=f"extract-{self.source}",
+            task_id=task_id,
             batch_id=f"{self.source}-{sequence:06d}",
             started_at=started_at,
             finished_at=datetime.now(UTC),
@@ -364,14 +375,32 @@ class CsvObjectExtractor:
             # source_checksum é o hash puro (contrato técnico FixedString(64));
             # o rótulo de algoritmo permanece apenas no source_version do checkpoint.
             source_checksum=source_version.removeprefix("sha256:"),
+            # Posição absoluta zero-based do primeiro registro deste lote na
+            # fonte inteira — inclui o que uma retomada já confirmou antes
+            # (``current_row`` parte de ``resume_row``, não de zero). É o que
+            # a transformação usa como `source_offset`; ver transform_batch.
+            source_offset=current_row - len(records),
         )
         batch = ExtractedBatch(
             records=records,
             checkpoint=checkpoint,
             metadata=metadata,
         )
-        self._log_sink.emit(ExtractionBatchLogEvent.from_batch(batch))
+        self._emit_log(ExtractionBatchLogEvent.from_batch(batch))
         return batch
+
+    def _emit_log(self, event: ExtractionBatchLogEvent) -> None:
+        """Publica no sink sem deixar uma falha de telemetria virar falha da extração.
+
+        Mesma garantia do ADR 0001 já aplicada em carga/transformação (OB-10):
+        o mecanismo de observabilidade não pode corromper nem interromper a
+        extração por um sink fora do ar. Só o envio entra no try — um bug na
+        construção do evento continua estourando, não vira "sink fora do ar".
+        """
+        try:
+            self._log_sink.emit(event)
+        except Exception:
+            pass
 
     def _prepare_record(self, record: dict[str, str]) -> Record:
         """Permite especializar apenas a representação entregue pelo extrator."""

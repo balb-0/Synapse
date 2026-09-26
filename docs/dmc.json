@@ -75,7 +75,7 @@
       "DR01 — Universo elegível de empresas e pessoas. Impacto: I08 e I11 permanecem indisponíveis sem denominador. Estado: pendente de fonte e regra do parceiro.",
       "DR02 — Fonte autoritativa de participação de mercado. Impacto: divergências bloqueiam a homologação de I09. Estado: pendente de decisão do parceiro.",
       "DR03 — Ponte entre participação, pessoa e elemento de resposta. Impacto: impede afirmar respondentes únicos entre fontes. Estado: pendente de reconciliação.",
-      "DR04 — Metadados de carga, catálogo, versão, autorização e logs. Impacto: limita I15 e I21–I25. Estado: depende de integração futura.",
+      "DR04 — Metadados de carga, catálogo, versão, autorização e logs. Impacto: limita I15 e I21–I25. Estado: metadados de carga e execução já entregues (_batch_metadata, _control_object, _checkpoint, views execucao e reconciliacao_execucao, DIM_EXECUCAO_CARGA, manifest.json da geração publicada e telemetria na Elastic Stack); permanecem dependentes de integração futura o catálogo operacional, a versão do questionário (I15), as decisões de autorização e os logs de acesso ao consumo (I25).",
       "DR05 — Plataforma de dados, papel do n8n, perfis de acesso e alimentação do acervo. Impacto: define a implementação e os controles operacionais. Estado: proposta da equipe a validar.",
       "DR06 — Campos incompletos, inválidos ou identificáveis. Impacto: exigem tratamento, minimização e controle antes de detalhar ou exportar. Estado: risco observado, condicionado à governança."
     ]
@@ -91,7 +91,7 @@
     "etico": "Uso restrito às finalidades documentadas das pesquisas setoriais. Registros inválidos, órfãos ou suspeitos devem ser classificados e colocados em quarentena para auditoria e reconciliação, nunca apagados ou corrigidos silenciosamente; somente dados aprovados seguem para consumo ou publicação, preservando a confidencialidade de empresas e respondentes.",
     "catalogo": "Catálogo proposto e versionado para pesquisas, empresas, clientes, respondentes, questões e respostas. Cada fonte e campo deve registrar descrição, tipo esperado, nulabilidade ou aplicabilidade, domínio, chave e origem, destino analítico, classificação, responsável, regra de qualidade, versão e estado observado/em reconciliação/proposto; a implantação do catálogo e seus registros de execução dependem da integração futura.",
     "kpis": "KPIs calculáveis pelo perfilamento atual: completude por campo e aplicabilidade, unicidade/duplicidade por chave, integridade referencial, parseabilidade por tipo e divergência de título, sempre com numerador, denominador, unidade, grão, fonte e regra registrados. KPIs dependentes do pipeline: frescor por timestamp de carga, cobertura de linhagem, publicação autorizada, cobertura de processamento das fontes e conformidade de acesso; enquanto faltarem catálogo, execução, política, decisão ou log, o resultado deve ser indisponível, nunca zero estimado.",
-    "maturidade": "Estado observado: fontes fragmentadas, cruzamentos e atualizações manuais, linhagem parcial e ausência de catálogo operacional, timestamps de carga, política homologada e logs de acesso. Estado-alvo proposto: fonte integrada e governada com contratos versionados, execução rastreável, qualidade mensurada e decisões de acesso e publicação auditáveis; não há evidência de que esse estado-alvo já opere em produção.",
+    "maturidade": "Estado observado na origem: fontes fragmentadas, cruzamentos e atualizações manuais e ausência de catálogo operacional, política homologada e logs de acesso. Estado entregue pelo pipeline (ambiente local): contratos versionados, timestamps e linhagem de carga por execução e lote, reconciliação auditável e telemetria centralizada. Estado-alvo proposto: fonte integrada e governada com qualidade mensurada e decisões de acesso e publicação auditáveis; não há evidência de que esse estado-alvo já opere em produção.",
     "evolucao": "Evolução proposta por gates: (1) versionar catálogo, regras e baseline de qualidade; (2) implantar o MVP com banco central e ao menos um pipeline registrando fonte, versão, execução, resultado e timestamp; (3) ampliar ingestão e linhagem para as fontes aprovadas; (4) habilitar dashboards e publicação somente após perfis, logs, agregação, autorização e controles de retirada/correção serem validados. Automação completa e integração do acervo permanecem metas futuras, não capacidades atuais."
   },
   "cubos": [
@@ -186,7 +186,7 @@
           "O cubo não contém dados individuais de respondentes e publicação depende da política de agregação aprovada."
         ],
         "scd": [
-          "Aplicar SCD1 a correções sem valor histórico e SCD2 somente a atributos cuja mudança histórica precise ser preservada após regra aprovada.",
+          "Portfólio (C01) — política por atributo. Implementado nesta entrega como SCD1 (valor corrente, sem vigência): DIM_PESQUISA.titulo e DIM_PESQUISA.objetivos (correções editoriais sem valor histórico); DIM_AREA.area, DIM_TIPO_PESQUISA.tipo, DIM_PERFIL_PESQUISA.complexidade/tipo_resposta e DIM_STATUS_PESQUISA.status são dimensões de domínio (tipo 0: o valor não muda, muda a chave que o fato aponta). A mudança de status/área/tipo/perfil de uma pesquisa atualiza sk_status/sk_area/sk_tipo/sk_perfil no FATO_CICLO_PESQUISA (snapshot acumulativo); o histórico mensal do status é preservado pelo FATO_PIPELINE_MENSAL (C03), sem reconstruir transições ausentes. Candidatos a SCD2, somente após regra aprovada pelo parceiro: área responsável e tipo da pesquisa (reclassificação retroativa), com início/fim de vigência e fonte da mudança.",
           "Usar chaves duráveis para identidade e chaves substitutas para versões dimensionais.",
           "Manter chaves de origem, vigência e linhagem de carga para auditoria e reconciliação."
         ]
@@ -437,7 +437,9 @@
           "A versão v3 alterou o volume de questoes; recalcular cobertura do acervo e vínculo antes de declarar disponibilidade.",
           "Quatro IDs órfãos (424, 1116, 1139 e 1147) foram observados no snapshot anterior; qualquer ligação por título requer correspondência exata e única com trilha auditável.",
           "Consultas sem pergunta associada no recorte corrente devem retornar indisponível, nunca zero.",
-          "Respostas não integram o fato, e sua existência não autoriza consulta individual nem união presumida de identidades."
+          "Respostas não integram o fato, e sua existência não autoriza consulta individual nem união presumida de identidades.",
+          "Atendimento parcial formalmente delimitado — PB10/I12–I13: o contrato de extensão é FATO_RESPOSTA_AGREGADA, grão pesquisa × pergunta × categoria de resposta, medidas qtd_elementos_validos e qtd_respondentes_distintos (COUNT DISTINCT de respondent_id da própria fonte de respostas), vínculos a DIM_PESQUISA e DIM_PERGUNTA por (pesquisa_id, pergunta_id); não há vínculo a DIM_PESSOA, DIM_EMPRESA nem à participação do C02, porque respondent_id não tem ponte homologada com cliente_id. Segmentos só entram com ponte aprovada; nesta entrega o C04 atende a associação pesquisa–pergunta e I12/I13 ficam fora da camada publicada.",
+          "Atendimento parcial formalmente delimitado — PB13/I15: o contrato de extensão é DIM_VERSAO_QUESTIONARIO (versao_id, pesquisa_id, numero_versao, area_revisora, estado_validacao, decidido_em, fonte_decisao) referenciada pela associação do C04 como sk_versao; nenhuma fonte atual fornece versão, área revisora, decisão ou timestamp, então I15 permanece indisponível e é sinalizado como bloqueado, sem estado inferido."
         ],
         "scd": [
           "Versionar DIM_PERGUNTA quando enunciado, tipo, alternativas ou metadados de origem mudarem.",
@@ -535,18 +537,18 @@
   "etl": {
     "fields": {
       "orquestrador": "Prefect como plano de controle; regras de extração, transformação e carga permanecem em módulos Python testáveis.",
-      "frequencia": "Disparo por evento s3:ObjectCreated; agendamento adicional somente após definição da janela operacional pelo parceiro.",
-      "janelaExecucao": "Parametrizada por deployment e backfill; SLA, horário e frequência produtivos ainda dependem de homologação.",
-      "dependencias": "MinIO landing/raw -> SHA-256 -> extração -> bronze -> transformação/quarentena -> DuckDB -> reconciliação -> checkpoint; Elastic Stack recebe apenas telemetria sanitizada.",
+      "frequencia": "Duas vias implementadas no ambiente local: (a) disparo por evento s3:ObjectCreated via scripts/orchestration/watch_landing.py (webhook do MinIO ou polling do prefixo landing/); (b) agendamento diário cron 0 3 * * * no deployment ingest-object/agendado, servido pelo serviço scheduler contra o prefect-server. Execução manual e backfill pelos deployments manual/backfill. SLA e horário produtivos dependem de homologação do parceiro.",
+      "janelaExecucao": "Agenda diária às 03:00 no deployment servido; execução manual e backfill parametrizados por fonte, prefixo e modo. SLA e janela produtivos ainda dependem de homologação.",
+      "dependencias": "MinIO landing/raw (objeto bruto imutável) -> SHA-256 -> extração em lotes com posição absoluta -> transformação/quarentena com identidade decidida por objeto -> DuckDB ingestão tratada -> reconciliação por lote -> checkpoint -> objeto concluído -> carga analítica C01–C04 no DuckDB -> geração Parquet publicada; Elastic Stack recebe apenas telemetria sanitizada.",
       "estrategiaCarga": "Carregar registros tecnicamente conformes no DuckDB, persistir rejeições em tabela própria e serializar decisões por identidade; confirmar sucesso somente após reconciliar contagens.",
       "idempotencia": "Fonte + versão + SHA-256 + lote ou identidade do registro; uma entrada já concluída é registrada como ignorada, sem nova carga.",
       "reprocessamento": "Execução manual ou backfill parametrizado por fonte, janela e modo, sempre a partir do último checkpoint confirmado e da origem imutável.",
       "tratamentoFalha": "Falha permanente interrompe sem retry; falha transitória recebe tentativas limitadas e espera progressiva; nenhuma falha de carga ou reconciliação confirma checkpoint.",
-      "metricasTelemetria": "Duração, registros recebidos, carregados, rejeitados e duplicados, bytes, tentativas, latência, status por etapa, run_id, task_id e event_id.",
-      "alertas": "Falha permanente, retries esgotados, timeout, divergência de reconciliação e indisponibilidade de MinIO, Prefect ou DuckDB; falha da telemetria não confirma nem corrompe a carga.",
-      "linhagem": "run_id, task_id, event_id, fonte, bucket, objeto, versão, SHA-256, batch_id, posição, schema_version, contract_version e timestamps.",
-      "custoEstimado": "Separar processamento, armazenamento MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção. Valor monetário indisponível até aprovar volume futuro, frequência, ambiente e retenção; software sem licença não significa infraestrutura sem custo.",
-      "diagramaMermaid": "flowchart LR\n    A[Arquivos ou APIs] -->|publicam objeto| B[MinIO landing/raw]\n    B -->|s3:ObjectCreated| C[Adaptador de eventos]\n    C --> P[Deployment Prefect]\n    P --> H[Verificacao SHA-256]\n    H --> I{Ja concluido?}\n    I -->|Sim| J[Registrar ignorado]\n    I -->|Nao| E[Extrator Python]\n    E --> F[MinIO bronze]\n    F --> T[Transformacoes essenciais]\n    T --> V{Registro valido?}\n    V -->|Sim| D[DuckDB ingestion]\n    V -->|Nao| Q[DuckDB rejected]\n    D --> R[Reconciliacao]\n    Q --> R\n    R --> K[Confirmar checkpoint e hash]\n    P -. logs .-> L[Logstash]\n    E -. logs .-> L\n    T -. logs .-> L\n    D -. logs .-> L\n    L --> ES[Elasticsearch]\n    ES --> KB[Kibana]"
+      "metricasTelemetria": "Implementado: duração, registros recebidos, aceitos, carregados, rejeitados e duplicados, bytes, tentativas, latência e status por etapa, correlacionados por run_id, task_id (task_run.id do Prefect) e batch_id, em eventos JSON das quatro etapas coletados por Logstash/Elasticsearch e exibidos no painel Kibana.",
+      "alertas": "Implementado no ambiente local: regra 'ETL - falha de execução' (erro do pipeline ou health check degradado do Prefect/DuckDB) e regra 'ETL - fila parada' (nenhum evento de orquestração em 26 h). Divergência de reconciliação interrompe o lote com UnbalancedLoadError e aparece como falha. Falha da telemetria não confirma nem corrompe a carga.",
+      "linhagem": "run_id, task_id, fonte, bucket, objeto, versão, SHA-256, batch_id, source_offset, schema_version, contract_version e timestamps; event_id do disparo é incorporado ao run_id (ADR 0008).",
+      "custoEstimado": "Estimativa paramétrica em docs/estimativa-custos-ambiente.md (data-base 24/09/2026, USD): ambiente local medido com custo incremental zero; piloto e produção de referência projetados separando processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção. Valores projetados não são cotação e dependem de volume, frequência, ambiente e retenção aprovados; software sem licença não significa infraestrutura sem custo.",
+      "diagramaMermaid": "flowchart LR\n    A[Arquivos ou APIs] -->|publicam objeto| B[MinIO landing/raw]\n    B -->|s3:ObjectCreated| C[watch_landing webhook ou polling]\n    S[Scheduler cron 0 3] --> P\n    C --> P[Flow Prefect ingest-object]\n    P --> H[Verificacao SHA-256]\n    H --> I{Ja concluido?}\n    I -->|Sim| J[Registrar ignorado]\n    I -->|Nao| E[Extrator Python]\n    E --> T[Transformacoes essenciais]\n    T --> V{Registro valido?}\n    V -->|Sim| D[DuckDB ingestao]\n    V -->|Nao| Q[DuckDB rejected]\n    D --> R[Reconciliacao]\n    Q --> R\n    R --> K[Confirmar checkpoint e hash]\n    K --> AN[Carga analitica C01-C04]\n    AN --> PQ[Parquet publicado]\n    PQ --> BI[Power BI]\n    P -. logs .-> L[Logstash]\n    E -. logs .-> L\n    T -. logs .-> L\n    D -. logs .-> L\n    L --> ES[Elasticsearch]\n    ES --> KB[Kibana]"
     },
     "lists": {
       "fontesExtracao": [
@@ -558,12 +560,12 @@
         "respostas.csv — uma linha por elemento de resposta; snapshot CSV em lotes; recorte por versão, SHA-256 e row:N."
       ],
       "camadas": [
-        "Landing/raw no MinIO — objeto recebido imutável, identificado por versão e hash.",
-        "Bronze no MinIO — representação intermediária preservada por execução e lote.",
-        "Ingestão tratada no DuckDB — registros tipados e conformes com metadados técnicos.",
-        "Rejeição/quarentena — referência à origem, regra violada e estado de tratamento, com acesso restrito.",
-        "Controle e reconciliação — execuções, hashes, checkpoints, contagens e decisões de carga.",
-        "Dimensional/consumo — fatos, dimensões e agregações autorizadas após homologação."
+        "Landing/raw no MinIO — implementado: objeto recebido imutável, identificado por versão e hash SHA-256; é a origem de reprocessamento.",
+        "Bronze no MinIO — prevista, não implementada: a extração atual lê landing/raw e grava direto na ingestão tratada do DuckDB.",
+        "Ingestão tratada no DuckDB — implementado: registros tipados e conformes com metadados técnicos (ingestao_<fonte>).",
+        "Rejeição/quarentena — implementado: rejected e rejected_reason, com referência à origem e regra violada, acesso restrito.",
+        "Controle e reconciliação — implementado: _control_object, _loaded_identity, _checkpoint, _batch_metadata e views de execução/reconciliação.",
+        "Dimensional/consumo — implementado: DIM_* e FATO_* de C01–C04 materializados no DuckDB por src/etl/analytics e geração Parquet agregada (4 PUB_C0x + 3 PUB_QUALIDADE_*) para o Power BI; publicação a consumidores externos condicionada à política de acesso."
       ],
       "verificacoes": [
         "Validar schema, cabeçalhos, encoding, delimitador e contrato do lote; falha estrutural interrompe a carga.",

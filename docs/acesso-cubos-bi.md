@@ -2,8 +2,9 @@
 
 Este procedimento implementa a [decisão de consumo](decisao-consumo-cubos.md). O
 arquivo DuckDB usado pela carga contém ingestão e controles; somente a pessoa
-que publica precisa abri-lo. O consumidor recebe quatro recortes agregados em
-Parquet. Eles continuam restritos aos integrantes autorizados do projeto:
+que publica precisa abri-lo. O consumidor recebe quatro recortes agregados
+dos cubos e três tabelas de qualidade em Parquet. Eles continuam restritos
+aos integrantes autorizados do projeto:
 grupos pequenos podem permitir inferências e esta entrega não afirma anonimização.
 
 ## Publicar após uma carga conciliada
@@ -31,14 +32,17 @@ O processo cria o diretório de publicação com modo `0700` e os arquivos com
 permissões e do canal aprovado pela equipe; o código não concede acesso remoto.
 
 Leia `current.json`, abra a subpasta indicada por `generation` e entregue
-**somente esta subpasta** aos consumidores autorizados. Ela contém exatamente
-`manifest.json` e:
+**somente esta subpasta** aos consumidores autorizados. Ela contém
+`manifest.json` e sete arquivos:
 
 ```text
 PUB_C01_CICLO.parquet
 PUB_C02_PARTICIPACAO.parquet
 PUB_C03_PIPELINE_MENSAL.parquet
 PUB_C04_INSTRUMENTO.parquet
+PUB_QUALIDADE_CAMPO.parquet
+PUB_QUALIDADE_RELACAO.parquet
+PUB_QUALIDADE_DUPLICIDADE.parquet
 ```
 
 Não entregue o DuckDB, outras gerações, `current.json` ou CSVs. A cópia da
@@ -50,7 +54,7 @@ de retenção do projeto.
 ## Conferir o pacote na máquina consumidora
 
 No Windows com Power BI Desktop, escolha **Obter dados → Parquet** para cada um
-dos quatro arquivos da geração recebida. Confira o total de linhas de cada
+dos sete arquivos da geração recebida. Confira o total de linhas de cada
 arquivo contra `manifest.json` antes de atualizar o relatório. Os arquivos
 recebidos são a única fonte do relatório. O conector local citado no ADR é
 documentado pela Microsoft; esta entrega não afirma uma execução visual no

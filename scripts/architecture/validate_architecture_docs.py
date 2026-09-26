@@ -43,7 +43,8 @@ DIAGRAMS = {
         "DuckDB",
         "Logstash",
         "checkpoint",
-        "planejado",
+        "UnbalancedLoadError",
+        "mark_object_loaded",
     ),
 }
 
@@ -58,6 +59,8 @@ CODE_SYMBOLS = (
     "ingest_object",
     "backfill",
     "transform_batch",
+    "transform_object",
+    "UnbalancedLoadError",
 )
 
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))", re.MULTILINE)

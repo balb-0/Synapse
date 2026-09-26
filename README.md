@@ -74,15 +74,18 @@ g05/
 │  ├─ analytics/                                      # Rotinas da camada analítica
 │  ├─ architecture/                                   # Validação da documentação arquitetural
 │  ├─ dmc/                                            # Validação do dmc.json
-│  ├─ orchestration/                                  # Entrypoints do ETL (run_ingest, run_backfill, deployment)
+│  ├─ orchestration/                                  # Entrypoints do ETL (run_ingest, run_backfill, deployment, health_check, smoke_observabilidade)
 │  ├─ transformation/                                 # Auditoria e renderização do schema de transformação
 │  ├─ load/                                           # Health check do DuckDB e renderização da DDL
 │  ├─ prototipos-dashboards/                          # Geração, testes e renderização dos protótipos
 │  ├─ data_quality/                                   # Validação da qualidade dos dados
 │  ├─ governance/                                     # Validação de governança
 │  └─ traceability/                                   # Validação de rastreabilidade às fontes
-├─ docker-compose.yml                                 # Ambiente local: MinIO, Prefect e runner
+├─ docker-compose.yml                                 # Ambiente local: MinIO, Prefect (server + scheduler), runner e Elastic Stack
 ├─ prefect.yaml                                       # Deployments Prefect
+├─ observability/logstash/pipeline/                   # Pipeline do coletor (GELF → Elasticsearch, OB-07)
+├─ observability/kibana/                              # Saved objects do painel operacional (OB-08)
+├─ observability/prefect-logging.yml                  # Perfil de logging JSON do Prefect para o coletor
 ├─ Dockerfile                                         # Imagem do runner do ETL
 ├─ requirements.txt                                   # Dependências de execução (minio, prefect, duckdb)
 ├─ .env.example                                       # Modelo das variáveis de ambiente do ETL
@@ -99,7 +102,7 @@ Para executar as validações localmente, utilize as versões abaixo (ou superio
 
 - **Git**: 2.40+
 - **Python**: 3.12+ (ETL, análise quantitativa e scripts de validação)
-- **Docker e Docker Compose** (ambiente local do ETL: MinIO + runner)
+- **Docker e Docker Compose** (ambiente local do ETL: MinIO + runner + Elastic Stack)
 - **matplotlib**: 3.9+ (geração dos gráficos da análise quantitativa)
 - **jq**: 1.6+ (validação estrutural do `dmc.json`)
 
@@ -121,7 +124,7 @@ Compose e é executado pelos entrypoints em `scripts/orchestration/`:
 
 ```bash
 docker compose up -d
-docker compose exec runner python scripts/orchestration/run_ingest.py --source empresas
+docker compose run --rm --no-deps runner python scripts/orchestration/run_ingest.py --source empresas
 PYTHONPATH=src python -m unittest discover -s tests -v   # testes
 ```
 

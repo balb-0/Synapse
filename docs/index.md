@@ -23,6 +23,8 @@
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 | [`usabilidade/`](usabilidade/) | Plano de usabilidade dos dashboards: perfis e critérios, tarefas de navegação, detalhamento e comparação, roteiro de execução e limitações |
 | [`solucao-dashboards/`](solucao-dashboards/) | Documento da solução de dashboards: implementação a partir dos cubos, plano/execução/avaliação de qualidade e checklist contra os critérios |
+| [`smoke-observabilidade-sprint4.md`](smoke-observabilidade-sprint4.md) | Evidência real do smoke OB-11: execução concluída, falha controlada, alerta ativo, painel Kibana e histórico Prefect |
+| [`solucao_dashboard.md`](solucao_dashboard.md) | Estado verificado das duas páginas Power BI, relação com os Parquet publicados, plano e pendências do barema |
 | [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md) | Estimativa paramétrica dos ambientes local, piloto e de produção, com premissas, fórmulas, fontes e limites |
 
 O levantamento e o mapa da estrutura dos dashboards estão em
@@ -78,9 +80,11 @@ documento principal.
 - Visões ISO/IEC 10746: [negócio](visao-negocio-etl.md) (AN-04), [informação](visao-informacao-etl.md) (AN-05), [computacional](visao-computacional-etl.md) (AN-06), [engenharia](visao-engenharia-etl.md) (AN-07) e [tecnologia](visao-tecnologia-etl.md) (AN-08).
 - Diagramas UML em [`assets/uml/`](assets/uml/): [casos de uso](assets/uml/casos-de-uso-etl.plantuml) (AN-09), [componentes](assets/uml/componentes-etl.plantuml) (AN-10) e [sequência da ingestão](assets/uml/sequencia-ingestao-etl.plantuml) (AN-11).
 
-As visões descrevem o estado observado no repositório. Capacidade decidida e
-ainda não integrada — observabilidade, adaptador de eventos e consolidação do
-CI — aparece marcada como planejada, nunca como implementada.
+As visões descrevem o estado observado no repositório em 25/09/2026.
+Observabilidade (Elastic Stack, painel, health check e alertas), disparo por
+evento (`watch_landing.py`), camada analítica e CI consolidado estão
+integrados; permanece marcado como planejado apenas o que não existe no código
+(por exemplo, a área `bronze` do MinIO e a publicação em serviço Power BI).
 
 ## Evidências e protótipos
 

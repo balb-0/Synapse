@@ -62,7 +62,7 @@ class CsvObjectExtractorTests(unittest.TestCase):
             PesquisasExtractor(
                 object_reader=reader,
                 object_reference=reference,
-            ).read(run_id="run-001")
+            ).read(run_id="run-001", task_id="task-001")
         )
 
         self.assertEqual(len(batches), 1)
@@ -107,13 +107,13 @@ class CsvObjectExtractorTests(unittest.TestCase):
                     bucket="sindusfarma-data",
                     key="landing/empresas.csv",
                 ),
-            ).read(run_id="run-002")
+            ).read(run_id="run-002", task_id="task-002")
         )
 
         self.assertEqual(batch.records[0]["ID"], "60")
         self.assertEqual(batch.records[0]["% de mercado"], "8,25%")
         self.assertEqual(batch.records[0]["Nome Fantasia"], "Empresa sintética")
-        self.assertEqual(batch.metadata.task_id, "extract-empresas")
+        self.assertEqual(batch.metadata.task_id, "task-002")
 
     def test_emits_empty_batch_when_csv_has_only_header(self) -> None:
         payload = csv_payload(EMPRESAS_REQUIRED_COLUMNS, [])
@@ -125,12 +125,27 @@ class CsvObjectExtractorTests(unittest.TestCase):
                     bucket="sindusfarma-data",
                     key="landing/empresas.csv",
                 ),
-            ).read(run_id="run-empty")
+            ).read(run_id="run-empty", task_id="task-empty")
         )
 
         self.assertEqual(batch.records, ())
         self.assertEqual(batch.metadata.record_count, 0)
         self.assertEqual(batch.checkpoint.position, "row:0")
+
+    def test_rejects_empty_or_blank_task_id(self) -> None:
+        payload = csv_payload(EMPRESAS_REQUIRED_COLUMNS, [])
+        extractor = EmpresasExtractor(
+            object_reader=MemoryObjectReader(payload),
+            object_reference=ObjectReference(
+                bucket="sindusfarma-data",
+                key="landing/empresas.csv",
+            ),
+        )
+
+        for blank_task_id in ("", "   "):
+            with self.subTest(task_id=blank_task_id):
+                with self.assertRaisesRegex(ValueError, "task_id não pode ser vazio"):
+                    list(extractor.read(run_id="run-blank-task-id", task_id=blank_task_id))
 
     def test_rejects_source_without_required_columns(self) -> None:
         payload = csv_payload(("ID", "Nome Fantasia"), [["1", "Empresa"]])
@@ -143,7 +158,7 @@ class CsvObjectExtractorTests(unittest.TestCase):
         )
 
         with self.assertRaisesRegex(MalformedSourceError, "colunas obrigatórias"):
-            list(extractor.read(run_id="run-invalid"))
+            list(extractor.read(run_id="run-invalid", task_id="task-invalid"))
 
     def test_rejects_rows_with_unexpected_field_count(self) -> None:
         payload = (
@@ -158,7 +173,7 @@ class CsvObjectExtractorTests(unittest.TestCase):
         )
 
         with self.assertRaisesRegex(MalformedSourceError, "linha 2"):
-            list(extractor.read(run_id="run-invalid-row"))
+            list(extractor.read(run_id="run-invalid-row", task_id="task-invalid-row"))
 
     def test_minio_reader_passes_version_and_releases_connection(self) -> None:
         response = TrackingResponse(b"conteudo")

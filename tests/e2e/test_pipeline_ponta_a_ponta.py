@@ -36,7 +36,7 @@ from etl.extraction import (  # noqa: E402
     RespostasExtractor,
 )
 from etl.transformation.consistency import RELATIONS, ReferenceData  # noqa: E402
-from etl.transformation.pipeline import transform_batch  # noqa: E402
+from etl.transformation.pipeline import transform_object  # noqa: E402
 from etl.transformation.schema import KEYS  # noqa: E402
 from tests import fixtures  # noqa: E402
 from tests.extraction.helpers import MemoryObjectReader  # noqa: E402
@@ -62,21 +62,20 @@ EXTRACTORS = {
 BUCKET = "landing-test"
 
 
-def _referencias(connection, source: str) -> ReferenceData:
+def _referencias(repo: DuckDbLoadRepository, source: str) -> ReferenceData:
     """Monta as referências dos pais a partir do que já foi carregado no DuckDB.
 
-    Lê a view de compatibilidade da carga (todas as colunas de negócio), porque
-    as checagens de consistência usam mais do que a chave: o cliente órfão
-    precisa de ``empresa_id`` e as respostas precisam do tipo e das listas da
-    questão. Listas são persistidas como JSON e precisam voltar a ser listas.
+    Lê pela interface pública do repositório (``fetch_compatibility_records``),
+    como o flow faz, e não pela conexão interna. As checagens de consistência
+    usam mais do que a chave: o cliente órfão precisa de ``empresa_id`` e as
+    respostas precisam do tipo e das listas da questão. Listas são persistidas
+    como JSON e precisam voltar a ser listas.
     """
     sources: dict[str, list[dict]] = {}
     for parent, _fields in RELATIONS[source]:
-        cursor = connection.execute(f'SELECT * FROM "{parent}"')
-        columns = [description[0] for description in cursor.description]
         records = []
-        for row in cursor.fetchall():
-            record = dict(zip(columns, row))
+        for row in repo.fetch_compatibility_records(parent):
+            record = dict(row)
             for key in KEYS[parent]:
                 record[key] = str(record[key])
             for name in ("alternativas", "linhas_matriz", "colunas_matriz"):
@@ -88,27 +87,27 @@ def _referencias(connection, source: str) -> ReferenceData:
 
 
 def _ingestar(repo: DuckDbLoadRepository, source: str) -> list[dict]:
-    """Executa extração -> transformação -> carga de uma fonte e reconcilia."""
+    """Executa extração -> transformação -> carga de uma fonte e reconcilia.
+
+    A transformação decide a identidade uma vez sobre todos os lotes
+    (``transform_object``) com a posição absoluta informada pelo extrator; a
+    carga recusa confirmar lote desbalanceado.
+    """
     extractor = EXTRACTORS[source](
         object_reader=MemoryObjectReader(fixtures.payload(source)),
         object_reference=ObjectReference(BUCKET, f"landing/{source}.csv"),
     )
-    batches = list(extractor.read(run_id=f"e2e-{source}"))
-    references = _referencias(repo._conn, source)
-    previous = repo.loaded_identities(source)
-
+    batches = list(extractor.read(run_id=f"e2e-{source}", task_id=f"e2e-task-{source}"))
+    results = transform_object(
+        batches,
+        references=_referencias(repo, source),
+        previous=repo.loaded_identities(source),
+        ingested_at=datetime.now(timezone.utc),
+    )
     reconciliations = []
-    offset = 0
-    for batch in batches:
-        result = transform_batch(
-            batch,
-            references=references,
-            previous=previous,
-            source_offset=offset,
-            ingested_at=datetime.now(timezone.utc),
-        )
-        offset += len(batch.records)
+    for batch, result in zip(batches, results, strict=True):
         outcome = repo.load_batch(result, batch.metadata)
+        repo.commit(batch.checkpoint)
         reconciliations.append(outcome.as_dict())
     return reconciliations
 

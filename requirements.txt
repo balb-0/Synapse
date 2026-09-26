@@ -1,6 +1,6 @@
 # Dependências de execução do ETL com versões fixadas (`==`, sem faixa
 # aberta). Ambiente novo instala as mesmas versões do CI. Medido em
-# 2026-09-24 no `.venv` que passa a suíte (234 testes): manter sincronizado
+# 2026-09-25 no `.venv` que passa a suíte (376 testes): manter sincronizado
 # com o que o CI instala.
 # Cliente usado pelo adaptador de leitura dos objetos no MinIO.
 minio==7.2.20

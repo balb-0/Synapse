@@ -11,7 +11,7 @@ e na ADR
 
 - Git 2.40+
 - Python 3.12+ (imagem do runner usa `python:3.12-slim`)
-- Docker e Docker Compose (ambiente local com MinIO e runner)
+- Docker e Docker Compose (ambiente local com MinIO, runner e Elastic Stack)
 - jq 1.6+ (apenas para os gates do `dmc.json`)
 
 ## Instalação
@@ -75,7 +75,187 @@ Serviços definidos em `docker-compose.yml`:
   e reinicia sozinho (`restart: unless-stopped`); usa o mesmo ambiente e o
   mesmo banco do `runner`, e o histórico vive no `prefect-server`.
 - `runner`: contêiner Python com Prefect e DuckDB (`Dockerfile`), com `src/` e
-  `scripts/` montados; permanece ativo (`sleep infinity`) para executar comandos.
+  `scripts/` montados; permanece ativo (`sleep infinity`) para comandos
+  interativos, enquanto o smoke usa containers one-shot para que o stdout seja
+  coletado pelo driver GELF.
+- `elasticsearch`: armazena a telemetria na porta 9200 (`discovery.type=single-node`,
+  segurança desligada — só para desenvolvimento local).
+- `logstash`: coletor (OB-07/ADR 0001); recebe UDP/GELF na porta 12201, decodifica
+  o JSON de cada linha de log e grava em `etl-logs-YYYY.MM.dd` no Elasticsearch.
+  Pipeline em `observability/logstash/pipeline/etl.conf`.
+- `kibana`: painel operacional (OB-08) na porta 5601, sem autenticação — mesmo
+  padrão de desenvolvimento local do Elasticsearch acima.
+
+O `runner` nunca fala com o Logstash: quem envia é o próprio driver de log
+`gelf` do Docker (configurado no serviço `runner`), por UDP — se o Logstash ou
+o Elasticsearch estiverem fora do ar, o envio é descartado pelo SO sem
+bloquear o runner nem interromper a carga (ADR 0001). Consultar os logs
+coletados:
+
+```bash
+curl -s 'http://localhost:9200/etl-logs-*/_search?pretty&size=5&sort=@timestamp:desc'
+```
+
+### Painel operacional (Kibana, OB-08)
+
+O índice `etl-logs-*` já reúne os eventos das quatro camadas (extração, carga,
+transformação, orquestração — OB-06/OB-07). O painel só consulta esse índice;
+nenhuma camada do ETL fala com o Kibana. Objetos salvos (index pattern, 5
+visualizações e o dashboard) estão versionados em
+`observability/kibana/painel-operacional.ndjson`, gerados uma vez a partir do
+mapeamento de campos dos eventos. A importação real foi validada na stack Docker do OB-11
+(evidência em [`smoke-observabilidade-sprint4.md`](smoke-observabilidade-sprint4.md)).
+Para importar, com a stack no ar:
+
+```bash
+curl -s -X POST http://localhost:5601/api/saved_objects/_import?overwrite=true \
+  -H "kbn-xsrf: true" \
+  --form file=@observability/kibana/painel-operacional.ndjson
+```
+
+Abrir http://localhost:5601, ir em **Analytics → Dashboard → "ETL - Painel
+operacional de execucao (OB-08)"**. O painel mostra, por execução:
+
+- **status por etapa** (`etl-viz-status`: `stage` × `status`, contagem);
+- **duração por etapa** (`etl-viz-duracao`: média e máximo de `duration_ms`
+  agrupados por `stage`);
+- **volumes por fonte** (`etl-viz-volumes`: soma de `byte_count`,
+  `record_count`, `extracted_count`, `loaded_count`);
+- **rejeições e duplicatas** (`etl-viz-rejeicoes`: soma de `rejected_count` e
+  `duplicate_count` por fonte e etapa);
+- **tentativas de repetição** (`etl-viz-retries`: contagem por
+  `event.keyword`, com a tentativa média em campos separados —
+  `attempt` só existe em `extraction.retry.emitted`, `attempts` só em
+  `load.connect_retry.emitted`; os dois eventos não têm os mesmos campos
+  extras, por isso o painel não os agrupa por categoria/status — faria linhas
+  inteiras desaparecerem da tabela em vez de só deixar a métrica em branco).
+
+Se um painel aparecer vazio, é porque ainda não há eventos daquele tipo no
+índice (ex.: nenhuma tentativa de retry ocorreu ainda) — não é falha do
+painel.
+
+### Health check da orquestração (OB-09)
+
+Checa, numa só chamada, se o servidor Prefect configurado responde e se o
+banco de ingestão aceita conexão/consulta/persistência (reaproveita o mesmo
+health check da carga, `etl.load.environment.run_health_check`):
+
+```bash
+docker compose run --rm --no-deps runner python scripts/orchestration/health_check.py
+```
+
+Sai com código 1 se qualquer checagem falhar, e publica um evento
+`orchestration.health_check.emitted` no índice `etl-logs-*` (mesmo formato
+técnico das demais camadas, ADR 0001) — consultável no painel do OB-08 e
+usado pelo alerta de falha abaixo. A checagem do Prefect depende da variável
+`PREFECT_API_URL` (o mesmo nome de variável que o próprio Prefect lê); sem
+ela configurada, a checagem falha explicitamente em vez de tentar adivinhar
+um endereço.
+
+A checagem do banco abre a conexão direto, sem o retry com espera que a
+carga real usa (`duckdb_repository._connect_with_retry`) — rodar o health
+check durante uma carga em andamento pode reportar `duckdb: falha` por um
+lock de escrita transitório que a carga em si esperaria passar. Não é um
+sinal de pipeline quebrado nesse caso, só de execução concorrente.
+
+No Compose, o `runner` usa por padrão
+`PREFECT_API_URL=http://prefect-server:4200/api`, o serviço `prefect-server`
+deste mesmo `docker-compose.yml`. Para apontar para um Prefect rodando no host,
+exporte `PREFECT_API_URL=http://host.docker.internal:4200/api` antes do
+`docker compose run` (o Compose fornece esse alias também no Linux); dentro do
+container, `localhost:4200` apontaria para o próprio container. O endereço GELF
+usa a porta publicada no host porque é resolvido pelo daemon Docker. Rodando o
+script fora do container, `http://localhost:4200/api` funciona normalmente.
+
+### Alertas mínimos (Kibana Alerting, OB-09)
+
+O schema de saved object de uma regra de alerta do Kibana (`type: "alert"`)
+muda com mais frequência entre versões do que o de dashboard/visualização
+(OB-08) e as regras de alerta não são importadas por NDJSON. Uma regra mal formada
+falha silenciosamente — pior do que simplesmente não existir — por isso as
+duas regras mínimas abaixo ficam documentadas para criação manual em **Stack Management → Rules →
+Create rule → Elasticsearch query**, em vez de um NDJSON não verificável:
+
+| Regra | Índice | Campo de tempo | Consulta (KQL) | Condição | Janela | Frequência |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| ETL - falha de execução | `etl-logs-*` | `@timestamp` | `tags: "etl_error" or (event: "orchestration.health_check.emitted" and status: "degraded")` | contagem **acima de** 0 | últimos 5 min | a cada 1 min |
+| ETL - fila parada | `etl-logs-*` | `@timestamp` | `stage: "orchestration"` | contagem **abaixo de** 1 | últimas 26 h | a cada 30 min |
+
+As mesmas regras também podem ser criadas pela API de Alerting do Kibana,
+com a stack no ar. Esse caminho foi usado no smoke de 25/09/2026
+([evidência](smoke-observabilidade-sprint4.md)) e evita recriar as regras à
+mão após um `docker compose down -v`:
+
+```bash
+curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d '{
+  "name": "ETL - falha de execução", "rule_type_id": ".es-query", "consumer": "stackAlerts",
+  "schedule": {"interval": "1m"}, "actions": [],
+  "params": {"searchType": "esQuery", "index": ["etl-logs-*"], "timeField": "@timestamp",
+    "esQuery": "{\"query\":{\"bool\":{\"should\":[{\"match\":{\"tags\":\"etl_error\"}},{\"bool\":{\"filter\":[{\"match\":{\"event.keyword\":\"orchestration.health_check.emitted\"}},{\"match\":{\"status\":\"degraded\"}}]}}],\"minimum_should_match\":1}}}",
+    "size": 5, "thresholdComparator": ">", "threshold": [0], "timeWindowSize": 5, "timeWindowUnit": "m"}}'
+
+curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d '{
+  "name": "ETL - fila parada", "rule_type_id": ".es-query", "consumer": "stackAlerts",
+  "schedule": {"interval": "30m"}, "actions": [],
+  "params": {"searchType": "esQuery", "index": ["etl-logs-*"], "timeField": "@timestamp",
+    "esQuery": "{\"query\":{\"match\":{\"stage\":\"orchestration\"}}}",
+    "size": 5, "thresholdComparator": "<", "threshold": [1], "timeWindowSize": 26, "timeWindowUnit": "h"}}'
+```
+
+A primeira regra cobre tanto uma falha real do pipeline (traceback do Python
+vazando no stdout/stderr, capturado pelo Logstash com a tag `etl_error` —
+ver `observability/logstash/pipeline/etl.conf`; JSON inválido também recebe a
+tag de diagnóstico `_jsonparsefailure`) quanto uma falha detectada
+pelo próprio health check acima. A segunda cobre o deployment agendado
+parar de rodar (cron diário às 03:00, `scripts/orchestration/deployment.py`)
+— 26h dá margem sobre as 24h de intervalo esperado. Nenhuma das duas precisa
+de uma action/connector configurada para "disparar alerta visível": o
+estado da regra já aparece em **Alerts** no Kibana quando ativa.
+
+### Smoke de observabilidade (OB-11)
+
+Roteiro para provar, com uma execução real, os cenários exigidos pelo card:
+uma execução concluída e uma falha controlada com o alerta correspondente.
+Pré-requisitos: `docker compose up -d` (inclui `prefect-server` e a Elastic
+Stack), painel importado e as duas regras de alerta criadas (seções acima).
+
+```bash
+./scripts/orchestration/smoke_observabilidade.sh
+```
+
+O script roda no host (não dentro do `runner`), porque o cenário de falha
+depende de `docker compose stop/start minio` — algo que só o host consegue
+fazer. Ele só produz os eventos reais; **não tira print nem confirma o
+alerta sozinho**. Os cenários e o que capturar como evidência:
+
+- **Sucesso**: `health_check.py` + `run_ingest.py --source empresas` com o
+  MinIO no ar. Evidência: painel Kibana (OB-08) mostrando a execução com
+  status `success`.
+- **Falha controlada**: MinIO parado, `run_ingest.py --source pesquisas`
+  falha já no upload do fixture (`_upload`, `MaxRetryError` para
+  `minio:9000`), antes de `ingest_object` criar um flow run. Essa etapa não
+  passa pelo `RetryExecutor` (OB-06), então este cenário não produz
+  `extraction.retry.emitted`, só a falha em si. Evidência: a regra "ETL -
+  falha de execução" (ver seção anterior) ativa em **Kibana → Alerts**; a
+  linha com `tags:etl_error` no Elasticsearch (o traceback cru que
+  `run_ingest.py` deixa propagar até o topo, capturado pelo Logstash —
+  OB-07).
+  A prova de que o retry em si funciona (a garantia "repetição visível")
+  já é determinística nos testes automatizados
+  (`tests/extraction/test_resilience.py`, OB-06;
+  `tests/e2e/test_telemetria_e_coletor_indisponivel.py`, OB-10) —
+  reproduzi-la ao vivo exigiria derrubar o MinIO só durante a leitura da
+  task de extração, uma janela estreita demais para cronometrar de fora sem
+  uma ferramenta de falha de rede mais cirúrgica (ex.: toxiproxy), que esta
+  stack não tem.
+
+**Este roteiro foi validado de ponta a ponta em uma stack Docker isolada**: o
+health check respondeu `ok`, a ingestão de `empresas` terminou `loaded`, o
+Elasticsearch recebeu os eventos estruturados sem `_jsonparsefailure`, e a
+falha controlada com MinIO parado recebeu `etl_error` e ativou a regra "ETL -
+falha de execução". A importação do painel no Kibana retornou sete objetos
+salvos. Resultados, consultas e capturas de tela da execução de 25/09/2026 estão
+em [`smoke-observabilidade-sprint4.md`](smoke-observabilidade-sprint4.md).
 
 Verificar o banco de ingestão local (cria o arquivo se não existir e roda
 consulta smoke + verificação de persistência):
@@ -89,13 +269,14 @@ PYTHONPATH=src python scripts/load/duckdb_env.py
 Ingestão de uma fonte (semeia o fixture no MinIO e roda o flow `ingest-object`):
 
 ```bash
-docker compose exec runner python scripts/orchestration/run_ingest.py --source empresas
+docker compose run --rm --no-deps runner python scripts/orchestration/run_ingest.py --source empresas
 ```
 
 - Fontes válidas: `pesquisas`, `empresas`, `clientes`, `respondentes`,
-  `questoes`, `respostas`. O fixture de orquestração versionado em
-  `scripts/orchestration/fixtures/` cobre apenas `empresas` (há também
-  `empresas_malformada.csv` para o cenário de rejeição); para as demais fontes,
+  `questoes`, `respostas`. Os fixtures de orquestração versionados em
+  `scripts/orchestration/fixtures/` cobrem `empresas` e `pesquisas` (usada no
+  smoke OB-11; há também `empresas_malformada.csv` para o cenário de
+  rejeição); para as demais fontes,
   aponte um arquivo com `--fixture` (e `--key` para o destino). As seis
   fixtures sintéticas completas existem em `tests/fixtures/` e servem aos
   testes, não ao `run_ingest.py`.
@@ -107,8 +288,8 @@ Backfill controlado de várias fontes, com parâmetros registrados no histórico
 do run:
 
 ```bash
-docker compose exec runner python scripts/orchestration/run_backfill.py --sources empresas pesquisas
-docker compose exec runner python scripts/orchestration/run_backfill.py --sources empresas --reprocess
+docker compose run --rm --no-deps runner python scripts/orchestration/run_backfill.py --sources empresas pesquisas
+docker compose run --rm --no-deps runner python scripts/orchestration/run_backfill.py --sources empresas --reprocess
 ```
 
 `--reprocess` ignora o controle de idempotência por objeto; a deduplicação por
@@ -174,15 +355,21 @@ para um volume (ex.: `/data/.watch_seen.json`).
 
 ## Logs e observabilidade
 
-- Cada tarefa loga via `get_run_logger()` do Prefect (nível configurável por
-  `PREFECT_LOGGING_LEVEL`, `INFO` no runner): contagens de lotes, aceitos e o
-  resumo de reconciliação por lote.
-- A extração emite eventos estruturados por lote
-  (`src/etl/extraction/log_events.py`) — metadados técnicos (execução, fonte,
-  lote, contagens), sem conteúdo dos registros.
-- A reconciliação por lote é gravada na tabela `_batch_metadata` e validada na
-  carga: `carregados + rejeitados + duplicados` precisa fechar com o extraído
-  (ver [`ddl-ingestao.md`](ddl-ingestao.md)).
+- Todas as etapas emitem um evento JSON por lote, sem registros de negócio:
+  `extraction.batch.emitted`, `transformation.batch.emitted`,
+  `load.batch.emitted`, além dos marcos `orchestration.*.emitted`, do
+  `orchestration.health_check.emitted` e dos eventos de repetição
+  `extraction.retry.emitted` e `load.connect_retry.emitted`. Todos carregam
+  `run_id`, `task_id` (o `task_run.id` do Prefect) e, quando aplicável,
+  `batch_id`, `source`, `duration_ms`, `byte_count` e contagens.
+- `etl.orchestration.logging_config` serializa esses eventos em JSON no
+  stdout; `observability/prefect-logging.yml` aplica o mesmo formato aos logs do
+  Prefect. O driver GELF entrega o stdout ao Logstash (seções acima).
+- A reconciliação por lote é gravada em `_batch_metadata` e validada na carga
+  antes do `COMMIT`: `carregados + rejeitados + duplicados` precisa fechar com o
+  extraído, senão o lote falha com `UnbalancedLoadError`, o checkpoint não
+  avança e o objeto não é marcado como concluído (ver
+  [`ddl-ingestao.md`](ddl-ingestao.md)).
 
 ## Banco DuckDB
 
@@ -210,8 +397,9 @@ para um volume (ex.: `/data/.watch_seen.json`).
 PYTHONPATH=src python -m unittest discover -s tests -v
 ```
 
-Suíte `unittest` em `tests/` (216 testes em 11/09/2026), organizada por camada
-(`extraction`, `transformation`, `load`, `orchestration`, `e2e`, `fixtures`).
+Suíte `unittest` em `tests/` (376 testes e cobertura de 92% em 25/09/2026),
+organizada por camada (`extraction`, `transformation`, `load`, `orchestration`,
+`e2e`, `analytics`, `fixtures`).
 Testes que dependem de `duckdb` ou
 `minio` são pulados quando a dependência não está instalada; o contrato `tests/transformation/test_duckdb_contract.py` valida os seis schemas em um DuckDB real. Estratégia completa:
 [`estrategia-de-testes.md`](estrategia-de-testes.md).
@@ -223,11 +411,14 @@ roda em merge requests e pushes, em dois estágios:
 
 1. `lint`: `ruff check` e `ruff format --check` (`ruff.toml`) sobre `src`,
    `scripts` e `tests`;
-2. `test`: `python scripts/transformation/render_schema.py --check` (schema de
-   destino versionado íntegro), suíte inteira via
-   `coverage run --branch --source=etl -m unittest discover -s tests -v` e
-   `coverage report --fail-under=85` sobre todo o pacote `etl`, publicando o
-   relatório Cobertura (`coverage-etl.xml`) como artefato.
+2. `test`: `python scripts/architecture/validate_architecture_docs.py`
+   (coerência das visões e diagramas com o código),
+   `python scripts/transformation/render_schema.py --check` (schema de destino
+   versionado íntegro), suíte inteira via
+   `coverage run --branch --source=etl -m xmlrunner discover -s tests -o test-reports -v`
+   e `coverage report --fail-under=85` sobre todo o pacote `etl`, publicando o
+   relatório Cobertura (`coverage-etl.xml`) e o JUnit (`test-reports/`) como
+   artefatos. Qualquer falha reprova o job e bloqueia o merge.
 
 Reproduzir localmente: instalar `requirements-transformation-dev.txt` e rodar
 os mesmos comandos.
@@ -243,6 +434,10 @@ os mesmos comandos.
 | Lock de escrita no DuckDB | outro processo com o arquivo aberto | o arquivo aceita um escritor por vez; fechar a outra conexão ou aguardar `ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS` |
 | CSV malformado | linhas inválidas da fonte | a transformação rejeita por linha com motivo em `rejected`/`rejected_reason`; o lote não cai — a reconciliação em `_batch_metadata` mostra quantos foram rejeitados |
 | Objeto reenviado é ignorado (`status: ignored`) | idempotência por hash do objeto | comportamento esperado; para forçar, use `run_backfill.py --reprocess` (a dedup por linha protege) |
-| Execução morreu no meio | falha entre extração e carga | reexecute o mesmo comando: o `_checkpoint` retoma da posição confirmada do mesmo objeto; checkpoint de outra versão é descartado |
+| Execução morreu no meio | falha entre extração e carga | reexecute o mesmo comando: o `_checkpoint` retoma da posição confirmada do mesmo objeto, preservando a posição absoluta das ocorrências; checkpoint de outra versão é descartado |
+| `UnbalancedLoadError` | contagem gravada não fecha com o extraído | o lote foi desfeito e registrado como `falha`; não há retry automático porque o resultado seria o mesmo — investigar `_batch_metadata` e `rejected_reason` do `run_id` antes de reprocessar |
 | Falha transitória de leitura | timeout/instabilidade do MinIO | a extração já retenta (`ETL_EXTRACTION_MAX_ATTEMPTS`); o Prefect retenta só erro transitório ou inesperado (`retries=2` com `_should_retry` nas tasks `extract`, `transform` e `load`) |
 | `DDL_DESATUALIZADA` no CI | contrato físico mudou sem regerar o SQL | `python scripts/load/render_ddl.py` e commitar `sql/duckdb/001_ingestao_tratada.sql` |
+| Nenhum log aparece no Elasticsearch | Logstash/Elasticsearch ainda subindo, ou pipeline com erro | `docker compose logs logstash`; a carga continua normalmente mesmo assim — o coletor é best-effort (ADR 0001) |
+| Logstash registra `Elasticsearch Unreachable` logo após `docker compose up` | O Logstash sobe antes de o Elasticsearch ficar saudável (`depends_on` sem condição de saúde) | Transitório: aguardar `Pipeline started` em `docker compose logs logstash`; eventos emitidos antes disso podem se perder (transporte best-effort) |
+| Painel do Kibana vazio ou import falha | Kibana ainda subindo, ou índice `etl-logs-*` sem dados ainda | aguardar o healthcheck do `kibana`; conferir se já existe pelo menos um log via `curl` no Elasticsearch antes de abrir o painel |

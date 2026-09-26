@@ -43,6 +43,7 @@ from .failures import (
     RetryLimitExceededError,
     SourceAccessError,
     SourceFailure,
+    StandardFailureRecorder,
     classify_source_failure,
 )
 from .log_events import (
@@ -111,6 +112,7 @@ __all__ = [
     "SourceAccessError",
     "SourceFailure",
     "StaleCheckpointError",
+    "StandardFailureRecorder",
     "StandardLoggingSink",
     "SUCCESS_STATUS",
     "classify_source_failure",

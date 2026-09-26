@@ -43,7 +43,7 @@ class ExtractionSmokeTests(unittest.TestCase):
                 log_sink=log_sink,
             )
 
-            batches = list(extractor.read(run_id="smoke-extraction-001"))
+            batches = list(extractor.read(run_id="smoke-extraction-001", task_id="smoke-task-001"))
             actual_counts[fixture.source] = sum(batch.metadata.record_count for batch in batches)
             actual_batches[fixture.source] = len(batches)
 

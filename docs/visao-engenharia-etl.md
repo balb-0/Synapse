@@ -2,8 +2,9 @@
 
 Como o pipeline é executado: onde os processos rodam, como se comunicam, onde os
 dados ficam, como a execução é coordenada, o que é medido e como o sistema se
-recupera de uma falha. A visão descreve o ambiente **declarado no repositório**;
-capacidade que existe apenas como decisão está marcada como planejada.
+recupera de uma falha. A visão descreve o ambiente **declarado no repositório**
+(estado de 25/09/2026); capacidade que existe apenas como decisão está marcada
+como planejada.
 
 O ambiente e o pipeline de verificação estão registrados no
 [ADR 0004](adrs/0004-execucao-local-e-integracao-continua.md).
@@ -12,26 +13,25 @@ O ambiente e o pipeline de verificação estão registrados no
 
 ### Topologia servida da Sprint 4
 
-| Unidade de implantação | Processo/serviço | Porta ou volume | Inicialização | Estado na base auditada |
+Todos os serviços abaixo estão declarados em `docker-compose.yml`, na raiz do
+repositório, e sobem com `docker compose up -d`. Estado conferido em
+25/09/2026.
+
+| Serviço | Imagem | Papel | Portas/volumes | Saúde |
 | :--- | :--- | :--- | :--- | :--- |
-| Armazenamento de objetos | `minio/minio` | `9000`, `9001`, `minio-data:/data` | Docker Compose | Configurado |
-| Preparação do bucket | `minio/mc` | rede interna | Após MinIO | Configurado |
-| Runner ETL | imagem do `Dockerfile` | `duck-data:/data`, `src` e `scripts` | Docker Compose | Configurado |
-| Servidor Prefect | `python scripts/orchestration/deployment.py` | API/UI conforme configuração Prefect | Comando do operador | Implementado, não iniciado pelo Compose |
-| Coletor e painel | Logstash/Elasticsearch/Kibana | não definido | — | Não configurado em `develop` |
+| `minio` | `minio/minio:latest` | Armazenamento de objetos e console | 9000 (API), 9001 (console), `minio-data` | `mc ready local` |
+| `createbucket` | `minio/mc:latest` | Cria o bucket `sindusfarma` e encerra | — | — |
+| `prefect-server` | Construída pelo `Dockerfile` | API, UI e histórico do Prefect | 4200, `prefect-data` | `GET /api/health` |
+| `scheduler` | Construída pelo `Dockerfile` | Serve o deployment `ingest-object/agendado` (cron `0 3 * * *`) | `duck-data`; `restart: unless-stopped` | depende de `prefect-server` saudável |
+| `runner` | Construída pelo `Dockerfile` | Executa flows, scripts, health check e testes | `duck-data`, `src`, `scripts`, `observability` | — |
+| `elasticsearch` | `elasticsearch:8.15.0` | Índice da telemetria `etl-logs-*` | 9200, `es-data` | `_cluster/health` green/yellow |
+| `logstash` | `logstash:8.15.0` | Coletor GELF → Elasticsearch | 12201/udp | — |
+| `kibana` | `kibana:8.15.0` | Painel operacional e regras de alerta | 5601 | `/api/status` available |
 
-O deployment servido mantém o flow disponível para agendamento e disparo
-manual, mas não equivale a uma instalação produtiva. A persistência local fica
-nos volumes nomeados do Compose; credenciais de exemplo destinam-se somente ao
-ambiente de desenvolvimento.
-
-O ambiente local é declarado em `docker-compose.yml`, na raiz do repositório.
-
-| Serviço | Imagem | Papel | Portas |
-| :--- | :--- | :--- | :--- |
-| `minio` | `minio/minio:latest` | Armazenamento de objetos e console | 9000 (API), 9001 (console) |
-| `createbucket` | `minio/mc:latest` | Cria o bucket `sindusfarma` e encerra | — |
-| `runner` | Construída pelo `Dockerfile` | Executa flows, scripts e testes | — |
+A persistência local fica nos volumes nomeados do Compose; credenciais e
+segurança desligada da Elastic Stack destinam-se somente ao ambiente de
+desenvolvimento. Não há Deploy Contínuo: implantação fora do ambiente local
+exige autenticação, retenção e aprovação próprias (ADR 0004 e 0006).
 
 O `runner` parte de `python:3.12-slim`, instala `requirements.txt`, define
 `PYTHONPATH=/app/src` e `PREFECT_LOGGING_LEVEL=INFO`, e permanece vivo com
@@ -50,10 +50,13 @@ Comandos de execução:
 
 ```bash
 docker compose up -d
-docker compose exec runner python scripts/orchestration/run_ingest.py --source empresas
-docker compose exec runner python scripts/orchestration/run_backfill.py --sources empresas
-docker compose exec runner python scripts/orchestration/deployment.py
+docker compose run --rm --no-deps runner python scripts/orchestration/run_ingest.py --source empresas
+docker compose run --rm --no-deps runner python scripts/orchestration/run_backfill.py --sources empresas
+docker compose run --rm --no-deps runner python scripts/orchestration/health_check.py
 ```
+
+O deployment agendado não precisa de comando manual: o serviço `scheduler`
+executa `scripts/orchestration/deployment.py` e reinicia sozinho.
 
 ## Rede e comunicação
 
@@ -62,8 +65,11 @@ docker compose exec runner python scripts/orchestration/deployment.py
 | `runner` | `minio:9000` | HTTP, API S3 | Leitura do objeto e upload de fixtures |
 | Operador | `localhost:9001` | HTTP | Console do MinIO |
 | `runner` | Arquivo local | Chamada de sistema | Escrita no DuckDB |
-| MinIO | Adaptador de eventos | HTTP, webhook | `s3:ObjectCreated` — **planejado** |
-| Componentes | Logstash | TCP | Log estruturado — **planejado** |
+| MinIO | Adaptador de eventos (`watch_landing.py`) | HTTP, webhook | `s3:ObjectCreated` (ou polling do prefixo `landing/`) |
+| `runner`, `scheduler` | `prefect-server:4200` | HTTP | Estados, logs e histórico dos flow runs |
+| Daemon Docker (driver GELF do `runner`/`scheduler`) | Logstash `127.0.0.1:12201` | UDP, GELF | Log JSON estruturado, best-effort |
+| Logstash | `elasticsearch:9200` | HTTP | Indexação em `etl-logs-YYYY.MM.dd` |
+| Operador | `localhost:5601` / `localhost:4200` | HTTP | Kibana (painel, alertas) e UI do Prefect |
 
 O TLS é derivado do esquema do endpoint: `_minio_client` em
 [`flow.py`](../src/etl/orchestration/flow.py) usa `secure=True` apenas quando o
@@ -79,11 +85,14 @@ existe para registrar a configuração sem revelar segredo.
 | Área | Onde | Conteúdo | Mutabilidade |
 | :--- | :--- | :--- | :--- |
 | Entrada | MinIO, bucket `sindusfarma`, prefixo `landing` | Objeto recebido | Imutável |
-| Intermediária | MinIO, área `bronze` | Representação por lote — **planejada** | Imutável |
+| Intermediária | MinIO, área `bronze` | Representação por lote — **planejada, não implementada**; a extração lê `landing/` direto | — |
 | Ingestão tratada | DuckDB, `ingestao_<fonte>` | Linhas conformes com proveniência | Acrescida por versão |
 | Rejeição | DuckDB, `rejected` e `rejected_reason` | Ocorrência recusada e motivos | Acrescida |
 | Controle | DuckDB, `_control_object`, `_loaded_identity`, `_checkpoint`, `_batch_metadata` | Estado técnico da execução | Convergente por chave |
-| Volumes | `minio-data`, `duck-data` | Persistência entre reinícios dos contêineres | Persistente |
+| Analítica | DuckDB, `DIM_*` e `FATO_*` (C01–C04) | Cubos materializados por `etl.analytics` | Recriada por carga analítica conciliada |
+| Publicação | Diretório de geração com 7 Parquet + `manifest.json` | Recortes agregados para o Power BI | Imutável por geração |
+| Telemetria | Elasticsearch, `es-data` | Eventos técnicos sem payload de negócio | Acrescida; retenção não definida |
+| Volumes | `minio-data`, `duck-data`, `prefect-data`, `es-data` | Persistência entre reinícios dos contêineres | Persistente |
 
 Não há política de retenção definida para as versões acumuladas na tabela de
 ingestão nem para os objetos da área de entrada. É pendência registrada no ADR
@@ -122,33 +131,39 @@ script. Os parâmetros padrão são `source=empresas`, bucket vindo de
 | :--- | :--- | :--- |
 | Agenda | `0 3 * * *` | Uma execução diária enquanto o processo servido estiver ativo. |
 | Reprocessamento | `reprocess=false` por padrão | Checksum já concluído é ignorado. |
-| Timeout de acesso | `ETL_SOURCE_TIMEOUT_SECONDS` | Limita operações com a fonte. |
-| Tentativas | `ETL_SOURCE_MAX_ATTEMPTS` | Restringe retry de falha transitória. |
-| Espera | `ETL_SOURCE_RETRY_INITIAL_SECONDS` e `ETL_SOURCE_RETRY_MAX_SECONDS` | Controla backoff limitado. |
+| Timeout de acesso | `ETL_REQUEST_TIMEOUT_SECONDS` | Limita operações com a fonte. |
+| Tamanho do lote | `ETL_EXTRACTION_BATCH_SIZE` | Registros por lote e por checkpoint. |
+| Tentativas | `ETL_EXTRACTION_MAX_ATTEMPTS` | Restringe retry de falha transitória. |
+| Espera | `ETL_EXTRACTION_RETRY_INITIAL_DELAY_SECONDS` e `ETL_EXTRACTION_RETRY_MAX_DELAY_SECONDS` | Controla backoff limitado. |
 | Banco | argumento `db_path` ou `ETL_DUCKDB_PATH` | Mantém o mesmo destino entre agenda, UI e CLI. |
 
 Execução manual e backfill devem informar seus parâmetros no histórico do
 Prefect; alterar o script não é necessário para uma reexecução pontual.
 
-O plano de controle é o Prefect. O repositório oferece um processo servidor por
-`flow.serve()`; não há agente ou worker remoto declarado no Compose, nem prova
-de disponibilidade contínua fora da máquina do operador.
+O plano de controle é o Prefect. O `prefect-server` do Compose persiste
+agendamentos e histórico; o `scheduler` serve o deployment por `flow.serve()`.
+Os deployments `ingest-object/manual` e `backfill` de `prefect.yaml` são
+publicados pela CLI para execução parametrizada pela UI. A disponibilidade do
+orquestrador é verificada pelo health check (OB-09) e pela regra de alerta
+"fila parada".
 
 | Mecanismo | Implementação | Parâmetros |
 | :--- | :--- | :--- |
 | Agendamento | `ingest_object.serve(name="agendado", cron="0 3 * * *")` em `scripts/orchestration/deployment.py` | `source`, `bucket`, `key` |
 | Execução sob demanda | `scripts/orchestration/run_ingest.py` | `--source`, `--key`, `--fixture` |
 | Backfill | `scripts/orchestration/run_backfill.py` e o flow `backfill` | `sources`, `bucket`, `prefix`, `reprocess` |
-| Disparo por evento | **Planejado** (ADR 0001) | `bucket`, `key`, `version_id`, `event_id` |
+| Disparo por evento | `scripts/orchestration/watch_landing.py` (webhook `s3:ObjectCreated` ou polling) | `bucket`, `key`, `version_id`, `event_id` |
 
 As dependências entre etapas são declaradas pela ordem das tasks dentro do flow:
 `extract`, `transform` e `load` se encadeiam pelo valor retornado, de modo que a
 falha de uma impede a execução das seguintes. O histórico de cada run, com
 parâmetros e estado por task, fica no Prefect.
 
-Como o agendamento é servido em processo, ele existe apenas enquanto o comando
-`deployment.py` estiver rodando. Uma parada do contêiner interrompe o cron sem
-recuperação automática.
+O agendamento é servido pelo contêiner `scheduler` com `restart: unless-stopped`;
+agendamentos e histórico vivem no volume `prefect-data` do `prefect-server` e
+sobrevivem a `docker compose down/up`. Uma task falha pode ser reexecutada pela
+UI do Prefect ou pelo mesmo comando; a retomada parte do último checkpoint
+confirmado.
 
 ## Recuperação
 
@@ -158,11 +173,13 @@ recuperação automática.
 | Classificação da falha | `classify_source_failure` decide por status HTTP, código do MinIO, nome da exceção e `errno` | `failures.py` |
 | Falha permanente | `PermanentSourceError`; `_should_retry` recusa nova tentativa no nível do Prefect | `failures.py`, `flow.py` |
 | Limite de tentativas esgotado | `RetryLimitExceededError` | `resilience.py` |
-| Etapa travada | `timeout_seconds=120` em cada task | `flow.py` |
+| Etapa travada | `timeout_seconds=120` em `extract`/`transform` e `3600` em `load` | `flow.py` |
 | Banco ocupado por outro escritor | `_connect_with_retry` espera até `write_lock_timeout_seconds` e então levanta `WriteLockTimeoutError` | `duckdb_repository.py` |
 | Falha durante a gravação do lote | `ROLLBACK` e registro do lote com status `falha` fora da transação | `duckdb_repository.py` |
+| Identidade já persistida por outro lote | Reclassificada dentro da transação: mesmo conteúdo = duplicata; conteúdo divergente = `IDENTITY_CONFLICT` | `duckdb_repository.py` (`_reconcile_with_persisted`) |
+| Reconciliação que não fecha | `UnbalancedLoadError` antes do `COMMIT`: rollback, lote falho, checkpoint e objeto não confirmados, sem retry | `duckdb_repository.py`, `flow.py` |
 | Reexecução do mesmo objeto | `_control_object` responde `ignored` sem nova carga | `flow.py` |
-| Retomada após interrupção | Checkpoint confirmado apenas depois da carga; checkpoint de outra versão do objeto é descartado | `flow.py` |
+| Retomada após interrupção | Checkpoint confirmado lote a lote depois do `COMMIT` e da reconciliação; `source_offset` absoluto preservado na retomada; checkpoint de outra versão do objeto é descartado | `flow.py`, `csv_extractors.py` |
 
 A ordem de confirmação é a garantia central: **carga, reconciliação e só então
 checkpoint e hash**. Uma falha em qualquer ponto anterior deixa o estado
@@ -177,7 +194,7 @@ sequenceDiagram
     actor OPE as Operador
     participant FLOW as Flow ingest-object
     participant EXT as Extrator
-    participant TR as transform_batch
+    participant TR as transform_object
     participant REPO as DuckDbLoadRepository
     participant DB as DuckDB
 
@@ -190,14 +207,17 @@ sequenceDiagram
         FLOW-->>OPE: status ignored
     else entrada nova
         DB-->>REPO: nenhuma linha
-        FLOW->>EXT: read(run_id, checkpoint)
-        EXT-->>FLOW: ExtractedBatch
-        FLOW->>TR: transform_batch(batch, references, previous)
-        TR-->>FLOW: TransformationResult
-        FLOW->>REPO: load_batch(result, metadata)
-        REPO->>DB: INSERT em ingestao, rejected e _batch_metadata
-        REPO-->>FLOW: LoadResult balanceado
-        FLOW->>REPO: mark_object_loaded e commit(checkpoint)
+        FLOW->>EXT: read(run_id, task_id, checkpoint)
+        EXT-->>FLOW: lotes com source_offset absoluto
+        FLOW->>TR: transform_object(lotes, references, previous)
+        TR-->>FLOW: TransformationResult por lote
+        loop cada lote
+            FLOW->>REPO: load_batch(result, metadata)
+            REPO->>DB: confere identidades, INSERT, reconcilia e COMMIT
+            REPO-->>FLOW: LoadResult balanceado
+            FLOW->>REPO: commit(checkpoint do lote)
+        end
+        FLOW->>REPO: mark_object_loaded (só se todos balanceados)
         FLOW-->>OPE: status loaded
     end
 ```
@@ -206,45 +226,36 @@ sequenceDiagram
 
 ### Sinais, coleta e alertas
 
-| Sinal | Produção | Coleta/retenção | Alerta |
+| Sinal | Produção | Coleta/retenção | Painel/alerta |
 | :--- | :--- | :--- | :--- |
-| Estado do flow/task | Prefect | Histórico do servidor ativo | Interface do Prefect; regra externa não versionada |
-| Lote extraído | `ExtractionBatchLogEvent` | Logger Python | Não configurado |
-| Lote carregado/falho | `LoadBatchLogEvent` | Logger Python | Não configurado |
-| Contagens conciliadas | DuckDB, `reconciliacao_execucao` | Volume `duck-data` | Consulta/health check manual |
-| Saúde do banco | `run_health_check()` | Saída do comando | Não configurado |
+| Estado do flow/task, tentativas | Prefect | `prefect-server` (volume `prefect-data`) | UI do Prefect (4200) |
+| Marcos de orquestração | `orchestration.*.emitted` (`flow.py`) | Logstash → `etl-logs-*` | Painel Kibana: status e duração por etapa |
+| Lote extraído | `ExtractionBatchLogEvent` (`extraction.batch.emitted`) | Logstash → `etl-logs-*` | Painel: volumes (`byte_count`, `record_count`) |
+| Lote transformado | `TransformationBatchLogEvent` (`transformation.batch.emitted`) | Logstash → `etl-logs-*` | Painel: aceitos, rejeitados, duplicados |
+| Lote carregado/falho | `LoadBatchLogEvent` (`load.batch.emitted`) | Logstash → `etl-logs-*` | Painel: `loaded_count`, rejeições; alerta de falha |
+| Retry e latência | `extraction.retry.emitted`, `load.connect_retry.emitted` | Logstash → `etl-logs-*` | Painel: tentativas de repetição |
+| Disponibilidade | `orchestration.health_check.emitted` (Prefect + DuckDB) | Logstash → `etl-logs-*` | Alerta "ETL - falha de execução" (status `degraded`) |
+| Fila parada | Ausência de evento `stage: orchestration` | Elasticsearch | Alerta "ETL - fila parada" (26 h) |
+| Contagens conciliadas | DuckDB, `reconciliacao_execucao` | Volume `duck-data` | Consulta SQL |
 
-Logs locais já carregam correlação por `run_id`, `task_id` e `batch_id`. A
-centralização, o painel e alertas automáticos continuam dependências dos cards
-OB-07 a OB-09; a ausência desses serviços não deve ser mascarada como uma
-integração existente.
+Todos os eventos carregam correlação por `run_id`, `task_id` (o `task_run.id`
+do Prefect, ADR 0008) e `batch_id`, sem payload de negócio. O painel está
+versionado em `observability/kibana/painel-operacional.ndjson`; as duas regras
+de alerta estão especificadas no runbook e são criadas pela UI ou pela API de
+Alerting do Kibana, porque o formato de regra muda entre versões e não é
+importável por NDJSON.
+O roteiro OB-11 (`scripts/orchestration/smoke_observabilidade.sh`) prova uma
+execução concluída e uma falha controlada com o alerta correspondente.
+
+O transporte é best-effort (UDP/GELF): coletor indisponível não bloqueia nem
+confirma uma carga, garantia coberta por
+`tests/e2e/test_telemetria_e_coletor_indisponivel.py`. Não há fila durável de
+telemetria; eventos emitidos com o coletor fora do ar são perdidos, e o estado
+autoritativo continua no DuckDB e no Prefect (ADR 0006).
 
 Na recuperação, o último checkpoint confirmado define a retomada. O lote atual
 só avança depois de persistência e reconciliação; retry esgotado mantém o
 checkpoint anterior e deixa a falha visível no histórico e no evento técnico.
-
-O que existe hoje:
-
-- `transform_batch` devolve, em `TransformationResult.metrics`, os campos
-  `source`, `run_id`, `task_id`, `batch_id`, `stage`, `status`,
-  `extracted_count`, `accepted_count`, `rejected_count`, `duplicate_count`,
-  `input_bytes` e `duration_seconds`;
-- `LoadResult.as_dict()` devolve `extracted`, `loaded`, `rejected`,
-  `duplicates` e `balanced`, registrados em log pela task `load`;
-- `_batch_metadata` persiste status e contagens por lote, e as views `execucao`
-  e `reconciliacao_execucao` os consolidam por execução;
-- `ExtractionBatchLogEvent` emite um evento JSON por lote extraído, por
-  `StandardLoggingSink`, para o `logging` da biblioteca padrão;
-- o Prefect registra estado, duração e parâmetros de cada run.
-
-**O que não existe no `develop`:** módulo de observabilidade, envio de métricas
-ou traces a um coletor, índice no Elasticsearch, painel no Kibana, health check
-exposto da orquestração e regra de alerta. A decisão pela Elastic Stack está no
-ADR 0001 e o trabalho vive nas branches `task-196-ov-05` a `task-199-ov-08`, que
-não foram integradas e precedem a camada de carga.
-
-Até a integração, a verificação operacional disponível é consultar as views de
-reconciliação no DuckDB e o histórico de runs do Prefect.
 
 ## Verificação automatizada
 
@@ -261,11 +272,15 @@ PYTHONPATH=src python -m unittest discover -s tests
 
 ## Limitações desta visão
 
-- O disparo por evento e a área intermediária `bronze` são contrato, não
-  implementação.
-- A observabilidade prevista no ADR 0001 não pode ser exercitada no ambiente
-  declarado, que não inclui a Elastic Stack.
-- Os testes do flow substituem apenas o armazenamento de objetos por leitor em
-  memória; a integração real com MinIO requer Docker e permanece como smoke
-  operacional documentado.
-- O agendamento não sobrevive à parada do processo que o serve.
+- A área intermediária `bronze` é contrato, não implementação.
+- A notificação `s3:ObjectCreated` do MinIO ao `watch_landing.py` é configurada
+  manualmente pelo operador (`mc event add`); o modo polling dispensa essa
+  configuração.
+- As regras de alerta do Kibana não fazem parte do NDJSON do painel e são
+  criadas pela API (comandos no runbook); não há canal de
+  notificação (e-mail, chat) nem política de retenção do índice.
+- Os testes automatizados substituem apenas o armazenamento de objetos por
+  leitor em memória; a integração real com MinIO, Prefect e Elastic Stack é
+  exercitada pelo smoke operacional OB-11.
+- Elastic Stack e MinIO rodam sem autenticação forte, adequados apenas ao
+  ambiente local.

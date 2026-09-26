@@ -4,6 +4,16 @@
 
 **Conclusão de implementação.** Os quatro cubos ainda são contratos propostos. O esquema executável e o DDL versionado definem as seis tabelas `ingestao_*`, com colunas de origem normalizadas e metadados de carga; não há DDL executável para `FATO_*` ou `DIM_*`. Referências: `src/etl/transformation/schema.py:56-138`, `src/etl/load/ddl.py:31-40,224-261`, `sql/duckdb/001_ingestao_tratada.sql:17-175` e `docs/schema-transformacao.md:38-43`.
 
+> **Situação em 25/09/2026:** este inventário é a fotografia de abertura da
+> Sprint 4 (CB-01). Os quatro cubos foram materializados em seguida:
+> `src/etl/analytics/` (`dimensions_ddl.py`, `facts_cycle_participation.py`,
+> `facts_pipeline_instrument.py`, `load.py`, `reconcile.py`) cria `DIM_*` e
+> `FATO_*` no DuckDB a partir da ingestão conciliada, e `publish.py` gera os 7
+> Parquet consumidos pelo modelo semântico. O contrato físico vigente está em
+> [`contrato-fisico-cubos.md`](contrato-fisico-cubos.md) e
+> [`ddl-dimensoes.md`](ddl-dimensoes.md); as colunas "sem origem" desta matriz
+> continuam sem origem e são publicadas como indisponíveis.
+
 ## Como ler a matriz
 
 Cada linha é um item ou grupo homogêneo de itens do contrato dimensional. O estado descreve a ligação entre o nome/semântica alvo e o contrato de ingestão atual:

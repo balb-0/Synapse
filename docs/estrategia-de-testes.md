@@ -11,7 +11,7 @@ lacuna, não como intenção.
 - Comando: `python -m unittest discover -s tests -v`, com `PYTHONPATH=src`.
 - Localização: `tests/`, espelhando as camadas de `src/etl/` —
   `tests/extraction/`, `tests/transformation/` e `tests/load/`.
-- Volume atual: 216 testes (`grep -rc "def test" tests/` em 11/09/2026).
+- Volume atual: 376 testes executados pelo runner (`python -m unittest discover -s tests`, 25/09/2026), cobertura de 92% do pacote `etl`; na Sprint 3 eram 216.
 - Dependências de teste: `requirements-transformation-dev.txt` (ruff e
   coverage) para lint e cobertura locais, iguais ao CI; os demais testes rodam
   com as dependências de `requirements.txt`.

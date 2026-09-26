@@ -48,7 +48,11 @@ class ExtractorContractSuiteTests(unittest.TestCase):
                     batch_size=2,
                 )
 
-                batches = list(extractor.read(run_id=f"contract-{fixture.source}"))
+                batches = list(
+                    extractor.read(
+                        run_id=f"contract-{fixture.source}", task_id=f"task-{fixture.source}"
+                    )
+                )
 
                 self.assertIsInstance(extractor, Extractor)
                 self.assertTrue(all(isinstance(batch, ExtractedBatch) for batch in batches))
@@ -85,7 +89,11 @@ class ExtractorContractSuiteTests(unittest.TestCase):
                     ),
                 )
 
-                batches = list(extractor.read(run_id=f"empty-{fixture.source}"))
+                batches = list(
+                    extractor.read(
+                        run_id=f"empty-{fixture.source}", task_id=f"task-{fixture.source}"
+                    )
+                )
 
                 self.assertEqual(len(batches), 1)
                 self.assertEqual(batches[0].records, ())

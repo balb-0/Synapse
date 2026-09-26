@@ -33,13 +33,17 @@ desvio de caminho, erros e a justificativa do número (blocos C/D).
 
 ## 2. Execução
 
-**Estado em 23/09/2026:** as sessões **ainda não foram executadas**. A
-execução depende das telas dos reports (RP-08); as fichas de registro estão
-prontas nas frentes de execução
+**Estado em 25/09/2026:** as sessões moderadas S1–S4 compõem a próxima etapa
+do plano de usabilidade. As fichas de registro estão preparadas em
 (`docs/usabilidade/execucao-navegacao-detalhamento.md` e
-`docs/usabilidade/execucao-comparacao-segmentacao.md`, nas branches de
-US-06/US-07), com a identificação da rodada, tabelas por sessão e a
-conferência de precisão valor exibido × referência.
+`docs/usabilidade/execucao-comparacao-segmentacao.md`), com identificação da
+rodada, tabelas por sessão e conferência de precisão valor exibido × referência.
+
+A Rodada 0 registrou o retorno do parceiro sobre a navegação e a leitura dos
+indicadores nas duas páginas apresentadas com dados de demonstração. Seus
+achados orientam as sessões moderadas e a conferência dos reports com os
+cubos publicados. A composição das páginas e o mapeamento ao modelo analítico
+estão descritos em [`solucao_dashboard.md`](../solucao_dashboard.md).
 
 Regras já fixadas para a execução (roteiro, §6):
 
@@ -68,9 +72,10 @@ reports são avaliados (cada um verificável tela a tela):
    sempre selecionado e rotulado (RF01/RF03).
 4. **Semiaditividade respeitada** — estoque mensal do pipeline não é somado
    entre períodos (contrato C03).
-5. **Rastreabilidade** — todo número da tela rastreia a um cubo/medida da
-   [seção de implementação](implementacao-reports.md); valores conferidos
-   contra o repositório analítico na rodada de RP-11/US-07.
+5. **Rastreabilidade** — cada número da tela final deve rastrear a um
+   cubo/medida da [seção de implementação](implementacao-reports.md); a
+   conferência dos valores contra o repositório analítico ainda depende da
+   rodada de RP-11/US-07.
 6. **Privacidade** — nenhuma tela expõe e-mail, identificador de pessoa ou
    resposta individual (regra LGPD do protótipo, mantida nos reports).
 
