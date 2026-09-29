@@ -1,13 +1,15 @@
-"""Executa o comando único: backfill seguido de carga analítica (PL-01).
+"""Executa o comando único: backfill, carga, reconciliação e publicação (PL-01/PL-02).
 
 Uso (dentro do runner):
-    python scripts/orchestration/run_pipeline.py [--sources empresas pesquisas ...]
-        [--reprocess] [--observed-at 2026-09-30T23:59:59]
+    python scripts/orchestration/run_pipeline.py --publish-dir /caminho/privado/publicacao-bi
+        [--sources empresas pesquisas ...] [--reprocess] [--observed-at 2026-09-30T23:59:59]
 
 Espera os objetos já publicados na área de entrada do MinIO (para semear
 fixtures antes, ver `scripts/orchestration/run_backfill.py`). Sem `--sources`,
-processa as seis fontes na ordem de dependência. A saída resume o status por
-fonte do backfill e o `load_id` da geração analítica.
+processa as seis fontes na ordem de dependência. Os sete Parquet só são
+publicados em `--publish-dir` (fora do checkout) quando a reconciliação
+retorna `reconciled=true`. A saída resume o status por fonte do backfill, o
+`load_id` da geração analítica e a geração publicada.
 """
 
 import argparse
@@ -19,6 +21,7 @@ from etl.orchestration import configure_json_logging, run_pipeline
 def main() -> None:
     configure_json_logging()
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--publish-dir", required=True, help="destino dos Parquet, fora do checkout")
     ap.add_argument("--sources", nargs="+", default=None)
     ap.add_argument("--reprocess", action="store_true")
     ap.add_argument(
@@ -28,7 +31,12 @@ def main() -> None:
     args = ap.parse_args()
 
     observed = datetime.fromisoformat(args.observed_at) if args.observed_at else None
-    result = run_pipeline(sources=args.sources, reprocess=args.reprocess, observed_at=observed)
+    result = run_pipeline(
+        sources=args.sources,
+        publish_dir=args.publish_dir,
+        reprocess=args.reprocess,
+        observed_at=observed,
+    )
     print("PIPELINE:", result)
 
 
