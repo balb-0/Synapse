@@ -1,4 +1,4 @@
-"""Comando único do pipeline (PL-01/PL-02): backfill, carga, reconciliação e publicação.
+"""Comando único do pipeline (PL-01..PL-03): backfill, carga, reconciliação e publicação.
 
 Encadeia as rotinas existentes sobre o mesmo arquivo DuckDB: o caminho é
 resolvido uma única vez (`ETL_DUCKDB_PATH`) e passado a todas as etapas,
@@ -13,7 +13,10 @@ Parquet só são gravados quando `reconciled=true`, e o manifesto aponta o
 
 A saída registra os identificadores e o status de cada etapa: o status por
 fonte do backfill, o `load_id` da geração analítica, o veredito da
-reconciliação e a geração publicada.
+reconciliação e a geração publicada. Toda falha sobe como
+:class:`PipelineStageError` com a etapa identificada e a causa encadeada;
+reexecutar o comando após uma falha é seguro — a ingestão é idempotente e a
+carga analítica substitui os fatos em vez de acumular.
 """
 
 from __future__ import annotations
@@ -51,12 +54,35 @@ DEFAULT_SOURCES = (
 COMPLETED_STATUSES = frozenset({"loaded", "ignored"})
 
 
-class PipelineAbortedError(RuntimeError):
+class PipelineStageError(RuntimeError):
+    """Falha do pipeline com a etapa identificada (PL-03).
+
+    ``stage`` nomeia onde o encadeamento parou (``backfill``,
+    ``load_analytics``, ``reconciliation`` ou ``publication``); a causa
+    original fica encadeada em ``__cause__``. As garantias de estado são das
+    próprias etapas: a publicação é atômica e não troca o ``current.json``
+    anterior em caso de falha, e a reexecução não duplica fatos — a ingestão é
+    idempotente por objeto e a carga analítica substitui os fatos na mesma
+    transação em vez de acumular.
+    """
+
+    def __init__(self, stage: str, message: str) -> None:
+        super().__init__(f"[{stage}] {message}")
+        self.stage = stage
+
+
+class PipelineAbortedError(PipelineStageError):
     """O backfill não concluiu todas as fontes; a carga analítica não executa."""
 
+    def __init__(self, message: str) -> None:
+        super().__init__("backfill", message)
 
-class ReconciliationFailedError(RuntimeError):
+
+class ReconciliationFailedError(PipelineStageError):
     """O relatório analítico não reconciliou; nada é publicado."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__("reconciliation", message)
 
 
 @flow(name="pipeline-completo")
@@ -97,13 +123,29 @@ def run_pipeline(
         reprocess=reprocess,
     )
 
-    backfill_report = backfill(
-        sources=selected,
-        bucket=settings.minio_bucket,
-        prefix=settings.minio_input_prefix,
-        reprocess=reprocess,
-        db_path=db_path,
-    )
+    def failed(stage: str, error: Exception) -> PipelineStageError:
+        """Marco de falha com a etapa identificada; a causa segue encadeada."""
+        _log_event(
+            logger,
+            PIPELINE_EVENT,
+            status="failed",
+            stage=stage,
+            sources=selected,
+            error=type(error).__name__,
+            duration_ms=round((time.monotonic() - started) * 1000, 3),
+        )
+        return PipelineStageError(stage, str(error))
+
+    try:
+        backfill_report = backfill(
+            sources=selected,
+            bucket=settings.minio_bucket,
+            prefix=settings.minio_input_prefix,
+            reprocess=reprocess,
+            db_path=db_path,
+        )
+    except Exception as error:
+        raise failed("backfill", error) from error
 
     pending = [
         result["source"]
@@ -115,25 +157,33 @@ def run_pipeline(
             logger,
             PIPELINE_EVENT,
             status="aborted",
+            stage="backfill",
             sources=selected,
             pending=pending,
             duration_ms=round((time.monotonic() - started) * 1000, 3),
         )
         raise PipelineAbortedError("fontes sem conclusão no backfill: " + ", ".join(pending))
 
-    with duckdb.connect(db_path) as con:
-        analytics = load_analytics(con, observed_at=observed_at)
+    try:
+        with duckdb.connect(db_path) as con:
+            analytics = load_analytics(con, observed_at=observed_at)
+    except Exception as error:
+        raise failed("load_analytics", error) from error
 
     # Conexão de escrita fechada antes de reabrir: a reconciliação lê em
     # read_only e a publicação abre a própria conexão read_only sobre o arquivo.
-    with duckdb.connect(db_path, read_only=True) as con:
-        report = reconcile_analytics(con)
+    try:
+        with duckdb.connect(db_path, read_only=True) as con:
+            report = reconcile_analytics(con)
+    except Exception as error:
+        raise failed("reconciliation", error) from error
 
     if not report.reconciled:
         _log_event(
             logger,
             PIPELINE_EVENT,
             status="reconciliation_failed",
+            stage="reconciliation",
             sources=selected,
             load_id=analytics.load_id,
             duration_ms=round((time.monotonic() - started) * 1000, 3),
@@ -150,7 +200,12 @@ def run_pipeline(
             f"carregou load_id={analytics.load_id}; nada foi publicado"
         )
 
-    manifest = publish_cubes(Path(db_path), Path(publish_dir), load_reference=report.load_id)
+    # `publish_cubes` grava em staging e só troca o ponteiro no fim: uma falha
+    # aqui deixa o `current.json` anterior (e a geração anterior) intactos.
+    try:
+        manifest = publish_cubes(Path(db_path), Path(publish_dir), load_reference=report.load_id)
+    except Exception as error:
+        raise failed("publication", error) from error
 
     _log_event(
         logger,
