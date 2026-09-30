@@ -1,4 +1,4 @@
-"""Executa o comando único: backfill, carga, reconciliação e publicação (PL-01/PL-02).
+"""Executa o comando único: backfill, carga, reconciliação e publicação (PL-01..PL-03).
 
 Uso (dentro do runner):
     python scripts/orchestration/run_pipeline.py --publish-dir /caminho/privado/publicacao-bi
@@ -13,9 +13,10 @@ retorna `reconciled=true`. A saída resume o status por fonte do backfill, o
 """
 
 import argparse
+import sys
 from datetime import datetime
 
-from etl.orchestration import configure_json_logging, run_pipeline
+from etl.orchestration import PipelineStageError, configure_json_logging, run_pipeline
 
 
 def main() -> None:
@@ -31,12 +32,19 @@ def main() -> None:
     args = ap.parse_args()
 
     observed = datetime.fromisoformat(args.observed_at) if args.observed_at else None
-    result = run_pipeline(
-        sources=args.sources,
-        publish_dir=args.publish_dir,
-        reprocess=args.reprocess,
-        observed_at=observed,
-    )
+    try:
+        result = run_pipeline(
+            sources=args.sources,
+            publish_dir=args.publish_dir,
+            reprocess=args.reprocess,
+            observed_at=observed,
+        )
+    except PipelineStageError as error:
+        # Etapa identificada na saída; reexecutar o comando após corrigir a
+        # causa é seguro (ingestão idempotente, fatos substituídos, publicação
+        # atômica preserva o current.json anterior).
+        print(f"PIPELINE FALHOU na etapa {error.stage}: {error}", file=sys.stderr)
+        raise SystemExit(1) from error
     print("PIPELINE:", result)
 
 
