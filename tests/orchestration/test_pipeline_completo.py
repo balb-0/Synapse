@@ -26,6 +26,7 @@ from etl.analytics.reconcile import ReconciliationReport  # noqa: E402
 from etl.orchestration import pipeline as pipeline_module  # noqa: E402
 from etl.orchestration.pipeline import (  # noqa: E402
     PipelineAbortedError,
+    PipelineStageError,
     ReconciliationFailedError,
     run_pipeline,
 )
@@ -125,16 +126,28 @@ class PipelineCompletoTests(unittest.TestCase):
 
         return publish_cubes
 
-    def executar(self, statuses=None, report=None, **kwargs) -> dict:
+    def executar(self, statuses=None, report=None, falha_em=None, **kwargs) -> dict:
         report = report if report is not None else relatorio_reconciliacao()
         kwargs.setdefault("publish_dir", self.publish_dir)
+
+        def quebrado(*args, **kwargs):
+            raise RuntimeError("falha injetada")
+
+        dubles = {
+            "backfill": self._backfill_falso(statuses or {}),
+            "load_analytics": self._carga_falsa(),
+            "reconcile_analytics": self._reconciliacao_falsa(report),
+            "publish_cubes": self._publicacao_falsa(),
+        }
+        if falha_em is not None:
+            dubles[falha_em] = quebrado
         with (
-            mock.patch.object(pipeline_module, "backfill", self._backfill_falso(statuses or {})),
-            mock.patch.object(pipeline_module, "load_analytics", self._carga_falsa()),
+            mock.patch.object(pipeline_module, "backfill", dubles["backfill"]),
+            mock.patch.object(pipeline_module, "load_analytics", dubles["load_analytics"]),
             mock.patch.object(
-                pipeline_module, "reconcile_analytics", self._reconciliacao_falsa(report)
+                pipeline_module, "reconcile_analytics", dubles["reconcile_analytics"]
             ),
-            mock.patch.object(pipeline_module, "publish_cubes", self._publicacao_falsa()),
+            mock.patch.object(pipeline_module, "publish_cubes", dubles["publish_cubes"]),
         ):
             return run_pipeline(**kwargs)
 
@@ -201,6 +214,68 @@ class PipelineCompletoTests(unittest.TestCase):
         self.assertEqual(publicacao[3], LOAD_ID)  # load_reference do manifesto
         self.assertEqual(publicacao[2], self.publish_dir)
         self.assertEqual(resultado["publication"]["load_reference"], LOAD_ID)
+
+    def test_falha_no_backfill_identifica_a_etapa(self) -> None:
+        with self.assertRaises(PipelineStageError) as contexto:
+            self.executar(falha_em="backfill")
+
+        self.assertEqual(contexto.exception.stage, "backfill")
+        self.assertIsInstance(contexto.exception.__cause__, RuntimeError)
+        self.assertEqual(self.etapas(), [])
+
+    def test_falha_na_carga_identifica_a_etapa_e_interrompe(self) -> None:
+        with self.assertRaises(PipelineStageError) as contexto:
+            self.executar(falha_em="load_analytics")
+
+        self.assertEqual(contexto.exception.stage, "load_analytics")
+        self.assertEqual(self.etapas(), ["backfill"])
+
+    def test_falha_na_reconciliacao_identifica_a_etapa(self) -> None:
+        with self.assertRaises(PipelineStageError) as contexto:
+            self.executar(falha_em="reconcile_analytics")
+
+        self.assertEqual(contexto.exception.stage, "reconciliation")
+        self.assertEqual(self.etapas(), ["backfill", "analytics"])
+
+    def test_falha_na_publicacao_identifica_a_etapa_e_preserva_current_json(self) -> None:
+        publicacao = Path(self.publish_dir)
+        publicacao.mkdir()
+        anterior = publicacao / "current.json"
+        anterior.write_text('{"generation": "geracao-anterior"}\n')
+
+        with self.assertRaises(PipelineStageError) as contexto:
+            self.executar(falha_em="publish_cubes")
+
+        self.assertEqual(contexto.exception.stage, "publication")
+        # O pipeline não toca no ponteiro; a troca atômica é do publish_cubes,
+        # cujo contrato de staging tem suíte própria (tests/analytics/test_publish.py).
+        self.assertEqual(anterior.read_text(), '{"generation": "geracao-anterior"}\n')
+
+    def test_reexecucao_apos_falha_completa_sem_nova_carga_duplicada(self) -> None:
+        with self.assertRaises(PipelineStageError):
+            self.executar(falha_em="publish_cubes")
+
+        resultado = self.executar()
+
+        self.assertEqual(resultado["status"], "completed")
+        # A segunda execução refaz o encadeamento inteiro; não duplicar fatos é
+        # contrato das camadas de baixo, coberto nas suítes delas: ingestão
+        # idempotente (gray-box de orquestração) e substituição atômica dos
+        # fatos (tests/analytics/test_analytics_load.py).
+        self.assertEqual(
+            self.etapas(),
+            ["backfill", "analytics", "reconcile", "backfill", "analytics", "reconcile", "publish"],
+        )
+
+    def test_erros_de_gate_ja_identificam_a_etapa(self) -> None:
+        with self.assertRaises(PipelineAbortedError) as abortado:
+            self.executar(statuses={"empresas": "failed"})
+        self.assertEqual(abortado.exception.stage, "backfill")
+
+        self.chamadas.clear()
+        with self.assertRaises(ReconciliationFailedError) as reprovado:
+            self.executar(report=relatorio_reconciliacao(digests_match=False))
+        self.assertEqual(reprovado.exception.stage, "reconciliation")
 
 
 if __name__ == "__main__":
