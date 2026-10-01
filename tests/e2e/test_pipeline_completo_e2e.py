@@ -153,7 +153,9 @@ class PipelineCompletoE2ETests(unittest.TestCase):
 
         dir_publicacao = Path(self.publish_dir)
         current_file = dir_publicacao / "current.json"
-        self.assertTrue(current_file.is_file(), "current.json não foi criado na pasta de publicação")
+        self.assertTrue(
+            current_file.is_file(), "current.json não foi criado na pasta de publicação"
+        )
 
         current_data = json.loads(current_file.read_text(encoding="utf-8"))
         self.assertEqual(current_data, {"generation": generation})
@@ -162,7 +164,9 @@ class PipelineCompletoE2ETests(unittest.TestCase):
         self.assertTrue(generation_dir.is_dir(), f"diretório da geração {generation} não existe")
 
         manifest_file = generation_dir / "manifest.json"
-        self.assertTrue(manifest_file.is_file(), "manifest.json não foi criado no diretório da geração")
+        self.assertTrue(
+            manifest_file.is_file(), "manifest.json não foi criado no diretório da geração"
+        )
 
         manifest_data = json.loads(manifest_file.read_text(encoding="utf-8"))
         self.assertEqual(manifest_data["generation"], generation)
