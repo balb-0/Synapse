@@ -27,9 +27,14 @@ from unittest import mock
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
+from etl.analytics.reconcile import ReconciliationReport  # noqa: E402
 from etl.extraction import ObjectReference  # noqa: E402
 from etl.orchestration import flow as flow_module  # noqa: E402
-from etl.orchestration.pipeline import run_pipeline  # noqa: E402
+from etl.orchestration.pipeline import (  # noqa: E402
+    PipelineStageError,
+    ReconciliationFailedError,
+    run_pipeline,
+)
 from tests import fixtures  # noqa: E402
 
 DUCKDB_INSTALLED = importlib.util.find_spec("duckdb") is not None
@@ -184,6 +189,83 @@ class PipelineCompletoE2ETests(unittest.TestCase):
                     publication_info["tables"][nome_tabela],
                     f"contagem no Parquet diverge do retorno do flow para {nome_tabela}",
                 )
+
+    def test_falha_reconciliacao_preserva_geracao_atual(self) -> None:
+        # 1. Executa primeira vez com sucesso para estabelecer uma geração ativa
+        primeira_execucao = run_pipeline(
+            db_path=self.database_path,
+            publish_dir=self.publish_dir,
+        )
+        geracao_anterior = primeira_execucao["publication"]["generation"]
+        load_anterior = primeira_execucao["publication"]["load_reference"]
+
+        dir_publicacao = Path(self.publish_dir)
+        current_file = dir_publicacao / "current.json"
+        conteudo_anterior = current_file.read_text(encoding="utf-8")
+        self.assertEqual(json.loads(conteudo_anterior), {"generation": geracao_anterior})
+
+        diretorios_iniciais = set(dir_publicacao.iterdir())
+
+        # 2. Relatório de reconciliação que reprova (source_digests_match=False)
+        report_reprovado = ReconciliationReport(
+            load_id="carga-invalida",
+            loaded_at="2026-10-01T12:00:00",
+            source_digests_match=False,
+            respondent_checksum=None,
+            respondent_run_id=None,
+            cubes=(),
+            orphan_reasons=(),
+            orphan_audit=(),
+            monthly_closures=(),
+        )
+        self.assertFalse(report_reprovado.reconciled)
+
+        # 3. Execução subsequente com reprocess=True para disparar nova carga,
+        # mas simulando falha na reconciliação
+        with mock.patch(
+            "etl.orchestration.pipeline.reconcile_analytics", return_value=report_reprovado
+        ):
+            with self.assertRaises(ReconciliationFailedError) as contexto:
+                run_pipeline(
+                    db_path=self.database_path,
+                    publish_dir=self.publish_dir,
+                    reprocess=True,
+                )
+
+        self.assertEqual(contexto.exception.stage, "reconciliation")
+        self.assertIn("relatório analítico não reconciliou", str(contexto.exception))
+
+        # 4. Garante que current.json continua apontando rigorosamente para a geração anterior
+        self.assertTrue(current_file.is_file())
+        self.assertEqual(current_file.read_text(encoding="utf-8"), conteudo_anterior)
+        current_atual = json.loads(current_file.read_text(encoding="utf-8"))
+        self.assertEqual(current_atual, {"generation": geracao_anterior})
+
+        # 5. Garante que o manifesto da geração anterior segue intacto
+        manifest_anterior = dir_publicacao / geracao_anterior / "manifest.json"
+        manifest_data = json.loads(manifest_anterior.read_text(encoding="utf-8"))
+        self.assertEqual(manifest_data["generation"], geracao_anterior)
+        self.assertEqual(manifest_data["load_reference"], load_anterior)
+
+        # 6. Garante que nenhuma pasta de geração espúria foi promovida
+        self.assertEqual(set(dir_publicacao.iterdir()), diretorios_iniciais)
+
+        # 7. Cenário complementar: erro de execução na reconciliação sobe como PipelineStageError
+        # e também preserva o estado de publicação
+        with mock.patch(
+            "etl.orchestration.pipeline.reconcile_analytics",
+            side_effect=RuntimeError("falha na conexão durante reconciliação"),
+        ):
+            with self.assertRaises(PipelineStageError) as contexto_erro:
+                run_pipeline(
+                    db_path=self.database_path,
+                    publish_dir=self.publish_dir,
+                    reprocess=True,
+                )
+
+        self.assertEqual(contexto_erro.exception.stage, "reconciliation")
+        self.assertEqual(current_file.read_text(encoding="utf-8"), conteudo_anterior)
+        self.assertEqual(set(dir_publicacao.iterdir()), diretorios_iniciais)
 
 
 if __name__ == "__main__":
