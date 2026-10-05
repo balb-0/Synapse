@@ -1,0 +1,4 @@
+id_pergunta;pesquisa_id;pesquisa_titulo;enunciado;tipo;qtd_alternativas;alternativas;linhas_matriz;colunas_matriz;confianca;formato_arquivo;col_origem;observacoes
+2001;1;Pesquisa Alfa;Questão sintética um;multipla_escolha;2;A | B;;;;;;
+2002;1;Pesquisa Alfa;Questão sintética dois;aberta;;;;;;;;
+2003;1;Pesquisa Alfa;Questão sintética três;tipo_inexistente;;;;;;;;
