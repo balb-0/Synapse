@@ -1,8 +1,10 @@
 # BI-05: conferência da geração final
 
-O ID da geração final CB16 e o banco DuckDB correspondente ainda precisam ser
-informados pelo responsável pela carga. Não substitua essa geração pelo fixture
-BI-02 nem por contagens de um snapshot histórico.
+CB-16 publicou a geração `6b1eaa686aac43b18b6d6545e1c2c5f1` da fonte v3,
+com `load_reference` `afcde424-45e8-457b-8793-bf0866d142b2`.
+A conferência da publicação contra o DuckDB da mesma carga passou; o refresh
+final no Desktop continua pendente neste registro. O fixture BI-02 e snapshots
+históricos têm evidências separadas.
 
 ## Conferir a publicação
 
@@ -134,3 +136,26 @@ conferir um `load_reference` iniciado por `synthetic`; o resultado mantém
 `synthetic: true` e `final_acceptance: pendente`. A aceitação final exige a
 geração CB16 autorizada, a conferência da publicação, o refresh real no Desktop
 e a evidência de que ambos usaram a mesma carga.
+
+## Publicação v3 conferida contra a origem
+
+O [recibo de preparação](evidencias/bi05/publicacao-v3-conferida.json) registra
+a comparação da geração CB-16 com o banco estável da mesma carga. O
+conferidor executado corresponde ao código de `3d926e0`. A conferência inclui
+esquemas, hashes, sete contagens e os fingerprints da última carga analítica.
+
+| Tabela | Linhas publicadas | Total da métrica ou estado |
+| --- | ---: | --- |
+| `PUB_C01_CICLO` | 57 | 366 pesquisas |
+| `PUB_C02_PARTICIPACAO` | 32 | 17740 participações |
+| `PUB_C03_PIPELINE_MENSAL` | 0 | Sem fechamento observado, estoque indisponível |
+| `PUB_C04_INSTRUMENTO` | 45 | 3186 associações pesquisa-pergunta |
+| `PUB_QUALIDADE_CAMPO` | 64 | Contagens conferidas |
+| `PUB_QUALIDADE_RELACAO` | 8 | Contagens conferidas |
+| `PUB_QUALIDADE_DUPLICIDADE` | 5 | Contagens conferidas |
+
+A [entrega CB-16](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/293)
+inclui a reconciliação e a verificação independente de métricas da ingestão,
+sem usar a consulta do publicador. Este recibo de preparação não incorpora
+uma execução Desktop: `desktop.status` e `final_acceptance` permanecem
+pendentes até a consulta da mesma geração em Windows.
