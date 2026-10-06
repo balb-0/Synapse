@@ -22,6 +22,20 @@ versionado conterá somente identificadores técnicos da carga/publicação,
 contagens, esquemas, hashes e estados agregados. Não inclui registros, valores
 de categorias, identificadores de pessoas/empresas/pesquisas ou credenciais.
 
+## Correção de formato da fonte v3
+
+A execução estrita inicial rejeitou o prefixo processado de `respostas` porque
+`respondent_id` chegou em notação científica textual. Essa execução parcial
+foi preservada para diagnóstico e não produziu uma geração aceita. A fonte
+está sendo reprocessada com a regra corrigida de identificador opaco.
+
+O adaptador conserva esse identificador como texto; não reconstrói um inteiro
+nem o relaciona automaticamente a `cliente_id` ou à fonte `respondentes`.
+A correção do schema de produção corresponde ao commit `894445d`, com testes
+focados informados pelo responsável. O recibo final deverá identificar o
+código e o adaptador efetivamente executados, além das novas contagens. Nenhum
+resultado parcial desta tentativa substitui os totais da execução completa.
+
 ## Sequência de conferência
 
 1. Concluir a ingestão e verificar `extraídas = carregadas + rejeitadas` em
