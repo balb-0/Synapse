@@ -17,9 +17,12 @@ observado.
 As duas datas mantêm os relacionamentos exatos com cada arquivo e recebem os
 mesmos valores de ano, trimestre e mês. `ano_mes` é ordenado por uma chave
 numérica `YYYYMM`, que permanece igual para as duas datas daquele mês. Datas
-nulas de C02 continuam sem ano, trimestre ou mês; não são convertidas em uma
-data de calendário fictícia. `PUB_C01_CICLO` e `PUB_C04_INSTRUMENTO` não têm
-papel de tempo neste modelo: nenhum dos dois arquivos publica coluna de data.
+nulas de C02 permanecem no fato, mas são filtradas da dimensão antes de
+materializar as datas; não são convertidas em uma data de calendário fictícia.
+Na relação, o Power BI pode representá-las pelo membro em branco virtual de
+integridade referencial, sem uma linha física em `DIM_TEMPO`. `PUB_C01_CICLO`
+e `PUB_C04_INSTRUMENTO` não têm papel de tempo neste modelo: nenhum dos dois
+arquivos publica coluna de data.
 
 `Trimestre` e `Mês` usam `sortByColumn` (`numero_trimestre`, `numero_mes`)
 para ordenar cronologicamente, não por ordem alfabética — sem isso, "Abr"
@@ -55,8 +58,9 @@ no Power BI Desktop:
 
 - `SUM(qtd_participacoes)` sem filtro categórico bate com a soma por Ano →
   Trimestre → Mês em `PUB_C02_PARTICIPACAO`. Reconcilie separadamente a
-  parcela cuja `mes_resposta` é `NULL`: ela permanece contada no total, mas
-  não pertence a um nível do calendário. `PUB_C01_CICLO` não tem coluna de
+  parcela cuja `mes_resposta` é `NULL`: ela permanece contada no total e deve
+  ser reconciliada separadamente pelo membro em branco, sem uma linha física
+  correspondente em `DIM_TEMPO`. `PUB_C01_CICLO` não tem coluna de
   data publicada; nele, a checagem de total é entre os níveis de área, tipo e
   status, não de tempo.
 - `SUM(qtd_pesquisas_no_status)` de `PUB_C03_PIPELINE_MENSAL`, filtrado por um

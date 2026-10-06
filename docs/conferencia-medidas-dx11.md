@@ -13,10 +13,12 @@ recalcula, a partir dos Parquet de uma geração publicada
 na Sprint 2, com uma implementação independente da consulta de `publish.py`.
 Esses números pertencem a um snapshot histórico: valor diferente, inclusive
 maior, não passa automaticamente como crescimento legítimo nem reprova sozinho
-a população atual. O script marca qualquer divergência ou arquivo ausente como
-não validado e encerra com código 1; para aceitar uma geração nova, compare-a
-com a carga DuckDB reconciliada da mesma geração. Igualdade com uma referência
-antiga também não substitui essa reconciliação de identidades.
+a população atual. O script registra se cada arquivo existe, quantas linhas
+contém e qual agregado produziu. Distingue caminho ausente, Parquet existente
+sem linhas e coluna sem valor agregado; todos ficam não validados junto com
+qualquer divergência e encerram com código 1. Para aceitar uma geração nova,
+compare-a com a carga DuckDB reconciliada da mesma geração. Igualdade com uma
+referência antiga também não substitui essa reconciliação de identidades.
 
 | Medida | Referência | Fonte |
 | :-- | :-- | :-- |
@@ -35,17 +37,18 @@ Nenhuma diferença para cima é considerada prova de atualização legítima: li
 duplicadas também podem aumentar o agregado. A suíte
 [`scripts/analytics/test_conferir_medidas_bi.py`](../scripts/analytics/test_conferir_medidas_bi.py)
 verifica igualdade histórica, divergência para cima/baixo e arquivo ausente com
-Parquet sintético — sem depender de acesso ao DuckDB privado, que este
+Parquet sintético, além de distinguir arquivo vazio de caminho ausente e de
+agregado sem valor — sem depender de acesso ao DuckDB privado, que este
 repositório não versiona.
 
 **Resultado anexado (a preencher por Anna ao rodar contra uma geração
 real):**
 
-| Medida | Valor publicado | Valor de referência | Status |
-| :-- | :-- | :-- | :-- |
-| `Qtd Pesquisas` | _(rodar o script)_ | 366 | _(rodar o script)_ |
-| `Base Valida Validacao` | _(rodar o script)_ | 20 | _(rodar o script)_ |
-| `Qtd Participacoes` | _(rodar o script)_ | 18735 | _(rodar o script)_ |
+| Medida | Arquivo presente | Linhas publicadas | Valor publicado | Valor de referência | Status |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| `Qtd Pesquisas` | _(rodar o script)_ | _(rodar o script)_ | _(rodar o script)_ | 366 | _(rodar o script)_ |
+| `Base Valida Validacao` | _(rodar o script)_ | _(rodar o script)_ | _(rodar o script)_ | 20 | _(rodar o script)_ |
+| `Qtd Participacoes` | _(rodar o script)_ | _(rodar o script)_ | _(rodar o script)_ | 18735 | _(rodar o script)_ |
 
 ## Checklist manual — medidas sem referência numérica fixa
 
@@ -65,11 +68,15 @@ rodar. Tabela de apoio:
 
 ## Indicadores sinalizados (DX-10)
 
-Para os 18 indicadores de `DIM_INDICADORES_BLOQUEADOS`
-(`docs/sinalizacao-indicadores-bloqueados.md`), a conferência é sobre a
-sinalização em si — a medida aparece com o motivo textual em qualquer
-contexto de filtro, nunca como `0` — não sobre um valor numérico, porque não
-há valor numérico a conferir por definição.
+`DIM_INDICADORES_BLOQUEADOS` é um catálogo de 18 linhas, não 18 medidas DAX.
+Confira suas colunas `indicador`, `medida`, `status` e `motivo`, os 17 estados
+"Sem dado", o único estado "Parcial" e `Qtd Indicadores Sem Dado` = 17. Só
+`Taxa de Prorrogacao` e `Representatividade` têm medidas textuais próprias;
+confira que cada uma exibe o motivo em qualquer contexto de filtro. Para os
+demais itens, valide a linha do catálogo, sem esperar uma medida numérica ou
+textual implementada. As consultas 6/6a do Desktop listam as quatro colunas,
+conferem a contagem de 18 linhas/17 sem dado e mostram apenas essas duas
+medidas de texto junto com `Qtd Indicadores Sem Dado`.
 
 ## Medidas DAX do C03 (BI-04)
 
@@ -78,6 +85,11 @@ calcula resultados de referência independentes para médias ponderadas,
 denominador vazio, zero numérico, estoque 10→7 em dois fechamentos, período sem
 fechamento e zero observado versus não observado. São testes Python do contrato,
 não execução do motor DAX.
+
+A consulta 1a compara o estoque da medida com a soma direta da fato C03 para
+o fixture Desktop de `data_fim_mes` 28/02/2026 e estoque 4. A recuperação limpa
+`DIM_TEMPO` e filtra a coluna de data da própria fato, mantendo os filtros de
+categoria do estoque.
 
 Para execução real no Windows com Power BI Desktop, abra o modelo carregado e
 rode [`tests/analytics/dax/bi04-acceptance-queries.dax`](../tests/analytics/dax/bi04-acceptance-queries.dax)
