@@ -25,3 +25,19 @@ Riscos de LGPD, disponibilidade operacional e qualidade do indicador também afe
 | Elastic Basic autogerenciado sem tarifa de licença | [Tabela de assinaturas Elastic](https://www.elastic.co/subscriptions); operar a pilha tem custo e suporte comercial não está incluído. | Exigência de recurso pago, suporte, hospedagem gerenciada ou mudança de licença. |
 
 Também faltam preço de suporte com SLA, requisitos de disponibilidade, redes, recuperação de desastre, impostos e eventual contrato de dados. Esses itens são **não cotados**, não custo zero. Sua inclusão pode alterar materialmente o TCO e tornar os retornos ainda menores.
+
+## Conferência de totais, unidades e períodos
+
+| Identidade conferida | Piloto | Produção | Resultado |
+| :--- | :--- | :--- | :--- |
+| Investimento único FN-02 (BRL) | 49.297,56 | 74.557,27 | Horas de construção e treinamento uma vez. |
+| Operação FN-03 (BRL/mês) | 4.921,86 | 16.088,45 | Inclui infraestrutura, pessoal e licenças. |
+| Operação FN-03 (BRL/12 meses) | 59.062,29 | 193.061,37 | Multiplicação antes de arredondar. |
+| TCO FN-05 (BRL/12 meses) | 108.359,84 | 267.618,63 | Investimento único + operação de 12 meses. |
+| Benefício alto FN-04 (BRL/mês) | 14.536,38 | 14.536,38 | Valor de 104 h; não é caixa observado. |
+| Benefício alto FN-04 (BRL/12 meses) | 174.436,57 | 174.436,57 | Não se soma a outros cenários de benefício. |
+| Saldo alto FN-05 (BRL/12 meses) | +66.076,72 | −93.182,07 | Benefício alto anual menos TCO. |
+
+As identidades foram refeitas com valores internos de FN-02 a FN-04, antes do arredondamento de centavos. A produção tem diferença de R$ 0,01 entre soma das linhas exibidas do investimento e total calculado, explicada pelo arredondamento de cada linha. Não há erro de unidade: infraestrutura começa em USD/mês e é convertida uma vez para BRL/mês; horas de trabalho são por mês ou únicas conforme a tabela. Não se multiplica o investimento por 12 nem se soma piloto e produção.
+
+**Dupla contagem evitada:** o fator-k já compõe o custo de pessoal; o custo de VM já contempla CPU e RAM; suporte funcional de BI e atualização estão nas mesmas horas; preparação normal, retrabalho e erro são eventos distintos; a licença Pro aparece apenas na operação. Uma hora liberada só pode ser monetizada como capacidade **ou** caixa evitado com evidência correspondente.
