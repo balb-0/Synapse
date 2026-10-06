@@ -69,7 +69,7 @@ publicação não seleciona, fica indisponível na camada BI mesmo quando
 | I16 | Completude aplicável | Perfilamento exploratório; requisito indisponível sem regras homologadas | **Sem dado** | — | Regras homologadas de obrigatoriedade por campo e tipo/status não publicadas. `PUB_QUALIDADE_CAMPO` mede preenchimento sobre todas as linhas, incluindo nulos condicionais, e não substitui I16. |
 | I17 | Taxa de duplicidade | Calculável | **Calculável** | `PUB_QUALIDADE_DUPLICIDADE.qtd_linhas` / `qtd_chaves_distintas` por tabela | — (idem) |
 | I18 | Integridade referencial | Calculável | **Calculável** | `PUB_QUALIDADE_RELACAO.qtd_chaves_correspondentes` / `qtd_chaves_informadas` por relação | — (idem) |
-| I19 | Parseabilidade | Calculável | **Sem dado** | — | Não publicado nesta rodada; exigiria testar conversão de tipo por campo e publicar a taxa (candidato a uma próxima extensão de `publish.py`, mesmo padrão de I16–I18). |
+| I19 | Parseabilidade | Calculável | **Sem dado** | — | Não publicado nesta rodada; exigiria testar conversão de tipo por campo e publicar a taxa (candidato a uma próxima extensão de `publish.py`, mesmo padrão das publicações de qualidade existentes). |
 | I20 | Divergência de título | Calculável | **Sem dado** | — | Não publicado nesta rodada; a comparação de título entre fontes não tem consulta equivalente em `publish.py`. |
 | I21 | Frescor da fonte | Sem dado | **Sem dado** | — | Mesmo motivo da camada de dados: falta timestamp de carga e regra aprovada. |
 | I22 | Cobertura da linhagem | Bloqueado (mapeamento) | **Sem dado** | — | Mesmo motivo da camada de dados: exige mapeamento não publicado. |
