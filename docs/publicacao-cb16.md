@@ -44,7 +44,10 @@ a publicação com conexão somente de leitura e os limites de distribuição.
 
 ## Evidência e estado
 
-A execução sobre o pacote v3 está em andamento. O ID da geração,
+A ingestão sobre o pacote v3 está em andamento. A publicação deve usar a
+revisão corrigida do publicador, após a verificação de falhas encontradas em
+`develop`. O recibo identificará o código de ingestão, carga analítica e
+publicação separadamente; não reutiliza manifesto de uma execução parcial. O ID da geração,
 `load_reference`, sete contagens e hashes ainda não foram anexados a este
 registro. Não há declaração de conclusão ou aceite final nesta etapa.
 
