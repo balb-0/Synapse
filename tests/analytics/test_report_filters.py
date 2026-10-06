@@ -109,12 +109,8 @@ class ReportFiltersTests(unittest.TestCase):
                 if ent is None or not (ent.startswith("DIM_") or ent.startswith("PUB_")):
                     offenders.append(f"{path.parent.name}: {ent}.{prop}")
                 if ent == "DIM_INDICADORES_BLOQUEADOS" and prop == "motivo":
-                    offenders.append(
-                        f"{path.parent.name}: indisponibilidade exposta como slicer"
-                    )
-        self.assertEqual(
-            offenders, [], "slicer fora do contrato DIM_*/PUB_*"
-        )
+                    offenders.append(f"{path.parent.name}: indisponibilidade exposta como slicer")
+        self.assertEqual(offenders, [], "slicer fora do contrato DIM_*/PUB_*")
 
     def test_c01_unavailable_year_and_complexity_are_explanatory_text(self):
         page_dir = REPORT / "definition/pages" / PRODUCTION_PAGE
@@ -123,9 +119,9 @@ class ReportFiltersTests(unittest.TestCase):
             "pvslicercomp0000007": "Complexidade indisponível em C01",
         }
         for visual_id, expected_text in notices.items():
-            visual = json.loads(
-                (page_dir / "visuals" / visual_id / "visual.json").read_text()
-            )["visual"]
+            visual = json.loads((page_dir / "visuals" / visual_id / "visual.json").read_text())[
+                "visual"
+            ]
             self.assertEqual(visual.get("visualType"), "textbox")
             self.assertNotIn("query", visual)
             self.assertIn(expected_text, json.dumps(visual, ensure_ascii=False))
@@ -145,9 +141,9 @@ class ReportFiltersTests(unittest.TestCase):
             "f8529f56a2b696a08788": "Pesquisa individual indisponível",
         }
         for visual_id, expected_text in notices.items():
-            visual = json.loads(
-                (page_dir / "visuals" / visual_id / "visual.json").read_text()
-            )["visual"]
+            visual = json.loads((page_dir / "visuals" / visual_id / "visual.json").read_text())[
+                "visual"
+            ]
             self.assertEqual(visual.get("visualType"), "textbox")
             self.assertNotIn("query", visual)
             self.assertIn(expected_text, json.dumps(visual, ensure_ascii=False))

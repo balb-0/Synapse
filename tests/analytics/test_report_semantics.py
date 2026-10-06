@@ -60,9 +60,7 @@ def field_refs(node):
         for kind in ("Measure", "Column"):
             field = node.get(kind)
             if isinstance(field, dict):
-                entity = (
-                    (field.get("Expression") or {}).get("SourceRef") or {}
-                ).get("Entity")
+                entity = ((field.get("Expression") or {}).get("SourceRef") or {}).get("Entity")
                 prop = field.get("Property")
                 if entity and prop:
                     yield kind, entity, prop
@@ -75,10 +73,7 @@ def field_refs(node):
 
 def role_fields(visual, role):
     state = visual.get("visual", {}).get("query", {}).get("queryState", {})
-    return {
-        (entity, prop)
-        for _, entity, prop in field_refs(state.get(role, {}))
-    }
+    return {(entity, prop) for _, entity, prop in field_refs(state.get(role, {}))}
 
 
 def text_runs(node):
@@ -100,9 +95,7 @@ def page_visuals(page_id):
 class ReportSemanticsTests(unittest.TestCase):
     def test_duration_titles_match_supported_units_and_measures(self):
         cycle = load_visual("5d499bb7bb62646ad6e5", "e1943eaed82275129d4e")
-        self.assertEqual(
-            visual_title(cycle), "Tempo por Etapa e Tipo (dias corridos)"
-        )
+        self.assertEqual(visual_title(cycle), "Tempo por Etapa e Tipo (dias corridos)")
         self.assertEqual(
             role_fields(cycle, "Y"),
             {
@@ -137,9 +130,7 @@ class ReportSemanticsTests(unittest.TestCase):
         )
 
         detail = load_visual(BENCHMARK_PAGE, "5a299fc93da0a4eb0d07")
-        self.assertEqual(
-            visual_title(detail), "Participações agregadas por área, tipo e mês"
-        )
+        self.assertEqual(visual_title(detail), "Participações agregadas por área, tipo e mês")
         self.assertTrue(
             {
                 ("PUB_C02_PARTICIPACAO", "area"),
@@ -149,9 +140,7 @@ class ReportSemanticsTests(unittest.TestCase):
         )
 
         hidden_detail = load_visual(BENCHMARK_PAGE, "v2_detail")
-        self.assertEqual(
-            visual_title(hidden_detail), "Detalhe agregado por área, tipo e mês"
-        )
+        self.assertEqual(visual_title(hidden_detail), "Detalhe agregado por área, tipo e mês")
 
     def test_c02_charts_do_not_share_count_and_minutes_on_one_axis(self):
         for visual_id, visual in page_visuals(BENCHMARK_PAGE):
@@ -161,9 +150,12 @@ class ReportSemanticsTests(unittest.TestCase):
                 "lineChart",
             }:
                 continue
-            y_props = {prop for _, _, prop in field_refs(
-                visual.get("visual", {}).get("query", {}).get("queryState", {}).get("Y", {})
-            )}
+            y_props = {
+                prop
+                for _, _, prop in field_refs(
+                    visual.get("visual", {}).get("query", {}).get("queryState", {}).get("Y", {})
+                )
+            }
             self.assertFalse(
                 {"Qtd Participacoes", "Media Minutos Preenchimento"}.issubset(y_props),
                 f"{visual_id} mixes occurrence counts and minutes on one axis",
@@ -179,7 +171,9 @@ class ReportSemanticsTests(unittest.TestCase):
             visual_id: " ".join(text_runs(load_visual(BENCHMARK_PAGE, visual_id)))
             for visual_id in ("d3ee05e7e9ee90a905a0", "f8529f56a2b696a08788")
         }
-        self.assertIn("Empresa distinta por pesquisa (I07) indisponível", captions["d3ee05e7e9ee90a905a0"])
+        self.assertIn(
+            "Empresa distinta por pesquisa (I07) indisponível", captions["d3ee05e7e9ee90a905a0"]
+        )
         self.assertIn("Pesquisa individual indisponível", captions["f8529f56a2b696a08788"])
 
         for visual_id, visual in page_visuals(BENCHMARK_PAGE):
@@ -187,7 +181,8 @@ class ReportSemanticsTests(unittest.TestCase):
                 continue
             refs = set(field_refs(visual.get("visual", {}).get("query", {})))
             self.assertNotIn(
-                ("Column", "DIM_INDICADORES_BLOQUEADOS", "motivo"), refs,
+                ("Column", "DIM_INDICADORES_BLOQUEADOS", "motivo"),
+                refs,
                 f"{visual_id} exposes blocker reasons as a picker",
             )
 
@@ -222,9 +217,7 @@ class ReportSemanticsTests(unittest.TestCase):
             set(field_refs(card)),
             {("Measure", "PUB_C01_CICLO", "Qtd Pesquisas")},
         )
-        self.assertEqual(
-            visual_subtitle(card), "Taxa de finalização não publicada em C01."
-        )
+        self.assertEqual(visual_subtitle(card), "Taxa de finalização não publicada em C01.")
 
     def test_unavailable_indicator_catalog_is_not_a_slicer(self):
         for path in (REPORT / "definition/pages").glob("*/visuals/*/visual.json"):
@@ -284,9 +277,7 @@ class ReportSemanticsTests(unittest.TestCase):
             "qtabestoque000006": "Estoque por área, status e tipo",
         }
         for visual_id, title in tables.items():
-            self.assertEqual(
-                visual_title(load_visual("c03c04qualidade01", visual_id)), title
-            )
+            self.assertEqual(visual_title(load_visual("c03c04qualidade01", visual_id)), title)
 
         month = load_visual("c03c04qualidade01", "qslicermes0000012")
         header = month["visual"]["objects"]["header"][0]["properties"]["text"]
@@ -296,9 +287,7 @@ class ReportSemanticsTests(unittest.TestCase):
         labels = []
         for _, visual in page_visuals("c03c04qualidade01"):
             labels.extend(text_runs(visual))
-            labels.extend(
-                (visual_title(visual), visual_subtitle(visual), visual_label(visual))
-            )
+            labels.extend((visual_title(visual), visual_subtitle(visual), visual_label(visual)))
             state = visual.get("visual", {}).get("query", {}).get("queryState", {})
             for role in state.values():
                 for projection in role.get("projections", []):
