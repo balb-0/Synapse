@@ -152,7 +152,12 @@ class WarehouseTasksTests(unittest.TestCase):
             loader.assert_not_called()
 
     def test_retry_policy_rejects_permanent_duckdb_errors_and_permissions(self) -> None:
-        for error in (duckdb.CatalogException("missing table"), PermissionError("denied")):
+        for error in (
+            duckdb.CatalogException("missing table"),
+            PermissionError("denied"),
+            FileExistsError("output is a file"),
+            TypeError("invalid parameter"),
+        ):
             state = mock.Mock()
             state.result.side_effect = error
             self.assertFalse(flow_module._should_retry(None, None, state))

@@ -70,6 +70,11 @@ As tarefas DW emitem `orchestration.analytics_load.emitted`,
 `orchestration.analytics_reconcile.emitted` e
 `orchestration.analytics_publish.emitted`, com duração, status e tentativas.
 
+O comando imprime um objeto JSON como última linha do stdout em sucesso.
+Uma falha de execução sai com código 1 e objeto JSON no stderr contendo
+`status=failed`, `failed_stage` e `error_type`, sem o texto da causa original.
+Parâmetro inválido sai com código 2 pelo argparse.
+
 `orchestration.pipeline.emitted` recebe `status=completed` somente depois da
 publicação. Em falha, `failed_stage` identifica a etapa; `stage` continua sendo
 `orchestration`, para não alterar os agrupamentos do painel.
