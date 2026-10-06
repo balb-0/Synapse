@@ -47,3 +47,12 @@ Treinamento inclui quem ministra e quem participa: são horas de pessoas distint
 A diferença de R$ 0,01 entre a soma de linhas exibidas e o total de produção decorre de arredondar cada linha somente para apresentação. Em uma planilha de contratação, conservar as casas internas e arredondar apenas o total.
 
 O uso de Power BI Desktop para autoria é gratuito, conforme a [tabela da Microsoft](https://www.microsoft.com/pt-br/power-platform/products/power-bi/pricing). Compartilhamento pode exigir Power BI Pro; suas assinaturas são recorrentes e entram em FN-03, não como segunda compra inicial. As VMs, armazenamento e transferência também entram na operação mensal de FN-03. Não se atribui custo zero a itens cujo contrato ou preço ainda não foi definido.
+
+## Limites, aquisição e reprodução
+
+- O escopo inclui integração incremental, aceite e treinamento. Não inclui reconstruir do zero todo o software já produzido, aquisição de equipamentos, compra de dados, migração histórica impossível pelas fontes atuais nem contratos de suporte comercial.
+- Se o parceiro exigir Power BI Premium, Fabric, serviço gerenciado, suporte Elastic ou licenças adicionais, será necessário obter cotação e inserir uma linha nova no período correto. O valor **não disponível** não deve ser interpretado como R$ 0.
+- O preço público da Microsoft é informado por usuário/mês com pagamento anual e sem impostos; eventual desembolso anual antecipado altera o fluxo de caixa, mesmo quando o custo mensal econômico permanece igual.
+- A estimativa de horas precisa ser substituída por cronograma com responsáveis. O perfil ANR-02 é apenas uma aproximação para participantes do treinamento; o custo real pode ser menor ou maior.
+
+Conferência aritmética: `176×(11023,35×2,03÷160) + 96×(11071,12×2,02÷160) + 56×(9561,11×2,04÷160) + 40×(8616,67×2,06÷160) = R$ 49.297,56` após arredondamento final. Para produção, substituir as horas por `240, 160, 80, 80`, respectivamente, resulta em R$ 74.557,27. O cálculo é uma hipótese de referência; a decisão requer cotações e aceite do plano de implantação.
