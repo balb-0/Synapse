@@ -1,13 +1,14 @@
 # Tarefas de usabilidade — navegação e filtros hierárquicos
 
-Tarefas de teste de usabilidade para navegação entre as telas (D01–D04) e uso
-dos filtros hierárquicos. Cada tarefa segue o mesmo contrato: **situação
-real** (contexto que o participante recebe, sem dica de caminho), **passos
-esperados** (o caminho ótimo, usado para medir desvio — não é lido para o
-participante), **critério de sucesso** observável e **tempo aceitável**.
-Os perfis citados vêm do [levantamento de perfis](perfis-e-criterios.md); os
-filtros e telas são os do protótipo D01–D04
-([`docs/assets/prototipos-dashboards/`](../assets/prototipos-dashboards/README.md)).
+A rodada usa as duas páginas PBIR entregues: Produção e Volume e Benchmark
+Externo — V2, em `src/pbir dash/dashboard.Report/`. Cada tarefa define situação
+real, passos esperados (não lidos ao participante), critério de sucesso e tempo
+aceitável. Os perfis vêm do [levantamento](perfis-e-criterios.md).
+
+Produção filtra `D01_CicloPesquisa[ano_edicao]`; Benchmark usa
+`BE_Pesquisa[Ano]`, derivado de `data_divulgacao`. Não há filtro de solicitação,
+evolução mensal nem drill hierárquico nessas páginas. Os dados do protótipo são
+sintéticos. Uma sessão nesse alvo não valida o DW nem substitui RP-13/RP-14.
 
 Convenções de medição (valem para todas as tarefas desta pasta):
 
@@ -23,35 +24,32 @@ Convenções de medição (valem para todas as tarefas desta pasta):
 - **Perfil-alvo:** UC01 (Central) ou UC03 (gestor).
 - **Situação real:** "Você chegou agora e quer saber quantas pesquisas existem
   no portfólio e como elas se distribuem por status."
-- **Passos esperados:** abrir a solução → tela de Operação (D01) → identificar
+- **Passos esperados:** abrir a solução → página Produção e Volume → identificar
   o total do portfólio e a distribuição por status.
 - **Critério de sucesso:** informa o total de pesquisas e aponta qual status
   concentra mais pesquisas, citando os valores exibidos na tela.
 - **Tempo aceitável:** 2 minutos.
 
-## T-NAV-02 — Percorrer as quatro telas e voltar ao início
+## T-NAV-02 — Percorrer as duas páginas e voltar à primeira
 
 - **Perfil-alvo:** qualquer perfil interno (UC01–UC03).
-- **Situação real:** "Antes de usar no dia a dia, você quer entender o que a
-  solução oferece: passe pelas quatro áreas e volte para a tela inicial."
-- **Passos esperados:** D01 Operação → D02 Participação → D03 Resultados →
-  D04 Qualidade → retorno a D01 pela navegação principal (sem usar voltar do
-  navegador).
-- **Critério de sucesso:** visita as quatro telas, nomeia com as próprias
-  palavras o que cada uma mostra e retorna a D01 pela navegação da solução.
-- **Tempo aceitável:** 4 minutos.
+- **Situação real:** "Você quer conhecer as duas páginas disponíveis e voltar
+  para a visão do portfólio."
+- **Passos esperados:** Produção e Volume → Benchmark Externo — V2 → retorno
+  a Produção e Volume pelas abas de páginas do report.
+- **Critério de sucesso:** visita as duas páginas, descreve a finalidade de
+  cada uma e retorna à primeira pelas abas, sem usar voltar do navegador.
+- **Tempo aceitável:** 3 minutos.
 
 ## T-FIL-01 — Filtrar o portfólio por período e área
 
 - **Perfil-alvo:** UC01 (analista da Central).
 - **Situação real:** "Um colega pediu as pesquisas de uma área específica
-  solicitadas no último ano. Encontre esse recorte."
-- **Passos esperados:** D01 → filtro de período (campo padrão
-  `data_solicitacao`) → filtro de área → leitura da lista/distribuição
-  filtrada.
-- **Critério de sucesso:** obtém a lista filtrada e **identifica qual campo de
-  data** o período está usando (o rótulo do campo temporal é parte da
-  resposta — critério herdado do RF01).
+  de uma edição anual. Encontre esse recorte e diga qual ano está filtrando."
+- **Passos esperados:** Produção e Volume → filtro Ano (`ano_edicao`) →
+  filtro Área → leitura da lista/distribuição filtrada.
+- **Critério de sucesso:** obtém o recorte e identifica o ano da edição;
+  não interpreta o filtro como data de solicitação nem data de divulgação.
 - **Tempo aceitável:** 3 minutos.
 
 ## T-FIL-02 — Combinar filtros e ler a distribuição resultante
@@ -59,7 +57,7 @@ Convenções de medição (valem para todas as tarefas desta pasta):
 - **Perfil-alvo:** UC03 (gestor).
 - **Situação real:** "Você quer saber quantas pesquisas de um mesmo tipo ainda
   estão em andamento, para avaliar a carga da equipe."
-- **Passos esperados:** D01 → filtro de tipo → filtro de status → leitura da
+- **Passos esperados:** Produção e Volume → filtro de tipo → filtro de status → leitura da
   contagem resultante.
 - **Critério de sucesso:** informa a contagem do recorte combinado e distingue
   a contagem filtrada do total do portfólio (não confunde as duas).
@@ -70,8 +68,7 @@ Convenções de medição (valem para todas as tarefas desta pasta):
 - **Perfil-alvo:** qualquer perfil interno.
 - **Situação real:** "Depois da análise anterior, você quer voltar a ver o
   portfólio completo."
-- **Passos esperados:** acionar a limpeza de filtros (ação única, quando
-  disponível) → conferir que contagens e distribuição voltaram ao estado
+- **Passos esperados:** limpar cada slicer ativo pelo controle do próprio slicer → conferir que contagens e distribuição voltaram ao estado
   inicial.
 - **Critério de sucesso:** o estado exibido volta ao inicial e o participante
   confirma isso comparando o total exibido antes/depois.
@@ -81,8 +78,8 @@ Convenções de medição (valem para todas as tarefas desta pasta):
 
 - **Perfil-alvo:** UC01 (analista da Central).
 - **Situação real:** "Procure pesquisas de uma combinação rara (área + tipo +
-  período curto) que provavelmente não existe."
-- **Passos esperados:** D01 → aplicar a combinação sem correspondência →
+  ano de edição) que provavelmente não existe."
+- **Passos esperados:** Produção e Volume → aplicar a combinação sem correspondência →
   ler a resposta da tela.
 - **Critério de sucesso:** o participante explica, com as próprias palavras,
   que **não há pesquisas para o recorte** — e não que "a tela quebrou" ou que
@@ -92,9 +89,10 @@ Convenções de medição (valem para todas as tarefas desta pasta):
 
 ## Dependências e limites declarados
 
-- As tarefas usam apenas filtros existentes no protótipo (período por
-  `data_solicitacao`, tipo, área, complexidade, status). Nenhuma tarefa
-  depende de indicador marcado indisponível na §5.6 do `projeto.md`.
-- T-FIL-01 herda do RF01 a exigência de rótulo do campo temporal; se a tela
-  final (RP) alterar os filtros disponíveis, a tarefa deve ser reconferida
-  contra o mapa de visualizações antes da execução.
+- Os filtros existentes em Produção são Ano, Área, Tipo, Status e Complexidade.
+- As seis tarefas deste documento estão na rodada. Os valores de referência
+  devem vir dos CSVs sintéticos da mesma versão; isso não comprova precisão
+  contra os cubos publicados.
+- Não se pressupõe que os filtros sejam sincronizados entre as duas páginas.
+- O teste registra ausência de rótulo temporal e confusão de estado como
+  achados, sem trocar a semântica do filtro para fazer a tarefa passar.

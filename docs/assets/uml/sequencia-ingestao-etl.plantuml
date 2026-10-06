@@ -15,6 +15,10 @@ skinparam note {
 actor "Operador de dados" as OPE
 participant "Adaptador de eventos\n(watch_landing.py)" as ADAPTER
 participant "Flow ingest-object\n(Prefect)" as FLOW
+participant "Flow backfill\n(Prefect)" as BACKFILL
+participant "Flow pipeline-completo\n(run_pipeline, Prefect)" as PIPELINE
+participant "Tasks load/reconcile/publish_warehouse" as DW_TASKS
+collections "Geração Parquet agregada" as PARQUET
 participant "MinioObjectReader" as READER
 participant "Extrator" as EXTRACTOR
 participant "transform_object\n(transform_batch por lote)" as TRANSFORM
@@ -26,7 +30,7 @@ participant "Logstash\n(via driver GELF)" as LOGS
 group Execução normal
   alt disparo por evento
     ADAPTER -> FLOW : ingest_object(source, bucket, key, version_id, event_id)
-  else disparo manual, backfill ou agenda
+  else disparo manual de objeto ou etapa do backfill
     OPE -> FLOW : ingest_object(source, bucket, key)
   end
   FLOW -> READER : open(reference)
@@ -82,6 +86,55 @@ group Execução normal
   end note
   FLOW -->> LOGS : estado final da execução
   FLOW --> OPE : status loaded
+end
+
+group Pipeline completo com publicação DW
+  OPE -> PIPELINE : run_pipeline(sources, publish_dir, observed_at opcional)
+  PIPELINE -> PIPELINE : validar seis fontes únicas, destino e observed_at\nordenar dependências e resolver mesmo db_path
+  PIPELINE -> BACKFILL : backfill(six_sources, db_path)
+  loop pesquisas, empresas, clientes, questoes, respondentes, respostas
+    BACKFILL -> FLOW : ingest_object(reference)
+    FLOW --> BACKFILL : loaded ou ignored após confirmação do objeto
+  end
+  BACKFILL --> PIPELINE : resultado de uma ocorrência por fonte
+  PIPELINE -> PIPELINE : exigir seis resultados loaded ou ignored
+  PIPELINE -> DW_TASKS : load_warehouse(db_path, observed_at)
+  DW_TASKS -> DB : abertura com retry e espera limitada por lock
+  DW_TASKS -> DB : BEGIN + dimensões + C01-C04 + manifesto + COMMIT
+  note right of DW_TASKS
+    Lock comum ao trecho DW e à ingestão orquestrada.
+    Sem observed_at real, C03 permanece not_observed.
+    Não usar data do scheduler como observação histórica.
+    Falha na transação desfaz a carga dimensional.
+  end note
+  DW_TASKS --> PIPELINE : identificação da carga analítica
+  PIPELINE -> DW_TASKS : reconcile_warehouse(db_path, load_id)
+  DW_TASKS -> DB : consultar fatos, fontes e rejeições com motivos
+  DW_TASKS --> PIPELINE : relatório balanceado da mesma carga ou exceção
+  PIPELINE -> DW_TASKS : publish_warehouse(db_path, publish_dir, load_id)
+  DW_TASKS -> PARQUET : sete arquivos + manifest.json, publicação atômica
+  DW_TASKS --> PIPELINE : geração publicada
+  PIPELINE -->> LOGS : orchestration.pipeline.emitted\nstatus=completed, stage=orchestration
+  PIPELINE --> OPE : resultado completo com geração e reconciliação
+end
+
+group Falha no DW ou publicação
+  PIPELINE -> DW_TASKS : carregar, reconciliar ou publicar
+  DW_TASKS --> PIPELINE : falha
+  note right of PIPELINE
+    Até duas repetições somente para falha transitória,
+    com timeout por task. Falha permanente ou
+    reconciliação inválida não são repetidas.
+    Ingestão já confirmada conserva checkpoints.
+  end note
+  PIPELINE -->> LOGS : falha com failed_stage\nstage permanece orchestration
+  PIPELINE --> OPE : flow run failed\nCLI: JSON stderr, exit 1
+  OPE -> PIPELINE : reexecutar run_pipeline
+  PIPELINE -> BACKFILL : backfill das seis fontes
+  BACKFILL -> FLOW : mesmos objetos confirmados
+  FLOW --> BACKFILL : ignored
+  BACKFILL --> PIPELINE : seis resultados confirmados
+  PIPELINE -> DW_TASKS : tentar novamente carga, reconciliação e publicação
 end
 
 group Falha transitória com retry limitado

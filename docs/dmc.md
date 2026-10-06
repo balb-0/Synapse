@@ -814,9 +814,26 @@ incremental técnico é a versão do objeto e seu SHA-256.
 | Campo | Definição |
 | :--- | :--- |
 | Orquestrador | Prefect como plano de controle; regras de negócio permanecem em Python. |
-| Frequência | Implementadas no ambiente local: disparo por evento `s3:ObjectCreated` (`watch_landing.py`, webhook ou polling) e agenda diária `0 3 * * *` (`ingest-object/agendado`, serviço `scheduler`); manual e backfill pelos deployments `manual` e `backfill`. |
-| Janela de execução | Agenda diária às 03:00 no deployment servido; SLA e horário produtivos pendentes de homologação pelo parceiro. |
-| Dependências | MinIO landing → verificação do hash → extração com posição absoluta → transformação/quarentena (identidade decidida por objeto) → DuckDB → reconciliação por lote → checkpoint → objeto concluído → carga analítica C01–C04 → Parquet publicado. |
+| Ingestão de objeto | `ingest_object` encadeia extração, transformação e carga tratada. Confirma `mark_object_loaded` após reconciliação de todos os lotes. Eventos `s3:ObjectCreated`, `watch_landing.py` e o deployment manual de objeto usam esse caminho, sem carga DW automática. |
+| Execução completa | `etl.orchestration.pipeline.run_pipeline` (flow `pipeline-completo`) exige exatamente as seis fontes, sem repetição, e ordena pesquisas → empresas → clientes → questões → respondentes → respostas. Executa `backfill`; após confirmar um resultado `loaded`/`ignored` por fonte, chama `load_warehouse` → `reconcile_warehouse` → `publish_warehouse`. `backfill` isolado permanece limitado à ingestão tratada. |
+| Disparos DW | Deployment `pipeline-completo/manual-dw` e agenda `pipeline-completo/agendado-dw`; diretório publicado configurado por `ETL_PUBLISH_DIR` (padrão local `/data/publicacao`), passado a `run_pipeline` como `publish_dir`. A execução isolada de objeto continua disponível. |
+| Janela de execução | Cron diário `0 3 * * *` no scheduler local. SLA e horário produtivos dependem de homologação pelo parceiro. Configuração não comprova execução do deployment; consultar o histórico da versão em uso. |
+| Dependências | MinIO landing → hash → extração → transformação/quarentena → DuckDB tratado → reconciliação por lote → checkpoint e objeto concluído. No pipeline completo, todas as seis fontes precedem carga analítica C01–C04, reconciliação DW e publicação Parquet. |
+| Falha no DW | Tasks com retry finito condicionado a falha transitória e timeout; abertura DuckDB com espera limitada por lock. Falha de carga, reconciliação ou publicação propaga para o estado do flow. Os checkpoints da ingestão concluída permanecem válidos; repetir `run_pipeline` retoma o DW sem duplicar os objetos. |
+| Observação mensal | `observed_at` é opcional e deve representar observação real no último dia do mês, fornecida pelo operador e validada antes da ingestão. Sem essa evidência, C03 fica `not_observed`; a agenda não inventa uma data de fechamento. |
+
+Um lock compartilhado entre os flows de ingestão e de DW impede outro writer
+orquestrado durante a carga, reconciliação e publicação. A espera pelo lock é
+limitada. Writers externos ao orquestrador precisam respeitar a mesma política.
+
+A API completa é `run_pipeline(sources=None, *, publish_dir, reprocess=False,
+db_path=None, observed_at=None)`. Todas as etapas usam o mesmo `db_path`,
+resolvido a partir de `ETL_DUCKDB_PATH`. O destino deve ficar fora do checkout.
+
+A carga dimensional tem transação própria. A confirmação da ingestão e a
+publicação Parquet não compõem uma única transação: uma falha posterior no DW
+não desfaz os checkpoints já confirmados. A reexecução completa verifica as
+fontes confirmadas e tenta novamente carga, reconciliação e publicação.
 
 ### 6.4 Carga e reprocessamento
 
@@ -847,13 +864,19 @@ incremental técnico é a versão do objeto e seu SHA-256.
 | Linhagem | `run_id`, `task_id`, fonte, bucket, objeto, versão, hash, lote, `source_offset`, schema e timestamps; o `event_id` do disparo compõe o `run_id` (ADR 0008). |
 | Custo estimado | Estimativa paramétrica em [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md): local medido com custo incremental zero; piloto e produção projetados por componente (processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção). Valores projetados não são cotação. |
 
+O evento `orchestration.pipeline.emitted` registra `status=completed` somente
+depois da publicação. Em falha, `failed_stage` identifica a etapa; `stage`
+permanece `orchestration`. O CLI imprime JSON na última linha do stdout em
+sucesso; falhas de execução usam código 1 e JSON no stderr com `status`,
+`failed_stage` e `error_type`, sem o texto original da causa. Parâmetros
+inválidos recebem código 2 do argparse.
+
 ### 6.7 Fluxo ponta a ponta
 
 ```mermaid
 flowchart LR
     A[Arquivos ou APIs] -->|publicam objeto| B[MinIO landing/raw]
     B -->|s3:ObjectCreated| C[watch_landing webhook ou polling]
-    S[Scheduler cron 0 3] --> P
     C --> P[Flow Prefect ingest-object]
     P --> H[Verificação SHA-256]
     H --> I{Já concluído?}
@@ -863,19 +886,32 @@ flowchart LR
     T --> V{Registro válido?}
     V -->|sim| D[DuckDB ingestion]
     V -->|não| Q[DuckDB rejected]
-    D --> R[Reconciliação]
+    D --> R[Reconciliação por lote]
     Q --> R
-    R --> K[Confirmar checkpoint e hash]
-    K --> AN[Carga analítica C01-C04]
-    AN --> PQ[Parquet publicado]
-    PQ --> BI[Power BI]
+    R --> K[Confirmar checkpoint e hash do objeto]
+    S[Flow pipeline-completo manual ou cron 0 3] --> BF[Backfill: seis fontes em ordem de dependência]
+    BF --> P
+    K --> G{Todas as seis fontes confirmadas?}
+    J --> G
+    G -->|run_pipeline: loaded ou ignored por fonte| DW[Etapa DW do pipeline-completo]
+    DW --> AN[Task load_warehouse]
+    AN --> RC[Task reconcile_warehouse]
+    RC --> PQ[Task publish_warehouse]
+    PQ --> PA[Parquet agregado publicado]
+    PA --> BI[Modelo semântico Power BI]
     P -. logs .-> L[Logstash]
+    DW -. logs .-> L
     E -. logs .-> L
     T -. logs .-> L
     D -. logs .-> L
     L --> ES[Elasticsearch]
     ES --> KB[Kibana]
 ```
+
+Os caminhos de objeto/evento e `backfill` isolado terminam na ingestão tratada.
+`run_pipeline`, com as seis fontes confirmadas, aciona o trecho DW. O modelo semântico
+importa o Parquet; os visuais legados de demonstração ainda precisam do
+redesenho RP-13/RP-14 para respeitar o grão agregado publicado.
 
 ## 7. Validação
 
