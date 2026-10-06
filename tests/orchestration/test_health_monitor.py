@@ -165,6 +165,36 @@ class CanonicalVolumeQueryTests(unittest.TestCase):
             sum(e["loaded_count"] for e in historical_events if e["event"] in allowed), 3
         )
 
+    def test_queue_alert_requires_successful_backfill_not_monitor_heartbeats(self) -> None:
+        import re
+
+        runbook = (ROOT / "docs/runbook-execucao.md").read_text()
+        rules = [json.loads(body) for body in re.findall(r"-d '(\{.*?\})'", runbook, re.DOTALL)]
+        rule = next(rule for rule in rules if rule.get("name") == "ETL - fila parada")
+        query = json.loads(rule["params"]["esQuery"])
+        self.assertEqual(
+            query["query"]["bool"]["filter"],
+            [
+                {"term": {"event.keyword": "orchestration.backfill.emitted"}},
+                {"term": {"status.keyword": "success"}},
+            ],
+        )
+
+    def test_rejections_use_same_canonical_event_filter_as_volumes(self) -> None:
+        objects = {
+            obj["id"]: obj
+            for obj in (
+                json.loads(line)
+                for line in (ROOT / "observability/kibana/painel-operacional.ndjson")
+                .read_text()
+                .splitlines()
+            )
+        }
+        self.assertEqual(
+            objects["etl-viz-rejeicoes"]["attributes"]["kibanaSavedObjectMeta"]["searchSourceJSON"],
+            objects["etl-viz-volumes"]["attributes"]["kibanaSavedObjectMeta"]["searchSourceJSON"],
+        )
+
     def test_periodic_monitor_does_not_depend_on_prefect_health_or_collector(self) -> None:
         import yaml
 
