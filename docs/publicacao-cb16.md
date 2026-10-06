@@ -7,11 +7,15 @@ mesma carga que produziu a publicação.
 
 ## Origem desta execução
 
-O pacote recebido nesta rodada contém seis CSVs e sete XLSX. Seu SHA-256 é
-`d6cc8043562972659acc5a83f963a7938c91c494a754ade80c4e7e23d7648cd7`.
-A versão do pacote não foi declarada. Os seis CSVs têm bytes iguais aos
-arquivos recebidos em agosto; `respostas.csv` corresponde a `teste.csv` daquele
-conjunto. Isso identifica a origem e não comprova uma atualização de conteúdo.
+O usuário enviou um pacote explicitamente identificado como **v3** após o
+primeiro pacote desta rodada. A execução válida deste registro deve usar v3;
+o SHA-256, o inventário e o ID da geração serão anexados depois da carga e
+da conferência.
+
+O primeiro pacote tinha SHA-256
+`d6cc8043562972659acc5a83f963a7938c91c494a754ade80c4e7e23d7648cd7` e
+seis CSVs com bytes iguais ao conjunto de agosto. Essa rodada foi interrompida
+antes da carga analítica e da publicação. Ela não é a geração final de CB-16.
 
 A extração, o DuckDB e os arquivos publicados ficam fora do Git. O recibo
 versionado conterá somente identificadores técnicos da carga/publicação,
@@ -40,7 +44,7 @@ a publicação com conexão somente de leitura e os limites de distribuição.
 
 ## Evidência e estado
 
-A execução sobre o pacote recebido está em andamento. O ID da geração,
+A execução sobre o pacote v3 está em andamento. O ID da geração,
 `load_reference`, sete contagens e hashes ainda não foram anexados a este
 registro. Não há declaração de conclusão ou aceite final nesta etapa.
 
