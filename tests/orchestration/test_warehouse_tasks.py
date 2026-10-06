@@ -17,7 +17,7 @@ from prefect import flow
 from etl.orchestration import analytics as analytics_module
 from etl.orchestration import flow as flow_module
 from etl.orchestration.lock import database_lock
-from etl.orchestration.pipeline import PipelineAbortedError, run_pipeline
+from etl.orchestration.pipeline import PipelineAbortedError, ReconciliationFailedError, run_pipeline
 from tests import fixtures
 from tests.orchestration.test_orchestration_logs import AMBIENTE_FICTICIO, LeitorEmMemoria
 
@@ -169,6 +169,32 @@ class WarehouseTasksTests(unittest.TestCase):
             self.assertEqual(task.retries, 2)
             self.assertIs(task.retry_condition_fn, flow_module._should_retry)
             self.assertEqual(task.timeout_seconds, 3600)
+
+    def test_invalid_report_gate_logs_failure_without_overwriting_stage(self) -> None:
+        from etl.orchestration import pipeline as pipeline_module
+
+        completed = [{"source": source, "status": "loaded"} for source in fixtures.ORDEM_CARGA]
+        for report in (
+            {"reconciled": False, "load_id": "this-load"},
+            {"reconciled": True, "load_id": "another-load"},
+        ):
+            with (
+                self.subTest(report=report),
+                mock.patch.object(pipeline_module, "get_run_logger", return_value=mock.Mock()),
+                mock.patch.object(pipeline_module, "backfill", return_value={"results": completed}),
+                mock.patch.object(
+                    pipeline_module, "load_warehouse", return_value={"load_id": "this-load"}
+                ),
+                mock.patch.object(pipeline_module, "reconcile_warehouse", return_value=report),
+                mock.patch.object(pipeline_module, "publish_warehouse") as publisher,
+                mock.patch.object(pipeline_module, "_log_event") as event,
+                self.assertRaises(ReconciliationFailedError),
+            ):
+                run_pipeline.fn(publish_dir=self.output, db_path=str(self.database))
+            publisher.assert_not_called()
+            self.assertEqual(event.call_args.kwargs["status"], "reconciliation_failed")
+            self.assertEqual(event.call_args.kwargs["failed_stage"], "reconciliation")
+            self.assertNotIn("stage", event.call_args.kwargs)
 
     def test_lock_wait_is_bounded_between_threads_and_released_on_failure(self) -> None:
         outcomes = []
