@@ -24,9 +24,9 @@ publicada; o DuckDB de ingestão permanece na máquina autorizada de carga.
    agregado por cubo, conforme [BI-05](refresh-final-bi05.md).
 5. Compare cada número com o manifesto, os Parquet e consultas ao DuckDB da
    mesma carga. Teste médias ponderadas e estados indisponíveis conforme
-   [especificação de medidas](especificacao-medidas-bi.md). Tabelas visuais
-   ainda vinculadas ao protótipo dependem de RP-13/RP-14; elas não substituem
-   a consulta das partições efetivamente carregadas.
+   [especificação de medidas](especificacao-medidas-bi.md). Os vínculos dos visuais
+   e sua aceitação são rastreados em RP-13/RP-14 e na auditoria do pacote
+   integrado; eles não substituem as consultas às partições carregadas.
 6. Para trocar a geração, copie o pacote novo inteiro para outra subpasta,
    altere `PastaPublicacaoBI` e repita aplicar, atualizar e as conferências.
    Alterar `current.json` no publicador não atualiza o parâmetro do relatório.
@@ -44,10 +44,10 @@ dados sintéticos demonstra o visual; não prova qual geração foi importada.
 
 | Etapa | Geração e execução | Resultado |
 | :--- | :--- | :--- |
-| BI-01 | Migração de duas páginas e 48 visuais | Estrutura e recursos conferidos; campos de RP-13/RP-14 pendentes |
-| BI-02 | Fixture `synthetic-bi02-fixture` | Sete arquivos conferidos em Python; registro de importação no Desktop em preparação |
-| BI-03/BI-04 | Modelo corrigido | Verificações estruturais e referências independentes; execução DAX no Desktop a registrar |
-| BI-05 | Geração final CB-16 | ID final e aceite da origem ainda não identificados |
+| BI-01 | Migração de duas páginas e 48 visuais | Estrutura versionada; aceitação visual do pacote integrado pendente |
+| BI-02 | Fixture `synthetic-bi02-fixture` | Sete tabelas consultadas no Desktop real, partições processadas sem erro |
+| BI-03/BI-04 | Pacote integrado `f068a01` | Projeção TOM com 128 itens/zero diferenças; médias e estoque do fixture consultados |
+| BI-05 | Geração CB-16 `6b1eaa686aac43b18b6d6545e1c2c5f1` | Publicação e origem conferidas; refresh final Desktop pendente |
 | BI-06 | Refresh e troca de geração | Capturas e números do Desktop ainda a registrar |
 
 Até completar as evidências de cada etapa, o respectivo aceite permanece
@@ -94,3 +94,30 @@ Registre a mensagem, a tabela, a geração e a ação corretiva. Arquivo ausente
 hash divergente, tipo incompatível, expressão DAX inválida ou caminho ambíguo
 interrompem o aceite. Corrija a origem ou o modelo, repita o refresh e as
 consultas e preserve a evidência do erro e da correção.
+
+## Ensaios executados e diagnóstico
+
+O ensaio do pacote integrado `f068a01` executou em VM Windows com Power BI
+Desktop `2.158.1177.0` em 06/10/2026 às 14:08:45 UTC, com relógio
+sincronizado. As sete contagens do fixture foram 2/3/4/2/64/8/5 na ordem
+C01, C02, C03, C04 e três tabelas de qualidade. As 13 partições do projeto
+e duas automáticas de data estavam processadas sem erro. A comparação TOM
+teve 128 itens e zero diferenças, dentro do escopo de projeção registrado.
+
+Os recibos sintéticos de [BI-02](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/276),
+[BI-03](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/278) e
+[BI-04](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/290)
+registram fonte do pacote, hashes, contagens, versão e consultas. A execução
+foi automatizada no Desktop real; não há declaração de operação humana.
+A igualdade semântica não identifica o commit exato dentro do engine.
+
+As capturas históricas de diagnóstico mostram falhas anteriores de
+[coluna no relacionamento](evidencias/bi-desktop/erro-coluna-calculada.png) e
+[valor de direção de filtro](evidencias/bi-desktop/erro-direcao-filtro.png).
+São recortes sem dados de origem ou credenciais; não identificam a revisão
+exata do projeto e não são capturas do ensaio integrado aprovado. O recibo
+posterior registra o modelo corrigido processado e consultado.
+
+A publicação v3 está conferida em CB-16. O refresh final, a troca de geração
+e o teste de cópia incompleta aguardam seus recibos de execução. Os testes
+do fixture não comprovam essas etapas.
