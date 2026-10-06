@@ -152,20 +152,6 @@
                   "Value": "false"
                 }
               }
-            },
-            "end": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
-                }
-              }
-            },
-            "labelDisplayUnits": {
-              "expr": {
-                "Literal": {
-                  "Value": "0D"
-                }
-              }
             }
           }
         }
@@ -203,13 +189,6 @@
               "expr": {
                 "Literal": {
                   "Value": "'OutsideEnd'"
-                }
-              }
-            },
-            "labelDisplayUnits": {
-              "expr": {
-                "Literal": {
-                  "Value": "0D"
                 }
               }
             },
@@ -292,24 +271,6 @@
           },
           "selector": {
             "metadata": "PUB_C02_PARTICIPACAO.Qtd Participacoes"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#8996A5'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento"
           }
         }
       ]
