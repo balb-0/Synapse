@@ -77,7 +77,9 @@ def reconcile_warehouse(db_path: str, load_reference: str) -> dict:
         with connect_with_retry(
             settings.database_path, settings.write_lock_timeout_seconds, read_only=True
         ) as connection:
+            connection.execute("BEGIN TRANSACTION")
             report = reconcile_analytics(connection)
+            connection.execute("COMMIT")
         if not report.reconciled or report.load_id != load_reference:
             raise ValueError("relatório analítico não reconciliou com a ingestão atual")
         _event("analytics_reconcile", started, "success", load_reference=load_reference)

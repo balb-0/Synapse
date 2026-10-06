@@ -16,6 +16,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+from etl.analytics.reconcile import reconcile_analytics
 from etl.load.config import load_duckdb_settings
 from etl.load.connection import connect_with_retry
 
@@ -234,6 +235,9 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
 
     ``output`` deve ficar fora do checkout. O diretório é privado por padrão;
     a distribuição a consumidores autorizados ocorre fora deste processo.
+    Com controles analíticos, a referência e a reconciliação são verificadas
+    no mesmo snapshot dos COPYs. Fixtures sem controles exigem referência
+    explicitamente marcada ``synthetic-...`` e não constituem uma carga final.
     """
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", load_reference):
         raise ValueError("load_reference deve ser um identificador simples, sem segredo")
@@ -264,6 +268,21 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
         )
         conn.execute("BEGIN TRANSACTION")
         in_transaction = True
+        control_tables = {
+            row[0]
+            for row in conn.execute(
+                "SELECT table_name FROM information_schema.tables "
+                "WHERE table_schema = current_schema() AND table_name LIKE 'analytics_%'"
+            ).fetchall()
+        }
+        if control_tables:
+            report = reconcile_analytics(conn)
+            if not report.reconciled or report.load_id != load_reference:
+                raise ValueError("a origem mudou ou não reconciliou no snapshot de publicação")
+        elif not load_reference.startswith("synthetic-"):
+            raise ValueError(
+                "origem sem controle analítico exige referência synthetic-... explícita"
+            )
         tables = {}
         for name, query in PUBLICATIONS.items():
             target = staging / f"{name}.parquet"
