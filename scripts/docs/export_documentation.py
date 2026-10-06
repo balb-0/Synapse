@@ -84,6 +84,7 @@ class DocumentHTML(HTMLParser):
         self.root, self.source, self.revision = root, source, revision
         self.parts: list[str] = []
         self.assets: set[Path] = set()
+        self.local_links: set[Path] = set()
         self.anchors: set[str] = set()
         self.fragments: set[str] = set()
 
@@ -104,6 +105,7 @@ class DocumentHTML(HTMLParser):
                     self.fragments.add(unquote(value[1:]))
                 elif not parsed.scheme and not parsed.netloc:
                     target = resolve_local(self.root, self.source, value)
+                    self.local_links.add(target)
                     relative = target.relative_to(self.root).as_posix()
                     value = f"{REPOSITORY}/-/blob/{self.revision}/{quote(relative)}"
                     if parsed.fragment:
@@ -160,6 +162,27 @@ def prepare(root: Path = ROOT) -> tuple[str, dict]:
     inputs = {source, root / "requirements-docs.txt", Path(__file__).resolve()}
     inputs.update(parser.assets)
     inputs.update((root / FONTS).glob("*"))
+    # Ignore publication-only commits when selecting a snapshot, avoiding a SHA
+    # cycle between the PDF and the commit that adds the PDF and its manifest.
+    linked_paths = inputs | parser.local_links
+    repository_revision = subprocess.check_output(
+        ["git", "log", "-1", "--format=%H", "--"]
+        + [p.relative_to(root).as_posix() for p in sorted(linked_paths)],
+        cwd=root,
+        text=True,
+    ).strip()
+    for target in parser.local_links:
+        relative = target.relative_to(root).as_posix()
+        result = subprocess.run(
+            ["git", "cat-file", "-e", f"{repository_revision}:{relative}"],
+            cwd=root,
+            capture_output=True,
+        )
+        if result.returncode:
+            raise ValueError(f"Link local não existe na revisão publicada: {relative}")
+    body = "".join(parser.parts).replace(
+        f"{REPOSITORY}/-/blob/{revision}/", f"{REPOSITORY}/-/blob/{repository_revision}/"
+    )
     packages = {}
     for requirement in (root / "requirements-docs.txt").read_text().splitlines():
         if not requirement or requirement.startswith("#"):
@@ -173,6 +196,7 @@ def prepare(root: Path = ROOT) -> tuple[str, dict]:
         "schema_version": 1,
         "source": SOURCE.as_posix(),
         "source_revision": revision,
+        "repository_revision": repository_revision,
         "scope": "Conteúdo integral de docs/projeto.md; links não expandem outros documentos.",
         "mermaid": "Definições integrais como código; imagens existentes preservadas.",
         "inputs": {p.relative_to(root).as_posix(): digest(p) for p in sorted(inputs)},
@@ -181,15 +205,16 @@ def prepare(root: Path = ROOT) -> tuple[str, dict]:
     note = (
         '<div class="provenance"><strong>Exportação integral da documentação principal</strong>'
         f"<br>Fonte: docs/projeto.md | SHA-256: {digest(source)}"
-        f"<br>Revisão da fonte: {revision}"
-        "<br>Links locais apontam para a revisão da fonte no GitLab. "
+        f"<br>Última edição commitada da fonte: {revision}"
+        f"<br>Snapshot dos links locais: {repository_revision}"
+        "<br>Links locais apontam para o snapshot indicado no GitLab. "
         "Diagramas Mermaid permanecem como definição textual integral. "
         "As limitações e propostas do documento original foram preservadas.</div>"
     )
     return (
         '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
         "<title>Governança e Integração de Dados da Central de Pesquisas</title>"
-        f"<style>{STYLE}</style></head><body>{note}{''.join(parser.parts)}</body></html>",
+        f"<style>{STYLE}</style></head><body>{note}{body}</body></html>",
         provenance,
     )
 

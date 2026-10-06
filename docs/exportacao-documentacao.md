@@ -30,10 +30,14 @@ O comando de exportação recusa imagens externas e não executa JavaScript.
 ## Proveniência e limites
 
 O [manifesto](assets/documentacao/documentacao-principal.manifest.json) registra
-SHA-256 de cada entrada renderizada, versão dos componentes principais, revisão
-Git da fonte, número de páginas e SHA-256 do PDF. A revisão é a última que alterou
-`docs/projeto.md`, evitando a dependência circular de incluir no PDF o SHA do próprio
-commit que publica o PDF. O `--check` compara os hashes da fonte e entradas atuais,
+SHA-256 de cada entrada renderizada, versões dos componentes, revisão
+Git da fonte, snapshot dos links locais, número de páginas e SHA-256 do PDF.
+`source_revision` é a última revisão que alterou `docs/projeto.md`.
+`repository_revision` é a última revisão que alterou uma entrada de exportação
+ou um arquivo ligado. Links locais apontam para esse snapshot; a exportação
+confere que cada destino existe nele. Commits que alteram apenas PDF/manifesto
+não mudam essa revisão, evitando a dependência circular de incluir no PDF o SHA do
+próprio commit que publica o PDF. O `--check` compara os hashes da fonte e entradas atuais,
 inclusive mudanças ainda não commitadas.
 
 As fontes Noto Sans, Noto Sans Mono, Noto Sans Math, Noto Sans Symbols 2 e um
@@ -46,7 +50,7 @@ no PDF. Imagens dos diagramas já presentes na fonte são incorporadas. A export
 não acrescenta diagramas renderizados a partir de fontes Mermaid.
 
 Os links entre seções do documento são internos ao PDF. Links para outros
-arquivos apontam para a revisão da fonte no GitLab e podem exigir permissão de acesso.
+arquivos apontam para o snapshot registrado no GitLab e podem exigir permissão de acesso.
 Os links externos permanecem com seus destinos originais; o exportador não testa
 a disponibilidade de serviços externos. Gerar o PDF não valida as afirmações do
 documento nem comprova execução de testes, acesso ao Desktop ou aceite humano.
