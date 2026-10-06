@@ -65,6 +65,14 @@ class ReportDefinitionTests(unittest.TestCase):
             self.assertIn(notice, json.dumps(visual, ensure_ascii=False))
             self.assertNotIn("Taxa de Prorrogacao", json.dumps(visual))
 
+    def test_c03_monthly_stock_uses_categorical_closing_dates(self):
+        path = REPORT / "definition/pages/c03c04qualidade01/visuals/qestoque000000004/visual.json"
+        visual = json.loads(path.read_text())["visual"]
+        axis_type = visual["objects"]["categoryAxis"][0]["properties"]["axisType"]
+        self.assertEqual(axis_type["expr"]["Literal"]["Value"], "'Categorical'")
+        category = visual["query"]["queryState"]["Category"]["projections"][0]
+        self.assertEqual(category["field"]["Column"]["Property"], "data_fim_mes")
+
 
 if __name__ == "__main__":
     unittest.main()
