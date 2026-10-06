@@ -12,7 +12,8 @@ from pathlib import Path
 import duckdb
 
 from etl.analytics.load import current_source_digests, selected_respondentes
-from etl.analytics.publish import PUBLICATIONS
+from etl.analytics.publish import PUBLICATIONS, publication_specification
+from etl.analytics.reconcile import reconcile_analytics
 
 EXPECTED_COLUMNS = {
     "PUB_C01_CICLO": [
@@ -159,10 +160,25 @@ def conferir(
     }
     con = duckdb.connect(str(database), read_only=True)
     try:
+        con.execute("BEGIN TRANSACTION")
         report["preparation"]["source_control"] = _check_load_reference(con, reference)
+        has_closure_control = con.execute(
+            "SELECT COUNT(*) FROM information_schema.tables "
+            "WHERE table_schema = current_schema() AND table_name = 'analytics_pipeline_closure'"
+        ).fetchone()[0]
+        source_report = reconcile_analytics(con) if has_closure_control else None
+        if source_report is not None:
+            _require(source_report.reconciled, "origem analítica não reconciliou")
         for name, columns in EXPECTED_COLUMNS.items():
+            query, expected_semantics = publication_specification(name, source_report)
             entry = tables[name]
             _require(isinstance(entry, dict), f"{name}: entrada inválida")
+            actual_semantics = {field: entry.get(field) for field in expected_semantics}
+            _require(
+                json.dumps(actual_semantics, sort_keys=True)
+                == json.dumps(expected_semantics, sort_keys=True),
+                f"{name}: semântica do manifesto diverge da origem",
+            )
             _require(entry.get("file") == f"{name}.parquet", f"{name}: nome do arquivo inválido")
             _require(entry.get("columns") == columns, f"{name}: colunas do manifesto divergentes")
             _require(
@@ -185,8 +201,17 @@ def conferir(
             _require(observed_columns == columns, f"{name}: colunas físicas divergentes")
             rows = _parquet(con, path, "SELECT COUNT(*) FROM read_parquet(?)")[0][0]
             _require(rows == entry["rows"], f"{name}: contagem Parquet/manifesto divergente")
-            source_rows = con.execute(f"SELECT COUNT(*) FROM ({PUBLICATIONS[name]})").fetchone()[0]
+            source_rows = con.execute(f"SELECT COUNT(*) FROM ({query})").fetchone()[0]
             _require(rows == source_rows, f"{name}: contagem Parquet/DuckDB divergente")
+            if name.startswith("PUB_QUALIDADE_"):
+                file_query = "SELECT * FROM read_parquet(?)"
+                difference = con.execute(
+                    f"SELECT COUNT(*) FROM (({query}) EXCEPT ALL ({file_query}))", [str(path)]
+                ).fetchone()[0]
+                reverse = con.execute(
+                    f"SELECT COUNT(*) FROM (({file_query}) EXCEPT ALL ({query}))", [str(path)]
+                ).fetchone()[0]
+                _require(difference == reverse == 0, f"{name}: conteúdo Parquet/DuckDB divergente")
             report["preparation"]["tables"][name] = rows
 
         report["preparation"]["aggregates"] = {}
@@ -202,10 +227,12 @@ def conferir(
             report["preparation"]["aggregates"][name] = actual
 
         # Estoque de C03 é semiaditivo: comparar cada fechamento observado isoladamente.
+        monthly_query, _ = publication_specification("PUB_C03_PIPELINE_MENSAL", source_report)
         source_months = [
             (str(month), total)
             for month, total in con.execute(
-                "SELECT data_fim_mes, SUM(qtd_pesquisas_no_status)::BIGINT FROM FATO_PIPELINE_MENSAL GROUP BY 1 ORDER BY 1"
+                "SELECT data_fim_mes, SUM(qtd_pesquisas_no_status)::BIGINT "
+                f"FROM ({monthly_query}) GROUP BY 1 ORDER BY 1"
             ).fetchall()
         ]
         file_months = [

@@ -165,25 +165,25 @@ CHAVES_QUALIDADE = {
 }
 
 
-def _view_atual(fonte: str) -> str:
+def _view_atual(fonte: str, respondentes: str) -> str:
     if fonte == "respondentes":
-        return "ingestao_respondentes"
+        return respondentes
     return f"ingestao_{fonte}_atual"
 
 
-def _sql_qualidade_campo() -> str:
+def _sql_qualidade_campo(respondentes: str = "ingestao_respondentes") -> str:
     partes = [
         f"""SELECT '{fonte}' AS tabela, '{coluna}' AS campo,
                COUNT(*)::BIGINT AS qtd_linhas,
                COUNT({coluna})::BIGINT AS qtd_preenchidas
-          FROM {_view_atual(fonte)}"""
+          FROM {_view_atual(fonte, respondentes)}"""
         for fonte, colunas in COLUNAS_QUALIDADE.items()
         for coluna in colunas
     ]
     return "\n         UNION ALL\n".join(partes)
 
 
-def _sql_qualidade_relacao() -> str:
+def _sql_qualidade_relacao(respondentes: str = "ingestao_respondentes") -> str:
     partes = []
     for filha, col_filha, pai, col_pai in RELACOES_QUALIDADE:
         predicate = f"p.{col_pai} = f.{col_filha}"
@@ -193,9 +193,9 @@ def _sql_qualidade_relacao() -> str:
             f"""SELECT '{filha}.{col_filha}' AS relacao,
                    COUNT(*)::BIGINT AS qtd_chaves_informadas,
                    COUNT(CASE WHEN EXISTS (
-                       SELECT 1 FROM {_view_atual(pai)} p WHERE {predicate}
+                       SELECT 1 FROM {_view_atual(pai, respondentes)} p WHERE {predicate}
                    ) THEN 1 END)::BIGINT AS qtd_chaves_correspondentes
-              FROM {_view_atual(filha)} f
+              FROM {_view_atual(filha, respondentes)} f
              WHERE f.{col_filha} IS NOT NULL"""
         )
     return "\n         UNION ALL\n".join(partes)
@@ -278,6 +278,25 @@ def publication_specification(name: str, report: ReconciliationReport | None) ->
     """
     if name == "PUB_C03_PIPELINE_MENSAL":
         return _monthly_publication(report)
+    if name in {"PUB_QUALIDADE_CAMPO", "PUB_QUALIDADE_RELACAO"}:
+        if report is None:
+            source = "ingestao_respondentes"
+            scope = "synthetic_unverified_physical_rows"
+        else:
+            if report.respondent_checksum is None:
+                raise ValueError("qualidade de respondentes exige snapshot conciliado de C02")
+            checksum = report.respondent_checksum.replace("'", "''")
+            source = f"(SELECT * FROM ingestao_respondentes WHERE source_checksum = '{checksum}')"
+            scope = "selected_reconciled_c02_snapshot"
+        builder = _sql_qualidade_campo if name == "PUB_QUALIDADE_CAMPO" else _sql_qualidade_relacao
+        return builder(source), {
+            "population_scope": {
+                "respondentes": scope,
+                "other_tables": "current_views",
+            }
+        }
+    if name == "PUB_QUALIDADE_DUPLICIDADE":
+        return PUBLICATIONS[name], {"population_scope": "physical_ingestion_history"}
     return PUBLICATIONS[name], {}
 
 
