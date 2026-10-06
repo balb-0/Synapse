@@ -53,8 +53,8 @@ entidade ou coluna de grão individual (`D01_*/D02_*/D03_*/D04_*/BE_*`,
    da taxa; o recorte Finalizadas × Em Aberto fica no gráfico por status.
 6. (Revisão) KPIs 1 e 3 do Benchmark exibiam o mesmo valor com rótulos
    sinônimos — kpi3 agora mostra média de preenchimento.
-7. (Revisão) Card de estoque somava meses sem avisar (medida semiaditiva)
-   — rótulo declara a soma dos meses e remete ao detalhamento mensal.
+7. (Revisão) Card de estoque usa a medida `Estoque no Status`, que mostra o
+   último fechamento observado no contexto; o rótulo agora informa esse recorte.
 
 ## Achado repassado (fora do escopo RP, para BI-04)
 
