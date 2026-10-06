@@ -88,10 +88,27 @@ marcador global e publicar estoque positivo. Os demais meses permanecem.
 Uma falha de reconciliação bloqueia a publicação e mantém `current.json` na
 geração anterior.
 
+## Repetição da publicação pelo orquestrador
+
+`publication_specification` fornece a consulta efetiva e os metadados esperados
+ao publicador e ao caminho de reuso de `publish_warehouse`. A consulta efetiva
+inclui os marcadores globais dos meses vazios, além da consulta dos grupos
+armazenada em `PUBLICATIONS`.
+
+Se uma tentativa falhar após a troca do ponteiro, a próxima tentativa pode
+reutilizar a geração. O reuso reconcilia a origem e confere os Parquet e a
+semântica do manifesto contra o mesmo snapshot. Verifica quantidade, colunas,
+SHA-256 e conteúdo nos dois sentidos com `EXCEPT ALL`, além de todos os campos
+de observação e contagem e da regra do marcador. A comparação dos metadados
+distingue booleanos de inteiros e exige os campos completos de cada mês.
+Um manifesto adulterado ou antigo sem a semântica exigida não é reutilizado;
+uma geração nova é publicada após nova verificação da origem.
+
 ## Verificação reproduzível
 
 ```bash
 PYTHONPATH=src python -m unittest tests.analytics.test_publish_c03 tests.analytics.test_publish -v
+PYTHONPATH=src python -m unittest tests.orchestration.test_publish_c03_reuse -v
 ```
 
 Os testes abrem um DuckDB isolado, carregam os controles reais, publicam os
@@ -100,3 +117,9 @@ estoque positivo, fechamento vazio, mês ausente, grupo desconhecido positivo,
 recarga no mesmo instante, substituição por instante mais recente, filtro por
 mês/categoria e fechamento adulterado. Conferem schema, manifesto e contagens.
 Esses testes não afirmam execução DAX nem refresh no Power BI Desktop.
+
+Os testes de reuso chamam a função da task diretamente e simulam uma falha
+após a troca do ponteiro. Verificam que a tentativa seguinte conserva a mesma
+geração e rejeita adulteração de cada campo semântico, inclusive tipos e
+atributos de cada mês. Não exigem servidor Prefect nem comprovam, por si sós,
+o agendamento de retries pelo framework.

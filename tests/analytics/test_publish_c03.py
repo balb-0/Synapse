@@ -156,6 +156,7 @@ class PublishedMonthlyClosuresTests(unittest.TestCase):
         at = datetime(2026, 9, 30, 23)
         first, _ = self.load(at)
         table_before, rows_before = self.publish(first.load_id)
+        self.insert_research("p3", area="Nova área", status="Encerrada")
         repeated, _ = self.load(at)
         table_after, rows_after = self.publish(repeated.load_id)
         self.assertEqual(rows_before, rows_after)
