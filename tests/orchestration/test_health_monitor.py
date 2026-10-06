@@ -6,8 +6,10 @@ import argparse
 import importlib.util
 import io
 import json
+import os
 import subprocess
 import sys
+import tempfile
 import threading
 import unittest
 from contextlib import redirect_stdout
@@ -101,6 +103,28 @@ class PeriodicHealthMonitorTests(unittest.TestCase):
             health_monitor.monitor(60, 30, stopped)
         self.assertEqual(check.call_count, 2)
         self.assertEqual(waits, [58, 30])
+
+    def test_real_child_emits_json_only_and_preserves_database_when_api_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            environment = dict(os.environ)
+            environment.pop("PREFECT_API_URL", None)
+            environment["PYTHONPATH"] = str(ROOT / "src")
+            environment["ETL_DUCKDB_PATH"] = str(Path(directory) / "health.duckdb")
+            completed = subprocess.run(
+                [sys.executable, str(health_monitor.HEALTH_CHECK_SCRIPT), "--json-only"],
+                capture_output=True,
+                text=True,
+                timeout=20,
+                check=False,
+                env=environment,
+            )
+        self.assertEqual(completed.returncode, 1, completed.stderr)
+        lines = completed.stdout.splitlines()
+        self.assertEqual(len(lines), 1)
+        report = json.loads(lines[0])
+        self.assertEqual(report["status"], "degraded")
+        self.assertFalse(report["prefect_available"])
+        self.assertTrue(report["database_available"])
 
     def test_intervals_must_be_positive_and_finite(self) -> None:
         for value in ("0", "-1", "nan", "inf"):
