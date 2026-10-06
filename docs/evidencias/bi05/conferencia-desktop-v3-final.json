@@ -1,0 +1,71 @@
+{
+  "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+  "load_reference": "afcde424-45e8-457b-8793-bf0866d142b2",
+  "synthetic": false,
+  "preparation": {
+    "status": "ok",
+    "tables": {
+      "PUB_C01_CICLO": 57,
+      "PUB_C02_PARTICIPACAO": 32,
+      "PUB_C03_PIPELINE_MENSAL": 0,
+      "PUB_C04_INSTRUMENTO": 45,
+      "PUB_QUALIDADE_CAMPO": 64,
+      "PUB_QUALIDADE_RELACAO": 8,
+      "PUB_QUALIDADE_DUPLICIDADE": 5
+    },
+    "source_control": {
+      "status": "confere",
+      "load_id": "afcde424-45e8-457b-8793-bf0866d142b2"
+    },
+    "aggregates": {
+      "PUB_C01_CICLO": 366,
+      "PUB_C02_PARTICIPACAO": 17740,
+      "PUB_C04_INSTRUMENTO": 3186
+    },
+    "c03_stock_by_month": [],
+    "c03_observation": "sem_fechamento_observado_na_publicacao"
+  },
+  "desktop": {
+    "status": "recibo_confere",
+    "aggregates": {
+      "PUB_C01_CICLO": {
+        "column": "qtd_pesquisas",
+        "value": 366
+      },
+      "PUB_C02_PARTICIPACAO": {
+        "column": "qtd_participacoes",
+        "value": 17740
+      },
+      "PUB_C04_INSTRUMENTO": {
+        "column": "qtd_perguntas",
+        "value": 3186
+      },
+      "PUB_C03_PIPELINE_MENSAL": {
+        "column": "qtd_pesquisas_no_status",
+        "state": "sem_fechamento_observado",
+        "value": null
+      }
+    },
+    "provenance": {
+      "status": "recibos_de_fontes_conferem",
+      "engine_loaded_revision": "nao_comprovada",
+      "engine_semantic_projection": "recibo_confere",
+      "project_source_commit": "ff760d6552a1d5d2d3d9d9da1f3467e2c913416a",
+      "package_sha256": "a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea",
+      "model_inventory_sha256": "1624eef9ad87a61af4146cc0c67e469014cb830829bc9562a04ba70eaeca8ac6",
+      "verified_model_files": 98,
+      "engine_model_verification": {
+        "status": "matched",
+        "source_sha256": "34dcad43c6d6761a508793a60311075abae529e3ece2bb3beeb9cc94956a1a46",
+        "engine_sha256": "34dcad43c6d6761a508793a60311075abae529e3ece2bb3beeb9cc94956a1a46",
+        "source_items": 128,
+        "engine_items": 128,
+        "difference_count": 0,
+        "differences": [],
+        "scope": "tables, columns, measures, partitions, relationships, hierarchies and model expressions; runtime auto date tables and their relationships, and row-number columns excluded"
+      }
+    },
+    "note": "O recibo não comprova por si só execução ou atualização no Desktop."
+  },
+  "final_acceptance": "pendente"
+}
