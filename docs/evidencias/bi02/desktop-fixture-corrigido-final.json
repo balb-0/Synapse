@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "generation": "2c699f0b066847ee8559f1e31d88f49d",
+  "load_reference": "synthetic-bi02-fixture",
+  "synthetic": true,
+  "queried_at_utc": "2026-10-06T15:44:25.2528117Z",
+  "source": "Power BI Desktop local Analysis Services via AdomdClient",
+  "desktop_version": "2.158.1177.0 (26.09)+a10b99dd55051d4b25e9e28c4a1747d23f7a4f1f",
+  "windows_version": "10.0.26200.0",
+  "project_source_commit": "ff760d6552a1d5d2d3d9d9da1f3467e2c913416a",
+  "source_commit_scope": "Extracted PBIP files match the package; TOM confirms the selected engine semantic projection matches their TMDL.",
+  "engine_loaded_revision_verified": false,
+  "engine_semantic_projection_verified": true,
+  "package_sha256": "a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea",
+  "model_inventory_sha256": "1624eef9ad87a61af4146cc0c67e469014cb830829bc9562a04ba70eaeca8ac6",
+  "verified_model_files": 98,
+  "query_script_sha256": "e9bd8bf4661b2cba2fc5eee7de63a79f2034b1fd12bd671d8b7db1c92a04e821",
+  "tables": {
+    "PUB_C01_CICLO": 2,
+    "PUB_C02_PARTICIPACAO": 3,
+    "PUB_C03_PIPELINE_MENSAL": 4,
+    "PUB_C04_INSTRUMENTO": 2,
+    "PUB_QUALIDADE_CAMPO": 64,
+    "PUB_QUALIDADE_RELACAO": 8,
+    "PUB_QUALIDADE_DUPLICIDADE": 5
+  },
+  "aggregates": {
+    "PUB_C01_CICLO": {
+      "column": "qtd_pesquisas",
+      "value": 4
+    },
+    "PUB_C02_PARTICIPACAO": {
+      "column": "qtd_participacoes",
+      "value": 4
+    },
+    "PUB_C04_INSTRUMENTO": {
+      "column": "qtd_perguntas",
+      "value": 3
+    },
+    "PUB_C03_PIPELINE_MENSAL": {
+      "column": "qtd_pesquisas_no_status",
+      "month_end": "2026-02-28",
+      "value": 4
+    }
+  },
+  "checks": {
+    "c01": {
+      "weighted_validation": 5,
+      "valid_base": 2,
+      "blocked_extension": "Indisponivel: coluna de prorrogacao nao publicada no cubo BI (ver docs/indicadores-publicaveis-bi.md, I05)"
+    },
+    "c02": {
+      "weighted_minutes": 10,
+      "valid_base": 2,
+      "blocked_representativity": "Indisponivel: participacao de mercado (I09) nao publicada no cubo BI; fonte autoritativa pendente de homologacao (docs/dmc.md, DR02)"
+    },
+    "c03": {
+      "reference_date": "2026-02-28",
+      "latest_stock": 4,
+      "entries": null,
+      "exits": null,
+      "bi04_measures": {
+        "status": "queried",
+        "reference_date": "2026-02-28",
+        "latest_stock": 4,
+        "stock_state": "Disponível no fechamento de 28/02/2026",
+        "entries": null,
+        "entries_state": "Indisponível: histórico de transições de status não publicado.",
+        "exits": null,
+        "exits_state": "Indisponível: histórico de transições de status não publicado."
+      }
+    },
+    "blocked_indicators": {
+      "count": 17,
+      "catalog_rows": 18
+    }
+  },
+  "extra_query_script_sha256": "2cc8f1baf4285e638a480ddb4ca5435084631f24df32f9c335de091ae9740b5c",
+  "extra_query_expected_sha256": "11a35ec0665e99a4318f96707d5b48a869acd34e8d06359b4e977638b6429959",
+  "engine_model_verification": {
+    "status": "matched",
+    "source_sha256": "bdcab99f64731a0960935df1b1c0ef3db601030f22474be46aefceb1a382cce2",
+    "engine_sha256": "bdcab99f64731a0960935df1b1c0ef3db601030f22474be46aefceb1a382cce2",
+    "source_items": 128,
+    "engine_items": 128,
+    "difference_count": 0,
+    "differences": [],
+    "scope": "tables, columns, measures, partitions, relationships, hierarchies and model expressions; runtime auto date tables and their relationships, and row-number columns excluded"
+  },
+  "local_parameter_binding": {
+    "generation_path_sanitized": "C:\\BI\\<pacote>\\data\\g1",
+    "file_present_and_path_matched": true,
+    "excluded_from_byte_hash": true
+  },
+  "partitions": {
+    "status": "all_processed_without_error",
+    "project_tables": [
+      "DIM_AREA",
+      "DIM_INDICADORES_BLOQUEADOS",
+      "DIM_STATUS_PESQUISA",
+      "DIM_TEMPO",
+      "DIM_TIPO_PERGUNTA",
+      "DIM_TIPO_PESQUISA",
+      "PUB_C01_CICLO",
+      "PUB_C02_PARTICIPACAO",
+      "PUB_C03_PIPELINE_MENSAL",
+      "PUB_C04_INSTRUMENTO",
+      "PUB_QUALIDADE_CAMPO",
+      "PUB_QUALIDADE_DUPLICIDADE",
+      "PUB_QUALIDADE_RELACAO"
+    ],
+    "project_partitions_processed": 13,
+    "automatic_date_partitions_processed": 2,
+    "all_partitions_processed": 15
+  },
+  "extra_checks": {
+    "reference": {
+      "generation": "2c699f0b066847ee8559f1e31d88f49d",
+      "load_reference": "synthetic-bi02-fixture",
+      "source": "fixture SQL in scripts/analytics/gerar_fixture_bi.py at integrated be132f1; published with current composite FK predicate",
+      "source_sha256": "eeac007985f0f3cb5c237b87c495f6ba7f2f49e4b131fbcee7a6540ca0f9bb74"
+    },
+    "c01": {
+      "phases": {
+        "validacao": {
+          "sum": 10,
+          "base": 2,
+          "weighted_mean": 5
+        },
+        "coleta": {
+          "sum": 10,
+          "base": 2,
+          "weighted_mean": 5
+        },
+        "tabulacao": {
+          "sum": 8,
+          "base": 2,
+          "weighted_mean": 4
+        },
+        "ciclo_total": {
+          "sum": 30,
+          "base": 2,
+          "weighted_mean": 15
+        }
+      },
+      "total": 4
+    },
+    "c02": {
+      "participations": 4,
+      "minutes_sum": 20,
+      "minutes_base": 2,
+      "weighted_minutes_mean": 10,
+      "calendar_rollups": {
+        "ano": 4,
+        "trimestre": 4,
+        "mes": 4
+      },
+      "null_month_participations": 1,
+      "blank_calendar_member_participations": 1,
+      "diagnostic_arithmetic": {
+        "weighted": 8.2,
+        "simple": 5,
+        "zero_numerator_positive_base": 0,
+        "zero_base": null,
+        "scope": "DAX DATATABLE and DIVIDE probes; not model measures"
+      },
+      "adhesion_rate": "unavailable: invite denominator not published"
+    },
+    "c03": {
+      "reference_date": "2026-02-28",
+      "stock": 4,
+      "stock_state": "Disponível no fechamento de 28/02/2026",
+      "hierarchy_stock": 4,
+      "empty_month_stock": null,
+      "empty_month_state": "Indisponível: a geração publicada não contém linha C03 para o período selecionado.",
+      "observed_closures": [
+        {
+          "date": "2026-01-31",
+          "stock": 3,
+          "hierarchy_totals": {
+            "area": 3,
+            "area_tipo": 3,
+            "area_tipo_perfil": 3
+          }
+        },
+        {
+          "date": "2026-02-28",
+          "stock": 4,
+          "hierarchy_totals": {
+            "area": 4,
+            "area_tipo": 4,
+            "area_tipo_perfil": 4
+          }
+        }
+      ],
+      "no_closure_month": "2026-03"
+    },
+    "quality": {
+      "source_method": "DuckDB direct SQL over recreated fixture ingestao_* tables; composite pesquisa_id+pergunta_id for question FK",
+      "completeness": {
+        "filled": 67,
+        "base": 106,
+        "ratio": 0.6320754716981132
+      },
+      "integrity": {
+        "matched": 10,
+        "base": 13,
+        "ratio": 0.7692307692307693
+      },
+      "duplication": {
+        "rows": 9,
+        "distinct": 8,
+        "ratio": 0.1111111111111111
+      }
+    },
+    "status": "matched_independent_aggregate_reference"
+  },
+  "receipt_sha256": "324c857a7042bb7819b4eebfa773389c292efdc8774213e437ba2f028720ab59",
+  "receipt_sha256_scope": "original private Desktop execution receipt before sanitization",
+  "execution_mode": "automated queries against real Power BI Desktop on a Windows virtual machine",
+  "limits": [
+    "TOM verifies the declared semantic projection, not an exact source commit marker in the engine",
+    "C03 without observed monthly closure reports unavailable stock and transitions, not zero",
+    "The finalization diagnostic is not a published DAX measure and is omitted from this public receipt"
+  ]
+}
