@@ -108,7 +108,7 @@ contrato exponha o marcador.
 ## Consultas reais do fixture em Power BI Desktop
 
 O [recibo das medidas](evidencias/bi04/desktop-medidas-fixture.json) registra
-consulta real em VM Windows em 06/10/2026 às 14:04:07 UTC, após sincronização
+consulta real em VM Windows em 06/10/2026 às 14:08:45 UTC, após sincronização
 do relógio. A média ponderada de validação foi 5 dias com denominador 2,
 e a média de preenchimento foi 10 minutos com denominador 2.
 Os totais C01/C02/C04 foram 4/4/3.
@@ -125,3 +125,10 @@ da geração v3. As consultas anexadas não cobrem todas as médias de fases,
 todos os recortes categóricos ou todos os edge cases do checklist acima.
 Fechamento sem nenhum grupo observado continua sem representação suficiente
 no contrato Parquet; não há aceite desse caso.
+
+O recibo corrente é do pacote integrado `f068a01`, SHA256
+`88a33f4963e9f2912794ad165c003d03822d24986817c2ce5909c8551207f89e`,
+consultado em Power BI Desktop `2.158.1177.0` no Windows `10.0.26200.0`.
+O recibo inicial do pacote `9726fd6` permanece no mesmo diretório de
+evidências com sufixo `-inicial`; ele é histórico e usa o relógio já
+sincronizado. Ambos usam o fixture, não a fonte final CB-16.
