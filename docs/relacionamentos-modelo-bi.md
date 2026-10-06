@@ -31,6 +31,18 @@ segunda é o tipo da questão do instrumento (única, múltipla...). Tratá-las
 como a mesma dimensão juntaria dois domínios de valores sem relação, e é o
 tipo de ambiguidade que este modelo evita deliberadamente.
 
+`PUB_C04_INSTRUMENTO` publica `area` e `tipo_pergunta`; não publica `tipo`
+de pesquisa. Use `DIM_TIPO_PERGUNTA` para segmentar questões e não ligue esse
+cubo a `DIM_TIPO_PESQUISA` por um campo que não existe no contrato.
+
+Os campos de relacionamento são os valores categóricos publicados. Em C02,
+`mes_resposta` pode ser `NULL`: a participação permanece no fato agregado,
+mas não recebe um período da `DIM_TEMPO`. Em C03,
+`data_fim_mes` é sempre o último dia do mês. A dimensão mantém essas datas
+como chaves de relacionamento distintas e deriva a mesma hierarquia de ano,
+trimestre e mês; `ano_mes` deve ser ordenado por `YYYYMM`, não pela data
+física que varia entre os dois cubos.
+
 ## Cardinalidade e direção de filtro
 
 Todo relacionamento em `relationships.tmdl` é **um-para-muitos** (um valor da
