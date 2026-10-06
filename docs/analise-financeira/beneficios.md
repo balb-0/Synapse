@@ -36,6 +36,8 @@ Os números são deliberadamente testáveis e não são estimativas estatística
 
 Fórmula por mês: `(N_rel×h_rel + N_retrabalho×h_retrabalho + N_erros×h_erro) × R$ 139,77289/h`. Exemplo base: `(8×4 + 2×1 + 1×2)×139,77289 = R$ 5.031,82/mês`. Os valores anuais são o resultado de 12 vezes o valor mensal **antes** do arredondamento e representam capacidade, não receita nem redução comprovada de desembolso.
 
+As parcelas da tabela são arredondadas individualmente para exibição. Por isso, somá-las depois de arredondadas pode diferir em R$ 0,01 do total, que usa as horas agregadas e a tarifa com precisão integral.
+
 ## Validação de ganho e dinheiro
 
 **Economia de caixa confirmada: indisponível.** O modelo não afirma redução de folha ou contrato. Para reconhecer uma economia de caixa, identificar a despesa específica evitada, período, aprovação e prova contábil. Para reconhecer benefício de capacidade, identificar a tarefa de destino e seu valor; não somar essa mesma hora novamente como despesa evitada.
