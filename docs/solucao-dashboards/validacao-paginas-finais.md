@@ -47,6 +47,14 @@ entidade ou coluna de grão individual (`D01_*/D02_*/D03_*/D04_*/BE_*`,
 4. Slicers de Mês/Status da página 3 não alcançam `PUB_C04` (sem
    relacionamento, por desenho) — documentado o escopo global de C04 e
    qualidade nessa página em vez de prometer filtragem.
+5. (Revisão) Card de Produção exibia o mesmo `Qtd Pesquisas` 3× com rótulos
+   distintos (Pesquisas/Finalizadas/Em Aberto) — trocado por total, média
+   de ciclo, base válida e média de coleta; `pvline` rel rotulado como base
+   da taxa; o recorte Finalizadas × Em Aberto fica no gráfico por status.
+6. (Revisão) KPIs 1 e 3 do Benchmark exibiam o mesmo valor com rótulos
+   sinônimos — kpi3 agora mostra média de preenchimento.
+7. (Revisão) Card de estoque somava meses sem avisar (medida semiaditiva)
+   — rótulo declara a soma dos meses e remete ao detalhamento mensal.
 
 ## Achado repassado (fora do escopo RP, para BI-04)
 
