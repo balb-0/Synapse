@@ -21,3 +21,20 @@ O custo de pessoal usa `salário × fator-k ÷ 160 h` com os perfis DESENV-02, A
 | **Horas totais** | | **32** | **56** | Trabalho recorrente, distinto das horas de implantação de FN-02. |
 
 Essas alocações são hipóteses a medir durante o piloto. Trabalho de plantão 24×7, suporte contratado com SLA, integração nova e correção estrutural relevante não estão precificados. A demanda superior à capacidade prevista exige revisão de horas, não absorção gratuita.
+
+## Custos mensais por cenário
+
+Para compartilhar reports, modelamos **2 licenças Power BI Pro no piloto** e **5 na produção**, a [R$ 80,20 por usuário/mês, pago anualmente, sem impostos](https://www.microsoft.com/pt-br/power-platform/products/power-bi/pricing). A quantidade de usuários é hipótese. Se o parceiro já possui Microsoft 365/Office 365 E5 elegível, o desembolso incremental pode ser menor. A autoria local em Power BI Desktop não requer a licença Pro.
+
+| Componente | Fórmula | Piloto (R$/mês) | Produção (R$/mês) |
+| :--- | :--- | ---: | ---: |
+| Infraestrutura | USD 95,10 ou 1.651,00 × 4,9859 | 474,16 | 8.231,72 |
+| Hospedagem, manutenção e atualizações | 16 ou 24 h × 139,858753125 | 2.237,74 | 3.356,61 |
+| BI e suporte funcional | 8 ou 16 h × 139,77289 | 1.118,18 | 2.236,37 |
+| Triagem e apoio ao usuário | 4 ou 8 h × 121,9041525 | 487,62 | 975,23 |
+| Qualidade e reconciliação | 4 ou 8 h × 110,93962625 | 443,76 | 887,52 |
+| Power BI Pro | 2 ou 5 usuários × 80,20 | 160,40 | 401,00 |
+| **Total mensal projetado** | Soma com precisão integral, arredondada ao final | **4.921,86** | **16.088,45** |
+| **Total em 12 meses** | Total mensal sem arredondamento × 12 | **59.062,29** | **193.061,37** |
+
+O desembolso de licença pode ocorrer antecipadamente pelo compromisso anual. A tabela expressa competência econômica mensal; FN-05 deve explicitar o fluxo de caixa quando o plano de compra for conhecido.
