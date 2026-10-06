@@ -3,7 +3,8 @@
 Como o pipeline é executado: onde os processos rodam, como se comunicam, onde os
 dados ficam, como a execução é coordenada, o que é medido e como o sistema se
 recupera de uma falha. A visão descreve o ambiente **declarado no repositório**
-(estado de 25/09/2026); capacidade que existe apenas como decisão está marcada
+(base de 25/09/2026, revisão de contratos em 06/10/2026); capacidade que
+existe apenas como decisão está marcada
 como planejada.
 
 O ambiente e o pipeline de verificação estão registrados no
@@ -14,15 +15,16 @@ O ambiente e o pipeline de verificação estão registrados no
 ### Topologia servida da Sprint 4
 
 Todos os serviços abaixo estão declarados em `docker-compose.yml`, na raiz do
-repositório, e sobem com `docker compose up -d`. Estado conferido em
-25/09/2026.
+repositório, e sobem com `docker compose up -d`. A revisão descreve a
+configuração versionada; execução e capturas têm registros próprios.
 
 | Serviço | Imagem | Papel | Portas/volumes | Saúde |
 | :--- | :--- | :--- | :--- | :--- |
 | `minio` | `minio/minio:latest` | Armazenamento de objetos e console | 9000 (API), 9001 (console), `minio-data` | `mc ready local` |
 | `createbucket` | `minio/mc:latest` | Cria o bucket `sindusfarma` e encerra | — | — |
 | `prefect-server` | Construída pelo `Dockerfile` | API, UI e histórico do Prefect | 4200, `prefect-data` | `GET /api/health` |
-| `scheduler` | Construída pelo `Dockerfile` | Serve o deployment `ingest-object/agendado` (cron `0 3 * * *`) | `duck-data`; `restart: unless-stopped` | depende de `prefect-server` saudável |
+| `scheduler` | Construída pelo `Dockerfile` | Serve o deployment `pipeline-completo/agendado-dw` (cron `0 3 * * *`) | `duck-data`; `restart: unless-stopped` | depende de `prefect-server` saudável |
+| `health-monitor` | Construída pelo `Dockerfile` | Checa Prefect/DuckDB a cada 60s, subprocesso limitado a 30s; emite relatório mesmo sem flows | `duck-data`; `restart: unless-stopped` | diferencia `ok`, `busy` e `degraded`; não reinicia API/banco |
 | `runner` | Construída pelo `Dockerfile` | Executa flows, scripts, health check e testes | `duck-data`, `src`, `scripts`, `observability` | — |
 | `elasticsearch` | `elasticsearch:8.15.0` | Índice da telemetria `etl-logs-*` | 9200, `es-data` | `_cluster/health` green/yellow |
 | `logstash` | `logstash:8.15.0` | Coletor GELF → Elasticsearch | 12201/udp | — |
@@ -52,8 +54,14 @@ Comandos de execução:
 docker compose up -d
 docker compose run --rm --no-deps runner python scripts/orchestration/run_ingest.py --source empresas
 docker compose run --rm --no-deps runner python scripts/orchestration/run_backfill.py --sources empresas
+# Pipeline completo: as seis fontes antes da carga DW e da publicação
+docker compose run --rm --no-deps runner python scripts/orchestration/run_pipeline.py
 docker compose run --rm --no-deps runner python scripts/orchestration/health_check.py
 ```
+
+Os comandos de objeto e backfill isolado terminam na ingestão tratada.
+`run_pipeline` usa o mesmo DuckDB nas tasks analíticas, reconcilia a carga
+efetiva e publica em `ETL_PUBLISH_DIR` (padrão `/data/publicacao`).
 
 O deployment agendado não precisa de comando manual: o serviço `scheduler`
 executa `scripts/orchestration/deployment.py` e reinicia sozinho.
@@ -62,8 +70,10 @@ executa `scripts/orchestration/deployment.py` e reinicia sozinho.
 
 | Origem | Destino | Protocolo | Conteúdo |
 | :--- | :--- | :--- | :--- |
+| `health-monitor` | Construída pelo `Dockerfile` | Checa Prefect/DuckDB a cada 60s, subprocesso limitado a 30s; emite relatório mesmo sem flows | `duck-data`; `restart: unless-stopped` | diferencia `ok`, `busy` e `degraded`; não reinicia API/banco |
 | `runner` | `minio:9000` | HTTP, API S3 | Leitura do objeto e upload de fixtures |
 | Operador | `localhost:9001` | HTTP | Console do MinIO |
+| `health-monitor` | Construída pelo `Dockerfile` | Checa Prefect/DuckDB a cada 60s, subprocesso limitado a 30s; emite relatório mesmo sem flows | `duck-data`; `restart: unless-stopped` | diferencia `ok`, `busy` e `degraded`; não reinicia API/banco |
 | `runner` | Arquivo local | Chamada de sistema | Escrita no DuckDB |
 | MinIO | Adaptador de eventos (`watch_landing.py`) | HTTP, webhook | `s3:ObjectCreated` (ou polling do prefixo `landing/`) |
 | `runner`, `scheduler` | `prefect-server:4200` | HTTP | Estados, logs e histórico dos flow runs |
