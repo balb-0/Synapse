@@ -1,5 +1,107 @@
 table PUB_C03_PIPELINE_MENSAL
 
+	measure 'Data de Referência do Estoque' =
+			VAR MesesSelecionados =
+				FILTER(
+					ALLSELECTED(DIM_TEMPO[ano_mes]),
+					NOT ISBLANK(DIM_TEMPO[ano_mes])
+				)
+			VAR MesAtual = SELECTEDVALUE(DIM_TEMPO[ano_mes])
+			VAR UltimoMesComLinha =
+				MAXX(
+					FILTER(
+						MesesSelecionados,
+						VAR MesCandidato = DIM_TEMPO[ano_mes]
+						RETURN
+						CALCULATE(
+							COUNTROWS(PUB_C03_PIPELINE_MENSAL),
+							REMOVEFILTERS(DIM_TEMPO),
+							TREATAS({MesCandidato}, DIM_TEMPO[ano_mes]),
+							ALLSELECTED(DIM_AREA),
+							ALLSELECTED(DIM_STATUS_PESQUISA),
+							ALLSELECTED(DIM_TIPO_PESQUISA),
+							ALLSELECTED(PUB_C03_PIPELINE_MENSAL[perfil]),
+							ALLSELECTED(PUB_C03_PIPELINE_MENSAL[complexidade]),
+							ALLSELECTED(PUB_C03_PIPELINE_MENSAL[tipo_resposta])
+						) > 0
+					),
+					DIM_TEMPO[ano_mes]
+				)
+			VAR MesReferencia =
+				IF(HASONEVALUE(DIM_TEMPO[ano_mes]), MesAtual, UltimoMesComLinha)
+			RETURN
+				IF(
+					ISBLANK(MesReferencia),
+					BLANK(),
+					CALCULATE(
+						MAX(PUB_C03_PIPELINE_MENSAL[data_fim_mes]),
+						REMOVEFILTERS(DIM_TEMPO),
+						DIM_TEMPO[ano_mes] = MesReferencia,
+						ALLSELECTED(DIM_AREA),
+						ALLSELECTED(DIM_STATUS_PESQUISA),
+						ALLSELECTED(DIM_TIPO_PESQUISA),
+						ALLSELECTED(PUB_C03_PIPELINE_MENSAL[perfil]),
+						ALLSELECTED(PUB_C03_PIPELINE_MENSAL[complexidade]),
+						ALLSELECTED(PUB_C03_PIPELINE_MENSAL[tipo_resposta])
+					)
+				)
+		formatString: Short Date
+
+	measure 'Estoque no Último Mês Observado' =
+			VAR DataReferencia = [Data de Referência do Estoque]
+			VAR EstoqueNoMes =
+				CALCULATE(
+					SUM(PUB_C03_PIPELINE_MENSAL[qtd_pesquisas_no_status]),
+					REMOVEFILTERS(DIM_TEMPO),
+					DIM_TEMPO[data] = DataReferencia
+				)
+			RETURN
+				IF(ISBLANK(DataReferencia), BLANK(), COALESCE(EstoqueNoMes, 0))
+		formatString: #,0
+
+	measure 'Estado do Estoque' =
+			VAR DataReferencia = [Data de Referência do Estoque]
+			RETURN
+				IF(
+					ISBLANK(DataReferencia),
+					"Indisponível: a geração publicada não contém linha C03 para o período selecionado.",
+					"Disponível no fechamento de " & FORMAT(DataReferencia, "dd/MM/yyyy")
+				)
+
+	measure 'Entradas no Mês' = SUM(PUB_C03_PIPELINE_MENSAL[qtd_entradas_no_mes])
+		formatString: #,0
+
+	measure 'Estado das Entradas no Mês' =
+			VAR DataReferencia = [Data de Referência do Estoque]
+			VAR Entradas = [Entradas no Mês]
+			RETURN
+				IF(
+					ISBLANK(DataReferencia),
+					"Indisponível: a geração publicada não contém linha C03 para o período selecionado.",
+					IF(
+						ISBLANK(Entradas),
+						"Indisponível: histórico de transições de status não publicado.",
+						"Disponível"
+					)
+				)
+
+	measure 'Saídas no Mês' = SUM(PUB_C03_PIPELINE_MENSAL[qtd_saidas_no_mes])
+		formatString: #,0
+
+	measure 'Estado das Saídas no Mês' =
+			VAR DataReferencia = [Data de Referência do Estoque]
+			VAR Saidas = [Saídas no Mês]
+			RETURN
+				IF(
+					ISBLANK(DataReferencia),
+					"Indisponível: a geração publicada não contém linha C03 para o período selecionado.",
+					IF(
+						ISBLANK(Saidas),
+						"Indisponível: histórico de transições de status não publicado.",
+						"Disponível"
+					)
+				)
+
 	column data_fim_mes
 		dataType: dateTime
 		isHidden

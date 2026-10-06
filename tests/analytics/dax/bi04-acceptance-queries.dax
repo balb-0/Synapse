@@ -1,0 +1,55 @@
+-- Execute these in Power BI Desktop DAX Query View after loading a published
+-- generation. They inspect the actual semantic model; Python reference tests
+-- do not execute DAX.
+
+-- 1. Overall values in the current model filter context. Confirm each mean's
+-- valid base and inspect C03 availability separately from its numeric value.
+EVALUATE
+ROW(
+    "Media Dias Validacao", [Media Dias Validacao],
+    "Base Valida Validacao", [Base Valida Validacao],
+    "Media Minutos Preenchimento", [Media Minutos Preenchimento],
+    "Base Valida Preenchimento", [Base Valida Preenchimento],
+    "Data de Referencia do Estoque", [Data de Referência do Estoque],
+    "Estoque", [Estoque no Último Mês Observado],
+    "Estado do Estoque", [Estado do Estoque],
+    "Entradas", [Entradas no Mês],
+    "Estado das Entradas", [Estado das Entradas no Mês],
+    "Saidas", [Saídas no Mês],
+    "Estado das Saidas", [Estado das Saídas no Mês]
+)
+
+-- 2. Replace the two values with observed months from the loaded generation.
+-- The measure must use the last observed month in this selected range and sum
+-- all disjoint groups in that one month, never the stock from both months.
+EVALUATE
+CALCULATETABLE(
+    ROW(
+        "Data de Referencia", [Data de Referência do Estoque],
+        "Estoque", [Estoque no Último Mês Observado],
+        "Estado", [Estado do Estoque]
+    ),
+    TREATAS({"2026-09", "2026-10"}, DIM_TEMPO[ano_mes])
+)
+
+-- 3. Use a month present in DIM_TEMPO but without any C03 row. The numeric
+-- stock must be BLANK and the companion status must explain the missing row.
+EVALUATE
+CALCULATETABLE(
+    ROW(
+        "Data de Referencia", [Data de Referência do Estoque],
+        "Estoque", [Estoque no Último Mês Observado],
+        "Estado", [Estado do Estoque]
+    ),
+    TREATAS({"2099-12"}, DIM_TEMPO[ano_mes])
+)
+
+-- 4. The current contract publishes no transition history. Both numeric flow
+-- measures must stay BLANK; the status measures must provide the reason.
+EVALUATE
+ROW(
+    "Entradas", [Entradas no Mês],
+    "Estado das Entradas", [Estado das Entradas no Mês],
+    "Saidas", [Saídas no Mês],
+    "Estado das Saidas", [Estado das Saídas no Mês]
+)
