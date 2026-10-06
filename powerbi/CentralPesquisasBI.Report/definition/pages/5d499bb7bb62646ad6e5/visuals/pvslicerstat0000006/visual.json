@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "DIM_STATUS_PESQUISA"
                     }
                   },
                   "Property": "status"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.status",
+              "queryRef": "DIM_STATUS_PESQUISA.status",
               "nativeQueryRef": "status",
               "active": true,
               "displayName": "status"

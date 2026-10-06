@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "DIM_TIPO_PESQUISA"
                     }
                   },
                   "Property": "tipo"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.tipo",
+              "queryRef": "DIM_TIPO_PESQUISA.tipo",
               "nativeQueryRef": "tipo",
               "active": true,
               "displayName": "tipo"

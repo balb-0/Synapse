@@ -20,44 +20,15 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
-                    }
-                  },
-                  "Property": "titulo"
-                }
-              },
-              "queryRef": "D01_CicloPesquisa.titulo",
-              "nativeQueryRef": "Pesquisa",
-              "displayName": "Pesquisa"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
-                    }
-                  },
-                  "Property": "status"
-                }
-              },
-              "queryRef": "D01_CicloPesquisa.status",
-              "nativeQueryRef": "Status",
-              "displayName": "Status"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
                   "Property": "area"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.area",
+              "queryRef": "PUB_C01_CICLO.area",
               "nativeQueryRef": "Área",
+              "active": true,
               "displayName": "Área"
             },
             {
@@ -65,45 +36,64 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
+                    }
+                  },
+                  "Property": "status"
+                }
+              },
+              "queryRef": "PUB_C01_CICLO.status",
+              "nativeQueryRef": "Status",
+              "active": true,
+              "displayName": "Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
                   "Property": "tipo"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.tipo",
+              "queryRef": "PUB_C01_CICLO.tipo",
               "nativeQueryRef": "Tipo",
+              "active": true,
               "displayName": "Tipo"
             },
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "dias_ciclo_total_corridos"
+                  "Property": "Qtd Pesquisas"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.dias_ciclo_total_corridos",
-              "nativeQueryRef": "Ciclo total",
-              "displayName": "Ciclo total"
+              "queryRef": "PUB_C01_CICLO.Qtd Pesquisas",
+              "nativeQueryRef": "Pesquisas",
+              "active": true,
+              "displayName": "Pesquisas"
             },
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "data_entrega"
+                  "Property": "Media Dias Ciclo Total"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.data_entrega",
-              "nativeQueryRef": "Entrega",
-              "displayName": "Entrega"
+              "queryRef": "PUB_C01_CICLO.Media Dias Ciclo Total",
+              "nativeQueryRef": "Ciclo médio (dias corridos)",
+              "active": true,
+              "displayName": "Ciclo médio (dias corridos)"
             }
           ]
         }
@@ -112,13 +102,13 @@
         "sort": [
           {
             "field": {
-              "Column": {
+              "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "D01_CicloPesquisa"
+                    "Entity": "PUB_C01_CICLO"
                   }
                 },
-                "Property": "dias_ciclo_total_corridos"
+                "Property": "Qtd Pesquisas"
               }
             },
             "direction": "Descending"

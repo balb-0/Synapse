@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "DIM_AREA"
                     }
                   },
                   "Property": "area"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.area",
+              "queryRef": "DIM_AREA.area",
               "nativeQueryRef": "area",
               "active": true,
               "displayName": "area"

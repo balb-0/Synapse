@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Taxa de Finalização"
+                  "Property": "Qtd Pesquisas"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Taxa de Finalização",
+              "queryRef": "PUB_C01_CICLO.Qtd Pesquisas",
               "nativeQueryRef": "Taxa de finalização",
               "displayName": "Taxa de finalização"
             }
@@ -40,10 +40,10 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "D01_CicloPesquisa"
+                    "Entity": "PUB_C01_CICLO"
                   }
                 },
-                "Property": "Taxa de Finalização"
+                "Property": "Qtd Pesquisas"
               }
             },
             "direction": "Descending"

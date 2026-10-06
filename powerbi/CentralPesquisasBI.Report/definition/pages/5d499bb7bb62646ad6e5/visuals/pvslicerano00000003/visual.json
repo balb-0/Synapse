@@ -20,16 +20,16 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "DIM_INDICADORES_BLOQUEADOS"
                     }
                   },
-                  "Property": "ano_edicao"
+                  "Property": "motivo"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.ano_edicao",
-              "nativeQueryRef": "ano_edicao",
+              "queryRef": "DIM_INDICADORES_BLOQUEADOS.motivo",
+              "nativeQueryRef": "motivo",
               "active": true,
-              "displayName": "ano_edicao"
+              "displayName": "motivo"
             }
           ]
         }
@@ -49,7 +49,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Ano'"
+                  "Value": "'Ano — sem dado publicado'"
                 }
               }
             },

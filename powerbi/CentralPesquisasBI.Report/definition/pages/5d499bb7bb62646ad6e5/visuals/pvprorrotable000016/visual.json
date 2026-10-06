@@ -20,30 +20,32 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
-                    }
-                  },
-                  "Property": "titulo"
-                }
-              },
-              "queryRef": "D01_CicloPesquisa.titulo",
-              "nativeQueryRef": "Pesquisa",
-              "displayName": "Pesquisa"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
                   "Property": "area"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.area",
+              "queryRef": "PUB_C01_CICLO.area",
               "nativeQueryRef": "Área",
+              "active": true,
               "displayName": "Área"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "PUB_C01_CICLO"
+                    }
+                  },
+                  "Property": "Taxa de Prorrogacao"
+                }
+              },
+              "queryRef": "PUB_C01_CICLO.Taxa de Prorrogacao",
+              "nativeQueryRef": "Prorrogação (I05 — sem dado publicado)",
+              "active": true,
+              "displayName": "Prorrogação (I05 — sem dado publicado)"
             }
           ]
         }
@@ -55,7 +57,7 @@
               "Column": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "D01_CicloPesquisa"
+                    "Entity": "PUB_C01_CICLO"
                   }
                 },
                 "Property": "area"
@@ -442,63 +444,5 @@
         }
       ]
     }
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "FilterProrrogadasTrue0001",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "D01_CicloPesquisa"
-              }
-            },
-            "Property": "flag_prorrogada"
-          }
-        },
-        "type": "Categorical",
-        "filter": {
-          "Version": 2,
-          "From": [
-            {
-              "Name": "d",
-              "Entity": "D01_CicloPesquisa",
-              "Type": 0
-            }
-          ],
-          "Where": [
-            {
-              "Condition": {
-                "In": {
-                  "Expressions": [
-                    {
-                      "Column": {
-                        "Expression": {
-                          "SourceRef": {
-                            "Source": "d"
-                          }
-                        },
-                        "Property": "flag_prorrogada"
-                      }
-                    }
-                  ],
-                  "Values": [
-                    [
-                      {
-                        "Literal": {
-                          "Value": "true"
-                        }
-                      }
-                    ]
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        "howCreated": "User"
-      }
-    ]
   }
 }
