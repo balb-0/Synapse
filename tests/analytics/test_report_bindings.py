@@ -74,7 +74,9 @@ def iter_fields(node):
         if "Measure" in node or "Column" in node:
             for kind in ("Measure", "Column"):
                 if kind in node and isinstance(node[kind], dict):
-                    ent = ((node[kind].get("Expression") or {}).get("SourceRef") or {}).get("Entity")
+                    ent = ((node[kind].get("Expression") or {}).get("SourceRef") or {}).get(
+                        "Entity"
+                    )
                     prop = node[kind].get("Property")
                     yield kind, ent, prop
         for value in node.values():
@@ -117,8 +119,12 @@ class ReportBindingsTests(unittest.TestCase):
             # Tabelas de qualidade são standalone no modelo (sem
             # relacionamentos, por desenho): exibem o perfilamento global,
             # fora do recorte dos slicers.
-            facts = {e for _, v in visuals for _, e, _ in iter_fields(v.get("visual", {}).get("query", {}))
-                     if e and e.startswith("PUB_") and not e.startswith("PUB_QUALIDADE_")}
+            facts = {
+                e
+                for _, v in visuals
+                for _, e, _ in iter_fields(v.get("visual", {}).get("query", {}))
+                if e and e.startswith("PUB_") and not e.startswith("PUB_QUALIDADE_")
+            }
             for vname, visual in visuals:
                 if visual.get("visual", {}).get("visualType") != "slicer":
                     continue
@@ -127,7 +133,9 @@ class ReportBindingsTests(unittest.TestCase):
                         continue  # sinalização desconectada por desenho
                     reached = sorted(f for f in facts if (ent, f) in coverage)
                     if not reached:
-                        offenders.append(f"{page_id}/{vname}: {ent} não alcança nenhum fato da página")
+                        offenders.append(
+                            f"{page_id}/{vname}: {ent} não alcança nenhum fato da página"
+                        )
         self.assertEqual(offenders, [], "slicer sem caminho dimensão → fato")
 
 

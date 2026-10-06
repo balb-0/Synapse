@@ -63,7 +63,9 @@ def iter_fields(node):
         if "Measure" in node or "Column" in node:
             for kind in ("Measure", "Column"):
                 if kind in node and isinstance(node[kind], dict):
-                    ent = ((node[kind].get("Expression") or {}).get("SourceRef") or {}).get("Entity")
+                    ent = ((node[kind].get("Expression") or {}).get("SourceRef") or {}).get(
+                        "Entity"
+                    )
                     prop = node[kind].get("Property")
                     yield kind, ent, prop
         for value in node.values():
@@ -79,7 +81,9 @@ class ReportFiltersTests(unittest.TestCase):
         for path, visual in load_visuals():
             for kind, ent, prop in iter_fields(visual):
                 if ent in BANNED_ENTITIES:
-                    offenders.append(f"{path.parent.parent.name}/{path.parent.name}: {kind} {ent}.{prop}")
+                    offenders.append(
+                        f"{path.parent.parent.name}/{path.parent.name}: {kind} {ent}.{prop}"
+                    )
         self.assertEqual(offenders, [], "vínculos de grão individual ainda presentes")
 
     def test_no_individual_grain_properties(self):
@@ -87,7 +91,9 @@ class ReportFiltersTests(unittest.TestCase):
         for path, visual in load_visuals():
             for kind, ent, prop in iter_fields(visual):
                 if prop in BANNED_PROPERTIES:
-                    offenders.append(f"{path.parent.parent.name}/{path.parent.name}: {kind} {ent}.{prop}")
+                    offenders.append(
+                        f"{path.parent.parent.name}/{path.parent.name}: {kind} {ent}.{prop}"
+                    )
         self.assertEqual(offenders, [], "colunas individuais/não publicadas ainda vinculadas")
 
     def test_slicers_bind_dimensions_or_pub(self):
