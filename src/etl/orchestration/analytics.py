@@ -10,7 +10,7 @@ from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
-from prefect import flow, get_run_logger, task
+from prefect import get_run_logger, task
 from prefect.cache_policies import NO_CACHE
 from prefect.runtime import flow_run, task_run
 
@@ -20,7 +20,6 @@ from etl.analytics.reconcile import reconcile_analytics
 from etl.load.config import load_duckdb_settings
 from etl.load.connection import connect_with_retry
 from etl.orchestration.flow import _log_event, _should_retry
-from etl.orchestration.lock import database_lock
 
 SOURCE_ORDER = ("pesquisas", "empresas", "clientes", "questoes", "respondentes", "respostas")
 
@@ -80,7 +79,7 @@ def reconcile_warehouse(db_path: str, load_reference: str) -> dict:
         ) as connection:
             report = reconcile_analytics(connection)
         if not report.reconciled or report.load_id != load_reference:
-            raise ValueError("a carga analítica não reconciliou com a ingestão atual")
+            raise ValueError("relatório analítico não reconciliou com a ingestão atual")
         _event("analytics_reconcile", started, "success", load_reference=load_reference)
         return report.as_dict()
     except Exception as error:
@@ -192,16 +191,3 @@ def publish_warehouse(db_path: str, output: str, load_reference: str) -> dict:
     except Exception as error:
         _event("analytics_publish", started, "failed", error_type=type(error).__name__)
         raise
-
-
-@flow(name="complete-warehouse")
-def complete_warehouse(
-    *, db_path: str | None, output: str, observed_at: datetime | None = None
-) -> dict:
-    """Mantém writers orquestrados fora do DW até concluir publicação ou falhar."""
-    settings = load_duckdb_settings({"database_path": db_path})
-    with database_lock(settings.database_path, settings.write_lock_timeout_seconds):
-        loaded = load_warehouse(str(settings.database_path), observed_at)
-        report = reconcile_warehouse(str(settings.database_path), loaded["load_id"])
-        manifest = publish_warehouse(str(settings.database_path), output, loaded["load_id"])
-    return {"load": loaded, "reconciliation": report, "manifest": manifest}

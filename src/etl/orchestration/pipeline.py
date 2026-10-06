@@ -21,33 +21,30 @@ carga analítica substitui os fatos em vez de acumular.
 
 from __future__ import annotations
 
+import calendar
 import time
 from datetime import datetime
 from pathlib import Path
 
-import duckdb
 from prefect import flow, get_run_logger
 
-from etl.analytics.load import load_analytics
-from etl.analytics.publish import publish_cubes
-from etl.analytics.reconcile import reconcile_analytics
 from etl.extraction import load_extraction_settings
 from etl.load.config import load_duckdb_settings
+from etl.orchestration.analytics import (
+    SOURCE_ORDER,
+    load_warehouse,
+    publish_warehouse,
+    reconcile_warehouse,
+)
 from etl.orchestration.flow import EXTRACTORS, _log_event, backfill
+from etl.orchestration.lock import database_lock
 
 PIPELINE_EVENT = "orchestration.pipeline.emitted"
 
 # Ordem compatível com os relacionamentos de consistência (RELATIONS): pais
 # antes dos filhos — respostas por último, que valida contra pesquisas,
 # questões e empresas.
-DEFAULT_SOURCES = (
-    "pesquisas",
-    "empresas",
-    "clientes",
-    "questoes",
-    "respondentes",
-    "respostas",
-)
+DEFAULT_SOURCES = SOURCE_ORDER
 
 # Uma fonte `ignored` já está íntegra no banco (idempotência por objeto); para
 # efeito da carga analítica ela conta como concluída tanto quanto `loaded`.
@@ -106,13 +103,30 @@ def run_pipeline(
     logger = get_run_logger()
     started = time.monotonic()
 
-    selected = list(sources) if sources else list(DEFAULT_SOURCES)
+    if observed_at is not None:
+        if not isinstance(observed_at, datetime):
+            raise ValueError("observed_at deve ser datetime")
+        if observed_at.day != calendar.monthrange(observed_at.year, observed_at.month)[1]:
+            raise ValueError("observed_at deve ocorrer no último dia do mês")
+
+    selected = list(DEFAULT_SOURCES) if sources is None else list(sources)
     unknown = sorted(set(selected) - set(EXTRACTORS))
     if unknown:
         raise ValueError(f"fontes desconhecidas: {', '.join(unknown)}")
 
+    if len(selected) != len(DEFAULT_SOURCES) or set(selected) != set(DEFAULT_SOURCES):
+        raise ValueError("o pipeline completo exige as seis fontes, sem repetição")
+    selected = list(DEFAULT_SOURCES)
+    destination = Path(publish_dir)
+    if destination.is_symlink():
+        raise ValueError("diretório de publicação simbólico não é permitido")
+    destination = destination.resolve()
+    if any((parent / ".git").exists() for parent in (destination, *destination.parents)):
+        raise ValueError("a publicação deve ficar fora do repositório")
+
     settings = load_extraction_settings()
-    db_path = db_path or str(load_duckdb_settings().database_path)
+    database_settings = load_duckdb_settings({"database_path": db_path})
+    db_path = str(database_settings.database_path)
 
     _log_event(
         logger,
@@ -129,7 +143,7 @@ def run_pipeline(
             logger,
             PIPELINE_EVENT,
             status="failed",
-            stage=stage,
+            failed_stage=stage,
             sources=selected,
             error=type(error).__name__,
             duration_ms=round((time.monotonic() - started) * 1000, 3),
@@ -147,72 +161,61 @@ def run_pipeline(
     except Exception as error:
         raise failed("backfill", error) from error
 
+    results = backfill_report.get("results", [])
+    if len(results) != len(selected) or {result.get("source") for result in results} != set(
+        selected
+    ):
+        raise PipelineAbortedError("o backfill não confirmou uma ocorrência de cada fonte")
     pending = [
-        result["source"]
-        for result in backfill_report["results"]
-        if result["status"] not in COMPLETED_STATUSES
+        result["source"] for result in results if result.get("status") not in COMPLETED_STATUSES
     ]
     if pending:
         _log_event(
             logger,
             PIPELINE_EVENT,
             status="aborted",
-            stage="backfill",
+            failed_stage="backfill",
             sources=selected,
             pending=pending,
             duration_ms=round((time.monotonic() - started) * 1000, 3),
         )
         raise PipelineAbortedError("fontes sem conclusão no backfill: " + ", ".join(pending))
 
-    try:
-        with duckdb.connect(db_path) as con:
-            analytics = load_analytics(con, observed_at=observed_at)
-    except Exception as error:
-        raise failed("load_analytics", error) from error
-
-    # Conexão de escrita fechada antes de reabrir: a reconciliação lê em
-    # read_only e a publicação abre a própria conexão read_only sobre o arquivo.
-    try:
-        with duckdb.connect(db_path, read_only=True) as con:
-            report = reconcile_analytics(con)
-    except Exception as error:
-        raise failed("reconciliation", error) from error
-
-    if not report.reconciled:
-        _log_event(
-            logger,
-            PIPELINE_EVENT,
-            status="reconciliation_failed",
-            stage="reconciliation",
-            sources=selected,
-            load_id=analytics.load_id,
-            duration_ms=round((time.monotonic() - started) * 1000, 3),
-        )
-        raise ReconciliationFailedError(
-            f"relatório analítico não reconciliou (load_id={analytics.load_id}); nada foi publicado"
-        )
-    if report.load_id != analytics.load_id:
-        # O relatório reconcilia sempre a carga corrente; divergência aqui
-        # significa outra carga concluída entre as duas etapas — publicar
-        # atribuiria os Parquet a um load_id que não é o verificado.
-        raise ReconciliationFailedError(
-            f"a reconciliação aponta load_id={report.load_id}, mas esta execução "
-            f"carregou load_id={analytics.load_id}; nada foi publicado"
-        )
-
-    # `publish_cubes` grava em staging e só troca o ponteiro no fim: uma falha
-    # aqui deixa o `current.json` anterior (e a geração anterior) intactos.
-    try:
-        manifest = publish_cubes(Path(db_path), Path(publish_dir), load_reference=report.load_id)
-    except Exception as error:
-        raise failed("publication", error) from error
+    # O mesmo lock de ingest_object exclui escritores orquestrados enquanto
+    # as três tasks executam. Cada task fecha sua conexão antes da próxima.
+    with database_lock(
+        database_settings.database_path, database_settings.write_lock_timeout_seconds
+    ):
+        try:
+            analytics = load_warehouse(db_path, observed_at)
+        except Exception as error:
+            raise failed("load_analytics", error) from error
+        try:
+            report = reconcile_warehouse(db_path, analytics["load_id"])
+        except ValueError as error:
+            _log_event(
+                logger,
+                PIPELINE_EVENT,
+                status="reconciliation_failed",
+                failed_stage="reconciliation",
+                error=type(error).__name__,
+            )
+            raise ReconciliationFailedError(str(error)) from error
+        except Exception as error:
+            raise failed("reconciliation", error) from error
+        if not report["reconciled"] or report["load_id"] != analytics["load_id"]:
+            raise ReconciliationFailedError("relatório analítico não reconciliou com esta carga")
+        try:
+            manifest = publish_warehouse(db_path, str(destination), analytics["load_id"])
+        except Exception as error:
+            raise failed("publication", error) from error
 
     _log_event(
         logger,
         PIPELINE_EVENT,
         status="completed",
         sources=selected,
-        load_id=analytics.load_id,
+        load_id=analytics["load_id"],
         generation=manifest["generation"],
         duration_ms=round((time.monotonic() - started) * 1000, 3),
     )
@@ -220,18 +223,8 @@ def run_pipeline(
         "status": "completed",
         "db_path": db_path,
         "backfill": backfill_report,
-        "analytics": {
-            "load_id": analytics.load_id,
-            "pesquisas": analytics.pesquisas,
-            "participacoes": analytics.participacoes,
-            "perguntas": analytics.perguntas,
-            "orfaos": analytics.orfaos,
-            "fechamento": str(analytics.fechamento) if analytics.fechamento else None,
-        },
-        "reconciliation": {
-            "reconciled": True,
-            "load_id": report.load_id,
-        },
+        "analytics": analytics,
+        "reconciliation": report,
         "publication": {
             "generation": manifest["generation"],
             "load_reference": manifest["load_reference"],

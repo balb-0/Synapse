@@ -458,7 +458,7 @@ def ingest_object(
     """Confirma um objeto sob o mesmo lock usado pelo trecho DW/publicação.
 
     Este flow não publica um conjunto após receber apenas uma fonte. Use
-    ``backfill(..., analytics_output=...)`` para concluir as seis fontes e DW.
+    ``run_pipeline(..., publish_dir=...)`` para concluir as seis fontes e DW.
     """
     settings = load_duckdb_settings({"database_path": db_path})
     with database_lock(settings.database_path, settings.write_lock_timeout_seconds):
@@ -481,23 +481,12 @@ def backfill(
     prefix: str = "landing",
     reprocess: bool = False,
     db_path: str | None = None,
-    analytics_output: str | None = None,
-    observed_at: datetime | None = None,
 ) -> dict:
     """Backfill controlado de um conjunto explícito de fontes.
 
     A janela, as fontes e o modo (reprocesso) são parâmetros e ficam registrados
     no histórico do run do Prefect. Cada fonte roda como um subflow `ingest-object`.
     """
-    if analytics_output is not None:
-        from etl.orchestration.analytics import SOURCE_ORDER
-
-        if len(sources) != len(SOURCE_ORDER) or set(sources) != set(SOURCE_ORDER):
-            raise ValueError("a publicação exige as seis fontes completas, sem repetição")
-        sources = list(SOURCE_ORDER)
-    elif observed_at is not None:
-        raise ValueError("observed_at exige analytics_output")
-    started = time.monotonic()
     logger = get_run_logger()
     _log_event(
         logger,
@@ -507,43 +496,14 @@ def backfill(
         prefix=prefix,
         reprocess=reprocess,
     )
-    try:
-        resultados = []
-        for source in sources:
-            key = f"{prefix}/{source}.csv"
-            outcome = ingest_object(
-                source=source, bucket=bucket, key=key, reprocess=reprocess, db_path=db_path
-            )
-            resultados.append({"source": source, "status": outcome["status"]})
-        analytics = None
-        if analytics_output is not None:
-            from etl.orchestration.analytics import complete_warehouse
-
-            analytics = complete_warehouse(
-                db_path=db_path,
-                output=analytics_output,
-                observed_at=observed_at,
-            )
-    except Exception as error:
-        _log_event(
-            logger,
-            BACKFILL_EVENT,
-            status="failed",
-            error_type=type(error).__name__,
-            analytics_enabled=analytics_output is not None,
-            duration_ms=round((time.monotonic() - started) * 1000, 3),
+    resultados = []
+    for source in sources:
+        key = f"{prefix}/{source}.csv"
+        outcome = ingest_object(
+            source=source, bucket=bucket, key=key, reprocess=reprocess, db_path=db_path
         )
-        raise
-    _log_event(
-        logger,
-        BACKFILL_EVENT,
-        status="success",
-        analytics_enabled=analytics_output is not None,
-        generation=analytics["manifest"]["generation"] if analytics is not None else None,
-        duration_ms=round((time.monotonic() - started) * 1000, 3),
-    )
+        resultados.append({"source": source, "status": outcome["status"]})
     return {
-        "analytics": analytics,
         "mode": "backfill",
         "reprocess": reprocess,
         "sources": list(sources),
