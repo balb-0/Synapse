@@ -133,7 +133,9 @@ class ExportValidationTests(unittest.TestCase):
         self.git("commit", "-m", "add target")
         target.write_text("Texto alterado", encoding="utf-8")
         self.git("add", "docs/novo.md")
-        with self.assertRaisesRegex(ValueError, "alteração não commitada"):
+        # Restoring the working tree must not hide a staged contradiction.
+        target.write_text("Texto original", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "divergente no stage"):
             export.select_snapshot(self.root, {self.source}, {target})
 
 

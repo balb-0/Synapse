@@ -155,6 +155,11 @@ def select_snapshot(root: Path, inputs: set[Path], local_links: set[Path]) -> st
             raise ValueError(f"Link local não existe na revisão publicada: {relative}")
         if hashlib.sha256(result.stdout).hexdigest() != digest(target):
             raise ValueError(f"Link local tem alteração não commitada: {relative}")
+        indexed = subprocess.run(
+            ["git", "cat-file", "blob", f":{relative}"], cwd=root, capture_output=True
+        )
+        if indexed.returncode or hashlib.sha256(indexed.stdout).hexdigest() != digest(target):
+            raise ValueError(f"Link local tem conteúdo divergente no stage: {relative}")
     return revision
 
 
