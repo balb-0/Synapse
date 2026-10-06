@@ -11,6 +11,7 @@ Este é o ponto de entrada para documentação, contratos e evidências do G05. 
 | Consultar decisões e arquitetura | [Índice completo das ADRs](adrs/index.md), [visão computacional](visao-computacional-etl.md) e [diagramas UML](assets/uml/) |
 | Entender o consumo analítico e o BI | [Decisão de consumo](decisao-consumo-cubos.md), [solução dos dashboards](solucao_dashboard.md) e [validação de acesso](validacao-acesso-bi.md) |
 | Auditar a avaliação geral | [Matriz de conformidade](conformidade-geral.md) e [referências externas](referencias.md) |
+| Consultar a estrutura do banco, BI e testes | [Banco/DDL](../sql/duckdb/README.md), [apresentação Power BI](../powerbi/README.md) e [guia de testes](../tests/README.md) |
 | Desenvolver e verificar mudanças | [Regras de desenvolvimento](dev-rules.md), [gestão de configuração](gestao-configuração.md) e [matriz de rastreabilidade](matriz-rastreabilidade-sprint3.md) |
 
 Os documentos históricos registram a sprint e a data da evidência. Um plano, uma captura antiga ou uma checklist vazia não comprova validação da versão atual. Consulte a MR da mudança e seu pipeline no SHA de origem para o estado de entrega.

@@ -97,6 +97,8 @@ g05/
 └─ README.md
 ```
 
+Os guias de [banco/DDL](sql/duckdb/README.md), [apresentação Power BI](powerbi/README.md) e [testes e massas sintéticas](tests/README.md) explicam como navegar e verificar cada camada.
+
 ## Requisitos
 
 O CI e o Dockerfile usam Python 3.12. Para reproduzir esse ambiente, use Python 3.12 e instale as versões fixadas nos arquivos de dependências:
