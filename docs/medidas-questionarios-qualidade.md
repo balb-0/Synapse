@@ -46,7 +46,7 @@ negócio (identidade é a ocorrência física, ver
 aplicável a essa fonte. Nenhuma das três consultas seleciona valor de campo
 sensível (e-mail, enunciado, resposta) — só nome de tabela/campo/relação e
 contagens agregadas, testado em
-`tests/analytics/test_publish.py::test_publishes_quality_indicators_i16_i17_i18`.
+`tests/analytics/test_publish.py::test_publishes_physical_completion_integrity_and_duplicates`.
 
 ## Medidas de qualidade implementadas
 

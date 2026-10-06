@@ -169,7 +169,7 @@ class PublishCubesTests(unittest.TestCase):
         finally:
             reader.close()
 
-    def test_publishes_quality_indicators_i16_i17_i18(self):
+    def test_publishes_physical_completion_integrity_and_duplicates(self):
         manifest = publish_cubes(self.database, self.output, load_reference="synthetic-run-test-1")
         current = json.loads((self.output / "current.json").read_text())
         generation = self.output / current["generation"]

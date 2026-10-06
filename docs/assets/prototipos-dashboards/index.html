@@ -1066,7 +1066,7 @@
             <span class="kpi-sub" id="d04-sub-divtit">—</span>
           </div>
           <div class="kpi-box">
-            <span class="kpi-label">Completude da Matriz</span>
+            <span class="kpi-label">Diagnóstico de matriz (histórico)</span>
             <span class="kpi-val" style="color: var(--accent-orange);" id="d04-kpi-matriz">—</span>
             <span class="kpi-sub" id="d04-sub-matriz">—</span>
           </div>
@@ -1476,7 +1476,7 @@
         if (i16) {
           document.getElementById('d04-kpi-matriz').textContent = i16.formatado;
           document.getElementById('d04-sub-matriz').textContent =
-            `${formatarInteiro(i16.denominador - i16.numerador)} ausências em ${formatarInteiro(i16.denominador)} elementos aplicáveis`;
+            `${formatarInteiro(i16.denominador - i16.numerador)} ausências em ${formatarInteiro(i16.denominador)} elementos pela regra exploratória · I16 normativo indisponível`;
         }
 
         tbodyRegras.innerHTML = regras.map(r => {
