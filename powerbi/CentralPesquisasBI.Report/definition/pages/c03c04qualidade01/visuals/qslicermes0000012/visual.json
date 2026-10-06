@@ -27,9 +27,9 @@
                 }
               },
               "queryRef": "DIM_TEMPO.ano_mes",
-              "nativeQueryRef": "ano_mes",
+              "nativeQueryRef": "Mês",
               "active": true,
-              "displayName": "ano_mes"
+              "displayName": "Mês"
             }
           ]
         }
@@ -62,7 +62,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Mês (C03 observado)'"
+                  "Value": "'Mês'"
                 }
               }
             },
