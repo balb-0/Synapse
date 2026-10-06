@@ -94,12 +94,21 @@ def _published_for_load(connection, output: Path, load_reference: str) -> dict |
     iguais sozinhas não bastam: a comparação EXCEPT ALL preserva multiplicidade.
     """
     try:
+        if (output / "current.json").is_symlink():
+            return None
         pointer = json.loads((output / "current.json").read_text())
         generation = pointer["generation"]
         if not isinstance(generation, str) or not re.fullmatch(r"[a-f0-9]{32}", generation):
             return None
         directory = output / generation
         if directory.is_symlink():
+            return None
+        if (directory / "manifest.json").is_symlink():
+            return None
+        if {path.name for path in directory.iterdir()} != {
+            "manifest.json",
+            *(f"{name}.parquet" for name in PUBLICATIONS),
+        }:
             return None
         manifest = json.loads((directory / "manifest.json").read_text())
         if (
@@ -129,7 +138,10 @@ def _published_for_load(connection, output: Path, load_reference: str) -> dict |
             parquet = str(path).replace("'", "''")
             file_query = f"SELECT * FROM read_parquet('{parquet}')"
             columns = [item[0] for item in connection.execute(file_query + " LIMIT 0").description]
-            if columns != metadata["columns"]:
+            expected_columns = [
+                item[0] for item in connection.execute(query + " LIMIT 0").description
+            ]
+            if columns != metadata["columns"] or columns != expected_columns:
                 return None
             count = connection.execute(f"SELECT count(*) FROM ({file_query})").fetchone()[0]
             if count != metadata["rows"]:
