@@ -56,12 +56,19 @@ perguntas por tipo é publicável.
 | :-- | :-- | :-- | :-- | :-- | :-- |
 | Completude de preenchimento (`Completude`; não é I16 aplicável) | `SUM(qtd_preenchidas)` de `PUB_QUALIDADE_CAMPO` | `SUM(qtd_linhas)` do mesmo arquivo; todas as linhas por campo, sem filtro de aplicabilidade | Uma linha por (tabela, campo); total agrega células, não linhas distintas | `qtd_preenchidas` é `COUNT(coluna)` após transformação; nulo condicional permanece na base, sem representar defeito. Base zero retorna `BLANK()`. | Não aplicável — cada (tabela, campo) é uma linha única no arquivo. |
 | Integridade Referencial (I18) | `SUM(qtd_chaves_correspondentes)` de `PUB_QUALIDADE_RELACAO` | `SUM(qtd_chaves_informadas)` do mesmo arquivo | Uma linha por relação (ex.: `respondentes.empresa_id`) | Chave estrangeira nula é excluída do denominador na própria consulta de origem (`WHERE ... IS NOT NULL`); FK nula não conta como órfã nem como correspondente. | Não aplicável, mesmo motivo. |
-| Taxa de Duplicidade (I17) | `SUM(qtd_linhas) - SUM(qtd_chaves_distintas)` de `PUB_QUALIDADE_DUPLICIDADE` | `SUM(qtd_linhas)` do mesmo arquivo | Uma linha por tabela de origem com chave de negócio | Não se aplica (a medida mede duplicata, não trata nulo de chave). | É a própria medida: mede quanto do total é duplicata de chave de negócio na tabela de ingestão bruta, antes da view "_atual" escolher a versão corrente. |
+| Taxa de Duplicidade (I17) | `SUM(qtd_linhas) - SUM(qtd_chaves_distintas)` de `PUB_QUALIDADE_DUPLICIDADE` | `SUM(qtd_linhas)` do mesmo arquivo | Uma linha por tabela de origem com chave de negócio | Não se aplica (a medida mede duplicata, não trata nulo de chave). | É a própria medida: mede quanto do total é duplicata de chave de negócio na tabela física de ingestão tratada, antes da view "_atual" escolher a versão corrente. |
 
 I16 (completude aplicável) permanece indisponível na camada BI até a
 homologação e publicação das regras de obrigatoriedade por campo e
 tipo/status. A razão de preenchimento acima não substitui esse requisito
 nem sua meta de governança.
+
+As populações de preenchimento e integridade usam o snapshot conciliado de
+`respondentes` selecionado em C02 e as cinco views atuais das outras fontes.
+Snapshots antigos de `respondentes` não entram nessas bases; a duplicidade
+continua sobre o histórico físico tratado, antes das views atuais. Consulte
+o [contrato das populações de qualidade](qualidade-snapshot-respondentes.md)
+para seleção, snapshot vazio, fonte ausente, escopo no manifesto e reuso.
 
 ## Nota sobre proibição de contar linha como respondente
 

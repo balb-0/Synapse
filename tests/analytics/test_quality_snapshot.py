@@ -1,6 +1,7 @@
 """Qualidade de respondentes acompanha a ocorrência selecionada em C02."""
 
 import copy
+import hashlib
 import json
 import tempfile
 import unittest
@@ -248,6 +249,27 @@ class QualitySnapshotTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "não reconciliou"):
             publish_cubes(self.database, self.output, load_reference=result.load_id)
         self.assertFalse((self.output / "current.json").exists())
+
+    def test_rehashed_quality_values_are_checked_against_selected_snapshot(self):
+        load_id = self.current_snapshot()
+        manifest, generation, _ = self.publish(load_id)
+        target = generation / "PUB_QUALIDADE_CAMPO.parquet"
+        changed = Path(self.temp.name) / "changed.parquet"
+        source_literal = "'" + str(target).replace("'", "''") + "'"
+        target_literal = "'" + str(changed).replace("'", "''") + "'"
+        with duckdb.connect() as con:
+            con.execute(
+                "COPY (SELECT * REPLACE(CASE WHEN tabela='respondentes' "
+                "THEN qtd_linhas+1 ELSE qtd_linhas END AS qtd_linhas) "
+                f"FROM read_parquet({source_literal})) TO {target_literal} (FORMAT PARQUET)"
+            )
+        target.write_bytes(changed.read_bytes())
+        manifest["tables"]["PUB_QUALIDADE_CAMPO"]["sha256"] = hashlib.sha256(
+            target.read_bytes()
+        ).hexdigest()
+        (generation / "manifest.json").write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, "conteúdo Parquet/DuckDB"):
+            conferir(generation, self.database)
 
 
 if __name__ == "__main__":
