@@ -50,22 +50,6 @@
               "nativeQueryRef": "Participações por área",
               "active": true,
               "displayName": "Participações por área"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "PUB_C02_PARTICIPACAO"
-                    }
-                  },
-                  "Property": "Media Minutos Preenchimento"
-                }
-              },
-              "queryRef": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento",
-              "nativeQueryRef": "Média de preenchimento (min)",
-              "active": true,
-              "displayName": "Média de preenchimento (min)"
             }
           ]
         }
@@ -442,7 +426,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Perfil de participação'"
+                  "Value": "'Participações por área'"
                 }
               }
             },
@@ -487,7 +471,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Proporção das pesquisas por área.'"
+                  "Value": "'Ocorrências agregadas por área no período selecionado.'"
                 }
               }
             },
