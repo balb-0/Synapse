@@ -186,6 +186,12 @@ def _is_transient_unexpected(error: Exception) -> bool:
     sem ele instalado, todo erro inesperado continua repetindo.
     """
 
+    import duckdb
+
+    if isinstance(error, (PermissionError, FileNotFoundError)):
+        return False
+    if isinstance(error, duckdb.Error) and not isinstance(error, duckdb.TransactionException):
+        return False
     try:
         from minio.error import S3Error
     except ImportError:
@@ -491,6 +497,7 @@ def backfill(
         sources = list(SOURCE_ORDER)
     elif observed_at is not None:
         raise ValueError("observed_at exige analytics_output")
+    started = time.monotonic()
     logger = get_run_logger()
     _log_event(
         logger,
@@ -500,22 +507,41 @@ def backfill(
         prefix=prefix,
         reprocess=reprocess,
     )
-    resultados = []
-    for source in sources:
-        key = f"{prefix}/{source}.csv"
-        outcome = ingest_object(
-            source=source, bucket=bucket, key=key, reprocess=reprocess, db_path=db_path
-        )
-        resultados.append({"source": source, "status": outcome["status"]})
-    analytics = None
-    if analytics_output is not None:
-        from etl.orchestration.analytics import complete_warehouse
+    try:
+        resultados = []
+        for source in sources:
+            key = f"{prefix}/{source}.csv"
+            outcome = ingest_object(
+                source=source, bucket=bucket, key=key, reprocess=reprocess, db_path=db_path
+            )
+            resultados.append({"source": source, "status": outcome["status"]})
+        analytics = None
+        if analytics_output is not None:
+            from etl.orchestration.analytics import complete_warehouse
 
-        analytics = complete_warehouse(
-            db_path=db_path,
-            output=analytics_output,
-            observed_at=observed_at,
+            analytics = complete_warehouse(
+                db_path=db_path,
+                output=analytics_output,
+                observed_at=observed_at,
+            )
+    except Exception as error:
+        _log_event(
+            logger,
+            BACKFILL_EVENT,
+            status="failed",
+            error_type=type(error).__name__,
+            analytics_enabled=analytics_output is not None,
+            duration_ms=round((time.monotonic() - started) * 1000, 3),
         )
+        raise
+    _log_event(
+        logger,
+        BACKFILL_EVENT,
+        status="success",
+        analytics_enabled=analytics_output is not None,
+        generation=analytics["manifest"]["generation"] if analytics is not None else None,
+        duration_ms=round((time.monotonic() - started) * 1000, 3),
+    )
     return {
         "analytics": analytics,
         "mode": "backfill",
