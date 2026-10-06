@@ -106,7 +106,32 @@ arquivo DuckDB é a fronteira técnica do acesso publicado.
 
 ## Registro da execução CB-16
 
-A [publicação e conferência CB-16](publicacao-cb16.md) registra a origem da
-execução, as dependências e os resultados agregados da geração entregue nesta
-rodada. Esse registro separa a integridade da publicação da cobertura mensal
-de C03 e do refresh no Power BI Desktop.
+A geração v3 `6b1eaa686aac43b18b6d6545e1c2c5f1` foi publicada com
+`load_reference` `afcde424-45e8-457b-8793-bf0866d142b2`. O manifesto tem
+SHA-256 `7593530089355c139f50529e9600d496e11a8262e00064364fe4fde378efc4e4`.
+O [recibo público](evidencias/cb16/geracao-v3.json) contém esquemas, hashes e
+as comparações independentes com a ingestão tratada.
+
+| Arquivo Parquet | Linhas | SHA-256 |
+| --- | ---: | --- |
+| `PUB_C01_CICLO.parquet` | 57 | `4bbab9a2e9a1d9c4c8b7c59c5e3cdccf9f684cdd677d9d01da0a66ecb6f1e353` |
+| `PUB_C02_PARTICIPACAO.parquet` | 32 | `98056ac1e8ac1d9be3bb3448f86cd82bc670f6b98f17dbce87a4b1339a142b0c` |
+| `PUB_C03_PIPELINE_MENSAL.parquet` | 0 | `80c89f635056f98e64f8289ed38507fc0d514d206307d5755630a1ab6d993f87` |
+| `PUB_C04_INSTRUMENTO.parquet` | 45 | `7b6153d16e7b873960cd628917bb14a43346b9c820bf2aec159433c0faa91818` |
+| `PUB_QUALIDADE_CAMPO.parquet` | 64 | `a27e660d3accad8d97809a74bb5c1e5840058cad2ea3174e757a981249138d41` |
+| `PUB_QUALIDADE_RELACAO.parquet` | 8 | `de9a591d805abf032fd5f8aac214ae7214c1f5fd71ad1e55e6f578d61d64a96d` |
+| `PUB_QUALIDADE_DUPLICIDADE.parquet` | 5 | `e23c1db03d6f66546937ff6d826f67de6c31330a86d7d83bcd0a073b3833e764` |
+
+As somas de C01, em dias, são validação 171 (20 durações disponíveis), coleta
+4.960 (358), tabulação 3.020 (330) e ciclo total 9.468 (331), sobre 366
+pesquisas. C02 soma 17.740 participações; a soma de minutos de preenchimento
+é `NULL` e o denominador disponível é zero. C04 soma 3.186 perguntas. O
+verificador independente encontrou zero grupos divergentes em C01, C02 e C04
+e zero contagens divergentes nas três tabelas de qualidade. C03 não possui
+fechamento mensal observado: as zero linhas publicadas não representam estoque
+zero, e entradas e saídas permanecem indisponíveis.
+
+A [conferência CB-16](publicacao-cb16.md) registra a origem e a reconciliação
+da carga. A ingestão executou `fd6864e` com adaptador privado de
+`respondent_id` opaco; a carga analítica e a publicação executaram `894445d`.
+O refresh no Power BI Desktop pertence às tarefas BI.
