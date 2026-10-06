@@ -5,6 +5,11 @@ stages:
   - lint
   - test
 
+# Runner institucional com capacidade confirmada; a frota sem tags falhou por ENOSPC.
+default:
+  tags:
+    - inteli-gitlab-runner-prd
+
 variables:
   PYTHONPATH: src
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
