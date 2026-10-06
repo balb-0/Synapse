@@ -233,7 +233,11 @@ def conferir(
                 receipt.get("load_reference") == reference,
                 "Desktop: load_reference divergente ou ausente",
             )
-            provenance = {"status": "pendente", "engine_loaded_revision": "nao_comprovada"}
+            provenance = {
+                "status": "pendente",
+                "engine_loaded_revision": "nao_comprovada",
+                "engine_semantic_projection": "nao_conferida",
+            }
             if model_source_commit is not None:
                 _require(
                     receipt.get("project_source_commit") == model_source_commit,
@@ -287,6 +291,31 @@ def conferir(
                         model_inventory_sha256=inventory_hash,
                         verified_model_files=len(inventory),
                     )
+            if receipt.get("engine_semantic_projection_verified") is True:
+                projection = receipt.get("engine_model_verification")
+                _require(
+                    isinstance(projection, dict)
+                    and projection.get("status") == "matched"
+                    and isinstance(projection.get("source_sha256"), str)
+                    and re.fullmatch(r"[0-9a-f]{64}", projection["source_sha256"]) is not None
+                    and projection.get("engine_sha256") == projection["source_sha256"]
+                    and type(projection.get("source_items")) is int
+                    and projection["source_items"] > 0
+                    and type(projection.get("engine_items")) is int
+                    and projection["engine_items"] == projection["source_items"]
+                    and type(projection.get("difference_count")) is int
+                    and projection["difference_count"] == 0
+                    and projection.get("differences") == []
+                    and isinstance(projection.get("scope"), str)
+                    and bool(projection["scope"].strip()),
+                    "Desktop: projeção semântica do engine inválida ou divergente",
+                )
+                _require(
+                    provenance["status"] == "recibos_de_fontes_conferem",
+                    "Desktop: projeção semântica exige pacote de origem conferido",
+                )
+                provenance["engine_semantic_projection"] = "recibo_confere"
+                provenance["engine_model_verification"] = projection
             receipt_tables = receipt.get("tables")
             _require(
                 isinstance(receipt_tables, dict)
