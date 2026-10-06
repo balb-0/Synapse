@@ -22,7 +22,8 @@ class ReportDefinitionTests(unittest.TestCase):
         pages = REPORT / "definition/pages"
         metadata = json.loads((pages / "pages.json").read_text())
         order = metadata["pageOrder"]
-        self.assertEqual(len(order), 2)
+        self.assertEqual(len(order), 3)
+        self.assertIn("c03c04qualidade01", order)
         self.assertEqual(len(set(order)), len(order))
         self.assertEqual(set(order), {p.name for p in pages.iterdir() if p.is_dir()})
         self.assertIn(metadata["activePageName"], order)
