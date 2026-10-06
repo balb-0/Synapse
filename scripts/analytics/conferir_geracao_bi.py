@@ -110,8 +110,19 @@ def _check_load_reference(con: duckdb.DuckDBPyConnection, reference: str) -> dic
 
 
 def conferir(
-    geracao: Path, database: Path, desktop: Path | None = None, *, sintetico: bool = False
+    geracao: Path,
+    database: Path,
+    desktop: Path | None = None,
+    *,
+    sintetico: bool = False,
+    model_source_commit: str | None = None,
+    package_receipt: Path | None = None,
 ) -> dict:
+    _require(
+        model_source_commit is None
+        or re.fullmatch(r"[0-9a-f]{40}", model_source_commit) is not None,
+        "model_source_commit deve ser um SHA Git completo",
+    )
     geracao = geracao.resolve(strict=True)
     database = database.resolve(strict=True)
     _require(geracao.is_dir(), "geração deve ser um diretório")
@@ -222,6 +233,60 @@ def conferir(
                 receipt.get("load_reference") == reference,
                 "Desktop: load_reference divergente ou ausente",
             )
+            provenance = {"status": "pendente", "engine_loaded_revision": "nao_comprovada"}
+            if model_source_commit is not None:
+                _require(
+                    receipt.get("project_source_commit") == model_source_commit,
+                    "Desktop: project_source_commit divergente ou ausente",
+                )
+                provenance["project_source_commit"] = model_source_commit
+                provenance["status"] = "revisao_confere_inventario_pendente"
+                if package_receipt is not None:
+                    package = json.loads(package_receipt.read_text())
+                    _require(isinstance(package, dict), "Desktop: recibo do pacote inválido")
+                    _require(
+                        package.get("version") == 1
+                        and package.get("source_commit") == model_source_commit,
+                        "Desktop: revisão do pacote divergente",
+                    )
+                    inventory = package.get("model_file_sha256")
+                    _require(
+                        isinstance(inventory, dict)
+                        and bool(inventory)
+                        and type(package.get("model_file_count")) is int
+                        and package["model_file_count"] == len(inventory)
+                        and all(
+                            isinstance(name, str)
+                            and isinstance(digest, str)
+                            and re.fullmatch(r"[0-9a-f]{64}", digest) is not None
+                            for name, digest in inventory.items()
+                        ),
+                        "Desktop: inventário do pacote inválido",
+                    )
+                    inventory_hash = hashlib.sha256(
+                        "".join(
+                            f"{name} {inventory[name]}\n" for name in sorted(inventory)
+                        ).encode()
+                    ).hexdigest()
+                    _require(
+                        inventory_hash == package.get("model_inventory_sha256"),
+                        "Desktop: hash do inventário do pacote divergente",
+                    )
+                    _require(
+                        isinstance(package.get("package_sha256"), str)
+                        and re.fullmatch(r"[0-9a-f]{64}", package["package_sha256"]) is not None
+                        and receipt.get("package_sha256") == package["package_sha256"]
+                        and receipt.get("model_inventory_sha256") == inventory_hash
+                        and type(receipt.get("verified_model_files")) is int
+                        and receipt["verified_model_files"] == len(inventory),
+                        "Desktop: pacote ou inventário conferido divergente",
+                    )
+                    provenance.update(
+                        status="recibos_de_fontes_conferem",
+                        package_sha256=package["package_sha256"],
+                        model_inventory_sha256=inventory_hash,
+                        verified_model_files=len(inventory),
+                    )
             receipt_tables = receipt.get("tables")
             _require(
                 isinstance(receipt_tables, dict)
@@ -273,8 +338,13 @@ def conferir(
                     expected = report["preparation"]["aggregates"][table]
                 _require(aggregate["value"] == expected, f"Desktop: agregado {table} divergente")
             report["desktop"] = {
-                "status": "recibo_confere",
+                "status": (
+                    "recibo_confere"
+                    if provenance["status"] == "recibos_de_fontes_conferem"
+                    else "metricas_conferem_proveniencia_pendente"
+                ),
                 "aggregates": aggregates,
+                "provenance": provenance,
                 "note": "O recibo não comprova por si só execução ou atualização no Desktop.",
             }
     finally:
@@ -287,6 +357,8 @@ def main() -> None:
     parser.add_argument("--geracao", required=True, type=Path)
     parser.add_argument("--database", required=True, type=Path)
     parser.add_argument("--desktop", type=Path, help="recibo JSON de conferência no Desktop")
+    parser.add_argument("--model-source-commit", help="SHA Git completo do pacote PBIP esperado")
+    parser.add_argument("--package-receipt", type=Path, help="inventário do pacote PBIP esperado")
     parser.add_argument(
         "--sintetico",
         action="store_true",
@@ -294,7 +366,14 @@ def main() -> None:
     )
     args = parser.parse_args()
     try:
-        result = conferir(args.geracao, args.database, args.desktop, sintetico=args.sintetico)
+        result = conferir(
+            args.geracao,
+            args.database,
+            args.desktop,
+            sintetico=args.sintetico,
+            model_source_commit=args.model_source_commit,
+            package_receipt=args.package_receipt,
+        )
     except (OSError, ValueError, duckdb.Error, json.JSONDecodeError) as exc:
         result = {
             "preparation": {"status": "falha"},

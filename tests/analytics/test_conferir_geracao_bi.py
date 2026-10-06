@@ -57,7 +57,8 @@ class ConferirGeracaoBITest(unittest.TestCase):
             conferir(self.generation, self.database)
         result = conferir(self.generation, self.database, self._receipt(), sintetico=True)
         self.assertEqual(result["preparation"]["status"], "ok")
-        self.assertEqual(result["desktop"]["status"], "recibo_confere")
+        self.assertEqual(result["desktop"]["status"], "metricas_conferem_proveniencia_pendente")
+        self.assertEqual(result["desktop"]["provenance"]["status"], "pendente")
         self.assertEqual(result["final_acceptance"], "pendente")
         self.assertTrue(result["synthetic"])
 
@@ -81,8 +82,77 @@ class ConferirGeracaoBITest(unittest.TestCase):
                 receipt.write_text(json.dumps(data))
                 with self.assertRaisesRegex(ValueError, "Desktop: load_reference"):
                     conferir(self.generation, self.database, receipt, sintetico=True)
+
     def _original_hash(self) -> str:
         return hashlib.sha256((self.generation / "PUB_C01_CICLO.parquet").read_bytes()).hexdigest()
+
+    def test_same_metrics_from_different_model_are_rejected(self) -> None:
+        receipt = self._receipt()
+        data = json.loads(receipt.read_text())
+        data["project_source_commit"] = "b" * 40
+        receipt.write_text(json.dumps(data))
+        with self.assertRaisesRegex(ValueError, "project_source_commit"):
+            conferir(
+                self.generation,
+                self.database,
+                receipt,
+                sintetico=True,
+                model_source_commit="a" * 40,
+            )
+
+    def test_matching_model_requires_independent_package_inventory(self) -> None:
+        receipt = self._receipt()
+        data = json.loads(receipt.read_text())
+        data["project_source_commit"] = "a" * 40
+        receipt.write_text(json.dumps(data))
+        args = {"sintetico": True, "model_source_commit": "a" * 40}
+        result = conferir(self.generation, self.database, receipt, **args)
+        self.assertEqual(
+            result["desktop"]["provenance"]["status"], "revisao_confere_inventario_pendente"
+        )
+        self.assertEqual(result["desktop"]["status"], "metricas_conferem_proveniencia_pendente")
+        inventory = {"powerbi/model.tmdl": "c" * 64}
+        inventory_hash = hashlib.sha256(f"powerbi/model.tmdl {'c' * 64}\n".encode()).hexdigest()
+        package = {
+            "version": 1,
+            "source_commit": "a" * 40,
+            "package_sha256": "d" * 64,
+            "model_file_sha256": inventory,
+            "model_file_count": 1,
+            "model_inventory_sha256": inventory_hash,
+        }
+        package_path = Path(self.temp.name) / "package.json"
+        package_path.write_text(json.dumps(package))
+        data.update(
+            package_sha256=package["package_sha256"],
+            model_inventory_sha256=inventory_hash,
+            verified_model_files=1,
+        )
+        receipt.write_text(json.dumps(data))
+        result = conferir(
+            self.generation, self.database, receipt, package_receipt=package_path, **args
+        )
+        self.assertEqual(result["desktop"]["status"], "recibo_confere")
+        self.assertEqual(
+            result["desktop"]["provenance"]["engine_loaded_revision"], "nao_comprovada"
+        )
+        self.assertEqual(result["final_acceptance"], "pendente")
+        for field, value in (
+            ("package_sha256", "e" * 64),
+            ("model_inventory_sha256", "f" * 64),
+            ("verified_model_files", True),
+        ):
+            with self.subTest(field=field):
+                changed = dict(data, **{field: value})
+                receipt.write_text(json.dumps(changed))
+                with self.assertRaisesRegex(ValueError, "pacote ou inventário"):
+                    conferir(
+                        self.generation,
+                        self.database,
+                        receipt,
+                        package_receipt=package_path,
+                        **args,
+                    )
 
     def test_cube_aggregate_detects_rehashed_bad_values(self) -> None:
         path = self.generation / "PUB_C01_CICLO.parquet"
@@ -215,7 +285,7 @@ class ConferirGeracaoBITest(unittest.TestCase):
         receipt.write_text(json.dumps(original))
         self.assertEqual(
             conferir(generation, self.database, receipt, sintetico=True)["desktop"]["status"],
-            "recibo_confere",
+            "metricas_conferem_proveniencia_pendente",
         )
         original["aggregates"]["PUB_C03_PIPELINE_MENSAL"]["value"] = 0
         receipt.write_text(json.dumps(original))

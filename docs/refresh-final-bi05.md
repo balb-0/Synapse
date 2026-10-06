@@ -59,6 +59,10 @@ devem ser trocados por números reais antes da execução do conferidor:
 {
   "generation": "ID_DA_GERACAO",
   "load_reference": "ID_DA_CARGA_NO_MANIFESTO",
+  "project_source_commit": "SHA_GIT_COMPLETO_DO_PACOTE_PBIP",
+  "package_sha256": "SHA256_DO_ZIP_CONFERIDO_NO_WINDOWS",
+  "model_inventory_sha256": "SHA256_DO_INVENTARIO_CONFERIDO_NO_WINDOWS",
+  "verified_model_files": "<número de arquivos conferidos>",
   "tables": {
     "PUB_C01_CICLO": "<contagem C01>",
     "PUB_C02_PARTICIPACAO": "<contagem C02>",
@@ -79,12 +83,40 @@ devem ser trocados por números reais antes da execução do conferidor:
 
 Para C03 sem fechamento, substitua sua entrada por
 `{"column":"qtd_pesquisas_no_status","state":"sem_fechamento_observado","value":null}`.
-Execute novamente com `--desktop /caminho/privado/recibo-desktop.json`. O
-resultado `desktop.status: recibo_confere` compara os sete números e os quatro agregados
-com a publicação e o banco. O recibo deve informar também `load_reference`
+Execute novamente com o recibo e a revisão esperada do pacote:
+
+```bash
+PYTHONPATH=src:. python -m scripts.analytics.conferir_geracao_bi \
+  --geracao /caminho/privado/publicacao-bi/ID_DA_GERACAO \
+  --database /caminho/privado/analitico.duckdb \
+  --desktop /caminho/privado/recibo-desktop.json \
+  --model-source-commit SHA_GIT_COMPLETO_DO_PACOTE_PBIP \
+  --package-receipt /caminho/privado/package-receipt.json
+```
+
+O resultado `desktop.status: recibo_confere` compara os sete números e os
+quatro agregados com a publicação e o banco. O recibo deve informar `load_reference`
 exatamente igual ao manifesto; referência ausente ou diferente causa falha,
-mesmo quando as contagens coincidem. O recibo, isoladamente, não prova que o refresh
-ocorreu no aplicativo; mantenha a evidência da execução junto dele.
+mesmo quando as contagens coincidem. `project_source_commit` deve coincidir
+com o SHA completo informado em `--model-source-commit`.
+
+`--package-receipt` recebe o inventário independente preparado antes de copiar
+o pacote para Windows, com `version: 1`, `source_commit`, `package_sha256`,
+`model_file_count`, `model_file_sha256` e `model_inventory_sha256`. O hash do
+inventário usa as linhas `caminho SHA256\n` em ordem lexicográfica, codificadas
+em UTF-8. A consulta no Windows confere o ZIP e cada arquivo extraído e registra
+o hash do pacote, hash do inventário e quantidade de arquivos no recibo Desktop.
+O conferidor exige que esses valores coincidam com o inventário independente.
+Não preencha esses campos apenas copiando o recibo esperado: conserve a
+evidência da conferência efetiva dos arquivos no Windows.
+
+Sem a revisão esperada ou sem o inventário independente, as contagens podem
+conferir, mas `desktop.status` fica
+`metricas_conferem_proveniencia_pendente`. O resultado registra separadamente
+a comparação dos arquivos de origem em `desktop.provenance`. A revisão
+carregada pelo engine continua `nao_comprovada`: ADOMD não expõe o SHA do código
+carregado. O recibo, isoladamente, não prova o refresh no aplicativo; mantenha
+a evidência da execução e abertura do pacote conferido junto dele.
 
 Para ensaio local com o fixture, use `--sintetico`. Essa opção apenas permite
 conferir um `load_reference` iniciado por `synthetic`; o resultado mantém
