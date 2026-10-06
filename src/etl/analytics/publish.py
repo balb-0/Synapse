@@ -16,7 +16,8 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-import duckdb
+from etl.load.config import load_duckdb_settings
+from etl.load.connection import connect_with_retry
 
 PUBLICATIONS = {
     "PUB_C01_CICLO": """
@@ -258,7 +259,9 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
     in_transaction = False
     published = False
     try:
-        conn = duckdb.connect(str(database), read_only=True)
+        conn = connect_with_retry(
+            database, load_duckdb_settings().write_lock_timeout_seconds, read_only=True
+        )
         conn.execute("BEGIN TRANSACTION")
         in_transaction = True
         tables = {}
