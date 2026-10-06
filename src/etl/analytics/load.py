@@ -204,6 +204,444 @@ def _orphan(
     )
 
 
+def _ensure_analytics_schema(con: duckdb.DuckDBPyConnection) -> None:
+    """Create dimensions, facts and technical control tables inside the caller transaction."""
+    for statement in (*dimension_statements(), *cycle_statements(), *other_statements()):
+        con.execute(statement)
+    con.execute("""CREATE TABLE IF NOT EXISTS "analytics_reconciliation" (
+        source VARCHAR NOT NULL, source_id VARCHAR, target VARCHAR NOT NULL,
+        reason VARCHAR NOT NULL, method VARCHAR NOT NULL, matched_id VARCHAR
+    )""")
+    con.execute("""CREATE TABLE IF NOT EXISTS "analytics_pipeline_membership" (
+        data_fim_mes DATE NOT NULL, sk_pesquisa VARCHAR NOT NULL,
+        sk_status VARCHAR NOT NULL, sk_area VARCHAR NOT NULL,
+        sk_tipo VARCHAR NOT NULL, sk_perfil VARCHAR NOT NULL,
+        observed_at TIMESTAMP NOT NULL,
+        PRIMARY KEY (data_fim_mes, sk_pesquisa)
+    )""")
+    con.execute("""CREATE TABLE IF NOT EXISTS "analytics_pipeline_closure" (
+        data_fim_mes DATE PRIMARY KEY, observed_at TIMESTAMP NOT NULL,
+        load_id VARCHAR NOT NULL
+    )""")
+    con.execute("""CREATE TABLE IF NOT EXISTS "analytics_load_run" (
+        load_id VARCHAR PRIMARY KEY, loaded_at TIMESTAMP NOT NULL,
+        pesquisas_digest VARCHAR NOT NULL, empresas_digest VARCHAR NOT NULL,
+        clientes_digest VARCHAR NOT NULL, questoes_digest VARCHAR NOT NULL,
+        respondentes_checksum VARCHAR, observed_at TIMESTAMP
+    )""")
+
+
+def _replace_current_facts(con: duckdb.DuckDBPyConnection, *, preserve_participation: bool) -> None:
+    """Rebuild current facts before Type 1 updates; preserve C02 when its source is absent."""
+    # DuckDB keeps FK references to deleted rows until commit. Rebuild the
+    # three current facts transactionally before refreshing Type 1 members.
+    if preserve_participation:
+        con.execute('CREATE TEMP TABLE _previous_participacao AS SELECT * FROM "FATO_PARTICIPACAO"')
+    for table in ("FATO_PESQUISA_PERGUNTA", "FATO_PARTICIPACAO", "FATO_CICLO_PESQUISA"):
+        con.execute(f'DROP TABLE "{table}"')
+    for statement in (*cycle_statements(), *other_statements()):
+        con.execute(statement)
+    if preserve_participation:
+        con.execute('INSERT INTO "FATO_PARTICIPACAO" SELECT * FROM _previous_participacao')
+        con.execute("DROP TABLE _previous_participacao")
+
+
+def load_entity_dimensions(
+    con: duckdb.DuckDBPyConnection, empresas: list[dict], clientes: list[dict]
+) -> None:
+    """Refresh conformed company and person members; the caller owns the transaction."""
+    for row in empresas:
+        _member(
+            con,
+            "DIM_EMPRESA",
+            row["empresa_id"],
+            {
+                name: row[name]
+                for name in (
+                    "empresa_id",
+                    "nome_fantasia",
+                    "part_mercado",
+                    "nacionalidade",
+                    "associado",
+                    "tipo_associado",
+                    "cidade",
+                    "estado",
+                    "pais",
+                )
+            },
+        )
+    for row in clientes:
+        _member(
+            con,
+            "DIM_PESSOA",
+            row["cliente_id"],
+            {
+                "cliente_id": row["cliente_id"],
+                "empresa_id": row["empresa_id"],
+                "cargo": row["cargo"],
+                "departamento": row["departamento"],
+            },
+        )
+
+
+def load_cycle_fact(con: duckdb.DuckDBPyConnection, pesquisas: list[dict]) -> None:
+    """Load C01 and its conformed research, category, date and execution members."""
+    runs: dict[tuple[str, str], list] = {}
+    for row in pesquisas:
+        pair = (row["source"], row["run_id"])
+        runs.setdefault(pair, []).append(row)
+    for (source, run_id), run_rows in sorted(runs.items()):
+        checksums = {row["source_checksum"] for row in run_rows}
+        _composite_member(
+            con,
+            "DIM_EXECUCAO_CARGA",
+            (source, run_id),
+            {
+                "source": source,
+                "run_id": run_id,
+                "concluded_at": max(row["ingested_at"] for row in run_rows),
+                "source_checksum": next(iter(checksums)) if len(checksums) == 1 else None,
+            },
+        )
+    for row in pesquisas:
+        pid = row["pesquisa_id"]
+        sk = _member(
+            con,
+            "DIM_PESQUISA",
+            pid,
+            {"pesquisa_id": pid, "titulo": row["titulo"], "objetivos": row["objetivos"]},
+        )
+        category = {}
+        for table, field in (
+            ("DIM_AREA", "area"),
+            ("DIM_STATUS_PESQUISA", "status"),
+            ("DIM_TIPO_PESQUISA", "tipo"),
+        ):
+            value = _normalized(row[field])
+            category[table] = (
+                _member(con, table, value, {field: value}) if value else unknown_key(table)
+            )
+        profile_parts = (_normalized(row["complexidade"]), _normalized(row["tipo_resposta"]))
+        profile = (
+            _composite_member(
+                con,
+                "DIM_PERFIL_PESQUISA",
+                profile_parts,
+                {"complexidade": profile_parts[0], "tipo_resposta": profile_parts[1]},
+            )
+            if any(profile_parts)
+            else unknown_key("DIM_PERFIL_PESQUISA")
+        )
+        family = _normalized(row["titulo"])
+        family_sk = (
+            _member(
+                con,
+                "DIM_FAMILIA_PESQUISA",
+                family,
+                {"titulo_normalizado": family, "estado_homologacao": "pendente"},
+            )
+            if family
+            else unknown_key("DIM_FAMILIA_PESQUISA")
+        )
+        source = row["source"]
+        run_id = row["run_id"]
+        source_sk = _member(con, "DIM_FONTE_DADO", source, {"source": source})
+        load_sk = surrogate_key("DIM_EXECUCAO_CARGA", source, run_id)
+        dates = [
+            row[name]
+            for name in (
+                "data_solicitacao",
+                "data_aprov",
+                "data_divulgacao",
+                "data_limite",
+                "prorrogada_ate",
+                "data_entrega",
+            )
+        ]
+        limit = dates[4] or dates[3]
+        con.execute(
+            """INSERT INTO "FATO_CICLO_PESQUISA" VALUES
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                sk,
+                *(_time(con, day) for day in dates),
+                category["DIM_AREA"],
+                category["DIM_STATUS_PESQUISA"],
+                category["DIM_TIPO_PESQUISA"],
+                profile,
+                family_sk,
+                source_sk,
+                load_sk,
+                _duration(dates[0], dates[1]),
+                _duration(dates[2], limit),
+                _duration(limit, dates[5]),
+                _duration(dates[0], dates[5]),
+                row["participantes"],
+                dates[4] is not None,
+            ),
+        )
+
+
+def load_participation_fact(
+    con: duckdb.DuckDBPyConnection,
+    selected: tuple[str, str, datetime] | None,
+    pesquisas: list[dict],
+    empresas: list[dict],
+    clientes: list[dict],
+) -> int:
+    """Load C02 occurrences and orphan reasons from the selected reconciled export."""
+    pesquisa_ids = {row["pesquisa_id"] for row in pesquisas}
+    pesquisa_by_id = {row["pesquisa_id"]: row for row in pesquisas}
+    empresa_ids = {row["empresa_id"] for row in empresas}
+    cliente_ids = {row["cliente_id"] for row in clientes}
+    participacoes = 0
+    if selected:
+        checksum = selected[0]
+        respondents = _rows(
+            con,
+            """SELECT * FROM "ingestao_respondentes"
+            WHERE source_checksum = ? ORDER BY source_offset""",
+            (checksum,),
+        )
+        sequence: dict[tuple[str, str], int] = {}
+        for row in respondents:
+            pid, eid, cid = row["pesquisa_id"], row["empresa_id"], row["cliente_id"]
+            if pid not in pesquisa_ids:
+                _orphan(
+                    con,
+                    "respondentes",
+                    f"{checksum}:{row['source_offset']}",
+                    "DIM_PESQUISA",
+                    "pesquisa_id_ausente",
+                )
+            if eid not in empresa_ids:
+                _orphan(
+                    con,
+                    "respondentes",
+                    f"{checksum}:{row['source_offset']}",
+                    "DIM_EMPRESA",
+                    "empresa_id_ausente",
+                )
+            if cid and cid not in cliente_ids:
+                _orphan(
+                    con,
+                    "respondentes",
+                    f"{checksum}:{row['source_offset']}",
+                    "DIM_PESSOA",
+                    "cliente_id_ausente",
+                )
+            person = (
+                surrogate_key("DIM_PESSOA", cid)
+                if cid in cliente_ids
+                else unknown_key("DIM_PESSOA")
+                if cid
+                else None
+            )
+            seq = None
+            if cid:
+                pair = (pid, cid)
+                sequence[pair] = sequence.get(pair, 0) + 1
+                seq = sequence[pair]
+            start, end = row["hora_inicio"], row["hora_termino"]
+            minutes = (
+                int((end - start).total_seconds() // 60) if start and end and end >= start else None
+            )
+            reason = (
+                None
+                if minutes is not None
+                else (
+                    "inicio_ausente"
+                    if start is None
+                    else "termino_ausente"
+                    if end is None
+                    else "termino_anterior_ao_inicio"
+                )
+            )
+            con.execute(
+                """INSERT INTO "FATO_PARTICIPACAO" VALUES
+                (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
+                (
+                    checksum,
+                    row["source_offset"],
+                    surrogate_key("DIM_PESQUISA", pid)
+                    if pid in pesquisa_ids
+                    else unknown_key("DIM_PESQUISA"),
+                    surrogate_key("DIM_EMPRESA", eid)
+                    if eid in empresa_ids
+                    else unknown_key("DIM_EMPRESA"),
+                    person,
+                    _time(con, pesquisa_by_id[pid]["data_divulgacao"])
+                    if pid in pesquisa_by_id
+                    else None,
+                    _time(con, start),
+                    seq,
+                    minutes,
+                    reason,
+                    row["market_share"],
+                ),
+            )
+            participacoes += 1
+    return participacoes
+
+
+def load_instrument_fact(
+    con: duckdb.DuckDBPyConnection, questoes: list[dict], pesquisas: list[dict]
+) -> None:
+    """Load C04, retaining unmatched questions and uniquely matched research titles."""
+    pesquisa_ids = {row["pesquisa_id"] for row in pesquisas}
+    pesquisa_by_id = {row["pesquisa_id"]: row for row in pesquisas}
+    title_ids: dict[str, set[str]] = {}
+    for row in pesquisas:
+        title = _normalized(row["titulo"])
+        if title:
+            title_ids.setdefault(title, set()).add(row["pesquisa_id"])
+    for row in questoes:
+        qid, pid = row["pergunta_id"], row["pesquisa_id"]
+        question_source_id = json.dumps([pid, qid], ensure_ascii=False)
+        question_sk = _composite_member(
+            con,
+            "DIM_PERGUNTA",
+            (pid, qid),
+            {
+                name: row[name]
+                for name in (
+                    "pesquisa_id",
+                    "pergunta_id",
+                    "enunciado",
+                    "tipo",
+                    "qtd_alternativas",
+                    "alternativas",
+                    "linhas_matriz",
+                    "colunas_matriz",
+                    "confianca",
+                    "formato_arquivo",
+                    "col_origem",
+                    "observacoes",
+                )
+            },
+        )
+        target = pid if pid in pesquisa_ids else None
+        method = "id" if target else "desconhecido"
+        if target is None:
+            matches = title_ids.get(_normalized(row["pesquisa_titulo"]), set())
+            if len(matches) == 1:
+                target = next(iter(matches))
+                method = "titulo_unico"
+                _orphan(
+                    con,
+                    "questoes",
+                    question_source_id,
+                    "DIM_PESQUISA",
+                    "id_divergente",
+                    "titulo_exato_unico",
+                    target,
+                )
+            else:
+                _orphan(
+                    con,
+                    "questoes",
+                    question_source_id,
+                    "DIM_PESQUISA",
+                    "titulo_ambiguo" if matches else "pesquisa_nao_encontrada",
+                )
+        con.execute(
+            """INSERT INTO "FATO_PESQUISA_PERGUNTA"
+            (sk_pesquisa, sk_pergunta, sk_data_pesquisa,
+             pesquisa_id_origem, pergunta_id_origem, metodo_vinculo)
+            VALUES (?, ?, ?, ?, ?, ?)""",
+            (
+                surrogate_key("DIM_PESQUISA", target) if target else unknown_key("DIM_PESQUISA"),
+                question_sk,
+                _time(con, pesquisa_by_id[target]["data_divulgacao"]) if target else None,
+                pid,
+                qid,
+                method,
+            ),
+        )
+
+
+def load_monthly_fact(
+    con: duckdb.DuckDBPyConnection,
+    observed_at: datetime | None,
+    load_id: str,
+) -> date | None:
+    """Record a prospective C03 closure only when a newer real month-end observation exists."""
+    closure = None
+    if observed_at is not None:
+        closure = observed_at.date()
+        prior_closure = con.execute(
+            'SELECT observed_at FROM "analytics_pipeline_closure" WHERE data_fim_mes = ?',
+            (closure,),
+        ).fetchone()
+        existing = prior_closure[0] if prior_closure else None
+        if existing is None or observed_at > existing:
+            con.execute('DELETE FROM "FATO_PIPELINE_MENSAL" WHERE data_fim_mes = ?', (closure,))
+            con.execute(
+                'DELETE FROM "analytics_pipeline_membership" WHERE data_fim_mes = ?', (closure,)
+            )
+            con.execute(
+                'DELETE FROM "analytics_pipeline_closure" WHERE data_fim_mes = ?', (closure,)
+            )
+            con.execute(
+                'INSERT INTO "analytics_pipeline_closure" VALUES (?, ?, ?)',
+                (closure, observed_at, load_id),
+            )
+            month_sk = _time(con, closure)
+            con.execute(
+                '''INSERT INTO "analytics_pipeline_membership"
+                SELECT ?, sk_pesquisa, sk_status, sk_area, sk_tipo, sk_perfil, ?
+                FROM "FATO_CICLO_PESQUISA"''',
+                (closure, observed_at),
+            )
+            for group in _rows(
+                con,
+                """SELECT sk_status, sk_area, sk_tipo, sk_perfil,
+                    count(*) AS quantity FROM "FATO_CICLO_PESQUISA"
+                    GROUP BY sk_status, sk_area, sk_tipo, sk_perfil""",
+            ):
+                con.execute(
+                    """INSERT INTO "FATO_PIPELINE_MENSAL" VALUES
+                    (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)""",
+                    (
+                        month_sk,
+                        closure,
+                        observed_at,
+                        group["sk_status"],
+                        group["sk_area"],
+                        group["sk_tipo"],
+                        group["sk_perfil"],
+                        group["quantity"],
+                    ),
+                )
+    return closure
+
+
+def record_load_manifest(
+    con: duckdb.DuckDBPyConnection,
+    load_id: str,
+    pesquisas: list[dict],
+    empresas: list[dict],
+    clientes: list[dict],
+    questoes: list[dict],
+    selected: tuple[str, str, datetime] | None,
+    observed_at: datetime | None,
+) -> None:
+    """Persist the exact source fingerprints only after all four cube stages succeed."""
+    con.execute(
+        """INSERT INTO "analytics_load_run" VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (
+            load_id,
+            datetime.now(),
+            _digest(pesquisas),
+            _digest(empresas),
+            _digest(clientes),
+            _digest(questoes),
+            selected[0] if selected else None,
+            observed_at,
+        ),
+    )
+
+
 def load_analytics(
     con: duckdb.DuckDBPyConnection,
     *,
@@ -212,37 +650,17 @@ def load_analytics(
 ) -> LoadResult:
     """Replace current facts atomically; optional C03 observation is a real month end.
 
+    Each cube stage can be called inside a caller-managed transaction. This
+    entry point owns the single transaction spanning dimensions, facts and
+    manifest. The caller owns the connection; publication is separate.
     ``fail_after`` is a deterministic transaction fault hook for integration tests.
-    The caller owns the connection. No external publication is performed.
     """
     if observed_at is not None:
         if observed_at.day != calendar.monthrange(observed_at.year, observed_at.month)[1]:
             raise ValueError("observed_at deve ocorrer no último dia do mês")
     con.execute("BEGIN TRANSACTION")
     try:
-        for statement in (*dimension_statements(), *cycle_statements(), *other_statements()):
-            con.execute(statement)
-        con.execute("""CREATE TABLE IF NOT EXISTS "analytics_reconciliation" (
-            source VARCHAR NOT NULL, source_id VARCHAR, target VARCHAR NOT NULL,
-            reason VARCHAR NOT NULL, method VARCHAR NOT NULL, matched_id VARCHAR
-        )""")
-        con.execute("""CREATE TABLE IF NOT EXISTS "analytics_pipeline_membership" (
-            data_fim_mes DATE NOT NULL, sk_pesquisa VARCHAR NOT NULL,
-            sk_status VARCHAR NOT NULL, sk_area VARCHAR NOT NULL,
-            sk_tipo VARCHAR NOT NULL, sk_perfil VARCHAR NOT NULL,
-            observed_at TIMESTAMP NOT NULL,
-            PRIMARY KEY (data_fim_mes, sk_pesquisa)
-        )""")
-        con.execute("""CREATE TABLE IF NOT EXISTS "analytics_pipeline_closure" (
-            data_fim_mes DATE PRIMARY KEY, observed_at TIMESTAMP NOT NULL,
-            load_id VARCHAR NOT NULL
-        )""")
-        con.execute("""CREATE TABLE IF NOT EXISTS "analytics_load_run" (
-            load_id VARCHAR PRIMARY KEY, loaded_at TIMESTAMP NOT NULL,
-            pesquisas_digest VARCHAR NOT NULL, empresas_digest VARCHAR NOT NULL,
-            clientes_digest VARCHAR NOT NULL, questoes_digest VARCHAR NOT NULL,
-            respondentes_checksum VARCHAR, observed_at TIMESTAMP
-        )""")
+        _ensure_analytics_schema(con)
         con.execute("DELETE FROM \"analytics_reconciliation\" WHERE source = 'questoes'")
         pesquisas = _rows(con, 'SELECT * FROM "ingestao_pesquisas_atual" ORDER BY pesquisa_id')
         empresas = _rows(con, 'SELECT * FROM "ingestao_empresas_atual" ORDER BY empresa_id')
@@ -253,380 +671,22 @@ def load_analytics(
         selected = selected_respondentes(con)
         if selected:
             con.execute("DELETE FROM \"analytics_reconciliation\" WHERE source = 'respondentes'")
-        # DuckDB keeps FK references to deleted rows until commit. Rebuild the
-        # three current facts transactionally before refreshing Type 1 members.
-        if not selected:
-            con.execute(
-                'CREATE TEMP TABLE _previous_participacao AS SELECT * FROM "FATO_PARTICIPACAO"'
-            )
-        for table in ("FATO_PESQUISA_PERGUNTA", "FATO_PARTICIPACAO", "FATO_CICLO_PESQUISA"):
-            con.execute(f'DROP TABLE "{table}"')
-        for statement in (*cycle_statements(), *other_statements()):
-            con.execute(statement)
-        if not selected:
-            con.execute('INSERT INTO "FATO_PARTICIPACAO" SELECT * FROM _previous_participacao')
-            con.execute("DROP TABLE _previous_participacao")
-        pesquisa_ids = {row["pesquisa_id"] for row in pesquisas}
-        pesquisa_by_id = {row["pesquisa_id"]: row for row in pesquisas}
-        empresa_ids = {row["empresa_id"] for row in empresas}
-        cliente_ids = {row["cliente_id"] for row in clientes}
-        title_ids: dict[str, set[str]] = {}
-        for row in pesquisas:
-            title = _normalized(row["titulo"])
-            if title:
-                title_ids.setdefault(title, set()).add(row["pesquisa_id"])
-
-        for row in empresas:
-            _member(
-                con,
-                "DIM_EMPRESA",
-                row["empresa_id"],
-                {
-                    name: row[name]
-                    for name in (
-                        "empresa_id",
-                        "nome_fantasia",
-                        "part_mercado",
-                        "nacionalidade",
-                        "associado",
-                        "tipo_associado",
-                        "cidade",
-                        "estado",
-                        "pais",
-                    )
-                },
-            )
-        for row in clientes:
-            _member(
-                con,
-                "DIM_PESSOA",
-                row["cliente_id"],
-                {
-                    "cliente_id": row["cliente_id"],
-                    "empresa_id": row["empresa_id"],
-                    "cargo": row["cargo"],
-                    "departamento": row["departamento"],
-                },
-            )
+        _replace_current_facts(con, preserve_participation=not selected)
+        load_entity_dimensions(con, empresas, clientes)
         if fail_after == "dimensions":
             raise RuntimeError("injected failure after dimensions")
-
-        runs: dict[tuple[str, str], list] = {}
-        for row in pesquisas:
-            pair = (row["source"], row["run_id"])
-            runs.setdefault(pair, []).append(row)
-        for (source, run_id), run_rows in sorted(runs.items()):
-            checksums = {row["source_checksum"] for row in run_rows}
-            _composite_member(
-                con,
-                "DIM_EXECUCAO_CARGA",
-                (source, run_id),
-                {
-                    "source": source,
-                    "run_id": run_id,
-                    "concluded_at": max(row["ingested_at"] for row in run_rows),
-                    "source_checksum": next(iter(checksums)) if len(checksums) == 1 else None,
-                },
-            )
-        for row in pesquisas:
-            pid = row["pesquisa_id"]
-            sk = _member(
-                con,
-                "DIM_PESQUISA",
-                pid,
-                {"pesquisa_id": pid, "titulo": row["titulo"], "objetivos": row["objetivos"]},
-            )
-            category = {}
-            for table, field in (
-                ("DIM_AREA", "area"),
-                ("DIM_STATUS_PESQUISA", "status"),
-                ("DIM_TIPO_PESQUISA", "tipo"),
-            ):
-                value = _normalized(row[field])
-                category[table] = (
-                    _member(con, table, value, {field: value}) if value else unknown_key(table)
-                )
-            profile_parts = (_normalized(row["complexidade"]), _normalized(row["tipo_resposta"]))
-            profile = (
-                _composite_member(
-                    con,
-                    "DIM_PERFIL_PESQUISA",
-                    profile_parts,
-                    {"complexidade": profile_parts[0], "tipo_resposta": profile_parts[1]},
-                )
-                if any(profile_parts)
-                else unknown_key("DIM_PERFIL_PESQUISA")
-            )
-            family = _normalized(row["titulo"])
-            family_sk = (
-                _member(
-                    con,
-                    "DIM_FAMILIA_PESQUISA",
-                    family,
-                    {"titulo_normalizado": family, "estado_homologacao": "pendente"},
-                )
-                if family
-                else unknown_key("DIM_FAMILIA_PESQUISA")
-            )
-            source = row["source"]
-            run_id = row["run_id"]
-            source_sk = _member(con, "DIM_FONTE_DADO", source, {"source": source})
-            load_sk = surrogate_key("DIM_EXECUCAO_CARGA", source, run_id)
-            dates = [
-                row[name]
-                for name in (
-                    "data_solicitacao",
-                    "data_aprov",
-                    "data_divulgacao",
-                    "data_limite",
-                    "prorrogada_ate",
-                    "data_entrega",
-                )
-            ]
-            limit = dates[4] or dates[3]
-            con.execute(
-                """INSERT INTO "FATO_CICLO_PESQUISA" VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    sk,
-                    *(_time(con, day) for day in dates),
-                    category["DIM_AREA"],
-                    category["DIM_STATUS_PESQUISA"],
-                    category["DIM_TIPO_PESQUISA"],
-                    profile,
-                    family_sk,
-                    source_sk,
-                    load_sk,
-                    _duration(dates[0], dates[1]),
-                    _duration(dates[2], limit),
-                    _duration(limit, dates[5]),
-                    _duration(dates[0], dates[5]),
-                    row["participantes"],
-                    dates[4] is not None,
-                ),
-            )
+        load_cycle_fact(con, pesquisas)
         if fail_after == "cycle":
             raise RuntimeError("injected failure after cycle")
-
-        participacoes = 0
-        if selected:
-            checksum = selected[0]
-            respondents = _rows(
-                con,
-                """SELECT * FROM "ingestao_respondentes"
-                WHERE source_checksum = ? ORDER BY source_offset""",
-                (checksum,),
-            )
-            sequence: dict[tuple[str, str], int] = {}
-            for row in respondents:
-                pid, eid, cid = row["pesquisa_id"], row["empresa_id"], row["cliente_id"]
-                if pid not in pesquisa_ids:
-                    _orphan(
-                        con,
-                        "respondentes",
-                        f"{checksum}:{row['source_offset']}",
-                        "DIM_PESQUISA",
-                        "pesquisa_id_ausente",
-                    )
-                if eid not in empresa_ids:
-                    _orphan(
-                        con,
-                        "respondentes",
-                        f"{checksum}:{row['source_offset']}",
-                        "DIM_EMPRESA",
-                        "empresa_id_ausente",
-                    )
-                if cid and cid not in cliente_ids:
-                    _orphan(
-                        con,
-                        "respondentes",
-                        f"{checksum}:{row['source_offset']}",
-                        "DIM_PESSOA",
-                        "cliente_id_ausente",
-                    )
-                person = (
-                    surrogate_key("DIM_PESSOA", cid)
-                    if cid in cliente_ids
-                    else unknown_key("DIM_PESSOA")
-                    if cid
-                    else None
-                )
-                seq = None
-                if cid:
-                    pair = (pid, cid)
-                    sequence[pair] = sequence.get(pair, 0) + 1
-                    seq = sequence[pair]
-                start, end = row["hora_inicio"], row["hora_termino"]
-                minutes = (
-                    int((end - start).total_seconds() // 60)
-                    if start and end and end >= start
-                    else None
-                )
-                reason = (
-                    None
-                    if minutes is not None
-                    else (
-                        "inicio_ausente"
-                        if start is None
-                        else "termino_ausente"
-                        if end is None
-                        else "termino_anterior_ao_inicio"
-                    )
-                )
-                con.execute(
-                    """INSERT INTO "FATO_PARTICIPACAO" VALUES
-                    (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
-                    (
-                        checksum,
-                        row["source_offset"],
-                        surrogate_key("DIM_PESQUISA", pid)
-                        if pid in pesquisa_ids
-                        else unknown_key("DIM_PESQUISA"),
-                        surrogate_key("DIM_EMPRESA", eid)
-                        if eid in empresa_ids
-                        else unknown_key("DIM_EMPRESA"),
-                        person,
-                        _time(con, pesquisa_by_id[pid]["data_divulgacao"])
-                        if pid in pesquisa_by_id
-                        else None,
-                        _time(con, start),
-                        seq,
-                        minutes,
-                        reason,
-                        row["market_share"],
-                    ),
-                )
-                participacoes += 1
-
-        for row in questoes:
-            qid, pid = row["pergunta_id"], row["pesquisa_id"]
-            question_source_id = json.dumps([pid, qid], ensure_ascii=False)
-            question_sk = _composite_member(
-                con,
-                "DIM_PERGUNTA",
-                (pid, qid),
-                {
-                    name: row[name]
-                    for name in (
-                        "pesquisa_id",
-                        "pergunta_id",
-                        "enunciado",
-                        "tipo",
-                        "qtd_alternativas",
-                        "alternativas",
-                        "linhas_matriz",
-                        "colunas_matriz",
-                        "confianca",
-                        "formato_arquivo",
-                        "col_origem",
-                        "observacoes",
-                    )
-                },
-            )
-            target = pid if pid in pesquisa_ids else None
-            method = "id" if target else "desconhecido"
-            if target is None:
-                matches = title_ids.get(_normalized(row["pesquisa_titulo"]), set())
-                if len(matches) == 1:
-                    target = next(iter(matches))
-                    method = "titulo_unico"
-                    _orphan(
-                        con,
-                        "questoes",
-                        question_source_id,
-                        "DIM_PESQUISA",
-                        "id_divergente",
-                        "titulo_exato_unico",
-                        target,
-                    )
-                else:
-                    _orphan(
-                        con,
-                        "questoes",
-                        question_source_id,
-                        "DIM_PESQUISA",
-                        "titulo_ambiguo" if matches else "pesquisa_nao_encontrada",
-                    )
-            con.execute(
-                """INSERT INTO "FATO_PESQUISA_PERGUNTA"
-                (sk_pesquisa, sk_pergunta, sk_data_pesquisa,
-                 pesquisa_id_origem, pergunta_id_origem, metodo_vinculo)
-                VALUES (?, ?, ?, ?, ?, ?)""",
-                (
-                    surrogate_key("DIM_PESQUISA", target)
-                    if target
-                    else unknown_key("DIM_PESQUISA"),
-                    question_sk,
-                    _time(con, pesquisa_by_id[target]["data_divulgacao"]) if target else None,
-                    pid,
-                    qid,
-                    method,
-                ),
-            )
-
+        participacoes = load_participation_fact(con, selected, pesquisas, empresas, clientes)
+        load_instrument_fact(con, questoes, pesquisas)
         load_id = str(uuid.uuid4())
-        closure = None
-        if observed_at is not None:
-            closure = observed_at.date()
-            prior_closure = con.execute(
-                'SELECT observed_at FROM "analytics_pipeline_closure" WHERE data_fim_mes = ?',
-                (closure,),
-            ).fetchone()
-            existing = prior_closure[0] if prior_closure else None
-            if existing is None or observed_at > existing:
-                con.execute('DELETE FROM "FATO_PIPELINE_MENSAL" WHERE data_fim_mes = ?', (closure,))
-                con.execute(
-                    'DELETE FROM "analytics_pipeline_membership" WHERE data_fim_mes = ?', (closure,)
-                )
-                con.execute(
-                    'DELETE FROM "analytics_pipeline_closure" WHERE data_fim_mes = ?', (closure,)
-                )
-                con.execute(
-                    'INSERT INTO "analytics_pipeline_closure" VALUES (?, ?, ?)',
-                    (closure, observed_at, load_id),
-                )
-                month_sk = _time(con, closure)
-                con.execute(
-                    '''INSERT INTO "analytics_pipeline_membership"
-                    SELECT ?, sk_pesquisa, sk_status, sk_area, sk_tipo, sk_perfil, ?
-                    FROM "FATO_CICLO_PESQUISA"''',
-                    (closure, observed_at),
-                )
-                for group in _rows(
-                    con,
-                    """SELECT sk_status, sk_area, sk_tipo, sk_perfil,
-                        count(*) AS quantity FROM "FATO_CICLO_PESQUISA"
-                        GROUP BY sk_status, sk_area, sk_tipo, sk_perfil""",
-                ):
-                    con.execute(
-                        """INSERT INTO "FATO_PIPELINE_MENSAL" VALUES
-                        (?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL)""",
-                        (
-                            month_sk,
-                            closure,
-                            observed_at,
-                            group["sk_status"],
-                            group["sk_area"],
-                            group["sk_tipo"],
-                            group["sk_perfil"],
-                            group["quantity"],
-                        ),
-                    )
+        closure = load_monthly_fact(con, observed_at, load_id)
         if fail_after == "facts":
             raise RuntimeError("injected failure after facts")
         orphans = con.execute('SELECT count(*) FROM "analytics_reconciliation"').fetchone()[0]
-        con.execute(
-            """INSERT INTO "analytics_load_run" VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (
-                load_id,
-                datetime.now(),
-                _digest(pesquisas),
-                _digest(empresas),
-                _digest(clientes),
-                _digest(questoes),
-                selected[0] if selected else None,
-                observed_at,
-            ),
+        record_load_manifest(
+            con, load_id, pesquisas, empresas, clientes, questoes, selected, observed_at
         )
         con.execute("COMMIT")
         return LoadResult(
