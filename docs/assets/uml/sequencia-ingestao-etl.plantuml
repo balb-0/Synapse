@@ -15,6 +15,10 @@ skinparam note {
 actor "Operador de dados" as OPE
 participant "Adaptador de eventos\n(watch_landing.py)" as ADAPTER
 participant "Flow ingest-object\n(Prefect)" as FLOW
+participant "Flow backfill\n(Prefect)" as BACKFILL
+participant "Flow complete-warehouse\n(Prefect)" as WAREHOUSE
+participant "Tasks load/reconcile/publish_warehouse" as DW_TASKS
+collections "Geração Parquet agregada" as PARQUET
 participant "MinioObjectReader" as READER
 participant "Extrator" as EXTRACTOR
 participant "transform_object\n(transform_batch por lote)" as TRANSFORM
@@ -82,6 +86,50 @@ group Execução normal
   end note
   FLOW -->> LOGS : estado final da execução
   FLOW --> OPE : status loaded
+end
+
+group Backfill completo com publicação DW
+  OPE -> BACKFILL : backfill(six_sources, analytics_output, observed_at opcional)
+  BACKFILL -> BACKFILL : validar seis fontes únicas e ordenar dependências
+  loop pesquisas, empresas, clientes, questoes, respondentes, respostas
+    BACKFILL -> FLOW : ingest_object(reference)
+    FLOW --> BACKFILL : loaded ou ignored após confirmação do objeto
+  end
+  BACKFILL -> WAREHOUSE : complete-warehouse(database, output, observed_at)
+  WAREHOUSE -> DW_TASKS : load_warehouse
+  DW_TASKS -> DB : abertura com retry e espera limitada por lock
+  DW_TASKS -> DB : BEGIN + dimensões + C01-C04 + manifesto + COMMIT
+  note right of DW_TASKS
+    Sem observed_at real, C03 permanece not_observed.
+    Não usar data do scheduler como observação histórica.
+    Falha na transação desfaz a carga dimensional.
+  end note
+  DW_TASKS --> WAREHOUSE : identificação da carga analítica
+  WAREHOUSE -> DW_TASKS : reconcile_warehouse
+  DW_TASKS -> DB : consultar fatos, fontes e rejeições com motivos
+  DW_TASKS --> WAREHOUSE : relatório balanceado ou exceção
+  WAREHOUSE -> DW_TASKS : publish_warehouse
+  DW_TASKS -> PARQUET : sete arquivos + manifest.json, publicação atômica
+  DW_TASKS --> WAREHOUSE : geração publicada
+  WAREHOUSE --> BACKFILL : geração e reconciliação
+  BACKFILL --> OPE : execução completa concluída
+end
+
+group Falha no DW ou publicação
+  WAREHOUSE -> DW_TASKS : carregar, reconciliar ou publicar
+  DW_TASKS --> WAREHOUSE : falha
+  note right of WAREHOUSE
+    Até duas repetições somente para falha transitória,
+    com timeout por task. Falha permanente ou
+    reconciliação inválida não são repetidas.
+    Ingestão já confirmada conserva checkpoints.
+  end note
+  WAREHOUSE --> BACKFILL : exceção propagada
+  BACKFILL --> OPE : flow run failed
+  OPE -> BACKFILL : reexecutar backfill completo
+  BACKFILL -> FLOW : mesmos objetos confirmados
+  FLOW --> BACKFILL : ignored
+  BACKFILL -> WAREHOUSE : tentar novamente o trecho DW
 end
 
 group Falha transitória com retry limitado
