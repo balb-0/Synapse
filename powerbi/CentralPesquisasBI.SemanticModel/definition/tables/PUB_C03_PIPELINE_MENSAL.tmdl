@@ -21,7 +21,7 @@ table PUB_C03_PIPELINE_MENSAL
 				CALCULATE(
 					SUM(PUB_C03_PIPELINE_MENSAL[qtd_pesquisas_no_status]),
 					REMOVEFILTERS(DIM_TEMPO),
-					DIM_TEMPO[data] = DataReferencia
+					PUB_C03_PIPELINE_MENSAL[data_fim_mes] = DataReferencia
 				)
 			RETURN
 				IF(ISBLANK(DataReferencia), BLANK(), COALESCE(EstoqueNoMes, 0))

@@ -24,6 +24,9 @@ DAX_QUERIES = (ROOT / "tests/analytics/dax/bi04-acceptance-queries.dax").read_te
 C03_REFERENCE_DATE = C03.split("measure 'Data de Referência do Estoque' =", 1)[1].split(
     "formatString:", 1
 )[0]
+C03_STOCK = C03.split("measure 'Estoque no Último Mês Observado' =", 1)[1].split(
+    "formatString:", 1
+)[0]
 
 
 def reference_weighted_mean(groups: list[tuple[int | None, int]]) -> float | None:
@@ -121,6 +124,30 @@ class PublishedMeasureReferenceTests(unittest.TestCase):
         self.assertIn("'Estado do Estoque'", C03)
         self.assertIn("Indisponível: a geração publicada não contém linha C03", C03)
         self.assertIn("IF(ISBLANK(DataReferencia), BLANK()", C03)
+
+    def test_stock_readback_filters_c03_directly_at_the_reference_date(self) -> None:
+        raw_c03 = [("2026-02-28", 4)]
+        reference_date = max(date for date, _stock in raw_c03)
+        stock = sum(value for date, value in raw_c03 if date == reference_date)
+
+        self.assertEqual(reference_date, "2026-02-28")
+        self.assertEqual(stock, 4)
+        self.assertIn("REMOVEFILTERS(DIM_TEMPO)", C03_STOCK)
+        self.assertIn(
+            "PUB_C03_PIPELINE_MENSAL[data_fim_mes] = DataReferencia",
+            C03_STOCK,
+        )
+        self.assertNotIn("DIM_TEMPO[data]", C03_STOCK)
+        self.assertIn("BI04 Fixture Estoque Direto na Data Ref", DAX_QUERIES)
+        self.assertIn('TREATAS({"2026-02"}, DIM_TEMPO[ano_mes])', DAX_QUERIES)
+
+    def test_dx10_desktop_queries_show_catalog_and_two_text_measures(self) -> None:
+        for column in ("indicador", "medida", "status", "motivo"):
+            self.assertIn(f"DIM_INDICADORES_BLOQUEADOS[{column}]", DAX_QUERIES)
+        self.assertIn("COUNTROWS(DIM_INDICADORES_BLOQUEADOS)", DAX_QUERIES)
+        self.assertIn("[Qtd Indicadores Sem Dado]", DAX_QUERIES)
+        self.assertIn("[Taxa de Prorrogacao]", DAX_QUERIES)
+        self.assertIn("[Representatividade]", DAX_QUERIES)
 
     def test_zero_stock_and_no_observation_are_distinct_reference_states(self) -> None:
         observed_zero = reference_stock([], {"2026-10"}, {"2026-10"})

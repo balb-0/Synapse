@@ -18,6 +18,14 @@ DEFINE
         AVERAGEX(DATATABLE("Media", DOUBLE, {{1.0}, {9.0}}), [Media])
     MEASURE 'PUB_C01_CICLO'[BI04 Fixture Zero Numerador] = DIVIDE(0, 4)
     MEASURE 'PUB_C01_CICLO'[BI04 Fixture Base Vazia] = DIVIDE(0, 0)
+    MEASURE 'PUB_C03_PIPELINE_MENSAL'[BI04 Fixture Estoque Direto na Data Ref] =
+        VAR DataReferencia = [Data de Referência do Estoque]
+        RETURN
+            CALCULATE(
+                SUM(PUB_C03_PIPELINE_MENSAL[qtd_pesquisas_no_status]),
+                REMOVEFILTERS(DIM_TEMPO),
+                PUB_C03_PIPELINE_MENSAL[data_fim_mes] = DataReferencia
+            )
 EVALUATE
 ROW(
     "Media Ponderada", [BI04 Fixture Media Ponderada],
@@ -41,6 +49,18 @@ ROW(
     "Estado das Entradas", [Estado das Entradas no Mês],
     "Saidas", [Saídas no Mês],
     "Estado das Saidas", [Estado das Saídas no Mês]
+)
+
+-- 1a. Desktop regression fixture: a C03 row at 2026-02-28 has stock 4.
+-- Both the model measure and a direct fact-date sum must return 4.
+EVALUATE
+CALCULATETABLE(
+    ROW(
+        "Data de Referencia", [Data de Referência do Estoque],
+        "Estoque da Medida", [Estoque no Último Mês Observado],
+        "Estoque Direto em C03", [BI04 Fixture Estoque Direto na Data Ref]
+    ),
+    TREATAS({"2026-02"}, DIM_TEMPO[ano_mes])
 )
 
 -- 2. Replace the two values with observed months from the loaded generation.
@@ -94,4 +114,24 @@ ROW(
     "Estado das Entradas", [Estado das Entradas no Mês],
     "Saidas", [Saídas no Mês],
     "Estado das Saidas", [Estado das Saídas no Mês]
+)
+
+-- 6. This is an 18-row catalog, not 18 implemented DAX measures.
+EVALUATE
+SELECTCOLUMNS(
+    DIM_INDICADORES_BLOQUEADOS,
+    "Indicador", DIM_INDICADORES_BLOQUEADOS[indicador],
+    "Medida", DIM_INDICADORES_BLOQUEADOS[medida],
+    "Status", DIM_INDICADORES_BLOQUEADOS[status],
+    "Motivo", DIM_INDICADORES_BLOQUEADOS[motivo]
+)
+ORDER BY [Indicador]
+
+-- 6a. Confirm the count and the only two textual indicator measures.
+EVALUATE
+ROW(
+    "Linhas do Catálogo", COUNTROWS(DIM_INDICADORES_BLOQUEADOS),
+    "Qtd Indicadores Sem Dado", [Qtd Indicadores Sem Dado],
+    "Taxa de Prorrogacao", [Taxa de Prorrogacao],
+    "Representatividade", [Representatividade]
 )
