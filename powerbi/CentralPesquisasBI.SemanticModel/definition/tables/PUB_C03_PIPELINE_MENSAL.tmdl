@@ -55,7 +55,7 @@ table PUB_C03_PIPELINE_MENSAL
 		summarizeBy: none
 		sourceColumn: qtd_saidas_no_mes
 
-	column perfil = [complexidade] & " / " & [tipo_resposta]
+	column perfil = IF(ISBLANK([complexidade]) && ISBLANK([tipo_resposta]), BLANK(), COALESCE([complexidade], "Indisponível") & " / " & COALESCE([tipo_resposta], "Indisponível"))
 		dataType: string
 		isHidden
 		summarizeBy: none
