@@ -129,7 +129,7 @@ class PeriodicHealthMonitorTests(unittest.TestCase):
     def test_manual_invalid_configuration_emits_one_sanitized_degraded_event(self) -> None:
         for override in (
             {"ETL_DUCKDB_PATH": ":memory:"},
-            {"ETL_DUCKDB_MEMORY_LIMIT": "secret-user-token@private.example/private/path"},
+            {"ETL_DUCKDB_THREADS": "secret-user-token@private.example/private/path"},
         ):
             with self.subTest(override=override), tempfile.TemporaryDirectory() as directory:
                 environment = dict(os.environ)
