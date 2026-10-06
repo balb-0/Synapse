@@ -38,9 +38,9 @@ publicada; o DuckDB de ingestão permanece na máquina autorizada de carga.
 
 As capturas devem mostrar projeto/versão, parâmetro com caminho sanitizado,
 conclusão ou erro do refresh e resultados DAX das sete tabelas. Registre também
- a troca entre duas gerações. Evite nomes de usuário, registros individuais,
+a troca entre duas gerações. Evite nomes de usuário, registros individuais,
 IDs de pessoa/empresa, e-mails ou credenciais. Uma captura do dashboard com
- dados sintéticos demonstra o visual; não prova qual geração foi importada.
+dados sintéticos demonstra o visual; não prova qual geração foi importada.
 
 | Etapa | Geração e execução | Resultado |
 | :--- | :--- | :--- |
