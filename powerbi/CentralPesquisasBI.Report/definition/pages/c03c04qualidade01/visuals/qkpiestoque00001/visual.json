@@ -27,9 +27,9 @@
                 }
               },
               "queryRef": "PUB_C03_PIPELINE_MENSAL.Estoque no Status",
-              "nativeQueryRef": "Pesquisas no status (mês observado)",
+              "nativeQueryRef": "Estoque (soma dos meses — semiaditivo, ver por mês)",
               "active": true,
-              "displayName": "Pesquisas no status (mês observado)"
+              "displayName": "Estoque (soma dos meses — semiaditivo, ver por mês)"
             }
           ]
         }
