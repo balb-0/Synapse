@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import importlib.util
 import logging
+import select
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -159,6 +161,78 @@ class VerificaSaudeDoBanco(unittest.TestCase):
 
 @unittest.skipUnless(DUCKDB_INSTALLED, SEM_DUCKDB)
 class VerificacaoCombinadaEEvento(unittest.TestCase):
+    def test_external_writer_lock_is_busy_then_recovers_without_false_unavailability(self) -> None:
+        from etl.load.config import load_duckdb_settings
+
+        with tempfile.TemporaryDirectory() as tmp:
+            settings = load_duckdb_settings({"database_path": Path(tmp) / "warehouse.duckdb"})
+            holder = subprocess.Popen(
+                [
+                    sys.executable,
+                    "-c",
+                    "import duckdb,sys; c=duckdb.connect(sys.argv[1]); print('ready',flush=True); sys.stdin.readline()",
+                    str(settings.database_path),
+                ],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            try:
+                readable, _, _ = select.select([holder.stdout], [], [], 10)
+                self.assertTrue(readable, "writer não iniciou em 10 segundos")
+                self.assertEqual(holder.stdout.readline().strip(), "ready")
+                busy = run_orchestration_health_check(
+                    api_url="http://prefect.local/api",
+                    settings=settings,
+                    http_get=lambda url, timeout: 200,
+                )
+                self.assertEqual(busy.status, "busy")
+                self.assertIsNone(busy.as_dict()["database_available"])
+                self.assertEqual(busy.as_dict()["database_status"], "busy")
+                self.assertTrue(busy.prefect.passed)
+                degraded_api = run_orchestration_health_check(
+                    api_url="http://prefect.local/api",
+                    settings=settings,
+                    http_get=lambda url, timeout: 503,
+                )
+                self.assertEqual(degraded_api.status, "degraded")
+                self.assertFalse(degraded_api.prefect.passed)
+            finally:
+                holder.communicate(input="\n", timeout=10)
+            recovered = run_orchestration_health_check(
+                api_url="http://prefect.local/api",
+                settings=settings,
+                http_get=lambda url, timeout: 200,
+            )
+            self.assertEqual(recovered.status, "ok")
+            self.assertTrue(recovered.as_dict()["database_available"])
+
+    def test_unrelated_io_failure_remains_degraded(self) -> None:
+        import duckdb
+
+        from etl.load.config import load_duckdb_settings
+        from etl.load.environment import DatabaseEnvironmentError
+
+        cause = duckdb.IOException("Permission denied")
+        error = DatabaseEnvironmentError("não foi possível abrir banco")
+        error.__cause__ = cause
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            mock.patch(
+                "etl.orchestration.health.run_health_check",
+                side_effect=error,
+            ),
+        ):
+            settings = load_duckdb_settings({"database_path": Path(tmp) / "warehouse.duckdb"})
+            report = run_orchestration_health_check(
+                api_url="http://prefect.local/api",
+                settings=settings,
+                http_get=lambda url, timeout: 200,
+            )
+        self.assertEqual(report.status, "degraded")
+        self.assertFalse(report.as_dict()["database_available"])
+
     def test_relatorio_combinado_falha_se_qualquer_checagem_falhar(self) -> None:
         from etl.load.config import load_duckdb_settings
 

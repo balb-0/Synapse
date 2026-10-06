@@ -18,9 +18,11 @@ from etl.orchestration.health import log_health_check, run_orchestration_health_
 
 
 def render(report) -> str:
-    linhas = [f"status geral: {'ok' if report.passed else 'degraded'}"]
+    linhas = [f"status geral: {report.status}"]
     for check in (report.prefect, report.database):
-        situacao = "ok" if check.passed else "falha"
+        situacao = (
+            "ocupado" if getattr(check, "busy", False) else ("ok" if check.passed else "falha")
+        )
         linhas.append(f"[{situacao}] {check.name}: {check.detail}")
     linhas.append(f"duração: {report.duration_ms} ms")
     return "\n".join(linhas)
@@ -38,6 +40,8 @@ def main() -> None:
     log_health_check(report)
     if not args.json_only:
         print(render(report))
+    if report.status == "busy":
+        sys.exit(2)
     if not report.passed:
         sys.exit(1)
 

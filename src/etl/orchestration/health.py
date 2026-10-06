@@ -19,6 +19,8 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Callable
 
+import duckdb
+
 from etl.load.config import ConfigurationError, DuckDBSettings
 from etl.load.environment import DatabaseEnvironmentError, HealthCheck, run_health_check
 
@@ -37,6 +39,13 @@ def _default_http_get(url: str, timeout: float) -> int:
 
 
 @dataclass(frozen=True, slots=True)
+class DatabaseHealthCheck(HealthCheck):
+    """Lock de outro processo é contenção; a disponibilidade ainda é desconhecida."""
+
+    busy: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class OrchestrationHealthReport:
     """Resultado combinado das duas checagens de uma execução do health check."""
 
@@ -48,14 +57,24 @@ class OrchestrationHealthReport:
     def passed(self) -> bool:
         return self.prefect.passed and self.database.passed
 
-    def as_dict(self) -> dict[str, str | float | bool]:
+    @property
+    def status(self) -> str:
+        if self.prefect.passed and getattr(self.database, "busy", False):
+            return "busy"
+        return "ok" if self.passed else "degraded"
+
+    def as_dict(self) -> dict[str, str | float | bool | None]:
+        busy = getattr(self.database, "busy", False)
         return {
             "event": HEALTH_CHECK_EVENT,
             "stage": HEALTH_CHECK_STAGE,
-            "status": "ok" if self.passed else "degraded",
+            "status": self.status,
             "prefect_available": self.prefect.passed,
             "prefect_detail": self.prefect.detail,
-            "database_available": self.database.passed,
+            "database_available": None if busy else self.database.passed,
+            "database_status": "busy"
+            if busy
+            else ("available" if self.database.passed else "unavailable"),
             "database_detail": self.database.detail,
             "duration_ms": self.duration_ms,
         }
@@ -100,10 +119,19 @@ def check_database_health(settings: DuckDBSettings) -> HealthCheck:
     ``duckdb_repository._connect_with_retry`` usado pela carga real: rodar
     este health check durante uma carga em andamento pode reportar uma falha
     transitória de lock de escrita que a carga em si teria esperado passar.
+    O erro de lock externo do DuckDB é classificado como busy, sem afirmar
+    indisponibilidade nem executar uma escrita concorrente.
     """
     try:
         report = run_health_check(settings)
     except (ConfigurationError, DatabaseEnvironmentError) as error:
+        cause = error.__cause__
+        while cause is not None:
+            if isinstance(cause, duckdb.IOException) and "could not set lock" in str(cause).lower():
+                return DatabaseHealthCheck(
+                    name="duckdb", passed=False, detail=str(error), busy=True
+                )
+            cause = cause.__cause__
         return HealthCheck(name="duckdb", passed=False, detail=str(error))
 
     if not report.passed:

@@ -50,8 +50,8 @@ def check_once(timeout: float) -> None:
                 reports.append(payload)
         if (
             len(reports) == 1
-            and reports[0].get("status") in ("ok", "degraded")
-            and completed.returncode == (0 if reports[0]["status"] == "ok" else 1)
+            and reports[0].get("status") in ("ok", "degraded", "busy")
+            and completed.returncode == {"ok": 0, "degraded": 1, "busy": 2}[reports[0]["status"]]
         ):
             print(json.dumps(reports[0], ensure_ascii=False), flush=True)
             return

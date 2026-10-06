@@ -28,7 +28,7 @@ SPEC.loader.exec_module(health_monitor)
 
 class PeriodicHealthMonitorTests(unittest.TestCase):
     def test_forwards_one_report_and_accepts_degraded_exit_without_duplicating(self) -> None:
-        for status, exit_code in (("ok", 0), ("degraded", 1)):
+        for status, exit_code in (("ok", 0), ("degraded", 1), ("busy", 2)):
             with self.subTest(status=status):
                 payload = {"event": health_monitor.HEALTH_CHECK_EVENT, "status": status}
                 result = subprocess.CompletedProcess([], exit_code, json.dumps(payload) + "\n", "")
