@@ -5,7 +5,7 @@ stages:
   - lint
   - test
 
-# Runner institucional com capacidade confirmada; a frota sem tags falhou por ENOSPC.
+# Runner institucional com capacidade confirmada na rodada CF-01.
 default:
   tags:
     - inteli-gitlab-runner-prd
