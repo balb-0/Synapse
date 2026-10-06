@@ -90,6 +90,14 @@ ou pesquisa, `source_checksum`, `source_offset`, enunciado, alternativas,
 respostas, e-mail ou tabelas `ingestao_*`. A ausência dessas colunas e do
 arquivo DuckDB é a fronteira técnica do acesso publicado.
 
+## Pacote atual de consumo
+
+O contrato inicial de acesso cobria os quatro cubos. O publicador atual gera sete
+Parquet: quatro cubos e `PUB_QUALIDADE_CAMPO`, `PUB_QUALIDADE_RELACAO` e
+`PUB_QUALIDADE_DUPLICIDADE`, acompanhados de `manifest.json`. Entregue a geração
+inteira; consulte o [guia do projeto Power BI](../powerbi/README.md) para a
+configuração do parâmetro e a distinção entre arquivos de entrada e tabelas calculadas.
+
 ## Diagnóstico
 
 - Se o comando disser que falta uma tabela ou coluna, execute a carga das
@@ -100,6 +108,6 @@ arquivo DuckDB é a fronteira técnica do acesso publicado.
   permissão e estado da carga, depois execute novamente.
 - Se o Power BI não encontrar o arquivo, confirme que a geração inteira foi
   copiada para a máquina Windows e selecione os arquivos locais da subpasta.
-  Uma nova geração tem outro caminho; atualize a origem dos quatro arquivos.
+  Uma nova geração tem outro caminho; ajuste o parâmetro da pasta para os sete arquivos, incluindo as três tabelas de qualidade.
 - Se o relatório somar meses de C03 ou mostrar zero para duração ausente,
   corrija a medida do relatório conforme a tabela acima.

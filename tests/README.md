@@ -12,7 +12,7 @@ A suíte está separada do código em `src/etl/` e organizada por responsabilida
 | [`analytics/`](analytics/) | Dimensões/fatos, grão, recarga, reconciliação e publicação Parquet. |
 | [`orchestration/`](orchestration/) | Flows, retry, retomada, telemetria e contratos de operação. |
 | [`e2e/`](e2e/) | Cenários integrados do pipeline com fixtures. |
-| [`fixtures/`](fixtures/) | Seis CSVs pequenos, manifesto e cenários controlados; emails `example.invalid`. |
+| [`fixtures/`](fixtures/) | Seis CSVs pequenos, contrato esperado e cenários controlados; emails `example.invalid`. |
 | [`test_architecture_docs.py`](test_architecture_docs.py) | Contrato executável da documentação arquitetural. |
 
 Scripts de validação têm testes próprios em `scripts/dmc`, `scripts/data_quality`, `scripts/governance`, `scripts/traceability` e `scripts/analytics`. `discover -s tests` não executa automaticamente todas essas suítes externas.

@@ -17,7 +17,7 @@ A existência das definições do modelo ou do vínculo em `definition.pbir` nã
 
 O parâmetro `PastaPublicacaoBI`, em [`definition/expressions.tmdl`](CentralPesquisasBI.SemanticModel/definition/expressions.tmdl), identifica uma geração autorizada. Ela contém `manifest.json` e sete Parquet: quatro cubos (`PUB_C01_CICLO`, `PUB_C02_PARTICIPACAO`, `PUB_C03_PIPELINE_MENSAL`, `PUB_C04_INSTRUMENTO`) e três tabelas de qualidade (`PUB_QUALIDADE_CAMPO`, `PUB_QUALIDADE_RELACAO`, `PUB_QUALIDADE_DUPLICIDADE`).
 
-Sete arquivos de entrada não significam sete tabelas no modelo. As dimensões de área, tipo de pesquisa, tipo de pergunta, status e tempo são derivadas no Power Query; `DIM_INDICADORES_BLOQUEADOS` registra indisponibilidades. Confira [`definition/model.tmdl`](CentralPesquisasBI.SemanticModel/definition/model.tmdl) para a lista efetiva de tabelas.
+Sete arquivos de entrada não significam sete tabelas no modelo. As dimensões de área, tipo de pesquisa, tipo de pergunta, status e tempo são tabelas calculadas em DAX; `DIM_INDICADORES_BLOQUEADOS` registra indisponibilidades. Confira [`definition/model.tmdl`](CentralPesquisasBI.SemanticModel/definition/model.tmdl) para a lista efetiva de tabelas.
 
 1. Obtenha a geração por canal autorizado, fora do Git. Confira o manifesto e os hashes, não apenas o nome da pasta.
 2. Em Windows, abra `CentralPesquisasBI.pbip` no Power BI Desktop compatível com os formatos do projeto. Registre a versão usada.

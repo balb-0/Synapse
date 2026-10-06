@@ -77,16 +77,16 @@ somente depois de registrar a taxa, a data e a fonte cambial usadas.
 
 ## 6. Cálculo dos cenários
 
-### 6.1 Local — medido parcialmente
+### 6.1 Local - premissa de contratação adicional
 
 | Componente | Quantidade | Cálculo | USD/mês |
 | :--- | ---: | :--- | ---: |
-| Infraestrutura incremental | — | equipamento e conexão já disponíveis | **0,00 medido** |
+| Infraestrutura incremental | — | equipamento e conexão já disponíveis | **0,00 (premissa)** |
 | Energia, depreciação e trabalho | — | não medidos | **não disponível** |
-| **Total de desembolso incremental conhecido** | | | **0,00 medido** |
+| **Contratação adicional de infraestrutura assumida** | | | **0,00 (premissa)** |
 
-O zero local significa somente que não houve fatura incremental de
-infraestrutura. Ele não significa custo total de propriedade igual a zero.
+O zero local assume somente que não se contrata infraestrutura adicional
+porque equipamento e conexão já estão disponíveis. Não é uma medição de fatura. Ele não significa custo total de propriedade igual a zero.
 
 ### 6.2 Piloto — projetado
 
@@ -130,7 +130,7 @@ garantia automática de failover.
 
 | Cenário | Natureza do total | USD/mês | USD/ano | Principal condicionante |
 | :--- | :--- | ---: | ---: | :--- |
-| Local | medido parcialmente | 0,00 | não calculado | energia e trabalho não medidos |
+| Local | premissa | 0,00 | não calculado | energia e trabalho não medidos |
 | Piloto | projetado | 95,10 | 1.141,20 | desligamento após 180 h/mês |
 | Produção de referência | projetado | 1.651,00 | 19.812,00 | sete VMs ligadas continuamente |
 

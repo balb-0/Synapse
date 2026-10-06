@@ -306,8 +306,15 @@ Comando único que encadeia as quatro etapas no mesmo `ETL_DUCKDB_PATH` e só
 publica os sete Parquet quando a reconciliação aprova a carga
 (`reconciled=true`); o manifesto da geração aponta o `load_id` efetivo.
 
+O backfill lê objetos já presentes no bucket e prefixo de entrada. Antes de executar,
+carregue as seis fontes autorizadas no MinIO conforme a [configuração de extração](configuracao-extracao.md)
+e confirme os objetos no bucket `sindusfarma`, prefixo `landing`. `run_pipeline.py`
+não copia fontes nem semeia fixtures; um ambiente vazio não contém dados para a carga.
+Para ensaio sintético, siga o [smoke de extração](smoke-test-extracao.md); seu resultado
+não substitui a geração final autorizada.
+
 ```bash
-# fluxo completo das seis fontes, publicando em ETL_PUBLISH_DIR (/data/publicacao)
+# processa as seis fontes já presentes, publicando em ETL_PUBLISH_DIR (/data/publicacao)
 docker compose run --rm --no-deps runner python scripts/orchestration/run_pipeline.py
 
 # subconjunto de fontes e destino explícito
