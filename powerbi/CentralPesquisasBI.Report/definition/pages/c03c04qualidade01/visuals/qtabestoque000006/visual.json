@@ -257,7 +257,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Acompanhamento das Pesquisas'"
+                  "Value": "'Estoque por área, status e tipo'"
                 }
               }
             },

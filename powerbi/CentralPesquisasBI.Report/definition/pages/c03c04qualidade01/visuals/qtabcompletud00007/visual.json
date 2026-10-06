@@ -241,7 +241,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Acompanhamento das Pesquisas'"
+                  "Value": "'Completude por tabela e campo'"
                 }
               }
             },
