@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -74,6 +75,45 @@ class ExportValidationTests(unittest.TestCase):
         manifest.write_text(json.dumps({"pdf_sha256": "old"}), encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "Hash do PDF"):
             export.check(self.root, {})
+
+    def git(self, *arguments):
+        return subprocess.check_output(
+            ["git", "-c", "user.name=Test", "-c", "user.email=test@example.org", *arguments],
+            cwd=self.root,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+
+    def commit_source(self):
+        self.git("init")
+        self.git("add", "docs/projeto.md")
+        self.git("commit", "-m", "source")
+        return self.git("rev-parse", "HEAD")
+
+    def test_snapshot_includes_link_target_added_after_source(self):
+        source_revision = self.commit_source()
+        target = self.root / "docs/novo.md"
+        target.write_text("Novo documento", encoding="utf-8")
+        self.git("add", "docs/novo.md")
+        self.git("commit", "-m", "add link target")
+        snapshot = export.select_snapshot(self.root, {self.source}, {target})
+        self.assertNotEqual(source_revision, snapshot)
+        self.assertEqual(self.git("rev-parse", "HEAD"), snapshot)
+
+    def test_publication_only_commit_does_not_change_snapshot(self):
+        source_revision = self.commit_source()
+        pdf = self.root / "publication.pdf"
+        pdf.write_bytes(b"PDF")
+        self.git("add", "publication.pdf")
+        self.git("commit", "-m", "publish PDF")
+        self.assertEqual(source_revision, export.select_snapshot(self.root, {self.source}, set()))
+
+    def test_uncommitted_link_target_blocks_snapshot(self):
+        self.commit_source()
+        target = self.root / "docs/novo.md"
+        target.write_text("Ainda não commitado", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "não existe na revisão"):
+            export.select_snapshot(self.root, {self.source}, {target})
 
 
 if __name__ == "__main__":

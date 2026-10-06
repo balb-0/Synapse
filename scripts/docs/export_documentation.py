@@ -135,6 +135,27 @@ class DocumentHTML(HTMLParser):
         self.parts.append(f"&#{name};")
 
 
+def select_snapshot(root: Path, inputs: set[Path], local_links: set[Path]) -> str:
+    """Select a committed snapshot with every local hyperlink destination."""
+    linked_paths = inputs | local_links
+    revision = subprocess.check_output(
+        ["git", "log", "-1", "--format=%H", "--"]
+        + [p.relative_to(root).as_posix() for p in sorted(linked_paths)],
+        cwd=root,
+        text=True,
+    ).strip()
+    for target in local_links:
+        relative = target.relative_to(root).as_posix()
+        result = subprocess.run(
+            ["git", "cat-file", "-e", f"{revision}:{relative}"],
+            cwd=root,
+            capture_output=True,
+        )
+        if result.returncode:
+            raise ValueError(f"Link local não existe na revisão publicada: {relative}")
+    return revision
+
+
 def prepare(root: Path = ROOT) -> tuple[str, dict]:
     from markdown_it import MarkdownIt
 
@@ -164,22 +185,7 @@ def prepare(root: Path = ROOT) -> tuple[str, dict]:
     inputs.update((root / FONTS).glob("*"))
     # Ignore publication-only commits when selecting a snapshot, avoiding a SHA
     # cycle between the PDF and the commit that adds the PDF and its manifest.
-    linked_paths = inputs | parser.local_links
-    repository_revision = subprocess.check_output(
-        ["git", "log", "-1", "--format=%H", "--"]
-        + [p.relative_to(root).as_posix() for p in sorted(linked_paths)],
-        cwd=root,
-        text=True,
-    ).strip()
-    for target in parser.local_links:
-        relative = target.relative_to(root).as_posix()
-        result = subprocess.run(
-            ["git", "cat-file", "-e", f"{repository_revision}:{relative}"],
-            cwd=root,
-            capture_output=True,
-        )
-        if result.returncode:
-            raise ValueError(f"Link local não existe na revisão publicada: {relative}")
+    repository_revision = select_snapshot(root, inputs, parser.local_links)
     body = "".join(parser.parts).replace(
         f"{REPOSITORY}/-/blob/{revision}/", f"{REPOSITORY}/-/blob/{repository_revision}/"
     )
