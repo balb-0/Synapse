@@ -138,6 +138,13 @@ class ExportValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "divergente no stage"):
             export.select_snapshot(self.root, {self.source}, {target})
 
+    def test_shallow_history_blocks_snapshot(self):
+        self.commit_source()
+        shallow = self.root / "shallow"
+        self.git("clone", "--depth", "1", self.root.as_uri(), str(shallow))
+        with self.assertRaisesRegex(ValueError, "Histórico Git incompleto"):
+            export.select_snapshot(shallow, {shallow / "docs/projeto.md"}, set())
+
 
 if __name__ == "__main__":
     unittest.main()

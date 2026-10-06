@@ -137,6 +137,11 @@ class DocumentHTML(HTMLParser):
 
 def select_snapshot(root: Path, inputs: set[Path], local_links: set[Path]) -> str:
     """Select a committed snapshot with every local hyperlink destination."""
+    shallow = subprocess.check_output(
+        ["git", "rev-parse", "--is-shallow-repository"], cwd=root, text=True
+    ).strip()
+    if shallow == "true":
+        raise ValueError("Histórico Git incompleto: execute git fetch --unshallow")
     linked_paths = inputs | local_links
     revision = subprocess.check_output(
         ["git", "log", "-1", "--format=%H", "--"]

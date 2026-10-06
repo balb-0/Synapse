@@ -13,6 +13,11 @@ Pango e Fontconfig disponíveis. Em Debian/Ubuntu, instale `libpango-1.0-0`,
 `libpangoft2-1.0-0` e `fontconfig`; `poppler-utils` permite a inspeção visual.
 As dependências de exportação ficam separadas das dependências do ETL:
 
+Use um clone com histórico Git completo para obter as revisões de proveniência.
+Em clones rasos, execute `git fetch --unshallow` antes da exportação. O exportador
+recusa histórico incompleto. O job `docs-publication` da CI usa `GIT_DEPTH: "0"`
+e valida o artefato sem renderizar novamente; nesse modo, não precisa de Pango.
+
 ```sh
 python -m venv /tmp/g05-docs-venv
 /tmp/g05-docs-venv/bin/pip install -r requirements-docs.txt
