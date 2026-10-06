@@ -2,13 +2,35 @@
 
 Este ensaio usa dados **sintéticos**. A referência `synthetic-bi02-fixture` no
 manifesto identifica o fixture, não uma carga conciliada de produção. A execução
-local de Python valida os Parquet e o contrato do modelo; a aceitação visual no
-Power BI Desktop depende de uma máquina Windows com o aplicativo instalado.
+local de Python valida os Parquet e o contrato do modelo. A execução no
+Desktop real em VM Windows foi registrada abaixo; a aceitação visual do
+relatório e a geração final têm evidências próprias.
 
 ## Preparar a geração
 
-No checkout, com as dependências de `requirements.txt` instaladas, escolha uma
+Use o publicador corrigido da camada analítica, commit
+`894445ddc92a7fce172b4f90c09b52f5650f354e`, incluído no
+[MR !289](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/289),
+para gerar o fixture. A revisão integrada `be132f1` usada na regeneração
+contém essa correção; o script do fixture não foi alterado para a execução. Um checkout anterior à correção
+da chave composta de respostas/questões reproduz a divergência histórica
+de I18 descrita no fim desta página. Com as dependências de
+`requirements.txt` instaladas, escolha uma
 pasta privada **fora de qualquer repositório Git**:
+
+Antes de executar, use um checkout que contenha o script BI-02 e esse commit
+upstream. Confira a ancestralidade:
+
+```bash
+git merge-base --is-ancestor 894445ddc92a7fce172b4f90c09b52f5650f354e HEAD
+```
+
+Saída diferente de zero não satisfaz o pré-requisito: integre o upstream
+corrigido antes de gerar. Confira ainda que a publicação de relações usa
+`EXISTS` e que respostas/questões compara pesquisa e pergunta juntas. A
+branch isolada de BI-02, sem essa integração, não foi declarada validada com
+o publicador corrigido. O recibo de Desktop sempre identifica a revisão do
+pacote integrado efetivamente executado.
 
 ```bash
 PYTHONPATH=src python scripts/analytics/gerar_fixture_bi.py \
@@ -65,5 +87,52 @@ Contagens esperadas deste fixture:
 
 Guarde um registro de aceitação com versão do Power BI Desktop, geração,
 contagens, consultas DAX, erros e capturas de tela. O teste automatizado de
-BI-02 não substitui essa execução no Desktop. Até a execução em Windows, a
-importação visual e o refresh das sete partições permanecem **pendentes**.
+BI-02 não substitui essa execução no Desktop. A conferência registrada abaixo
+prova a importação e as consultas do fixture; não substitui o refresh final
+em BI-05 nem a validação visual das páginas migradas.
+
+## Execução registrada em Windows
+
+O [recibo sanitizado](evidencias/bi02/desktop-fixture.json) registra consultas
+reais no Analysis Services local do Power BI Desktop em
+2026-10-06 às 14:08:45 UTC, depois da sincronização do relógio da VM.
+A execução foi automatizada; não há declaração de operação por uma pessoa.
+A geração `665cb490f85d49529488b4910e094923` usa a referência
+`synthetic-bi02-fixture`, com as sete contagens iguais à tabela acima.
+
+As 13 partições do projeto e duas partições automáticas de data estavam
+processadas sem erro. O pacote PBIP integrado de origem `f068a01` teve 98 arquivos
+conferidos por hash; a projeção semântica via TOM comparou 128 itens de origem
+e do engine, com zero diferenças. O caminho local do parâmetro foi conferido
+separadamente, pois sua adaptação para Windows não integra o hash do modelo.
+TOM não fornece um marcador do commit exato dentro do engine.
+
+As consultas retornaram totais C01/C02/C04 de 4/4/3, validação ponderada de
+5 dias com base 2 e preenchimento ponderado de 10 minutos com base 2. Para
+C03, o fechamento de 28/02/2026 e estoque 4 coincidem na soma direta e na
+medida BI-04. Entradas/saídas continuam nulas e o catálogo tem 18 entradas,
+17 sem dado. A fonte CB-16 v3 e o aspecto visual do relatório não são
+aceitos por este ensaio sintético.
+
+O recibo desta rodada histórica é do pacote integrado `f068a01`, SHA256
+`88a33f4963e9f2912794ad165c003d03822d24986817c2ce5909c8551207f89e`,
+consultado em Power BI Desktop `2.158.1177.0` no Windows `10.0.26200.0`.
+O recibo inicial do pacote `9726fd6` permanece no mesmo diretório de
+evidências com sufixo `-inicial`; ele é histórico e usa o relógio já
+sincronizado. Ambos usam o fixture, não a fonte final CB-16.
+
+## Limite identificado no fixture histórico
+
+A geração sintética `665cb490f85d49529488b4910e094923` antecede a correção
+da identidade composta de respostas para questões. A publicação de
+qualidade somava 11 correspondências em 13 chaves informadas; a consulta
+independente com `(pesquisa_id, pergunta_id)` produz 10/13. A quantidade de
+linhas das sete tabelas não muda, por isso as contagens sozinhas não
+detectaram essa divergência. Os recibos dessa geração são históricos e
+marcados `historical_stale_publication`; não aceitam o KPI I18.
+
+O fixture foi regenerado com o publicador corrigido, na geração
+`2c699f0b066847ee8559f1e31d88f49d`, conservando as sete contagens e
+publicando 10/13. Sua nova execução Desktop ainda precisa do recibo próprio.
+A fonte v3 tem todas as relações de qualidade conferidas contra a ingestão
+sem divergências; este problema é da publicação sintética antiga.

@@ -67,3 +67,13 @@ no Power BI Desktop:
   único mês, bate ao somar por Área → Tipo → Perfil dentro desse mês — nunca
   somado entre meses diferentes (regra semiaditiva já registrada em
   `docs/especificacao-medidas-bi.md`).
+
+## Evidência de hierarquias carregadas
+
+A [conferência TOM no Desktop](evidencias/bi03/desktop-modelo.json) incluiu as
+hierarquias e colunas na projeção semântica do modelo ativo, sem diferenças
+para o TMDL conferido. As consultas das publicações executaram com o modelo
+processado. Esta evidência confirma as definições carregadas; não registra
+uma pessoa usando os níveis de drill em cada visual. Essa navegação e a
+reconciliação de totais por todos os subníveis continuam fora do escopo do
+recibo sintético anexado.

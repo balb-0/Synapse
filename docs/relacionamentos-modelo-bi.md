@@ -94,3 +94,43 @@ não acabar com dois campos "Área" diferentes no mesmo relatório. Coluna
 oculta continua funcionando normalmente como lado do relacionamento — ocultar
 não desativa o relacionamento, só tira a coluna da lista de campos do
 relatório.
+
+## Modelo carregado no Desktop
+
+O [recibo do fixture](evidencias/bi03/desktop-modelo.json) registra consulta
+real em VM Windows em 06/10/2026 às 14:08:45 UTC. As 13 partições do projeto
+estavam processadas sem erro; o engine respondeu às consultas das sete
+publicações. A comparação TOM do TMDL conferido com o engine teve 128 itens
+e zero diferenças no escopo de tabelas, colunas, medidas, partições,
+relacionamentos, hierarquias e expressões.
+
+A comparação exclui tabelas automáticas de data, seus relacionamentos e
+colunas internas de numeração de linha. Portanto, as afirmações de
+cardinalidade e filtro acima descrevem os relacionamentos declarados pelo
+projeto. Elas não descrevem todos os objetos internos que o Desktop cria.
+O pacote sintético carregado foi ligado ao commit de origem `f068a01` pelo
+inventário de 98 arquivos; o engine não fornece um marcador desse commit.
+A carga v3 e a navegação visual pelas hierarquias têm aceites separados.
+
+O recibo desta rodada histórica é do pacote integrado `f068a01`, SHA256
+`88a33f4963e9f2912794ad165c003d03822d24986817c2ce5909c8551207f89e`,
+consultado em Power BI Desktop `2.158.1177.0` no Windows `10.0.26200.0`.
+O recibo inicial do pacote `9726fd6` permanece no mesmo diretório de
+evidências com sufixo `-inicial`; ele é histórico e usa o relógio já
+sincronizado. Ambos usam o fixture, não a fonte final CB-16.
+
+## Limite identificado no fixture histórico
+
+A geração sintética `665cb490f85d49529488b4910e094923` antecede a correção
+da identidade composta de respostas para questões. A publicação de
+qualidade somava 11 correspondências em 13 chaves informadas; a consulta
+independente com `(pesquisa_id, pergunta_id)` produz 10/13. A quantidade de
+linhas das sete tabelas não muda, por isso as contagens sozinhas não
+detectaram essa divergência. Os recibos dessa geração são históricos e
+marcados `historical_stale_publication`; não aceitam o KPI I18.
+
+O fixture foi regenerado com o publicador corrigido, na geração
+`2c699f0b066847ee8559f1e31d88f49d`, conservando as sete contagens e
+publicando 10/13. Sua nova execução Desktop ainda precisa do recibo próprio.
+A fonte v3 tem todas as relações de qualidade conferidas contra a ingestão
+sem divergências; este problema é da publicação sintética antiga.
