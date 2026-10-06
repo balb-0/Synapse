@@ -54,9 +54,14 @@ perguntas por tipo é publicável.
 
 | Medida | Numerador | Denominador | Grão publicado | Tratamento de nulo | Tratamento de duplicata |
 | :-- | :-- | :-- | :-- | :-- | :-- |
-| Completude por Campo (I16) | `SUM(qtd_preenchidas)` de `PUB_QUALIDADE_CAMPO` | `SUM(qtd_linhas)` do mesmo arquivo | Uma linha por (tabela, campo) | `qtd_preenchidas` já é `COUNT(coluna)`, que ignora nulo por definição SQL; nenhum tratamento adicional necessário. | Não aplicável — cada (tabela, campo) é uma linha única no arquivo. |
+| Completude de preenchimento (`Completude`; não é I16 aplicável) | `SUM(qtd_preenchidas)` de `PUB_QUALIDADE_CAMPO` | `SUM(qtd_linhas)` do mesmo arquivo; todas as linhas por campo, sem filtro de aplicabilidade | Uma linha por (tabela, campo); total agrega células, não linhas distintas | `qtd_preenchidas` é `COUNT(coluna)` após transformação; nulo condicional permanece na base, sem representar defeito. Base zero retorna `BLANK()`. | Não aplicável — cada (tabela, campo) é uma linha única no arquivo. |
 | Integridade Referencial (I18) | `SUM(qtd_chaves_correspondentes)` de `PUB_QUALIDADE_RELACAO` | `SUM(qtd_chaves_informadas)` do mesmo arquivo | Uma linha por relação (ex.: `respondentes.empresa_id`) | Chave estrangeira nula é excluída do denominador na própria consulta de origem (`WHERE ... IS NOT NULL`); FK nula não conta como órfã nem como correspondente. | Não aplicável, mesmo motivo. |
 | Taxa de Duplicidade (I17) | `SUM(qtd_linhas) - SUM(qtd_chaves_distintas)` de `PUB_QUALIDADE_DUPLICIDADE` | `SUM(qtd_linhas)` do mesmo arquivo | Uma linha por tabela de origem com chave de negócio | Não se aplica (a medida mede duplicata, não trata nulo de chave). | É a própria medida: mede quanto do total é duplicata de chave de negócio na tabela de ingestão bruta, antes da view "_atual" escolher a versão corrente. |
+
+I16 (completude aplicável) permanece indisponível na camada BI até a
+homologação e publicação das regras de obrigatoriedade por campo e
+tipo/status. A razão de preenchimento acima não substitui esse requisito
+nem sua meta de governança.
 
 ## Nota sobre proibição de contar linha como respondente
 

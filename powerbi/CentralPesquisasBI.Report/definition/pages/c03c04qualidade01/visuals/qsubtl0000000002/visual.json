@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Estoque mensal observado por status/área/tipo/perfil (C03, sem soma entre meses) · Perguntas por área e tipo (C04) · Completude, integridade e duplicidade (I16–I18) · Entradas/saídas, prorrogação e I19/I20 sem dado publicado — nunca zero",
+                    "value": "Estoque mensal observado por status/área/tipo/perfil (C03, sem soma entre meses) · Perguntas por área e tipo (C04) · Preenchimento físico, integridade (I18) e duplicidade (I17) · Entradas/saídas, prorrogação e I16 aplicável e I19/I20 sem dado publicado — nunca zero",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "14px",

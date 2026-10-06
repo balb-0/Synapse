@@ -59,9 +59,9 @@
                 }
               },
               "queryRef": "PUB_QUALIDADE_CAMPO.Completude",
-              "nativeQueryRef": "Completude (I16)",
+              "nativeQueryRef": "Completude de preenchimento",
               "active": true,
-              "displayName": "Completude (I16)"
+              "displayName": "Completude de preenchimento"
             }
           ]
         }
@@ -241,7 +241,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Completude por tabela e campo'"
+                  "Value": "'Preenchimento por tabela e campo'"
                 }
               }
             },

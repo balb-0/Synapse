@@ -77,17 +77,27 @@ comprovam execução no Power BI Desktop.
   operacionais fora do catálogo I01–I25, com motivo de indisponibilidade
   quando falta histórico de transições. Não recebem o identificador I05,
   que pertence à taxa de prorrogação.
-- O pacote atual não distingue fechamento observado com estoque zero de
-  ausência de fechamento quando ambos não produzem linhas C03. A publicação
-  precisa preservar essa evidência antes do aceite desse caso; o consumidor
-  não pode substituir a ausência por zero.
+- A correção CF-04 distingue fechamento observado vazio por marcador
+  agregado global com estoque zero e recortes nulos. Ausência de fechamento
+  continua sem linha. Ver [contrato do marcador](publicacao-c03-fechamentos.md).
+  Os recibos Desktop abaixo conferiram o pacote anterior `ff760d6`.
 - C04 conta associações pesquisa-pergunta, não respostas ou respondentes.
 - Parseabilidade e divergência de título não têm consulta publicada nesta
-  geração. `DIM_INDICADORES_BLOQUEADOS` contém 18 entradas: 17 com status
+  geração histórica. Após CF-05, `DIM_INDICADORES_BLOQUEADOS` contém 19 entradas: 18 com status
   "Sem dado" e uma "Parcial". O catálogo registra os motivos; não implementa
   uma medida numérica vazia para cada entrada. As duas medidas individuais
   `Taxa de Prorrogacao` e `Representatividade` retornam texto com o motivo,
   conforme [sinalização](sinalizacao-indicadores-bloqueados.md).
+
+## Correções posteriores à conferência Desktop
+
+CF-04 alterou a publicação de C03 observado vazio e CF-05 passou a apresentar
+a taxa física como "Completude de preenchimento". I16, completude aplicável,
+permanece indisponível sem regras homologadas de obrigatoriedade.
+As capturas e os recibos de `ff760d6` permanecem evidência histórica; não
+comprovam abertura, refresh nem renderização dessas alterações no Desktop.
+A VM ficou desligada nesta rodada. Os testes de código verificam os novos
+contratos; o aceite visual das alterações exige uma nova rodada Desktop.
 
 ## Tratamento de erro
 
@@ -236,16 +246,16 @@ no engine; não são medidas publicadas do modelo.
 | Tabulação | 3020 | 330 | 9,151515151515152 |
 | Ciclo total | 9468 | 331 | 28,604229607250755 |
 
-C02 v3 retornou soma nula, base 0 e média nula. A completude foi
+C02 v3 retornou soma nula, base 0 e média nula. A completude física de preenchimento foi
 1844495/2584786 (0,7135967929259908), a integridade 833146/833146 (1),
 e a duplicidade (275840-275840)/275840 (0). Os numeradores e denominadores
 conferem com a apuração independente da ingestão. O catálogo manteve
 18 entradas/17 estados "Sem dado" e duas medidas textuais individuais.
 A taxa diagnóstica de finalização não é medida DAX publicada e não integra
 os recibos públicos. C03 v3 retornou data e estoque nulos com motivo
-textual de indisponibilidade. O contrato não representa fechamento global
-observado sem grupo; esse caso continua sem aceite, sem converter ausência
-em zero.
+textual de indisponibilidade. O pacote Desktop `ff760d6` não representava fechamento global
+observado sem grupo. Esse resultado é histórico; não prova a correção
+posterior descrita abaixo.
 
 A [troca final](evidencias/bi06/troca-fixture-corrigido-v3-final.json)
 liga as gerações e os recibos de consulta. Os caminhos locais ficam

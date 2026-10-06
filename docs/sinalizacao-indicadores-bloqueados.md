@@ -46,20 +46,25 @@ sentinela nem inferir zero.
 
 ## Catálogo navegável — `DIM_INDICADORES_BLOQUEADOS`
 
-Tabela calculada (`DATATABLE`, sem fonte externa) com um total de 18 linhas:
-os 17 indicadores do catálogo I01–I25 que
+Tabela calculada (`DATATABLE`, sem fonte externa) com um total de 19 linhas:
+os 18 indicadores do catálogo I01–I25 que
 [`docs/indicadores-publicaveis-bi.md`](indicadores-publicaveis-bi.md) (DX-01)
 classifica como "Sem dado" na camada BI, mais I03, classificado como
 "Parcial". Colunas: `indicador` (ID), `medida` (nome), `status` ("Sem dado"
 ou "Parcial") e `motivo` — o mesmo texto-base já registrado em DX-01, para
 não ter duas versões do motivo divergindo com o tempo. A medida `Qtd
-Indicadores Sem Dado` conta quantos têm `status = "Sem dado"` (17, sem
+Indicadores Sem Dado` conta quantos têm `status = "Sem dado"` (18, sem
 contar o parcial).
 
 Esta tabela não substitui as medidas de texto de DX-07/DX-08: ela é a visão
 consolidada para um card de resumo ("N indicadores sem dado nesta versão") ou
 uma tabela de exceções no relatório; as medidas de texto são o que aparece no
 lugar do número quando alguém tenta consumir o indicador específico.
+
+I16 (completude aplicável) integra esse catálogo porque as regras homologadas
+de obrigatoriedade por campo e tipo/status não estão publicadas. A medida
+`Completude` disponível é preenchimento físico sobre todas as linhas por
+campo; sua existência não altera o bloqueio de I16.
 
 ## Verificação
 

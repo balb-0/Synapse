@@ -79,7 +79,8 @@ semântico, com a regra estatística correspondente (§ regras DX-03):
 | % participação por empresa | contagem da empresa ÷ total de participações do recorte | denominador zero → indisponível (nunca 0%) | [pendente: DX-08] |
 | Tempo de ciclo entre marcos | diferença entre pares de datas nomeados (RF03) | par incompleto → indisponível (nunca zero dias) | [pendente: DX-07] |
 | Estoque mensal do pipeline | último valor do período (semiaditiva — **não** soma entre meses) | mês sem snapshot → indisponível | [pendente: DX-07] |
-| Completude por campo | válidos ÷ avaliados, por regra, com ausência permitida separada | regra sem avaliação → indisponível | [pendente: DX-09] |
+| Completude de preenchimento | `SUM(qtd_preenchidas) ÷ SUM(qtd_linhas)`, todas as linhas por campo | base zero → indisponível; nulos condicionais permanecem na base | [implementado: DX-09, diagnóstico físico; não implementa I16 aplicável] |
+| Completude aplicável (I16) | preenchidos ÷ esperados por regra homologada | regra de obrigatoriedade não publicada → indisponível | [pendente: regras homologadas e publicação por aplicabilidade] |
 | Indicador bloqueado | rótulo "indisponível" + motivo textual | nunca exibido como zero | [pendente: DX-10] |
 
 <sup>Material produzido pelos autores (2026), conforme contratos dos cubos e regras estatísticas</sup>
