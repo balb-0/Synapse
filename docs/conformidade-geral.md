@@ -19,8 +19,8 @@ Leia o [portal](index.md), execute os comandos do [README](../README.md) e confi
 | 9 | Histórico adequado | Datas e escopo por sprint no README. | A Sprint 5 não é apresentada como release concluída. |
 | 10 | Licença | README, CC BY 4.0 com link oficial. | Licença do repositório não autoriza divulgar bases restritas. |
 | 11 | Inteli na licença | README, instituição e link institucional explícitos. | Inteli é a instituição; Synapse é o grupo. |
-| 12 | Grupo/integrantes na licença | README, atribuição Synapse (G05), Inteli e sete integrantes via seção vinculada. | Os nomes completos ficam na mesma página. |
-| 13 | Links na licença | Link do Inteli, da licença e dos integrantes via seção Integrantes. | Restrições externas de acesso continuam possíveis. |
+| 12 | Grupo/integrantes na licença | README, atribuição Synapse (G05), Inteli e sete integrantes com nomes e links no bloco da licença. | Os nomes completos também constam na seção Integrantes. |
+| 13 | Links na licença | Links do Inteli, da licença e dos sete integrantes no bloco de atribuição. | Restrições externas de acesso continuam possíveis. |
 | 14 | Referências externas | [Referências](referencias.md) e [projeto, seção 7](projeto.md#7-referências). | Documentação `stable` pode mudar; execução usa dependências fixadas. |
 | 15 | Remoção de template não utilizado | README descreve este projeto e seus comandos. | Fichas de sessões ainda não executadas são instrumentos de coleta, não resultado preenchido. |
 | 16 | README coerente com repositório | Árvore, comandos e links conferidos contra arquivos versionados. | Componentes presentes não comprovam integração ou operação produtiva. |

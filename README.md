@@ -45,7 +45,9 @@ A camada de apresentação usa Power BI (PBIP, PBIR e TMDL). `src/pbir dash/` co
 ```
 g05/
 ├─ docs/
-│  ├─ index.md                                        # Índice da documentação
+│  ├─ index.md                                        # Portal da documentação
+│  ├─ referencias.md                                  # Fontes técnicas e normativas
+│  ├─ conformidade-geral.md                            # Matriz dos 37 critérios recebidos
 │  ├─ projeto.md                                      # Documento principal do produto
 │  ├─ contexto_organizacional_+_requisitos_da_solução_analítica.md
 │  │                                                   # Entrada formal do Entregável A
@@ -88,6 +90,7 @@ g05/
 ├─ observability/kibana/                              # Saved objects do painel operacional (OB-08)
 ├─ observability/prefect-logging.yml                  # Perfil de logging JSON do Prefect para o coletor
 ├─ Dockerfile                                         # Imagem do runner do ETL
+├─ requirements-transformation-dev.txt                # Ruff, cobertura e JUnit
 ├─ requirements.txt                                   # Dependências de execução do ETL
 ├─ .env.example                                       # Modelo das variáveis de ambiente do ETL
 ├─ .gitlab/
@@ -168,4 +171,14 @@ O código e os artefatos entregues pela equipe estão neste repositório G05. N�
 
 O projeto **Governança e Integração de Dados da Central de Pesquisas**, do grupo **Synapse (G05)** no [Inteli](https://www.inteli.edu.br/), usa a licença [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
 
-A atribuição inclui Synapse, Inteli e os sete integrantes identificados com seus perfis na [seção Integrantes](#integrantes). A licença do repositório não autoriza divulgar dados pessoais ou bases restritas recebidas do parceiro.
+A atribuição inclui **Synapse (G05)**, [Inteli](https://www.inteli.edu.br/) e:
+
+- [Anna Riciopo](https://www.linkedin.com/in/anna-riciopo/)
+- [Karine Paixão](https://www.linkedin.com/in/karine-paixao/)
+- [Lucas Nunes Matheus](https://www.linkedin.com/in/lucas-nunes-matheus/)
+- [Marlos Guedes](https://www.linkedin.com/in/marlos-do-carmo-guedes-366987250/)
+- [Milena Castro Vieira](https://www.linkedin.com/in/milena-castro-vieira/)
+- [Otávio Vasconcelos](https://www.linkedin.com/in/otavio-vasc/)
+- [Vitor Balbo](https://www.linkedin.com/in/vitor-balbo/)
+
+ A licença do repositório não autoriza divulgar dados pessoais ou bases restritas recebidas do parceiro.
