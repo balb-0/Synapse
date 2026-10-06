@@ -40,3 +40,17 @@ Memória com precisão interna: piloto `49.297,55558 + 12×4.921,857375 = 108.35
 | Produção | Alto | −93.182,07 | −34,82% | Sem payback |
 
 Exemplo piloto alto: `12×14.536,38056 − 108.359,84408 = R$ 66.076,72`; `66.076,72264 ÷ 108.359,84408 = 60,98%`; `49.297,55558 ÷ (14.536,38056 − 4.921,857375) = 5,13 meses`. O payback supõe ganho cheio desde o primeiro mês e custo mensal constante. **ROI financeiro baseado em caixa e VPL: indisponíveis**; faltam economia contratual comprovada e taxa de desconto fundamentada. Por isso não publicamos VPL.
+
+## Sensibilidade e fontes para auditoria
+
+Mantendo 4 horas/mês de retrabalho e erros evitados e 4 horas liberadas por relatório, com R$ 139,77289/h, o piloto precisaria de **8 relatórios/mês** para cobrir a operação e **16 relatórios/mês** para recuperar também o investimento em 12 meses. A produção precisaria de **28** e **39 relatórios/mês**, respectivamente. A fórmula antes do arredondamento para cima é `N = (custo mensal + investimento/12 − 4×tarifa_hora) ÷ (4×tarifa_hora)`; para apenas cobrir operação, usar investimento igual a zero. Esses volumes só são úteis se o tempo liberado por relatório for confirmado.
+
+Fontes consultadas em 06/10/2026:
+
+- [SGD/MGI, Portaria nº 750/2023 consolidada, Anexo II](https://www.gov.br/governodigital/pt-br/contratacoes-de-tic/legislacao/modelo-de-contratacao-de-servicos-de-desenvolvimento-manutencao-e-sustentacao-de-software/portaria-sgd-mgi-no-750-de-20-de-marco-de-2023): salário e fator-k de referência; não são salários observados no parceiro.
+- [Banco Central, PTAX de 05/10/2026](https://ptax.bcb.gov.br/ptax_internet/consultarUltimaCotacaoDolar.do): conversão de referência, sujeita a spread e tributos.
+- [Microsoft, preços do Power BI no Brasil](https://www.microsoft.com/pt-br/power-platform/products/power-bi/pricing): hipótese de licenças Pro por usuário/mês, sem impostos.
+- [AWS Pricing Calculator](https://calculator.aws/) e `docs/estimativa-custos-ambiente.md`: a infraestrutura em USD continua paramétrica até cotação regional.
+- `docs/projeto.md` e `docs/matriz-evidencias-problem-canvas.md`: objetivo de reduzir trabalho manual e ausência de linha de base medida.
+
+O retorno deve ser recalculado quando FN-02, FN-03 ou FN-04 forem atualizados. Antes de decisão financeira, colher horas e custos observados, preço contratado, usuários licenciados, rampa de adoção e taxa de desconto aprovada se houver pedido de VPL.
