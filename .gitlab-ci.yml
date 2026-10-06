@@ -38,6 +38,7 @@ test:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH'
   script:
+    - apt-get update && apt-get install -y --no-install-recommends git
     - pip install -r requirements.txt -r requirements-transformation-dev.txt
     - python scripts/architecture/validate_architecture_docs.py
     - python scripts/transformation/render_schema.py --check
@@ -68,6 +69,7 @@ docs:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH'
   script:
+    - apt-get update && apt-get install -y --no-install-recommends git
     - pip install -r requirements-docs.txt
     - python scripts/docs/export_documentation.py --check
     - python -m unittest discover -s tests/docs -t . -v
