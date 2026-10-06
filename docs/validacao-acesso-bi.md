@@ -280,3 +280,37 @@ A data da consulta e o intervalo da captura são campos distintos. Essa imagem
 não é uma captura da página do relatório nem fornece um marcador Git dentro
 do engine. A [conferência final BI-05](evidencias/bi05/conferencia-desktop-v3-final.json)
 compara os recibos com a origem e a publicação da mesma carga.
+
+### C01: produção e volume
+
+![Página C01 no Power BI Desktop com o fixture sintético corrigido](evidencias/bi06/final-fixture-c01.png)
+
+Captura final do relatório no Power BI Desktop com origem no fixture sintético,
+geração `2c699f0b066847ee8559f1e31d88f49d`, pacote `ff760d6`.
+Capturada entre 15:45:00 e 15:45:01 UTC de 06/10/2026.
+
+### C02: participação agregada
+
+![Página C02 no Power BI Desktop com o fixture sintético corrigido](evidencias/bi06/final-fixture-c02.png)
+
+Captura final do relatório no Power BI Desktop com origem no fixture sintético,
+geração `2c699f0b066847ee8559f1e31d88f49d`, pacote `ff760d6`.
+As duas leituras do relógio registraram 15:44:23 UTC de 06/10/2026.
+
+### C03/C04: estoque, instrumento e qualidade
+
+![Página C03/C04 e qualidade no Power BI Desktop com o fixture sintético corrigido](evidencias/bi06/final-fixture-c03-c04.png)
+
+Captura final do relatório no Power BI Desktop com origem no fixture sintético,
+geração `2c699f0b066847ee8559f1e31d88f49d`, pacote `ff760d6`.
+Capturada entre 15:45:13 e 15:45:14 UTC de 06/10/2026.
+
+### V3: resumo dos recibos de consulta ao motor
+
+![Console nativa com resumo agregado dos recibos reais do motor do Desktop para v3](evidencias/bi06/final-v3-summary.png)
+
+Captura final de console nativa com origem nos recibos reais de consulta ao motor
+do Power BI Desktop, geração v3 `6b1eaa686aac43b18b6d6545e1c2c5f1`,
+pacote `ff760d6`. Capturada entre 15:50:41 e 15:50:42 UTC de 06/10/2026.
+Esta imagem mostra o resumo agregado dos recibos; não mostra uma página do
+relatório v3 nem o diálogo de atualização.
