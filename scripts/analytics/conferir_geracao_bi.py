@@ -11,6 +11,7 @@ from pathlib import Path
 
 import duckdb
 
+from etl.analytics.load import current_source_digests, selected_respondentes
 from etl.analytics.publish import PUBLICATIONS
 
 EXPECTED_COLUMNS = {
@@ -82,6 +83,32 @@ def _parquet(con: duckdb.DuckDBPyConnection, path: Path, sql: str):
     return con.execute(sql, [str(path)]).fetchall()
 
 
+def _check_load_reference(con: duckdb.DuckDBPyConnection, reference: str) -> dict:
+    has_control = con.execute(
+        "SELECT COUNT(*) FROM information_schema.tables "
+        "WHERE table_schema = current_schema() AND table_name = 'analytics_load_run'"
+    ).fetchone()[0]
+    if not has_control:
+        return {"status": "sem_controle_de_carga_disponivel"}
+    run = con.execute(
+        "SELECT load_id, pesquisas_digest, empresas_digest, clientes_digest, "
+        'questoes_digest, respondentes_checksum FROM "analytics_load_run" '
+        "ORDER BY loaded_at DESC, load_id DESC LIMIT 1"
+    ).fetchone()
+    _require(
+        run is not None and run[0] == reference, "load_reference diverge da última carga analítica"
+    )
+    current = current_source_digests(con)
+    for index, source in enumerate(("pesquisas", "empresas", "clientes", "questoes"), 1):
+        _require(run[index] == current[source], f"fonte {source} diverge da carga analítica")
+    selected = selected_respondentes(con)
+    _require(
+        run[5] == (selected[0] if selected else None),
+        "fonte respondentes diverge da carga analítica",
+    )
+    return {"status": "confere", "load_id": run[0]}
+
+
 def conferir(
     geracao: Path, database: Path, desktop: Path | None = None, *, sintetico: bool = False
 ) -> dict:
@@ -121,6 +148,7 @@ def conferir(
     }
     con = duckdb.connect(str(database), read_only=True)
     try:
+        report["preparation"]["source_control"] = _check_load_reference(con, reference)
         for name, columns in EXPECTED_COLUMNS.items():
             entry = tables[name]
             _require(isinstance(entry, dict), f"{name}: entrada inválida")
@@ -190,29 +218,59 @@ def conferir(
         if desktop is not None:
             receipt = json.loads(desktop.read_text())
             _require(receipt.get("generation") == geracao.name, "Desktop: geração diferente")
+            receipt_tables = receipt.get("tables")
             _require(
-                receipt.get("tables") == report["preparation"]["tables"],
+                isinstance(receipt_tables, dict)
+                and set(receipt_tables) == set(EXPECTED_COLUMNS)
+                and all(type(value) is int and value >= 0 for value in receipt_tables.values())
+                and receipt_tables == report["preparation"]["tables"],
                 "Desktop: contagens divergentes",
             )
-            aggregate = receipt.get("aggregate")
-            _require(isinstance(aggregate, dict), "Desktop: agregado ausente")
-            table = aggregate.get("table")
+            aggregates = receipt.get("aggregates")
             _require(
-                table in AGGREGATES and aggregate.get("column") == AGGREGATES[table],
-                "Desktop: agregado inválido",
+                isinstance(aggregates, dict) and set(aggregates) == set(AGGREGATES),
+                "Desktop: exige agregado por cubo C01, C02, C03 e C04",
             )
-            _require(type(aggregate.get("value")) is int, "Desktop: valor agregado inválido")
-            if table == "PUB_C03_PIPELINE_MENSAL":
-                month = aggregate.get("month_end")
-                matching = [stock for date, stock in file_months if date == month]
-                _require(len(matching) == 1, "Desktop: fechamento C03 não observado")
-                expected = matching[0]
-            else:
-                expected = report["preparation"]["aggregates"][table]
-            _require(aggregate["value"] == expected, "Desktop: agregado divergente")
+            for table, column in AGGREGATES.items():
+                aggregate = aggregates[table]
+                _require(
+                    isinstance(aggregate, dict) and aggregate.get("column") == column,
+                    f"Desktop: agregado {table} inválido",
+                )
+                if table == "PUB_C03_PIPELINE_MENSAL":
+                    if file_months:
+                        _require(
+                            set(aggregate) == {"column", "month_end", "value"}
+                            and type(aggregate.get("value")) is int,
+                            "Desktop: C03 exige fechamento observado e estoque numérico",
+                        )
+                        matching = [
+                            stock for date, stock in file_months if date == aggregate["month_end"]
+                        ]
+                        _require(len(matching) == 1, "Desktop: fechamento C03 não observado")
+                        expected = matching[0]
+                    else:
+                        _require(
+                            aggregate
+                            == {
+                                "column": column,
+                                "state": "sem_fechamento_observado",
+                                "value": None,
+                            },
+                            "Desktop: C03 sem fechamento exige estado indisponível e valor nulo",
+                        )
+                        continue
+                else:
+                    _require(
+                        set(aggregate) == {"column", "value"}
+                        and type(aggregate.get("value")) is int,
+                        f"Desktop: valor agregado {table} inválido",
+                    )
+                    expected = report["preparation"]["aggregates"][table]
+                _require(aggregate["value"] == expected, f"Desktop: agregado {table} divergente")
             report["desktop"] = {
                 "status": "recibo_confere",
-                "aggregate": aggregate,
+                "aggregates": aggregates,
                 "note": "O recibo não comprova por si só execução ou atualização no Desktop.",
             }
     finally:
