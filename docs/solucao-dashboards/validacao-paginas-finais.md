@@ -102,9 +102,19 @@ e os recibos não substituem a revisão externa nem as sessões humanas.
     de qualidade e estoque e o grão de cada tabela; o filtro de tempo chama-se
     `Mês`, pois a dimensão reúne C02 e C03.
 
-## Achado repassado (fora do escopo RP, para BI-04)
+## Achado da revisão — encerrado após a validação BI-04
 
-- `PUB_QUALIDADE_DUPLICIDADE.'Base Valida Duplicidade'` está com parêntese
-  de fechamento ausente no TMDL (`SUM(...qtd_linhas)` sem `)`), o que pode
-  quebrar o refresh. Não corrigido aqui por pertencer à frente de medidas
-  (BI-04/Marlos) — fica o registro para correção e revalidação no Desktop.
+A suspeita anterior de parêntese ausente não se reproduz na definição
+integrada: `Base Valida Duplicidade` está definida como
+`SUM(PUB_QUALIDADE_DUPLICIDADE[qtd_linhas])`, com a expressão fechada. A
+validação de medidas BI-04 foi executada no Power BI Desktop; o recibo v3
+registra refresh sem erro e duplicidade conferida em 275.840 linhas e
+275.840 chaves distintas (taxa 0). O resultado independente está marcado
+`matched_independent_aggregate_reference`; a projeção TOM corresponde a 128
+itens, sem diferenças. A suspeita fica resolvida, sem ação pendente para
+BI-04.
+
+Fontes: [TMDL integrado no pacote RP17](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/blob/ff760d6552a1d5d2d3d9d9da1f3467e2c913416a/powerbi/CentralPesquisasBI.SemanticModel/definition/tables/PUB_QUALIDADE_DUPLICIDADE.tmdl),
+[validação de medidas BI-04](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/290),
+[recibo Desktop v3 BI-04](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/blob/30d692c163cf996b7b1fd9c4a2501fcf19e534de/docs/evidencias/bi04/desktop-medidas-v3-final.json)
+e [relatório BI-04](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/pipelines/88562).
