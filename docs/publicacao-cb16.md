@@ -38,7 +38,8 @@ resultado parcial desta tentativa substitui os totais da execução completa.
 
 ## Sequência de conferência
 
-1. Concluir a ingestão e verificar `extraídas = carregadas + rejeitadas` em
+1. Concluir a ingestão e verificar
+   `extraídas = carregadas + rejeitadas + duplicadas` em
    cada fonte. Rejeição de ingestão não é descarte analítico.
 2. Executar a carga analítica e guardar seu `load_id`, sem criar um instante
    de fechamento mensal para fontes que não fornecem essa observação.
