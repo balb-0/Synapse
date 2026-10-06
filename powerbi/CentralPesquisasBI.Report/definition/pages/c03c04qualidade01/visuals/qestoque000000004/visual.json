@@ -282,7 +282,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Estoque no fechamento mensal por status'"
+                  "Value": "'Estoque no fechamento mensal'"
                 }
               }
             },
