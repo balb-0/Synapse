@@ -71,6 +71,11 @@ Os nomes antigos `dias_uteis_*` não podem representar subtração simples de da
 
 `qtd_a_finalizar` foi removida do fato. O conceito depende de uma flag homologada na `DIM_STATUS_PESQUISA` e pertence à camada semântica. `flag_em_aberto`, `flag_conta_como_a_finalizar` e `flag_terminal` ficam anuláveis até a regra dos valores de status ser aprovada; um estado não reconhecido não recebe classificação inventada. A ausência de fechamento observado não equivale a estoque zero.
 
+O grão do fato permanece o da tabela acima. A [publicação de fechamentos de
+C03](publicacao-c03-fechamentos.md) também conserva o mês observado sem
+pesquisas como marcador global com estoque zero, sem criar um grupo ou uma
+linha no fato. O manifesto distingue os grupos físicos e esses marcadores.
+
 ## C04 — Instrumento de pesquisa
 
 | Item | Contrato |

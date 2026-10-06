@@ -122,6 +122,10 @@ class PublishCubesTests(unittest.TestCase):
         current = json.loads((self.output / "current.json").read_text())
         generation = self.output / current["generation"]
         self.assertEqual(manifest["load_reference"], "synthetic-run-test-1")
+        self.assertEqual(
+            manifest["tables"]["PUB_C03_PIPELINE_MENSAL"]["observation_state"], "unverified"
+        )
+        self.assertNotIn("observed_months", manifest["tables"]["PUB_C03_PIPELINE_MENSAL"])
         self.assertEqual(set(manifest["tables"]), set(PUBLICATIONS))
         self.assertEqual(
             {item.name for item in generation.iterdir()},
