@@ -190,12 +190,8 @@ def _monthly_cube(con: duckdb.DuckDBPyConnection) -> CubeCount:
     return CubeCount("C03", members, stock, discarded, difference, missing, unexpected, status)
 
 
-def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
-    """Check persisted fact membership and report the limits of monthly history.
-
-    Run after ``load_analytics`` on the same database. This function never
-    modifies data and reports a clear error if the analytical schema is absent.
-    """
+def _require_analytics_schema(con: duckdb.DuckDBPyConnection) -> None:
+    """Reject missing analytical tables before querying any report section."""
     required = {
         "analytics_load_run",
         "analytics_reconciliation",
@@ -218,26 +214,10 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
             "camada analítica ausente; execute load_analytics antes da reconciliação: "
             + ", ".join(missing_tables)
         )
-    selected = selected_respondentes(con)
-    manifest = con.execute("""SELECT load_id, loaded_at, pesquisas_digest,
-        empresas_digest, clientes_digest, questoes_digest, respondentes_checksum
-        FROM "analytics_load_run" ORDER BY loaded_at DESC, load_id DESC LIMIT 1""").fetchone()
-    current_digests = current_source_digests(con)
-    source_digests_match = (
-        manifest is not None
-        and all(
-            manifest[index] == current_digests[source]
-            for index, source in enumerate(("pesquisas", "empresas", "clientes", "questoes"), 2)
-        )
-        and manifest[6] == (selected[0] if selected else None)
-    )
-    cycle = _current_cube(
-        con,
-        "C01",
-        'SELECT pesquisa_id FROM "ingestao_pesquisas_atual"',
-        'SELECT d.pesquisa_id FROM "FATO_CICLO_PESQUISA" f '
-        'JOIN "DIM_PESQUISA" d USING (sk_pesquisa)',
-    )
+
+
+def _participation_cube(con: duckdb.DuckDBPyConnection, selected: tuple | None) -> CubeCount:
+    """Match C02 source occurrences and reject residual rows from another checksum."""
     if selected is None:
         loaded = _scalar(con, 'SELECT count(*) FROM "FATO_PARTICIPACAO"')
         participation = CubeCount("C02", None, loaded, 0, None, 0, loaded, "source_unavailable")
@@ -269,13 +249,11 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
                 participation.unexpected_keys + extra,
                 "mismatch",
             )
-    instrument = _current_cube(
-        con,
-        "C04",
-        'SELECT pesquisa_id, pergunta_id FROM "ingestao_questoes_atual"',
-        "SELECT pesquisa_id_origem AS pesquisa_id, pergunta_id_origem AS pergunta_id "
-        'FROM "FATO_PESQUISA_PERGUNTA"',
-    )
+    return participation
+
+
+def _closure_summary(con: duckdb.DuckDBPyConnection) -> tuple[dict[str, str | int], ...]:
+    """Report each observed month separately, including observed empty closures."""
     closure_rows = con.execute("""
         SELECT CAST(c.data_fim_mes AS VARCHAR), CAST(c.observed_at AS VARCHAR),
                c.load_id, count(f.sk_status), coalesce(sum(f.qtd_pesquisas_no_status), 0)
@@ -293,7 +271,11 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
         }
         for month, observed_at, load_id, groups, stock in closure_rows
     )
-    monthly = _monthly_cube(con)
+    return closures
+
+
+def _orphan_reasons(con: duckdb.DuckDBPyConnection) -> tuple[dict[str, str | int], ...]:
+    """Summarize persisted orphan reasons without exposing business identifiers."""
     orphan_rows = con.execute("""
         SELECT source, target, reason, method, count(*)
         FROM "analytics_reconciliation"
@@ -310,6 +292,11 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
         }
         for source, target, reason, method, count in orphan_rows
     )
+    return orphan_reasons
+
+
+def _orphan_audit(con: duckdb.DuckDBPyConnection) -> tuple[dict[str, str | int], ...]:
+    """Verify every orphan occurrence, including unknown and uniquely resolved questions."""
     checks = (
         ("respondentes", "DIM_PESQUISA", "pesquisa_id_ausente", "FATO_PARTICIPACAO", "sk_pesquisa"),
         ("respondentes", "DIM_EMPRESA", "empresa_id_ausente", "FATO_PARTICIPACAO", "sk_empresa"),
@@ -361,16 +348,53 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
                   AND reason = 'id_divergente' AND method = 'titulo_exato_unico' """,
         )
     )
+    return tuple(orphan_audit)
+
+
+def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
+    """Reconcile each cube and technical audit without modifying persisted data.
+
+    Run after ``load_analytics`` on the same database. Each section uses the
+    persisted identities, source fingerprints and observed monthly closures.
+    """
+    _require_analytics_schema(con)
+    selected = selected_respondentes(con)
+    manifest = con.execute("""SELECT load_id, loaded_at, pesquisas_digest,
+        empresas_digest, clientes_digest, questoes_digest, respondentes_checksum
+        FROM "analytics_load_run" ORDER BY loaded_at DESC, load_id DESC LIMIT 1""").fetchone()
+    current_digests = current_source_digests(con)
+    source_digests_match = (
+        manifest is not None
+        and all(
+            manifest[index] == current_digests[source]
+            for index, source in enumerate(("pesquisas", "empresas", "clientes", "questoes"), 2)
+        )
+        and manifest[6] == (selected[0] if selected else None)
+    )
+    cycle = _current_cube(
+        con,
+        "C01",
+        'SELECT pesquisa_id FROM "ingestao_pesquisas_atual"',
+        'SELECT d.pesquisa_id FROM "FATO_CICLO_PESQUISA" f '
+        'JOIN "DIM_PESQUISA" d USING (sk_pesquisa)',
+    )
+    instrument = _current_cube(
+        con,
+        "C04",
+        'SELECT pesquisa_id, pergunta_id FROM "ingestao_questoes_atual"',
+        "SELECT pesquisa_id_origem AS pesquisa_id, pergunta_id_origem AS pergunta_id "
+        'FROM "FATO_PESQUISA_PERGUNTA"',
+    )
     return ReconciliationReport(
         manifest[0] if manifest else None,
         manifest[1].isoformat() if manifest else None,
         source_digests_match,
         selected[0] if selected else None,
         selected[1] if selected else None,
-        (cycle, participation, monthly, instrument),
-        orphan_reasons,
-        tuple(orphan_audit),
-        closures,
+        (cycle, _participation_cube(con, selected), _monthly_cube(con), instrument),
+        _orphan_reasons(con),
+        _orphan_audit(con),
+        _closure_summary(con),
     )
 
 
