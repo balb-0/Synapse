@@ -22,7 +22,12 @@ from typing import Callable
 import duckdb
 
 from etl.load.config import ConfigurationError, DuckDBSettings
-from etl.load.environment import DatabaseEnvironmentError, HealthCheck, run_health_check
+from etl.load.environment import (
+    LEFTOVER_NOTICE,
+    DatabaseEnvironmentError,
+    HealthCheck,
+    run_health_check,
+)
 
 HEALTH_CHECK_EVENT = "orchestration.health_check.emitted"
 HEALTH_CHECK_STAGE = "orchestration"
@@ -127,7 +132,16 @@ def check_database_health(settings: DuckDBSettings) -> HealthCheck:
     except (ConfigurationError, DatabaseEnvironmentError) as error:
         cause = error.__cause__
         while cause is not None:
-            if isinstance(cause, duckdb.IOException) and "could not set lock" in str(cause).lower():
+            message = str(cause).lower()
+            if (
+                isinstance(cause, duckdb.IOException)
+                and "could not set lock" in message
+                and (
+                    "conflicting lock is held" in message
+                    or "resource temporarily unavailable" in message
+                )
+                and LEFTOVER_NOTICE not in str(error)
+            ):
                 return DatabaseHealthCheck(
                     name="duckdb", passed=False, detail=str(error), busy=True
                 )

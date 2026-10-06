@@ -39,7 +39,7 @@ def check_once(timeout: float) -> None:
             check=False,
         )
         # Só aceite um relatório conclusivo. Exit code 1 é o resultado normal
-        # de uma checagem degradada, não motivo para encerrar o monitor.
+        # de uma checagem degradada; 2 é busy. Nenhum encerra o monitor.
         reports = []
         for line in completed.stdout.splitlines():
             try:

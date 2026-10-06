@@ -214,7 +214,7 @@ class VerificacaoCombinadaEEvento(unittest.TestCase):
         from etl.load.config import load_duckdb_settings
         from etl.load.environment import DatabaseEnvironmentError
 
-        cause = duckdb.IOException("Permission denied")
+        cause = duckdb.IOException("Could not set lock on file: Permission denied")
         error = DatabaseEnvironmentError("não foi possível abrir banco")
         error.__cause__ = cause
         with (

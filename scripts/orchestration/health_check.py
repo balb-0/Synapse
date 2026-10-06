@@ -4,8 +4,9 @@ Uso (dentro do runner):
     docker compose run --rm --no-deps runner python scripts/orchestration/health_check.py
 
 Publica um evento estruturado (``orchestration.health_check.emitted``) no
-mesmo índice do painel operacional (OB-08) e sai com código 1 se qualquer
-checagem falhar — utilizável em cron/CI além de execução manual.
+mesmo índice do painel operacional (OB-08). Exit codes: 0 para ok, 1 para
+falha e 2 para contenção de escrita (busy), com disponibilidade do banco
+indeterminada. Utilizável em cron/CI além de execução manual.
 """
 
 import argparse
