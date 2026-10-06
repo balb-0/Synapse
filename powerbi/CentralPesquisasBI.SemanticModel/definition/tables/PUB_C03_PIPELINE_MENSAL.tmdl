@@ -70,6 +70,9 @@ table PUB_C03_PIPELINE_MENSAL
 					)
 				)
 
+	measure 'Estoque no Status' = [Estoque no Último Mês Observado]
+		formatString: #,0
+
 	column data_fim_mes
 		dataType: dateTime
 		isHidden

@@ -20,16 +20,16 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Pesquisa"
+                      "Entity": "DIM_TIPO_PESQUISA"
                     }
                   },
-                  "Property": "Tipo"
+                  "Property": "tipo"
                 }
               },
-              "queryRef": "BE_Pesquisa.Tipo",
-              "nativeQueryRef": "Tipo",
+              "queryRef": "DIM_TIPO_PESQUISA.tipo",
+              "nativeQueryRef": "tipo",
               "active": true,
-              "displayName": "Tipo"
+              "displayName": "tipo"
             }
           ]
         }

@@ -20,16 +20,16 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Pesquisa"
+                      "Entity": "DIM_INDICADORES_BLOQUEADOS"
                     }
                   },
-                  "Property": "Pesquisa"
+                  "Property": "motivo"
                 }
               },
-              "queryRef": "BE_Pesquisa.Pesquisa",
-              "nativeQueryRef": "Pesquisa",
+              "queryRef": "DIM_INDICADORES_BLOQUEADOS.motivo",
+              "nativeQueryRef": "motivo",
               "active": true,
-              "displayName": "Pesquisa"
+              "displayName": "motivo"
             }
           ]
         }
@@ -62,7 +62,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Pesquisa'"
+                  "Value": "'Pesquisa — sem dado publicado'"
                 }
               }
             },
