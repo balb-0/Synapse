@@ -112,9 +112,25 @@ O pacote sintético carregado foi ligado ao commit de origem `f068a01` pelo
 inventário de 98 arquivos; o engine não fornece um marcador desse commit.
 A carga v3 e a navegação visual pelas hierarquias têm aceites separados.
 
-O recibo corrente é do pacote integrado `f068a01`, SHA256
+O recibo desta rodada histórica é do pacote integrado `f068a01`, SHA256
 `88a33f4963e9f2912794ad165c003d03822d24986817c2ce5909c8551207f89e`,
 consultado em Power BI Desktop `2.158.1177.0` no Windows `10.0.26200.0`.
 O recibo inicial do pacote `9726fd6` permanece no mesmo diretório de
 evidências com sufixo `-inicial`; ele é histórico e usa o relógio já
 sincronizado. Ambos usam o fixture, não a fonte final CB-16.
+
+## Limite identificado no fixture histórico
+
+A geração sintética `665cb490f85d49529488b4910e094923` antecede a correção
+da identidade composta de respostas para questões. A publicação de
+qualidade somava 11 correspondências em 13 chaves informadas; a consulta
+independente com `(pesquisa_id, pergunta_id)` produz 10/13. A quantidade de
+linhas das sete tabelas não muda, por isso as contagens sozinhas não
+detectaram essa divergência. Os recibos dessa geração são históricos e
+marcados `historical_stale_publication`; não aceitam o KPI I18.
+
+O fixture foi regenerado com o publicador corrigido, na geração
+`2c699f0b066847ee8559f1e31d88f49d`, conservando as sete contagens e
+publicando 10/13. Sua nova execução Desktop ainda precisa do recibo próprio.
+A fonte v3 tem todas as relações de qualidade conferidas contra a ingestão
+sem divergências; este problema é da publicação sintética antiga.
