@@ -3,8 +3,8 @@
 CB-16 publicou a geração `6b1eaa686aac43b18b6d6545e1c2c5f1` da fonte v3,
 com `load_reference` `afcde424-45e8-457b-8793-bf0866d142b2`.
 A publicação foi conferida contra o DuckDB e a geração v3 foi atualizada e
-consultada no Desktop. O recibo de execução anterior aos ajustes visuais está
-registrado abaixo; a revisão final do relatório continua pendente. O fixture BI-02 e snapshots
+consultada no Desktop. Os recibos históricos e o ensaio do pacote corrigido estão registrados
+abaixo, com a revisão executada identificada em cada rodada. O fixture BI-02 e snapshots
 históricos têm evidências separadas.
 
 ## Conferir a publicação
@@ -181,3 +181,46 @@ relatório integrado. Ela comprova o refresh e as consultas do modelo
 registrado; não aceita uma revisão futura ainda não executada. O campo
 `final_acceptance` do conferidor continua pendente porque não decide o
 aceite global do relatório nem expõe um commit exato dentro do engine.
+
+## Execução final do pacote integrado
+
+A revisão executada foi `ff760d6552a1d5d2d3d9d9da1f3467e2c913416a`, pacote SHA256
+`a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea`, inventário SHA256
+`1624eef9ad87a61af4146cc0c67e469014cb830829bc9562a04ba70eaeca8ac6`, com 98 arquivos conferidos no Windows.
+O fixture corrigido foi consultado em `2026-10-06T15:44:25.2528117Z` e a v3 em
+`2026-10-06T15:49:13.5533810Z`, no Desktop real `2.158.1177.0`, Windows
+`10.0.26200.0`, por automação em VM. O parâmetro local foi conferido
+por arquivo e pela expressão no modelo ativo. As 13 partições do projeto
+e duas automáticas de data estavam processadas sem erro. A comparação TOM
+teve 128 itens e zero diferenças. Ela compara a projeção semântica
+declarada; não fornece um marcador do commit exato dentro do engine.
+O SHA do pacote executado permanece distinto dos commits documentais
+posteriores anexados às MRs.
+
+### Reproduzir a fonte do PBIP
+
+A revisão executada está [no GitLab](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/tree/ff760d6552a1d5d2d3d9d9da1f3467e2c913416a).
+Busque a branch de validação e abra essa revisão em uma pasta ainda
+inexistente, preservando o checkout de trabalho:
+
+```bash
+git fetch origin test/bi-desktop-integrated
+git worktree add --detach ../bi-pacote-conferido ff760d6552a1d5d2d3d9d9da1f3467e2c913416a
+```
+
+O inventário compara os arquivos versionados de `powerbi/`, exceto
+`powerbi/CentralPesquisasBI.SemanticModel/definition/expressions.tmdl`,
+cujo parâmetro foi adaptado somente na cópia privada Windows. O parâmetro
+tem conferência própria por arquivo e expressão no modelo ativo.
+Esse checkout reproduz a fonte PBIP e seu inventário; a geração Parquet
+autorizada e o ZIP conferido permanecem privados.
+
+O [recibo final v3](evidencias/bi05/desktop-v3-final.json) registra
+57/32/0/45/64/8/5 linhas e totais C01/C02/C04 de 366/17740/3186,
+iguais ao manifesto e ao DuckDB autorizado da mesma carga. C03 tem
+estado sem fechamento observado, estoque e fluxos indisponíveis.
+A [conferência final](evidencias/bi05/conferencia-desktop-v3-final.json)
+usa a revisão esperada e o inventário independente acima. O campo
+`final_acceptance: pendente` é mantido porque o conferidor não decide
+o aceite global do relatório; as verificações de runtime e proveniência
+registradas passaram separadamente.
