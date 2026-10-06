@@ -2,8 +2,9 @@
 
 CB-16 publicou a geração `6b1eaa686aac43b18b6d6545e1c2c5f1` da fonte v3,
 com `load_reference` `afcde424-45e8-457b-8793-bf0866d142b2`.
-A conferência da publicação contra o DuckDB da mesma carga passou; o refresh
-final no Desktop continua pendente neste registro. O fixture BI-02 e snapshots
+A publicação foi conferida contra o DuckDB e a geração v3 foi atualizada e
+consultada no Desktop. O recibo de execução anterior aos ajustes visuais está
+registrado abaixo; a revisão final do relatório continua pendente. O fixture BI-02 e snapshots
 históricos têm evidências separadas.
 
 ## Conferir a publicação
@@ -157,5 +158,26 @@ esquemas, hashes, sete contagens e os fingerprints da última carga analítica.
 A [entrega CB-16](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/293)
 inclui a reconciliação e a verificação independente de métricas da ingestão,
 sem usar a consulta do publicador. Este recibo de preparação não incorpora
-uma execução Desktop: `desktop.status` e `final_acceptance` permanecem
-pendentes até a consulta da mesma geração em Windows.
+uma execução Desktop. O recibo adicional abaixo registra essa consulta
+separadamente.
+
+## Refresh v3 executado, antes dos ajustes do relatório
+
+O [recibo Desktop v3](evidencias/bi05/desktop-v3-antes-ajustes-relatorio.json)
+registra a consulta às 14:15:30 UTC de 06/10/2026, no Desktop `2.158.1177.0`,
+Windows `10.0.26200.0`. As sete contagens e totais coincidem com a tabela
+anterior; C03 retornou estado sem fechamento observado e valor nulo.
+Validação teve média 8,55 dias com base 20; preenchimento ficou nulo com
+base 0. O catálogo manteve 18 linhas e 17 estados sem dado.
+
+A [conferência do recibo](evidencias/bi05/conferencia-desktop-v3.json) passou
+contra o DuckDB e o manifesto da mesma carga, a revisão esperada `f068a01`
+e o inventário independente do pacote. O engine e o TMDL conferido tiveram
+128 itens de projeção semântica iguais, sem diferenças. O parâmetro local foi
+conferido à parte do hash de arquivos; sua expressão integra a projeção TOM.
+
+Esta execução antecede a correção dos títulos e a aceitação visual do
+relatório integrado. Ela comprova o refresh e as consultas do modelo
+registrado; não aceita uma revisão futura ainda não executada. O campo
+`final_acceptance` do conferidor continua pendente porque não decide o
+aceite global do relatório nem expõe um commit exato dentro do engine.
