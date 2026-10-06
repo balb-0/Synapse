@@ -24,9 +24,9 @@ publicada; o DuckDB de ingestão permanece na máquina autorizada de carga.
    agregado por cubo, conforme [BI-05](refresh-final-bi05.md).
 5. Compare cada número com o manifesto, os Parquet e consultas ao DuckDB da
    mesma carga. Teste médias ponderadas e estados indisponíveis conforme
-   [especificação de medidas](especificacao-medidas-bi.md). Tabelas visuais
-   ainda vinculadas ao protótipo dependem de RP-13/RP-14; elas não substituem
-   a consulta das partições efetivamente carregadas.
+   [especificação de medidas](especificacao-medidas-bi.md). Os vínculos dos visuais
+   e sua aceitação são rastreados em RP-13/RP-14 e na auditoria do pacote
+   integrado; eles não substituem as consultas às partições carregadas.
 6. Para trocar a geração, copie o pacote novo inteiro para outra subpasta,
    altere `PastaPublicacaoBI` e repita aplicar, atualizar e as conferências.
    Alterar `current.json` no publicador não atualiza o parâmetro do relatório.
@@ -44,11 +44,11 @@ dados sintéticos demonstra o visual; não prova qual geração foi importada.
 
 | Etapa | Geração e execução | Resultado |
 | :--- | :--- | :--- |
-| BI-01 | Migração de duas páginas e 48 visuais | Estrutura e recursos conferidos; campos de RP-13/RP-14 pendentes |
-| BI-02 | Fixture `synthetic-bi02-fixture` | Sete arquivos conferidos em Python; registro de importação no Desktop em preparação |
-| BI-03/BI-04 | Modelo corrigido | Verificações estruturais e referências independentes; execução DAX no Desktop a registrar |
-| BI-05 | Geração final CB-16 | ID final e aceite da origem ainda não identificados |
-| BI-06 | Refresh e troca de geração | Capturas e números do Desktop ainda a registrar |
+| BI-01 | Migração de duas páginas e 48 visuais | Estrutura versionada; aceitação visual do pacote integrado pendente |
+| BI-02 | Fixture `synthetic-bi02-fixture` | Sete tabelas consultadas no Desktop real, partições processadas sem erro |
+| BI-03/BI-04 | Pacote integrado `f068a01` | Projeção TOM com 128 itens/zero diferenças; médias e estoque do fixture consultados |
+| BI-05 | Geração CB-16 `6b1eaa686aac43b18b6d6545e1c2c5f1` | Publicação, origem e refresh v3 conferidos; revisão visual final pendente |
+| BI-06 | Refresh e troca de geração | Fixture e v3 consultados; troca registrada, falha de arquivo ausente observada; recuperação pendente |
 
 Até completar as evidências de cada etapa, o respectivo aceite permanece
 pendente. Card fechado, branch criada, pipeline ou recibo preenchido não
@@ -58,13 +58,13 @@ comprovam execução no Power BI Desktop.
 
 | Tabela | Linhas do manifesto | Linhas no Desktop | Agregado ou estado |
 | :--- | :--- | :--- | :--- |
-| `PUB_C01_CICLO` | A registrar | A registrar | Soma de `qtd_pesquisas` versus contagem de `FATO_CICLO_PESQUISA` |
-| `PUB_C02_PARTICIPACAO` | A registrar | A registrar | Soma de `qtd_participacoes` versus contagem de `FATO_PARTICIPACAO` |
-| `PUB_C03_PIPELINE_MENSAL` | A registrar | A registrar | Estoque de um fechamento observado, sem somar meses; ausência de fechamento fica indisponível |
-| `PUB_C04_INSTRUMENTO` | A registrar | A registrar | Soma de `qtd_perguntas` versus contagem de `FATO_PESQUISA_PERGUNTA` |
-| `PUB_QUALIDADE_CAMPO` | A registrar | A registrar | Numerador e denominador por campo |
-| `PUB_QUALIDADE_RELACAO` | A registrar | A registrar | Correspondências e chaves informadas por relação |
-| `PUB_QUALIDADE_DUPLICIDADE` | A registrar | A registrar | Linhas e chaves distintas por tabela |
+| `PUB_C01_CICLO` | 57 | 57 | 366 pesquisas, conforme o recibo v3 |
+| `PUB_C02_PARTICIPACAO` | 32 | 32 | 17740 participações, conforme o recibo v3 |
+| `PUB_C03_PIPELINE_MENSAL` | 0 | 0 | Sem fechamento observado; estoque indisponível |
+| `PUB_C04_INSTRUMENTO` | 45 | 45 | 3186 associações pesquisa-pergunta |
+| `PUB_QUALIDADE_CAMPO` | 64 | 64 | Linhas conferidas; KPI DAX por campo ainda não registrado |
+| `PUB_QUALIDADE_RELACAO` | 8 | 8 | Linhas conferidas; KPI DAX por relação ainda não registrado |
+| `PUB_QUALIDADE_DUPLICIDADE` | 5 | 5 | Linhas conferidas; KPI DAX por tabela ainda não registrado |
 
 ## Limites do contrato publicado
 
@@ -94,3 +94,78 @@ Registre a mensagem, a tabela, a geração e a ação corretiva. Arquivo ausente
 hash divergente, tipo incompatível, expressão DAX inválida ou caminho ambíguo
 interrompem o aceite. Corrija a origem ou o modelo, repita o refresh e as
 consultas e preserve a evidência do erro e da correção.
+
+## Ensaios executados e diagnóstico
+
+O ensaio do pacote integrado `f068a01` executou em VM Windows com Power BI
+Desktop `2.158.1177.0` em 06/10/2026 às 14:08:45 UTC, com relógio
+sincronizado. As sete contagens do fixture foram 2/3/4/2/64/8/5 na ordem
+C01, C02, C03, C04 e três tabelas de qualidade. As 13 partições do projeto
+e duas automáticas de data estavam processadas sem erro. A comparação TOM
+teve 128 itens e zero diferenças, dentro do escopo de projeção registrado.
+
+Os recibos sintéticos de [BI-02](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/276),
+[BI-03](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/278) e
+[BI-04](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/290)
+registram fonte do pacote, hashes, contagens, versão e consultas. A execução
+foi automatizada no Desktop real; não há declaração de operação humana.
+A igualdade semântica não identifica o commit exato dentro do engine.
+
+As capturas históricas de diagnóstico mostram falhas anteriores de
+[coluna no relacionamento](evidencias/bi-desktop/erro-coluna-calculada.png) e
+[valor de direção de filtro](evidencias/bi-desktop/erro-direcao-filtro.png).
+São recortes sem dados de origem ou credenciais; não identificam a revisão
+exata do projeto e não são capturas do ensaio integrado aprovado. O recibo
+posterior registra o modelo corrigido processado e consultado.
+
+A publicação v3 está conferida em CB-16. O refresh e a troca de geração
+têm os recibos adicionais abaixo. A falha de arquivo ausente foi observada; sua recuperação e a revisão
+visual final continuam pendentes.
+
+## Troca do fixture para a geração v3
+
+O [recibo de troca](evidencias/bi06/troca-fixture-v3.json) liga as execuções
+das 14:08:45 e 14:15:30 UTC de 06/10/2026. O parâmetro da cópia privada
+do PBIP mudou de `C:\BI\<pacote>\data\g1` para
+`C:\BI\<pacote>\data\v3`; o projeto foi reaberto e atualizado. Os
+caminhos desta página estão sanitizados. Em ambos os estados, o arquivo
+local do parâmetro e sua expressão no modelo ativo foram conferidos.
+
+O [recibo v3](evidencias/bi06/desktop-v3-antes-ajustes-relatorio.json) registra
+57/32/0/45/64/8/5 linhas nas sete publicações e totais C01/C02/C04 de
+366/17740/3186. São diferentes de 2/3/4/2/64/8/5 e 4/4/3 do fixture,
+conforme seus manifestos. A geração v3 é
+`6b1eaa686aac43b18b6d6545e1c2c5f1`, carga
+`afcde424-45e8-457b-8793-bf0866d142b2`. C03 ficou sem fechamento observado,
+com estoque e fluxos indisponíveis.
+
+Esta rodada usou o pacote `f068a01` e antecede os ajustes de títulos do
+relatório. Confirma conexão, troca e atualização do modelo daquela revisão.
+A falha de arquivo ausente está registrada abaixo. Sua recuperação e as
+capturas finais serão registradas depois da execução.
+
+## Falha de arquivo ausente observada
+
+Ao remover `PUB_C01_CICLO.parquet` somente da cópia privada Windows da geração
+v3 e clicar Atualizar, o Desktop exibiu sete consultas bloqueadas e o erro
+"File or Folder: Could not find file" para C01. O
+[recibo do diagnóstico](evidencias/bi06/arquivo-ausente-v3.json) registra a
+observação em 06/10/2026 às 14:19:20 UTC; a
+[captura do diálogo](evidencias/bi06/arquivo-ausente-v3.png) mostra a falha
+sem dados de origem ou credenciais. O pacote imutável da publicação ficou
+preservado.
+
+Essa falha não foi aceita como refresh bem-sucedido. A restauração do arquivo
+e uma nova atualização com consultas ao engine ainda aguardam o recibo de
+recuperação neste registro. Uma consulta ao cache anterior, sozinha, não
+comprova que a atualização com o arquivo ausente funcionou.
+
+## Fixture antigo e qualidade
+
+A troca registrada acima partiu da geração `665cb490...`, cujo conteúdo
+de qualidade antecede a correção da chave composta de respostas/questões.
+Os recibos provam aquela execução e as contagens, mas o total de
+correspondências do fixture publicado foi 11/13 em vez de 10/13 da consulta
+composta independente. O novo fixture `2c699f0b...` aguarda nova execução
+Desktop. As tabelas de qualidade v3 foram conferidas contra a ingestão
+sem divergências; os números do fixture antigo não aceitam I18.

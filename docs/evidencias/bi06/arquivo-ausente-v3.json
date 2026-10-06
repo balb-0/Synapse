@@ -1,0 +1,12 @@
+{
+  "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+  "project_source_commit": "f068a0109613ff088ad1b53080d90bf722c26b47",
+  "observed_at_utc": "2026-10-06T14:19:20.178595+00:00",
+  "source": "Power BI Desktop refresh dialog observed via noVNC",
+  "missing_table": "PUB_C01_CICLO",
+  "refresh_failure_observed": true,
+  "blocked_queries": 7,
+  "message": "File or Folder: Could not find file C:\\BI\\final\\data\\v3\\PUB_C01_CICLO.parquet.",
+  "screenshot_sha256": "1c5ae52d63bb85a32256d87ebc0d21ff8730bf51daca1ad758535bd8ade4fce1",
+  "recovery": "pending restored-file refresh and engine query"
+}
