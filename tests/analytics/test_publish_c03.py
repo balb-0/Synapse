@@ -150,6 +150,18 @@ class PublishedMonthlyClosuresTests(unittest.TestCase):
         self.assertEqual(rows[0][6], 1)
         self.assertEqual((table["fact_rows"], table["empty_closure_rows"]), (1, 0))
 
+    def test_same_positive_observation_preserves_stock_and_membership(self):
+        self.insert_research("p1", area="Saúde", status="Aberta")
+        self.insert_research("p2")
+        at = datetime(2026, 9, 30, 23)
+        first, _ = self.load(at)
+        table_before, rows_before = self.publish(first.load_id)
+        repeated, _ = self.load(at)
+        table_after, rows_after = self.publish(repeated.load_id)
+        self.assertEqual(rows_before, rows_after)
+        self.assertEqual(table_before["observed_months"], table_after["observed_months"])
+        self.assertEqual((table_after["fact_rows"], table_after["empty_closure_rows"]), (2, 0))
+
     def test_global_month_sum_distinguishes_zero_positive_and_missing_month(self):
         self.load(datetime(2026, 9, 30, 23))
         self.insert_research("p1", area="Saúde", status="Aberta")

@@ -269,6 +269,18 @@ def _monthly_publication(report: ReconciliationReport | None) -> tuple[str, dict
     }
 
 
+def publication_specification(name: str, report: ReconciliationReport | None) -> tuple[str, dict]:
+    """Return the effective query and manifest semantics for the same verified snapshot.
+
+    Publication and orchestrator retry validation must use this contract so
+    neither can omit empty monthly closures or their observation metadata.
+    A missing report is reserved for explicitly synthetic uncontrolled sources.
+    """
+    if name == "PUB_C03_PIPELINE_MENSAL":
+        return _monthly_publication(report)
+    return PUBLICATIONS[name], {}
+
+
 def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
     """Publica uma geração verificada e muda o ponteiro só no fim.
 
@@ -324,10 +336,8 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
                 "origem sem controle analítico exige referência synthetic-... explícita"
             )
         tables = {}
-        for name, query in PUBLICATIONS.items():
-            metadata = {}
-            if name == "PUB_C03_PIPELINE_MENSAL":
-                query, metadata = _monthly_publication(report)
+        for name in PUBLICATIONS:
+            query, metadata = publication_specification(name, report)
             target = staging / f"{name}.parquet"
             conn.execute(
                 f"COPY ({query}) TO {_sql_literal(target)} (FORMAT PARQUET, COMPRESSION ZSTD)"

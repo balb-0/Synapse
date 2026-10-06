@@ -15,8 +15,8 @@ from prefect.cache_policies import NO_CACHE
 from prefect.runtime import flow_run, task_run
 
 from etl.analytics.load import load_analytics
-from etl.analytics.publish import PUBLICATIONS, publish_cubes
-from etl.analytics.reconcile import reconcile_analytics
+from etl.analytics.publish import PUBLICATIONS, publication_specification, publish_cubes
+from etl.analytics.reconcile import ReconciliationReport, reconcile_analytics
 from etl.load.config import load_duckdb_settings
 from etl.load.connection import connect_with_retry
 from etl.orchestration.flow import _log_event, _should_retry
@@ -89,7 +89,9 @@ def reconcile_warehouse(db_path: str, load_reference: str) -> dict:
         raise
 
 
-def _published_for_load(connection, output: Path, load_reference: str) -> dict | None:
+def _published_for_load(
+    connection, output: Path, load_reference: str, report: ReconciliationReport
+) -> dict | None:
     """Reutiliza só a geração íntegra cujo conteúdo coincide com a origem atual.
 
     Isto cobre a repetição após a troca atômica de current.json. Contagens
@@ -121,8 +123,18 @@ def _published_for_load(connection, output: Path, load_reference: str) -> dict |
             or set(manifest["tables"]) != set(PUBLICATIONS)
         ):
             return None
-        for name, query in PUBLICATIONS.items():
+        for name in PUBLICATIONS:
+            query, expected_semantics = publication_specification(name, report)
             metadata = manifest["tables"][name]
+            if not isinstance(metadata, dict):
+                return None
+            actual_semantics = {field: metadata.get(field) for field in expected_semantics}
+            # Canonical JSON also distinguishes bool from int (True != stock 1)
+            # and validates nested month fields without accepting extra keys.
+            if json.dumps(actual_semantics, sort_keys=True) != json.dumps(
+                expected_semantics, sort_keys=True
+            ):
+                return None
             path = directory / f"{name}.parquet"
             if (
                 metadata["file"] != path.name
@@ -186,7 +198,7 @@ def publish_warehouse(db_path: str, output: str, load_reference: str) -> dict:
             report = reconcile_analytics(connection)
             if not report.reconciled or report.load_id != load_reference:
                 raise ValueError("a origem mudou ou não reconciliou antes da publicação")
-            manifest = _published_for_load(connection, destination, load_reference)
+            manifest = _published_for_load(connection, destination, load_reference, report)
             connection.execute("COMMIT")
         reused = manifest is not None
         if manifest is None:
