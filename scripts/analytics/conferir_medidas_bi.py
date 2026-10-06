@@ -29,19 +29,19 @@ REFERENCIAS = [
         medida="Qtd Pesquisas",
         valor=366,
         fonte='docs/resultados_analise.txt, T1 ("pesquisas: 366")',
-        tolerancia="Snapshot da apuração é anterior à geração conferida: o valor atual pode ser maior, nunca menor.",
+        tolerancia="Referência histórica; valor maior também exige reconciliação da identidade na mesma geração.",
     ),
     Referencia(
         medida="Base Valida Validacao",
         valor=20,
         fonte="docs/resultados_analise.txt, T1 (cobertura de data_aprov: 20 de 366, 5,5%)",
-        tolerancia="Limite superior: a base válida exige data_aprov E data_solicitacao preenchidas com par coerente; pode ser menor que a cobertura bruta de data_aprov, nunca maior.",
+        tolerancia="Comparação histórica; valide pares de datas e denominador contra a fonte da mesma geração.",
     ),
     Referencia(
         medida="Qtd Participacoes",
         valor=18735,
         fonte='docs/dmc.md, seção 3.2 ("aproximadamente 18.735 linhas no snapshot atual")',
-        tolerancia="Valor aproximado já na fonte; e o snapshot da apuração pode ser anterior à geração conferida.",
+        tolerancia="Referência histórica aproximada; diferenças exigem reconciliação de ocorrências na mesma geração.",
     ),
 ]
 
@@ -87,7 +87,7 @@ def conferir(geracao: Path) -> list[dict]:
         elif valor_publicado == referencia.valor:
             status = "bate exato"
         elif valor_publicado > referencia.valor:
-            status = "diverge (maior que a referencia, esperado por snapshot mais novo)"
+            status = "diverge (maior que a referencia historica; reconciliar a mesma geracao)"
         else:
             status = "diverge (menor que a referencia, investigar)"
         linhas.append(
@@ -103,16 +103,18 @@ def conferir(geracao: Path) -> list[dict]:
     return linhas
 
 
+def codigo_saida(resultado: list[dict]) -> int:
+    """Treat every missing or divergent historical value as unverified."""
+    return 0 if all(linha["status"] == "bate exato" for linha in resultado) else 1
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--geracao", type=Path, required=True)
     args = parser.parse_args()
     resultado = conferir(args.geracao)
     print(json.dumps(resultado, indent=2, ensure_ascii=False))
-    if any(
-        linha["status"] == "diverge (menor que a referencia, investigar)" for linha in resultado
-    ):
-        raise SystemExit(1)
+    raise SystemExit(codigo_saida(resultado))
 
 
 if __name__ == "__main__":

@@ -9,15 +9,19 @@ manual onde não há.
 
 [`scripts/analytics/conferir_medidas_bi.py`](../scripts/analytics/conferir_medidas_bi.py)
 recalcula, a partir dos Parquet de uma geração publicada
-(`docs/acesso-cubos-bi.md`), as três medidas que têm um valor de referência
-numérico fixo já registrado na Sprint 2, com uma implementação independente
-da fórmula (não reaproveita a consulta de `publish.py` — se reaproveitasse,
-a "conferência" só provaria que o código concorda consigo mesmo):
+(`docs/acesso-cubos-bi.md`), três valores de referência numérica registrados
+na Sprint 2, com uma implementação independente da consulta de `publish.py`.
+Esses números pertencem a um snapshot histórico: valor diferente, inclusive
+maior, não passa automaticamente como crescimento legítimo nem reprova sozinho
+a população atual. O script marca qualquer divergência ou arquivo ausente como
+não validado e encerra com código 1; para aceitar uma geração nova, compare-a
+com a carga DuckDB reconciliada da mesma geração. Igualdade com uma referência
+antiga também não substitui essa reconciliação de identidades.
 
 | Medida | Referência | Fonte |
 | :-- | :-- | :-- |
 | `Qtd Pesquisas` | 366 | `docs/resultados_analise.txt`, T1 |
-| `Base Valida Validacao` | 20 (limite superior) | `docs/resultados_analise.txt`, T1 (cobertura de `data_aprov`) |
+| `Base Valida Validacao` | 20 (cobertura bruta histórica de `data_aprov`; não é limite da geração atual) | `docs/resultados_analise.txt`, T1 |
 | `Qtd Participacoes` | ≈18.735 | `docs/dmc.md`, seção 3.2 |
 
 Rodar contra uma geração real:
@@ -27,16 +31,12 @@ PYTHONPATH=src python -m scripts.analytics.conferir_medidas_bi \
   --geracao /caminho/privado/publicacao-bi/GERACAO
 ```
 
-O script nunca trata "maior que a referência" como falha — o snapshot da
-apuração de 2026 é anterior à geração conferida, então mais pesquisas e
-participações carregadas depois da apuração fazem a medida atual crescer,
-nunca diminuir; só "menor que a referência" ou uma coluna ausente encerram
-com código de saída 1, porque isso indicaria regressão ou publicação
-incompleta. A suíte
+Nenhuma diferença para cima é considerada prova de atualização legítima: linhas
+duplicadas também podem aumentar o agregado. A suíte
 [`scripts/analytics/test_conferir_medidas_bi.py`](../scripts/analytics/test_conferir_medidas_bi.py)
-verifica as quatro situações (bate exato, diverge para cima, diverge para
-baixo, arquivo ausente) com Parquet sintético — sem depender de acesso ao
-DuckDB privado, que este repositório não versiona.
+verifica igualdade histórica, divergência para cima/baixo e arquivo ausente com
+Parquet sintético — sem depender de acesso ao DuckDB privado, que este
+repositório não versiona.
 
 **Resultado anexado (a preencher por Anna ao rodar contra uma geração
 real):**
@@ -70,3 +70,21 @@ Para os 18 indicadores de `DIM_INDICADORES_BLOQUEADOS`
 sinalização em si — a medida aparece com o motivo textual em qualquer
 contexto de filtro, nunca como `0` — não sobre um valor numérico, porque não
 há valor numérico a conferir por definição.
+
+## Medidas DAX do C03 (BI-04)
+
+[`tests/analytics/test_medidas_bi.py`](../tests/analytics/test_medidas_bi.py)
+calcula resultados de referência independentes para médias ponderadas,
+denominador vazio, zero numérico, estoque 10→7 em dois fechamentos, período sem
+fechamento e zero observado versus não observado. São testes Python do contrato,
+não execução do motor DAX.
+
+Para execução real no Windows com Power BI Desktop, abra o modelo carregado e
+rode [`tests/analytics/dax/bi04-acceptance-queries.dax`](../tests/analytics/dax/bi04-acceptance-queries.dax)
+na exibição de consultas DAX. Troque os dois meses de exemplo por fechamentos
+observados na geração carregada. Confira também um mês que exista em
+`DIM_TEMPO`, mas não tenha linha C03. O modelo deve mostrar o último fechamento
+observado do recorte e os motivos textuais para estoque ausente e transições
+não publicadas. A publicação atual não permite testar fechamento observado
+com estoque zero; não declare esse caso aceito até que o contrato de
+publicação exponha esse marcador.

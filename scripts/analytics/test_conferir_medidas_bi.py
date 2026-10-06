@@ -37,8 +37,9 @@ class ConferirMedidasBiTest(unittest.TestCase):
         self.assertEqual(por_medida["Qtd Pesquisas"]["status"], "bate exato")
         self.assertEqual(por_medida["Base Valida Validacao"]["status"], "bate exato")
         self.assertEqual(por_medida["Qtd Participacoes"]["status"], "bate exato")
+        self.assertEqual(conferir_medidas_bi.codigo_saida(resultado), 0)
 
-    def test_geracao_mais_nova_diverge_para_cima_sem_ser_erro(self) -> None:
+    def test_valor_maior_que_referencia_exige_reconciliacao_da_mesma_geracao(self) -> None:
         con = duckdb.connect(":memory:")
         try:
             con.execute(
@@ -51,8 +52,11 @@ class ConferirMedidasBiTest(unittest.TestCase):
         resultado = conferir_medidas_bi.conferir(self.geracao)
 
         por_medida = {linha["medida"]: linha for linha in resultado}
-        self.assertIn("maior que a referencia", por_medida["Qtd Pesquisas"]["status"])
-        self.assertIn("maior que a referencia", por_medida["Base Valida Validacao"]["status"])
+        self.assertIn("maior que a referencia historica", por_medida["Qtd Pesquisas"]["status"])
+        self.assertIn(
+            "maior que a referencia historica", por_medida["Base Valida Validacao"]["status"]
+        )
+        self.assertEqual(conferir_medidas_bi.codigo_saida(resultado), 1)
 
     def test_arquivo_ausente_nao_derruba_a_conferencia(self) -> None:
         resultado = conferir_medidas_bi.conferir(self.geracao)
@@ -61,6 +65,7 @@ class ConferirMedidasBiTest(unittest.TestCase):
         for linha in por_medida.values():
             self.assertEqual(linha["status"], "sem arquivo publicado nesta geracao")
             self.assertIsNone(linha["valor_publicado"])
+        self.assertEqual(conferir_medidas_bi.codigo_saida(resultado), 1)
 
     def test_geracao_menor_que_a_referencia_sinaliza_investigar(self) -> None:
         con = duckdb.connect(":memory:")
@@ -76,6 +81,7 @@ class ConferirMedidasBiTest(unittest.TestCase):
 
         por_medida = {linha["medida"]: linha for linha in resultado}
         self.assertIn("investigar", por_medida["Qtd Pesquisas"]["status"])
+        self.assertEqual(conferir_medidas_bi.codigo_saida(resultado), 1)
 
 
 if __name__ == "__main__":

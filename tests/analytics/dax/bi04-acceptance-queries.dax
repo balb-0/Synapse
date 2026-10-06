@@ -2,6 +2,30 @@
 -- generation. They inspect the actual semantic model; Python reference tests
 -- do not execute DAX.
 
+-- 0. Run this independent in-engine counterexample. The correct mean is 8.2;
+-- averaging the subgroup means would return 5. A zero numerator is numeric 0,
+-- while a zero denominator returns BLANK.
+DEFINE
+    MEASURE 'PUB_C01_CICLO'[BI04 Fixture Media Ponderada] =
+        VAR Grupos =
+            DATATABLE(
+                "Soma", DOUBLE,
+                "Base", INTEGER,
+                {{1.0, 1}, {81.0, 9}}
+            )
+        RETURN DIVIDE(SUMX(Grupos, [Soma]), SUMX(Grupos, [Base]))
+    MEASURE 'PUB_C01_CICLO'[BI04 Fixture Media Simples] =
+        AVERAGEX(DATATABLE("Media", DOUBLE, {{1.0}, {9.0}}), [Media])
+    MEASURE 'PUB_C01_CICLO'[BI04 Fixture Zero Numerador] = DIVIDE(0, 4)
+    MEASURE 'PUB_C01_CICLO'[BI04 Fixture Base Vazia] = DIVIDE(0, 0)
+EVALUATE
+ROW(
+    "Media Ponderada", [BI04 Fixture Media Ponderada],
+    "Media Simples Incorreta", [BI04 Fixture Media Simples],
+    "Zero Numerador", [BI04 Fixture Zero Numerador],
+    "Denominador Zero", [BI04 Fixture Base Vazia]
+)
+
 -- 1. Overall values in the current model filter context. Confirm each mean's
 -- valid base and inspect C03 availability separately from its numeric value.
 EVALUATE
