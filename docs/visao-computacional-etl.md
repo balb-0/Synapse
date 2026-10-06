@@ -8,6 +8,11 @@ Base registrada em 25/09/2026; revisão de contratos em 06/10/2026 com o
 flow completo DW e o monitor periódico. Descreve código e configuração
 versionados, sem afirmar execução desses deployments no ambiente do parceiro.
 
+Esta revisão descreve o conjunto integrado dos suplementos PL (MR !289),
+OBS (MR !295) e reports (MR !294). O código novo de DW e monitor periódico
+é entregue pelas branches PL e OBS; conferir esses contratos após integrar
+as três entregas.
+
 O diagrama de componentes correspondente está em
 [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) e é
 espelhado ao fim deste documento.
@@ -55,8 +60,8 @@ como número fixo neste documento.
 | Servidor de deployment | Parâmetros do deployment `pipeline-completo/agendado-dw` | Flow run do Prefect | Manter o deployment disponível para agenda e disparo manual | Implementado em `scripts/orchestration/deployment.py`, servido pelo serviço `scheduler` do Compose contra o `prefect-server` |
 | Emissor de eventos da carga | `LoadResult` e `BatchMetadata` | `LoadBatchLogEvent` | Publicar status, duração e contagens sem conteúdo de negócio | Implementado em `src/etl/load/log_events.py` |
 | Sink de logging padrão | Evento técnico | Registro JSON no logger Python | Serializar o evento sem acoplar o repositório ao transporte | Implementado para extração, transformação, carga e orquestração |
-| Pipeline completo DW | `run_pipeline(sources=None, *, publish_dir, reprocess=False, db_path=None, observed_at=None)` | Backfill confirmado, load_id, reconciliação e geração publicada | Confirmar seis fontes antes de `load_warehouse` → `reconcile_warehouse` → `publish_warehouse`; compartilhar lock com writers de ingestão e propagar falhas | Implementado em [`pipeline.py`](../src/etl/orchestration/pipeline.py) e [`analytics.py`](../src/etl/orchestration/analytics.py) |
-| Monitor periódico | Configuração Prefect/DuckDB e intervalo de 60s | Um relatório por ciclo, com limite de 30s | Consultar saúde mesmo sem execução de flows; distinguir lock busy de indisponibilidade | Serviço `health-monitor` em [`docker-compose.yml`](../docker-compose.yml), usando [`health_monitor.py`](../scripts/orchestration/health_monitor.py) |
+| Pipeline completo DW | `run_pipeline(sources=None, *, publish_dir, reprocess=False, db_path=None, observed_at=None)` | Backfill confirmado, load_id, reconciliação e geração publicada | Confirmar seis fontes antes de `load_warehouse` → `reconcile_warehouse` → `publish_warehouse`; compartilhar lock com writers de ingestão e propagar falhas | Implementado em `src/etl/orchestration/pipeline.py` e `src/etl/orchestration/analytics.py` (PL, MR !289) |
+| Monitor periódico | Configuração Prefect/DuckDB e intervalo de 60s | Um relatório por ciclo, com limite de 30s | Consultar saúde mesmo sem execução de flows; distinguir lock busy de indisponibilidade | Serviço `health-monitor` em [`docker-compose.yml`](../docker-compose.yml), usando `scripts/orchestration/health_monitor.py` (OBS, MR !295) |
 | Health check da orquestração | `PREFECT_API_URL` e configuração do DuckDB | Evento `orchestration.health_check.emitted` e código de saída | Verificar disponibilidade do Prefect e do banco | Implementado em [`health.py`](../src/etl/orchestration/health.py) e `scripts/orchestration/health_check.py` |
 | Coletor de telemetria | Log JSON no stdout | Índice `etl-logs-*` e painel Kibana | Transportar e reter sinais operacionais | Implementado: driver GELF → Logstash → Elasticsearch |
 | Camada analítica | Views tratadas e controles | Dimensões, fatos C01–C04 e 7 Parquet publicados | Materializar e publicar o contrato dimensional | Implementado em [`src/etl/analytics/`](../src/etl/analytics/) |
