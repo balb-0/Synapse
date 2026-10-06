@@ -27,10 +27,14 @@ em geral, mas fica sem base num recorte específico (ex.: filtrar por uma
 
 As entradas e saídas de status têm medidas numéricas próprias, que preservam
 `BLANK()` quando o Parquet contém apenas `NULL`, e medidas textuais separadas
-com o motivo (`histórico de transições de status não publicado`). O estoque
-também tem uma medida de estado: sem linha C03 no período selecionado, o valor
-numérico permanece vazio e o texto informa a ausência da linha. As medidas de
-estado não retornam zero nem misturam texto e número na mesma expressão DAX.
+com o motivo (`histórico de transições de status não publicado`). A data de
+referência do estoque mantém o contexto de tempo, mas remove filtros de
+categoria para encontrar o último fechamento com linhas C03. O valor do
+estoque preserva os filtros de grupo: se houver linha C03 de outro grupo no
+fechamento global e o pacote estiver reconciliado, um grupo ausente vale `0`.
+Se não houver linha C03 em nenhum grupo do tempo selecionado, o valor e a data
+ficam `BLANK()` e o estado informa essa ausência. As medidas de estado não
+misturam texto e número na mesma expressão DAX.
 
 Esses estados operacionais C03 não são indicadores I01–I25 e não entram na
 contagem `Qtd Indicadores Sem Dado` (17). A geração publicada não contém o
@@ -70,8 +74,11 @@ mostrar — é sempre o mesmo texto, por construção.
 Para C03, executar as consultas em
 [`tests/analytics/dax/bi04-acceptance-queries.dax`](../tests/analytics/dax/bi04-acceptance-queries.dax)
 no Power BI Desktop: estoque em um mês, estoque em um período com vários
-fechamentos, período sem linha C03 e fluxos `NULL`. Esperar estoque somado
-somente no último mês observado do período, `BLANK()` com motivo quando não há
-linha e `BLANK()` com motivo de transições para entradas/saídas. Um fechamento
-observado sem grupos não pode ser validado pela publicação atual; o Parquet não
-traz seu marcador.
+fechamentos, grupo da hierarquia sem linha no último fechamento, período sem
+nenhuma linha C03 e fluxos `NULL`. Esperar estoque somado somente no último
+fechamento global do contexto de tempo; grupo sem linha nele fica em `0` quando
+há linhas de outros grupos e o pacote foi reconciliado. Sem linha C03 em todo
+o período, esperar `BLANK()` e o motivo de ausência. Entradas/saídas continuam
+`BLANK()` com motivo de transições não publicadas. Um fechamento observado
+sem grupos não pode ser validado pela publicação atual; o Parquet não traz seu
+marcador.

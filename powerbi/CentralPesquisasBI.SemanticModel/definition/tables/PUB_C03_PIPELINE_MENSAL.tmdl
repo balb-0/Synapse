@@ -1,50 +1,18 @@
 table PUB_C03_PIPELINE_MENSAL
 
 	measure 'Data de Referência do Estoque' =
-			VAR MesesSelecionados =
-				FILTER(
-					ALLSELECTED(DIM_TEMPO[ano_mes]),
-					NOT ISBLANK(DIM_TEMPO[ano_mes])
-				)
-			VAR MesAtual = SELECTEDVALUE(DIM_TEMPO[ano_mes])
-			VAR UltimoMesComLinha =
-				MAXX(
-					FILTER(
-						MesesSelecionados,
-						VAR MesCandidato = DIM_TEMPO[ano_mes]
-						RETURN
-						CALCULATE(
-							COUNTROWS(PUB_C03_PIPELINE_MENSAL),
-							REMOVEFILTERS(DIM_TEMPO),
-							TREATAS({MesCandidato}, DIM_TEMPO[ano_mes]),
-							ALLSELECTED(DIM_AREA),
-							ALLSELECTED(DIM_STATUS_PESQUISA),
-							ALLSELECTED(DIM_TIPO_PESQUISA),
-							ALLSELECTED(PUB_C03_PIPELINE_MENSAL[perfil]),
-							ALLSELECTED(PUB_C03_PIPELINE_MENSAL[complexidade]),
-							ALLSELECTED(PUB_C03_PIPELINE_MENSAL[tipo_resposta])
-						) > 0
-					),
-					DIM_TEMPO[ano_mes]
-				)
-			VAR MesReferencia =
-				IF(HASONEVALUE(DIM_TEMPO[ano_mes]), MesAtual, UltimoMesComLinha)
-			RETURN
-				IF(
-					ISBLANK(MesReferencia),
-					BLANK(),
-					CALCULATE(
-						MAX(PUB_C03_PIPELINE_MENSAL[data_fim_mes]),
-						REMOVEFILTERS(DIM_TEMPO),
-						DIM_TEMPO[ano_mes] = MesReferencia,
-						ALLSELECTED(DIM_AREA),
-						ALLSELECTED(DIM_STATUS_PESQUISA),
-						ALLSELECTED(DIM_TIPO_PESQUISA),
-						ALLSELECTED(PUB_C03_PIPELINE_MENSAL[perfil]),
-						ALLSELECTED(PUB_C03_PIPELINE_MENSAL[complexidade]),
-						ALLSELECTED(PUB_C03_PIPELINE_MENSAL[tipo_resposta])
-					)
-				)
+			CALCULATE(
+				MAX(PUB_C03_PIPELINE_MENSAL[data_fim_mes]),
+				REMOVEFILTERS(DIM_AREA),
+				REMOVEFILTERS(DIM_STATUS_PESQUISA),
+				REMOVEFILTERS(DIM_TIPO_PESQUISA),
+				REMOVEFILTERS(PUB_C03_PIPELINE_MENSAL[area]),
+				REMOVEFILTERS(PUB_C03_PIPELINE_MENSAL[tipo]),
+				REMOVEFILTERS(PUB_C03_PIPELINE_MENSAL[status]),
+				REMOVEFILTERS(PUB_C03_PIPELINE_MENSAL[perfil]),
+				REMOVEFILTERS(PUB_C03_PIPELINE_MENSAL[complexidade]),
+				REMOVEFILTERS(PUB_C03_PIPELINE_MENSAL[tipo_resposta])
+			)
 		formatString: Short Date
 
 	measure 'Estoque no Último Mês Observado' =

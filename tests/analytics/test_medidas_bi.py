@@ -20,6 +20,10 @@ C02 = (
 C03 = (
     ROOT / "powerbi/CentralPesquisasBI.SemanticModel/definition/tables/PUB_C03_PIPELINE_MENSAL.tmdl"
 ).read_text(encoding="utf-8")
+DAX_QUERIES = (ROOT / "tests/analytics/dax/bi04-acceptance-queries.dax").read_text(encoding="utf-8")
+C03_REFERENCE_DATE = C03.split("measure 'Data de Referência do Estoque' =", 1)[1].split(
+    "formatString:", 1
+)[0]
 
 
 def reference_weighted_mean(groups: list[tuple[int | None, int]]) -> float | None:
@@ -73,9 +77,44 @@ class PublishedMeasureReferenceTests(unittest.TestCase):
         self.assertEqual(reference_stock(rows, observed, observed), ("2026-10", 7))
         self.assertEqual(reference_stock(rows, observed, {"2026-09"}), ("2026-09", 10))
         self.assertEqual(sum(stock for _month, _group, stock in rows), 17)
-        self.assertIn("MAXX(", C03)
-        self.assertIn("ALLSELECTED(DIM_TEMPO[ano_mes])", C03)
+        self.assertIn("MAX(PUB_C03_PIPELINE_MENSAL[data_fim_mes])", C03_REFERENCE_DATE)
+        self.assertNotIn("REMOVEFILTERS(DIM_TEMPO)", C03_REFERENCE_DATE)
         self.assertIn("SUM(PUB_C03_PIPELINE_MENSAL[qtd_pesquisas_no_status])", C03)
+
+    def test_hierarchy_leaf_keeps_global_closure_date_under_area_slicer(self) -> None:
+        # C03's report hierarchy groups raw fact columns. Area A has an earlier
+        # row but no row in October; area B proves that October is an observed
+        # closure within the selected period. The date remains global, while
+        # the area A stock at that date is a valid zero.
+        snapshots: list[tuple[str, str, str, str, str, int]] = [
+            ("2026-09", "Área A", "Tipo 1", "Perfil 1", "Em andamento", 10),
+            ("2026-10", "Área B", "Tipo 2", "Perfil 2", "Em andamento", 4),
+        ]
+        selected_months = {"2026-09", "2026-10"}
+        observed_months = {row[0] for row in snapshots}
+        latest_global_month = max(observed_months & selected_months)
+        latest_month_for_area_a = max(
+            row[0] for row in snapshots if row[0] in selected_months and row[1] == "Área A"
+        )
+        area_a_stock_at_global_month = sum(
+            row[5] for row in snapshots if row[0] == latest_global_month and row[1] == "Área A"
+        )
+
+        self.assertEqual(latest_global_month, "2026-10")
+        self.assertEqual(latest_month_for_area_a, "2026-09")
+        self.assertEqual(area_a_stock_at_global_month, 0)
+        self.assertEqual(max(observed_months & {"2026-09"}), "2026-09")
+
+        self.assertIn("MAX(PUB_C03_PIPELINE_MENSAL[data_fim_mes])", C03_REFERENCE_DATE)
+        self.assertNotIn("REMOVEFILTERS(DIM_TEMPO)", C03_REFERENCE_DATE)
+        for column in ("area", "tipo", "status", "perfil", "complexidade", "tipo_resposta"):
+            self.assertIn(f"REMOVEFILTERS(PUB_C03_PIPELINE_MENSAL[{column}])", C03)
+        for table in ("DIM_AREA", "DIM_STATUS_PESQUISA", "DIM_TIPO_PESQUISA"):
+            self.assertIn(f"REMOVEFILTERS({table})", C03)
+        self.assertIn("SUMMARIZECOLUMNS(", DAX_QUERIES)
+        for column in ("area", "tipo", "perfil"):
+            self.assertIn(f"PUB_C03_PIPELINE_MENSAL[{column}]", DAX_QUERIES)
+        self.assertIn('TREATAS({"<area>"}, DIM_AREA[area])', DAX_QUERIES)
 
     def test_period_without_an_observed_c03_month_is_unavailable(self) -> None:
         self.assertIsNone(reference_stock([], set(), {"2099-12"}))

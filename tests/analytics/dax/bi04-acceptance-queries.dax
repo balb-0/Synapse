@@ -56,7 +56,25 @@ CALCULATETABLE(
     TREATAS({"2026-09", "2026-10"}, DIM_TEMPO[ano_mes])
 )
 
--- 3. Use a month present in DIM_TEMPO but without any C03 row. The numeric
+-- 3. Use the real C03 report hierarchy. Replace the months and <area> with an
+-- area that has rows in an earlier selected close but none in the latest one.
+-- The dimension slicer must not move the reference date back to September;
+-- October is evidenced globally by area B, so area A's stock is zero there.
+EVALUATE
+CALCULATETABLE(
+    SUMMARIZECOLUMNS(
+        PUB_C03_PIPELINE_MENSAL[area],
+        PUB_C03_PIPELINE_MENSAL[tipo],
+        PUB_C03_PIPELINE_MENSAL[perfil],
+        "Data de Referencia", [Data de Referência do Estoque],
+        "Estoque", [Estoque no Último Mês Observado],
+        "Estado", [Estado do Estoque]
+    ),
+    TREATAS({"2026-09", "2026-10"}, DIM_TEMPO[ano_mes]),
+    TREATAS({"<area>"}, DIM_AREA[area])
+)
+
+-- 4. Use a month present in DIM_TEMPO but without any C03 row. The numeric
 -- stock must be BLANK and the companion status must explain the missing row.
 EVALUATE
 CALCULATETABLE(
@@ -68,7 +86,7 @@ CALCULATETABLE(
     TREATAS({"2099-12"}, DIM_TEMPO[ano_mes])
 )
 
--- 4. The current contract publishes no transition history. Both numeric flow
+-- 5. The current contract publishes no transition history. Both numeric flow
 -- measures must stay BLANK; the status measures must provide the reason.
 EVALUATE
 ROW(

@@ -84,7 +84,11 @@ rode [`tests/analytics/dax/bi04-acceptance-queries.dax`](../tests/analytics/dax/
 na exibição de consultas DAX. Troque os dois meses de exemplo por fechamentos
 observados na geração carregada. Confira também um mês que exista em
 `DIM_TEMPO`, mas não tenha linha C03. O modelo deve mostrar o último fechamento
-observado do recorte e os motivos textuais para estoque ausente e transições
-não publicadas. A publicação atual não permite testar fechamento observado
-com estoque zero; não declare esse caso aceito até que o contrato de
-publicação exponha esse marcador.
+observado no contexto de tempo e os motivos textuais para estoque ausente e
+transições não publicadas. A consulta 3 agrupa as colunas brutas C03 `[area]`,
+`[tipo]` e `[perfil]`: com uma área filtrada sem linha no último fechamento,
+confira que a data continua global e que o estoque do grupo é zero porque há
+linhas C03 de outros grupos nesse fechamento. Sem linha C03 em todo o período,
+estoque e data continuam `BLANK()`. A publicação atual não permite testar
+fechamento observado sem nenhum grupo; não declare esse caso aceito até que o
+contrato exponha o marcador.
