@@ -13,10 +13,12 @@ recalcula, a partir dos Parquet de uma geração publicada
 na Sprint 2, com uma implementação independente da consulta de `publish.py`.
 Esses números pertencem a um snapshot histórico: valor diferente, inclusive
 maior, não passa automaticamente como crescimento legítimo nem reprova sozinho
-a população atual. O script marca qualquer divergência ou arquivo ausente como
-não validado e encerra com código 1; para aceitar uma geração nova, compare-a
-com a carga DuckDB reconciliada da mesma geração. Igualdade com uma referência
-antiga também não substitui essa reconciliação de identidades.
+a população atual. O script registra se cada arquivo existe, quantas linhas
+contém e qual agregado produziu. Distingue caminho ausente, Parquet existente
+sem linhas e coluna sem valor agregado; todos ficam não validados junto com
+qualquer divergência e encerram com código 1. Para aceitar uma geração nova,
+compare-a com a carga DuckDB reconciliada da mesma geração. Igualdade com uma
+referência antiga também não substitui essa reconciliação de identidades.
 
 | Medida | Referência | Fonte |
 | :-- | :-- | :-- |
@@ -35,17 +37,18 @@ Nenhuma diferença para cima é considerada prova de atualização legítima: li
 duplicadas também podem aumentar o agregado. A suíte
 [`scripts/analytics/test_conferir_medidas_bi.py`](../scripts/analytics/test_conferir_medidas_bi.py)
 verifica igualdade histórica, divergência para cima/baixo e arquivo ausente com
-Parquet sintético — sem depender de acesso ao DuckDB privado, que este
+Parquet sintético, além de distinguir arquivo vazio de caminho ausente e de
+agregado sem valor — sem depender de acesso ao DuckDB privado, que este
 repositório não versiona.
 
 **Resultado anexado (a preencher por Anna ao rodar contra uma geração
 real):**
 
-| Medida | Valor publicado | Valor de referência | Status |
-| :-- | :-- | :-- | :-- |
-| `Qtd Pesquisas` | _(rodar o script)_ | 366 | _(rodar o script)_ |
-| `Base Valida Validacao` | _(rodar o script)_ | 20 | _(rodar o script)_ |
-| `Qtd Participacoes` | _(rodar o script)_ | 18735 | _(rodar o script)_ |
+| Medida | Arquivo presente | Linhas publicadas | Valor publicado | Valor de referência | Status |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| `Qtd Pesquisas` | _(rodar o script)_ | _(rodar o script)_ | _(rodar o script)_ | 366 | _(rodar o script)_ |
+| `Base Valida Validacao` | _(rodar o script)_ | _(rodar o script)_ | _(rodar o script)_ | 20 | _(rodar o script)_ |
+| `Qtd Participacoes` | _(rodar o script)_ | _(rodar o script)_ | _(rodar o script)_ | 18735 | _(rodar o script)_ |
 
 ## Checklist manual — medidas sem referência numérica fixa
 

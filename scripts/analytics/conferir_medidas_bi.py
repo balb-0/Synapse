@@ -24,6 +24,13 @@ class Referencia:
     tolerancia: str
 
 
+@dataclass(frozen=True)
+class ValorPublicado:
+    arquivo_presente: bool
+    linhas: int | None
+    valor: int | float | None
+
+
 REFERENCIAS = [
     Referencia(
         medida="Qtd Pesquisas",
@@ -46,30 +53,31 @@ REFERENCIAS = [
 ]
 
 
-def _read_parquet_scalar(con: duckdb.DuckDBPyConnection, path: Path, sql: str) -> float | None:
+def _read_parquet_agregado(con: duckdb.DuckDBPyConnection, path: Path, sql: str) -> ValorPublicado:
     if not path.exists():
-        return None
-    return con.execute(sql, [str(path)]).fetchone()[0]
+        return ValorPublicado(arquivo_presente=False, linhas=None, valor=None)
+    linhas, valor = con.execute(sql, [str(path)]).fetchone()
+    return ValorPublicado(arquivo_presente=True, linhas=linhas, valor=valor)
 
 
-def calcular_valores_publicados(geracao: Path) -> dict[str, float | None]:
+def calcular_valores_publicados(geracao: Path) -> dict[str, ValorPublicado]:
     con = duckdb.connect(":memory:")
     try:
         valores = {
-            "Qtd Pesquisas": _read_parquet_scalar(
+            "Qtd Pesquisas": _read_parquet_agregado(
                 con,
                 geracao / "PUB_C01_CICLO.parquet",
-                "SELECT SUM(qtd_pesquisas) FROM read_parquet(?)",
+                "SELECT COUNT(*), SUM(qtd_pesquisas) FROM read_parquet(?)",
             ),
-            "Base Valida Validacao": _read_parquet_scalar(
+            "Base Valida Validacao": _read_parquet_agregado(
                 con,
                 geracao / "PUB_C01_CICLO.parquet",
-                "SELECT SUM(qtd_validacao_disponivel) FROM read_parquet(?)",
+                "SELECT COUNT(*), SUM(qtd_validacao_disponivel) FROM read_parquet(?)",
             ),
-            "Qtd Participacoes": _read_parquet_scalar(
+            "Qtd Participacoes": _read_parquet_agregado(
                 con,
                 geracao / "PUB_C02_PARTICIPACAO.parquet",
-                "SELECT SUM(qtd_participacoes) FROM read_parquet(?)",
+                "SELECT COUNT(*), SUM(qtd_participacoes) FROM read_parquet(?)",
             ),
         }
     finally:
@@ -81,9 +89,14 @@ def conferir(geracao: Path) -> list[dict]:
     publicados = calcular_valores_publicados(geracao)
     linhas = []
     for referencia in REFERENCIAS:
-        valor_publicado = publicados.get(referencia.medida)
-        if valor_publicado is None:
+        publicado = publicados[referencia.medida]
+        valor_publicado = publicado.valor
+        if not publicado.arquivo_presente:
             status = "sem arquivo publicado nesta geracao"
+        elif publicado.linhas == 0:
+            status = "arquivo publicado sem linhas nesta geracao"
+        elif valor_publicado is None:
+            status = "arquivo publicado sem valor agregado nesta geracao"
         elif valor_publicado == referencia.valor:
             status = "bate exato"
         elif valor_publicado > referencia.valor:
@@ -93,6 +106,8 @@ def conferir(geracao: Path) -> list[dict]:
         linhas.append(
             {
                 "medida": referencia.medida,
+                "arquivo_presente": publicado.arquivo_presente,
+                "linhas_publicadas": publicado.linhas,
                 "valor_publicado": valor_publicado,
                 "valor_referencia": referencia.valor,
                 "status": status,
