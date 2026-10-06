@@ -130,8 +130,9 @@ operacional de execucao (OB-08)"**. O painel mostra, por execução:
   `orchestration.ingest_object.emitted`, inclusive nos eventos históricos que
   ainda têm `loaded_count`. Assim, três linhas carregadas são três na etapa
   `load` e três na etapa `orchestration`, sem somar o mesmo objeto duas vezes
-  dentro da mesma etapa. Totais entre etapas representam etapas diferentes e
-  não devem ser somados como linhas únicas do pipeline);
+  dentro da mesma etapa. A tabela agrupa por fonte e etapa e não mostra total
+  geral (`showTotal: false`). Não some `loaded_count` entre essas etapas como
+  linhas únicas do pipeline);
 - **rejeições e duplicatas** (`etl-viz-rejeicoes`: soma de `rejected_count` e
   `duplicate_count` por fonte e etapa, com os mesmos eventos canônicos do
   painel de volumes para excluir resumos redundantes);
@@ -169,6 +170,22 @@ observabilidade; UDP continua sem garantia de entrega. Timeout não afirma
 que a API ou o banco estão indisponíveis: registra que a checagem não
 concluiu. O alerta de ausência de sinal abaixo detecta também um monitor
 parado ou perda de telemetria. O monitor não reinicia o Prefect nem o banco.
+
+Uma [verificação local limitada](evidencias/observabilidade/runtime-local-2026-10-06.json)
+executou o CLI real do monitor fora do Compose, com DuckDB temporário isolado.
+Com a API local sem listener, dois ciclos sucessivos emitiram `degraded`,
+`prefect_available: false` e `database_available: true`. Outra execução usou
+uma API HTTP controlada: duas respostas 200 produziram `ok` e a resposta 503
+seguinte produziu `degraded`. O objeto salvo `etl-viz-volumes` foi lido com
+eventos agregados sintéticos; o filtro excluiu o resumo antigo e manteve
+`load` e `orchestration` em linhas de etapa distintas, sem total geral. Os 13
+testes focados do monitor passaram. Os blobs dos arquivos verificados no
+checkout `cef8b15` coincidem com a referência de integração `ff760d6`;
+isso não verifica toda a árvore de integração.
+
+Essa prova local não iniciou Elasticsearch, Logstash, Kibana, Prefect Server
+nem o Compose, e não testou entrega GELF, indexação, renderização do painel
+ou regras de alerta ativas. Nenhuma notificação foi criada ou enviada.
 
 A checagem manual continua disponível. Checa se o servidor Prefect configurado responde e se o
 banco de ingestão aceita conexão/consulta/persistência (reaproveita o mesmo
