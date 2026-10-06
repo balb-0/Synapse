@@ -5,10 +5,12 @@ Percorrido estático das três páginas finais do relatório
 com vínculos de filtros e drill conferidos pela definição PBIR. Evidência
 reproduzível: `tests/analytics/test_report_semantics.py`,
 `tests/analytics/test_report_bindings.py`, `test_report_filters.py` e
-`test_report_definition.py`. A atualização e a validação runtime no Desktop
-continuam pendentes, conforme a fronteira abaixo.
+`test_report_definition.py` — 23 testes passam com:
+`PYTHONPATH=src python -m unittest tests.analytics.test_report_semantics tests.analytics.test_report_bindings tests.analytics.test_report_filters tests.analytics.test_report_definition -v`.
+A atualização e a validação runtime no Desktop continuam pendentes, conforme
+a fronteira abaixo.
 
-## Percorrido por página (filtros simultâneos + drill)
+## Percurso estático por página (filtros simultâneos + drill)
 
 | Página | Filtros percorridos | Drill | Resultado |
 | :-- | :-- | :-- | :-- |
