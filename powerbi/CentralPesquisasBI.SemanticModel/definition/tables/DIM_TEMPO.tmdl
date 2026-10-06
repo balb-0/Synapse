@@ -78,7 +78,11 @@ table DIM_TEMPO
 		source = ```
 				VAR _DatasParticipacao = SELECTCOLUMNS(PUB_C02_PARTICIPACAO, "data", [mes_resposta])
 				VAR _DatasPipeline = SELECTCOLUMNS(PUB_C03_PIPELINE_MENSAL, "data", [data_fim_mes])
-				VAR _Datas = DISTINCT(UNION(_DatasParticipacao, _DatasPipeline))
+				VAR _Datas =
+					FILTER(
+						DISTINCT(UNION(_DatasParticipacao, _DatasPipeline)),
+						NOT ISBLANK([data])
+					)
 				VAR _ComColunas =
 					ADDCOLUMNS(
 						_Datas,
