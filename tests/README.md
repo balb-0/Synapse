@@ -35,6 +35,7 @@ A suíte deve registrar erro real quando houver falha. Uma execução parcial ou
 [`.gitlab-ci.yml`](../.gitlab-ci.yml) mantém jobs obrigatórios de lint e testes:
 
 ```bash
+export PYTHONPATH=src
 ruff check src scripts tests
 ruff format --check src scripts tests
 python scripts/architecture/validate_architecture_docs.py
