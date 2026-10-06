@@ -60,7 +60,13 @@ def parse_relationships():
             cur[m.group(1)] = (m.group(2), m.group(3))
     if cur:
         rels.append(cur)
-    return rels
+    coverage = set()
+    for rel in rels:
+        frm = (rel.get("fromColumn") or (None, None))[0]
+        to = (rel.get("toColumn") or (None, None))[0]
+        if frm and to:
+            coverage.add((to, frm))
+    return coverage
 
 
 def iter_fields(node):
@@ -104,11 +110,8 @@ class ReportBindingsTests(unittest.TestCase):
         self.assertEqual(offenders, [], "vínculos que não resolvem no modelo")
 
     def test_slicer_dimensions_reach_page_facts(self):
-        rels = parse_relationships()
         # fato <- dimensao (toColumn = dimensao, fromColumn = fato)
-        coverage = {(to_t, frm_t) for r in rels
-                    for frm_t, to_t in [((r.get("fromColumn") or (None, None))[0],
-                                          (r.get("toColumn") or (None, None))[0])] if frm_t and to_t}
+        coverage = parse_relationships()
         offenders = []
         for page_id, visuals in load_pages().items():
             # Tabelas de qualidade são standalone no modelo (sem
