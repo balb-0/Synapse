@@ -38,3 +38,16 @@ Para compartilhar reports, modelamos **2 licenças Power BI Pro no piloto** e **
 | **Total em 12 meses** | Total mensal sem arredondamento × 12 | **59.062,29** | **193.061,37** |
 
 O desembolso de licença pode ocorrer antecipadamente pelo compromisso anual. A tabela expressa competência econômica mensal; FN-05 deve explicitar o fluxo de caixa quando o plano de compra for conhecido.
+
+## Conferência e limites
+
+Reprodução do piloto: `95,10×4,9859 + 16×(11023,35×2,03÷160) + 8×(11071,12×2,02÷160) + 4×(9561,11×2,04÷160) + 4×(8616,67×2,06÷160) + 2×80,20 = R$ 4.921,86/mês`. Na produção, substituir por `1651, 24, 16, 8, 8, 5`, respectivamente, resulta em **R$ 16.088,45/mês**. Usar precisão integral antes de arredondar.
+
+| Item a validar | Consequência se mudar |
+| :--- | :--- |
+| Região, topologia, retenção, volume e período ligado | Recalcular USD da infraestrutura; sete VMs contínuas dominam o cenário de produção. |
+| Horas efetivas por função | Recalcular pessoal; tarefas emergenciais podem elevar o custo. |
+| Licenças já disponíveis e número de usuários | Reduzir ou ampliar a linha Power BI Pro; confirmar condições de compartilhamento. |
+| Suporte comercial, segurança, rede, recuperação de desastre e tributos | Acrescentar linhas antes de contratar; estão fora do modelo atual. |
+
+As horas de desenvolvimento desta tabela cobrem hospedagem **e** manutenção. As horas de BI cobrem atualização **e** suporte funcional. Não há segunda cobrança para esses nomes. Os custos de erro ou retrabalho usados como possível benefício em FN-04 devem representar trabalho manual da operação anterior, sem reaproveitar as horas desta tabela como ganho adicional.
