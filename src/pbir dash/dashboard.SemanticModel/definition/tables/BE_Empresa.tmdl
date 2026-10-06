@@ -151,16 +151,19 @@ table BE_Empresa
 		displayFolder: Benchmark observado
 		lineageTag: 7993ca6a-c78b-5a77-92a8-39377e25ff72
 
-	/// Medida de suporte visual para a comparação observada; preserva o mesmo recorte e grão.
+	/// Média por área da coorte observada em todas as áreas selecionadas. Ausência na área vale zero; sem coorte retorna vazio.
 	measure 'BE % demais por área' =
 			VAR Selecionada = SELECTEDVALUE ( BE_Empresa[ID Empresa] )
 			VAR AreasDoRecorte = CALCULATETABLE ( VALUES ( BE_Pesquisa[Área] ), ALLSELECTED ( BE_Pesquisa[Área] ) )
-			VAR Empresas = CALCULATETABLE ( VALUES ( D02_Participacao[empresa_id_duravel] ),
-			    REMOVEFILTERS ( D02_Participacao[empresa_id_duravel], D02_Participacao[empresa] ),
-			    KEEPFILTERS ( TREATAS ( VALUES ( BE_Pesquisa[ID Pesquisa] ), D02_Participacao[pesquisa_id_origem] ) ) )
+			VAR Empresas = CALCULATETABLE (
+			    CALCULATETABLE ( VALUES ( D02_Participacao[empresa_id_duravel] ),
+			        REMOVEFILTERS ( D02_Participacao[empresa_id_duravel], D02_Participacao[empresa] ),
+			        KEEPFILTERS ( TREATAS ( VALUES ( BE_Pesquisa[ID Pesquisa] ), D02_Participacao[pesquisa_id_origem] ) ) ),
+			    REMOVEFILTERS ( BE_Pesquisa[Área] ), KEEPFILTERS ( AreasDoRecorte ) )
 			RETURN IF ( HASONEVALUE ( BE_Empresa[ID Empresa] ),
-			    AVERAGEX ( FILTER ( Empresas, D02_Participacao[empresa_id_duravel] <> Selecionada ),
-			        VAR Numerador = CALCULATE ( [BE Pesquisas por empresa] )
+			    AVERAGEX ( FILTER ( Empresas, NOT ISBLANK ( D02_Participacao[empresa_id_duravel] )
+			        && D02_Participacao[empresa_id_duravel] <> Selecionada ),
+			        VAR Numerador = COALESCE ( CALCULATE ( [BE Pesquisas por empresa] ), 0 )
 			        VAR Denominador = CALCULATE ( [BE Pesquisas por empresa], REMOVEFILTERS ( BE_Pesquisa[Área] ), KEEPFILTERS ( AreasDoRecorte ) )
 			        RETURN DIVIDE ( Numerador, Denominador ) ) )
 		formatString: 0.0%

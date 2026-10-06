@@ -16,7 +16,9 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-import duckdb
+from etl.analytics.reconcile import reconcile_analytics
+from etl.load.config import load_duckdb_settings
+from etl.load.connection import connect_with_retry
 
 PUBLICATIONS = {
     "PUB_C01_CICLO": """
@@ -182,15 +184,20 @@ def _sql_qualidade_campo() -> str:
 
 
 def _sql_qualidade_relacao() -> str:
-    partes = [
-        f"""SELECT '{filha}.{col_filha}' AS relacao,
-               COUNT(*)::BIGINT AS qtd_chaves_informadas,
-               COUNT(p.{col_pai})::BIGINT AS qtd_chaves_correspondentes
-          FROM {_view_atual(filha)} f
-          LEFT JOIN {_view_atual(pai)} p ON p.{col_pai} = f.{col_filha}
-         WHERE f.{col_filha} IS NOT NULL"""
-        for filha, col_filha, pai, col_pai in RELACOES_QUALIDADE
-    ]
+    partes = []
+    for filha, col_filha, pai, col_pai in RELACOES_QUALIDADE:
+        predicate = f"p.{col_pai} = f.{col_filha}"
+        if filha == "respostas" and pai == "questoes":
+            predicate += " AND p.pesquisa_id = f.pesquisa_id"
+        partes.append(
+            f"""SELECT '{filha}.{col_filha}' AS relacao,
+                   COUNT(*)::BIGINT AS qtd_chaves_informadas,
+                   COUNT(CASE WHEN EXISTS (
+                       SELECT 1 FROM {_view_atual(pai)} p WHERE {predicate}
+                   ) THEN 1 END)::BIGINT AS qtd_chaves_correspondentes
+              FROM {_view_atual(filha)} f
+             WHERE f.{col_filha} IS NOT NULL"""
+        )
     return "\n         UNION ALL\n".join(partes)
 
 
@@ -233,6 +240,9 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
 
     ``output`` deve ficar fora do checkout. O diretório é privado por padrão;
     a distribuição a consumidores autorizados ocorre fora deste processo.
+    Com controles analíticos, a referência e a reconciliação são verificadas
+    no mesmo snapshot dos COPYs. Fixtures sem controles exigem referência
+    explicitamente marcada ``synthetic-...`` e não constituem uma carga final.
     """
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", load_reference):
         raise ValueError("load_reference deve ser um identificador simples, sem segredo")
@@ -258,9 +268,26 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
     in_transaction = False
     published = False
     try:
-        conn = duckdb.connect(str(database), read_only=True)
+        conn = connect_with_retry(
+            database, load_duckdb_settings().write_lock_timeout_seconds, read_only=True
+        )
         conn.execute("BEGIN TRANSACTION")
         in_transaction = True
+        control_tables = {
+            row[0]
+            for row in conn.execute(
+                "SELECT table_name FROM information_schema.tables "
+                "WHERE table_schema = current_schema() AND table_name LIKE 'analytics_%'"
+            ).fetchall()
+        }
+        if control_tables:
+            report = reconcile_analytics(conn)
+            if not report.reconciled or report.load_id != load_reference:
+                raise ValueError("a origem mudou ou não reconciliou no snapshot de publicação")
+        elif not load_reference.startswith("synthetic-"):
+            raise ValueError(
+                "origem sem controle analítico exige referência synthetic-... explícita"
+            )
         tables = {}
         for name, query in PUBLICATIONS.items():
             target = staging / f"{name}.parquet"

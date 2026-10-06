@@ -1,9 +1,8 @@
 # Deployments do ETL no Prefect Server local.
 #
-# O deployment agendado (`ingest-object/agendado`, cron `0 3 * * *`) é servido
-# pelo serviço `scheduler` via `scripts/orchestration/deployment.py`; este
-# arquivo declara os deployments para publicação explícita pela CLI e para a
-# execução manual parametrizada pela UI (`ingest-object/manual`, `backfill`).
+# A agenda completa `pipeline-completo/agendado-dw` (cron `0 3 * * *`) é servida pelo
+# serviço scheduler via scripts/orchestration/deployment.py. Este arquivo
+# também publica os caminhos manual de objeto, backfill tratado e manual DW.
 #
 # Publicação (com o ambiente no ar, a partir da raiz do repositório):
 #   export PREFECT_API_URL=http://localhost:4200/api
@@ -30,6 +29,18 @@ deployments:
       bucket: sindusfarma
       prefix: landing
     tags: [etl, backfill]
+    pull:
+      - prefect.deployments.steps.set_working_directory:
+          directory: /app
+    work_pool:
+      name: default
+
+  - name: manual-dw
+    entrypoint: src/etl/orchestration/pipeline.py:run_pipeline
+    parameters:
+      sources: [pesquisas, empresas, clientes, questoes, respondentes, respostas]
+      publish_dir: /data/publicacao
+    tags: [etl, backfill, analytics]
     pull:
       - prefect.deployments.steps.set_working_directory:
           directory: /app
