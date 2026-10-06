@@ -199,6 +199,9 @@ As medidas personalizadas implementam as regras de negócio abaixo:
 | `BE Empresa participou` | Retorna `Sim` ou `Não` conforme exista registro da empresa na pesquisa; sem seleção única, solicita a seleção de uma empresa. |
 | `BE % observado Top 8` | Usa `RANKX` para limitar a exibição às oito pesquisas mais relevantes sem alterar a medida base. |
 
+A regressão do Perfil de participação e os limites da conferência DAX estão
+em [conferencia-benchmark-perfil.md](conferencia-benchmark-perfil.md).
+
 As medidas do Benchmark usam `HASONEVALUE` para evitar interpretações sem uma
 empresa selecionada, `REMOVEFILTERS` para construir o grupo comparável,
 `KEEPFILTERS` para preservar os filtros ativos e `ALLSELECTED` para manter o
@@ -247,9 +250,9 @@ de acesso. Trocar a fonte sem rever o grão não atende esses casos.
 As duas páginas usam colunas planas das tabelas de demonstração
 (`D01_CicloPesquisa`, `D02_Participacao`, `BE_*`). Por isso, o detalhamento é
 feito por filtro cruzado e tabela de detalhe, e não por drill hierárquico.
-**Atendimento parcial delimitado:** a navegação por nível (Ano → Trimestre →
-Mês, Área → Tipo → Perfil) e o drill-through serão concluídos na **Sprint 5**, quando as páginas forem
-ligadas à geração Parquet (ver [Integração com a camada Gold](#integração-com-a-camada-gold)).
+A navegação por nível (Ano → Trimestre → Mês, Área → Tipo → Perfil) e o
+drill-through nas páginas ainda exigem implementação e validação em RP-13/RP-14.
+Detalhe por pesquisa não cabe no grão atual da geração Parquet (ver [Integração com a camada Gold](#integração-com-a-camada-gold)).
 As tarefas T-DET de [`tarefas-detalhamento.md`](usabilidade/tarefas-detalhamento.md)
 usam filtro cruzado e detalhe nas duas páginas atuais; as que exigem
 Resultados/Qualidade ficam fora desta rodada. Para medidas não aditivas, a coerência

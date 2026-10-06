@@ -106,7 +106,7 @@ denominador antes de recalcular; para estoque, comparar o mesmo snapshot.
 
 | Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-SEG-02 | Fora da rodada: Resultados ausente | — | — | — | — | |
+| T-SEG-02 | Fora da rodada: Resultados ausente | — | — | — | — | — |
 
 ## Síntese da rodada
 
