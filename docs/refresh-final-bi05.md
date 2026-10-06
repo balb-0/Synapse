@@ -26,49 +26,60 @@ publicação não contém fechamento observado; ele não comprova estoque zero.
 
 Uma falha imprime JSON com `preparation.status: falha`, `error` e saída 1. O
 campo `final_acceptance` continua `pendente`, mesmo quando a preparação passa.
-O `load_reference` e o ID no manifesto ajudam a identificar a geração, mas não
-comprovam, sozinhos, que o banco e os arquivos vieram da carga final CB16.
+Quando o banco contém `analytics_load_run`, o conferidor exige que
+`load_reference` seja o ID da última carga analítica e confere os fingerprints
+das quatro fontes correntes e o checksum da fonte de respondentes selecionada.
+O JSON registra `source_control.status: confere`. Sem essa tabela, registra
+`sem_controle_de_carga_disponivel`; os arquivos e cubos ainda são comparados,
+mas o vínculo à execução de carga fica sem prova. O ID no manifesto, sozinho,
+não comprova que a carga é a final CB16 autorizada.
 
 ## Conferir no Power BI Desktop
 
 No Windows, abra `powerbi/CentralPesquisasBI.pbip`, aponte
 `PastaPublicacaoBI` para a **mesma** subpasta de geração, aplique e atualize as
 sete partições. Registre versão do Desktop, data, erros e evidência da execução.
-Execute `COUNTROWS` nas sete tabelas. Execute pelo menos uma consulta DAX de
-agregado, por exemplo:
+Execute `COUNTROWS` nas sete tabelas e **ao menos um agregado por cubo**. Para
+C01, C02 e C04, use o total de linhas dos fatos publicado em suas colunas de
+quantidade. Para C03, filtre um único fechamento observado:
 
 ```dax
 EVALUATE ROW("Total C01", SUM(PUB_C01_CICLO[qtd_pesquisas]))
+EVALUATE ROW("Total C02", SUM(PUB_C02_PARTICIPACAO[qtd_participacoes]))
+EVALUATE ROW("Estoque C03", CALCULATE(SUM(PUB_C03_PIPELINE_MENSAL[qtd_pesquisas_no_status]), PUB_C03_PIPELINE_MENSAL[data_fim_mes] = DATE(2026, 2, 28)))
+EVALUATE ROW("Total C04", SUM(PUB_C04_INSTRUMENTO[qtd_perguntas]))
 ```
 
-Transcreva os resultados em um recibo JSON privado:
+Substitua a data de exemplo pelo fechamento da geração. Se C03 não contiver
+fechamento observado, registre estado indisponível e valor nulo. Transcreva os
+resultados em um recibo JSON privado. Os textos entre `<>` são marcadores e
+devem ser trocados por números reais antes da execução do conferidor:
 
 ```json
 {
   "generation": "ID_DA_GERACAO",
   "tables": {
-    "PUB_C01_CICLO": 0,
-    "PUB_C02_PARTICIPACAO": 0,
-    "PUB_C03_PIPELINE_MENSAL": 0,
-    "PUB_C04_INSTRUMENTO": 0,
-    "PUB_QUALIDADE_CAMPO": 0,
-    "PUB_QUALIDADE_RELACAO": 0,
-    "PUB_QUALIDADE_DUPLICIDADE": 0
+    "PUB_C01_CICLO": "<contagem C01>",
+    "PUB_C02_PARTICIPACAO": "<contagem C02>",
+    "PUB_C03_PIPELINE_MENSAL": "<contagem C03>",
+    "PUB_C04_INSTRUMENTO": "<contagem C04>",
+    "PUB_QUALIDADE_CAMPO": "<contagem qualidade campo>",
+    "PUB_QUALIDADE_RELACAO": "<contagem qualidade relação>",
+    "PUB_QUALIDADE_DUPLICIDADE": "<contagem qualidade duplicidade>"
   },
-  "aggregate": {
-    "table": "PUB_C01_CICLO",
-    "column": "qtd_pesquisas",
-    "value": 0
+  "aggregates": {
+    "PUB_C01_CICLO": {"column": "qtd_pesquisas", "value": "<total C01>"},
+    "PUB_C02_PARTICIPACAO": {"column": "qtd_participacoes", "value": "<total C02>"},
+    "PUB_C03_PIPELINE_MENSAL": {"column": "qtd_pesquisas_no_status", "month_end": "<AAAA-MM-DD>", "value": "<estoque do mês>"},
+    "PUB_C04_INSTRUMENTO": {"column": "qtd_perguntas", "value": "<total C04>"}
   }
 }
 ```
 
-Os zeros acima são marcadores: substitua todos pelos valores obtidos no
-Desktop. Para conferir C03 como agregado, use `table` igual a
-`PUB_C03_PIPELINE_MENSAL`, `column` igual a `qtd_pesquisas_no_status` e inclua
-`month_end` (`AAAA-MM-DD`). Filtre a consulta DAX ao fechamento escolhido.
+Para C03 sem fechamento, substitua sua entrada por
+`{"column":"qtd_pesquisas_no_status","state":"sem_fechamento_observado","value":null}`.
 Execute novamente com `--desktop /caminho/privado/recibo-desktop.json`. O
-resultado `desktop.status: recibo_confere` compara os sete números e o agregado
+resultado `desktop.status: recibo_confere` compara os sete números e os quatro agregados
 com a publicação e o banco. O recibo, isoladamente, não prova que o refresh
 ocorreu no aplicativo; mantenha a evidência da execução junto dele.
 
