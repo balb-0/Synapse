@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import subprocess
 import sys
 import tempfile
@@ -11,6 +13,7 @@ from unittest.mock import patch
 
 import duckdb
 
+from etl.analytics.load import load_analytics
 from etl.load.connection import WriteLockTimeoutError, connect_with_retry
 from etl.load.duckdb_repository import DuckDbLoadRepository
 from tests.load.test_write_lock import HOLD_LOCK_SCRIPT
@@ -63,6 +66,32 @@ class PublicConnectionRetryTests(unittest.TestCase):
             with self.assertRaisesRegex(duckdb.IOException, "Permission denied"):
                 connect_with_retry(self.database, timeout_seconds=1)
             self.assertEqual(connect.call_count, 1)
+
+    def test_reconcile_cli_waits_then_reports_unavailable_source_without_modifying_database(self):
+        with connect_with_retry(self.database) as con:
+            loaded = load_analytics(con)
+        before = hashlib.sha256(self.database.read_bytes()).hexdigest()
+        self.hold_lock(0.4)
+        run = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "etl.analytics.reconcile",
+                str(self.database),
+                "--write-lock-timeout-seconds",
+                "3",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        self.assertEqual(run.returncode, 1, run.stderr)
+        report = json.loads(run.stdout)
+        self.assertEqual(report["load_id"], loaded.load_id)
+        self.assertFalse(report["reconciled"])
+        participation = next(cube for cube in report["cubes"] if cube["cube"] == "C02")
+        self.assertEqual(participation["status"], "source_unavailable")
+        self.assertEqual(hashlib.sha256(self.database.read_bytes()).hexdigest(), before)
 
     def test_analytics_cli_waits_for_writer_and_commits_manifest(self):
         self.hold_lock(0.4)
