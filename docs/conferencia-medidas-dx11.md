@@ -104,3 +104,24 @@ linhas C03 de outros grupos nesse fechamento. Sem linha C03 em todo o período,
 estoque e data continuam `BLANK()`. A publicação atual não permite testar
 fechamento observado sem nenhum grupo; não declare esse caso aceito até que o
 contrato exponha o marcador.
+
+## Consultas reais do fixture em Power BI Desktop
+
+O [recibo das medidas](evidencias/bi04/desktop-medidas-fixture.json) registra
+consulta real em VM Windows em 06/10/2026 às 14:04:07 UTC, após sincronização
+do relógio. A média ponderada de validação foi 5 dias com denominador 2,
+e a média de preenchimento foi 10 minutos com denominador 2.
+Os totais C01/C02/C04 foram 4/4/3.
+
+O estoque da medida BI-04 foi 4 no último fechamento, 28/02/2026, igual à
+soma direta filtrada na fato C03. As medidas de entrada e saída retornaram
+valor nulo e o motivo de ausência de histórico. As duas medidas textuais
+bloqueadas exibiram os motivos; o catálogo retornou 18 linhas e 17 estados
+sem dado. A comparação TOM teve 128 itens e zero diferenças para a projeção
+semântica do TMDL conferido, além de 98 arquivos de origem verificados.
+
+O resultado é do fixture sintético. Não substitui a conferência das métricas
+da geração v3. As consultas anexadas não cobrem todas as médias de fases,
+todos os recortes categóricos ou todos os edge cases do checklist acima.
+Fechamento sem nenhum grupo observado continua sem representação suficiente
+no contrato Parquet; não há aceite desse caso.
