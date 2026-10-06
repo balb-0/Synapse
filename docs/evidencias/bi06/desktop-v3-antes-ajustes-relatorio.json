@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+  "load_reference": "afcde424-45e8-457b-8793-bf0866d142b2",
+  "synthetic": false,
+  "queried_at_utc": "2026-10-06T14:15:30.3023170Z",
+  "source": "Power BI Desktop local Analysis Services via AdomdClient",
+  "desktop_version": "2.158.1177.0 (26.09)+a10b99dd55051d4b25e9e28c4a1747d23f7a4f1f",
+  "windows_version": "10.0.26200.0",
+  "project_source_commit": "f068a0109613ff088ad1b53080d90bf722c26b47",
+  "package_sha256": "88a33f4963e9f2912794ad165c003d03822d24986817c2ce5909c8551207f89e",
+  "model_inventory_sha256": "de0c9fcce5a17612f0c3911bd4efb8f99c270e58fd3bdffff1017a42230ce62f",
+  "verified_model_files": 98,
+  "query_script_sha256": "f0d696dd5d10876939ee8024181dc907a25a9d31f316482bb195d266146c2b80",
+  "engine_loaded_revision_verified": false,
+  "engine_semantic_projection_verified": true,
+  "tables": {
+    "PUB_C01_CICLO": 57,
+    "PUB_C02_PARTICIPACAO": 32,
+    "PUB_C03_PIPELINE_MENSAL": 0,
+    "PUB_C04_INSTRUMENTO": 45,
+    "PUB_QUALIDADE_CAMPO": 64,
+    "PUB_QUALIDADE_RELACAO": 8,
+    "PUB_QUALIDADE_DUPLICIDADE": 5
+  },
+  "aggregates": {
+    "PUB_C01_CICLO": {
+      "column": "qtd_pesquisas",
+      "value": 366
+    },
+    "PUB_C02_PARTICIPACAO": {
+      "column": "qtd_participacoes",
+      "value": 17740
+    },
+    "PUB_C04_INSTRUMENTO": {
+      "column": "qtd_perguntas",
+      "value": 3186
+    },
+    "PUB_C03_PIPELINE_MENSAL": {
+      "column": "qtd_pesquisas_no_status",
+      "state": "sem_fechamento_observado",
+      "value": null
+    }
+  },
+  "checks": {
+    "c01": {
+      "weighted_validation": 8.55,
+      "valid_base": 20,
+      "blocked_extension": "Indisponivel: coluna de prorrogacao nao publicada no cubo BI (ver docs/indicadores-publicaveis-bi.md, I05)"
+    },
+    "c02": {
+      "weighted_minutes": null,
+      "valid_base": 0,
+      "blocked_representativity": "Indisponivel: participacao de mercado (I09) nao publicada no cubo BI; fonte autoritativa pendente de homologacao (docs/dmc.md, DR02)"
+    },
+    "c03": {
+      "reference_date": null,
+      "latest_stock": null,
+      "entries": null,
+      "exits": null,
+      "bi04_measures": {
+        "status": "queried",
+        "reference_date": null,
+        "latest_stock": null,
+        "stock_state": "Indisponível: a geração publicada não contém linha C03 para o período selecionado.",
+        "entries": null,
+        "entries_state": "Indisponível: a geração publicada não contém linha C03 para o período selecionado.",
+        "exits": null,
+        "exits_state": "Indisponível: a geração publicada não contém linha C03 para o período selecionado."
+      }
+    },
+    "blocked_indicators": {
+      "count": 17,
+      "catalog_rows": 18
+    }
+  },
+  "engine_model_verification": {
+    "status": "matched",
+    "source_sha256": "34dcad43c6d6761a508793a60311075abae529e3ece2bb3beeb9cc94956a1a46",
+    "engine_sha256": "34dcad43c6d6761a508793a60311075abae529e3ece2bb3beeb9cc94956a1a46",
+    "source_items": 128,
+    "engine_items": 128,
+    "difference_count": 0,
+    "scope": "tables, columns, measures, partitions, relationships, hierarchies and model expressions; runtime auto date tables and their relationships, and row-number columns excluded"
+  },
+  "local_parameter_binding": {
+    "generation_path_sanitized": "C:\\BI\\<pacote>\\data\\v3",
+    "file_present_and_path_matched": true,
+    "excluded_from_byte_hash": true
+  },
+  "partitions": {
+    "status": "all_processed_without_error",
+    "project_tables": [
+      "DIM_AREA",
+      "DIM_INDICADORES_BLOQUEADOS",
+      "DIM_STATUS_PESQUISA",
+      "DIM_TEMPO",
+      "DIM_TIPO_PERGUNTA",
+      "DIM_TIPO_PESQUISA",
+      "PUB_C01_CICLO",
+      "PUB_C02_PARTICIPACAO",
+      "PUB_C03_PIPELINE_MENSAL",
+      "PUB_C04_INSTRUMENTO",
+      "PUB_QUALIDADE_CAMPO",
+      "PUB_QUALIDADE_DUPLICIDADE",
+      "PUB_QUALIDADE_RELACAO"
+    ],
+    "project_partitions_processed": 13,
+    "automatic_date_partitions_processed": 2,
+    "all_partitions_processed": 15
+  },
+  "receipt_sha256": "a4f7dfacddaf155b277d06e699f8019a48fba2f5a13b2570d8eb54ea7812ff64",
+  "execution_mode": "automated queries against real Power BI Desktop on a Windows virtual machine",
+  "limits": [
+    "Interim runtime receipt before the later report visual/title correction pass",
+    "TOM verifies the declared semantic projection, not an exact source commit marker in the engine",
+    "C03 has no observed monthly closure; stock and transitions are unavailable, not zero"
+  ]
+}

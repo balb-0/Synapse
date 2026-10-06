@@ -47,8 +47,8 @@ dados sintéticos demonstra o visual; não prova qual geração foi importada.
 | BI-01 | Migração de duas páginas e 48 visuais | Estrutura versionada; aceitação visual do pacote integrado pendente |
 | BI-02 | Fixture `synthetic-bi02-fixture` | Sete tabelas consultadas no Desktop real, partições processadas sem erro |
 | BI-03/BI-04 | Pacote integrado `f068a01` | Projeção TOM com 128 itens/zero diferenças; médias e estoque do fixture consultados |
-| BI-05 | Geração CB-16 `6b1eaa686aac43b18b6d6545e1c2c5f1` | Publicação e origem conferidas; refresh final Desktop pendente |
-| BI-06 | Refresh e troca de geração | Capturas e números do Desktop ainda a registrar |
+| BI-05 | Geração CB-16 `6b1eaa686aac43b18b6d6545e1c2c5f1` | Publicação, origem e refresh v3 conferidos; revisão visual final pendente |
+| BI-06 | Refresh e troca de geração | Fixture e v3 consultados; troca registrada, teste de cópia incompleta pendente |
 
 Até completar as evidências de cada etapa, o respectivo aceite permanece
 pendente. Card fechado, branch criada, pipeline ou recibo preenchido não
@@ -58,13 +58,13 @@ comprovam execução no Power BI Desktop.
 
 | Tabela | Linhas do manifesto | Linhas no Desktop | Agregado ou estado |
 | :--- | :--- | :--- | :--- |
-| `PUB_C01_CICLO` | A registrar | A registrar | Soma de `qtd_pesquisas` versus contagem de `FATO_CICLO_PESQUISA` |
-| `PUB_C02_PARTICIPACAO` | A registrar | A registrar | Soma de `qtd_participacoes` versus contagem de `FATO_PARTICIPACAO` |
-| `PUB_C03_PIPELINE_MENSAL` | A registrar | A registrar | Estoque de um fechamento observado, sem somar meses; ausência de fechamento fica indisponível |
-| `PUB_C04_INSTRUMENTO` | A registrar | A registrar | Soma de `qtd_perguntas` versus contagem de `FATO_PESQUISA_PERGUNTA` |
-| `PUB_QUALIDADE_CAMPO` | A registrar | A registrar | Numerador e denominador por campo |
-| `PUB_QUALIDADE_RELACAO` | A registrar | A registrar | Correspondências e chaves informadas por relação |
-| `PUB_QUALIDADE_DUPLICIDADE` | A registrar | A registrar | Linhas e chaves distintas por tabela |
+| `PUB_C01_CICLO` | 57 | 57 | 366 pesquisas, conforme o recibo v3 |
+| `PUB_C02_PARTICIPACAO` | 32 | 32 | 17740 participações, conforme o recibo v3 |
+| `PUB_C03_PIPELINE_MENSAL` | 0 | 0 | Sem fechamento observado; estoque indisponível |
+| `PUB_C04_INSTRUMENTO` | 45 | 45 | 3186 associações pesquisa-pergunta |
+| `PUB_QUALIDADE_CAMPO` | 64 | 64 | Linhas conferidas; KPI DAX por campo ainda não registrado |
+| `PUB_QUALIDADE_RELACAO` | 8 | 8 | Linhas conferidas; KPI DAX por relação ainda não registrado |
+| `PUB_QUALIDADE_DUPLICIDADE` | 5 | 5 | Linhas conferidas; KPI DAX por tabela ainda não registrado |
 
 ## Limites do contrato publicado
 
@@ -118,6 +118,28 @@ São recortes sem dados de origem ou credenciais; não identificam a revisão
 exata do projeto e não são capturas do ensaio integrado aprovado. O recibo
 posterior registra o modelo corrigido processado e consultado.
 
-A publicação v3 está conferida em CB-16. O refresh final, a troca de geração
-e o teste de cópia incompleta aguardam seus recibos de execução. Os testes
-do fixture não comprovam essas etapas.
+A publicação v3 está conferida em CB-16. O refresh e a troca de geração
+têm os recibos adicionais abaixo. O teste de cópia incompleta e a revisão
+visual final continuam pendentes.
+
+## Troca do fixture para a geração v3
+
+O [recibo de troca](evidencias/bi06/troca-fixture-v3.json) liga as execuções
+das 14:08:45 e 14:15:30 UTC de 06/10/2026. O parâmetro da cópia privada
+do PBIP mudou de `C:\BI\<pacote>\data\g1` para
+`C:\BI\<pacote>\data\v3`; o projeto foi reaberto e atualizado. Os
+caminhos desta página estão sanitizados. Em ambos os estados, o arquivo
+local do parâmetro e sua expressão no modelo ativo foram conferidos.
+
+O [recibo v3](evidencias/bi06/desktop-v3-antes-ajustes-relatorio.json) registra
+57/32/0/45/64/8/5 linhas nas sete publicações e totais C01/C02/C04 de
+366/17740/3186. São diferentes de 2/3/4/2/64/8/5 e 4/4/3 do fixture,
+conforme seus manifestos. A geração v3 é
+`6b1eaa686aac43b18b6d6545e1c2c5f1`, carga
+`afcde424-45e8-457b-8793-bf0866d142b2`. C03 ficou sem fechamento observado,
+com estoque e fluxos indisponíveis.
+
+Esta rodada usou o pacote `f068a01` e antecede os ajustes de títulos do
+relatório. Confirma conexão, troca e atualização do modelo daquela revisão.
+O teste de arquivo ausente e as capturas finais serão registrados depois
+da execução; os estados existentes não antecipam seu resultado.
