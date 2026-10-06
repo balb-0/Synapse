@@ -21,6 +21,8 @@ from etl.analytics.dimensions_ddl import (
 )
 from etl.analytics.facts_cycle_participation import fact_statements as cycle_statements
 from etl.analytics.facts_pipeline_instrument import fact_statements as other_statements
+from etl.load.config import DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS
+from etl.load.connection import connect_with_retry
 
 
 @dataclass(frozen=True)
@@ -709,9 +711,15 @@ def main() -> None:
     parser.add_argument(
         "--observed-at", help="ISO timestamp de fechamento observado no último dia do mês"
     )
+    parser.add_argument(
+        "--write-lock-timeout-seconds",
+        type=float,
+        default=DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS,
+        help="Tempo máximo de espera por outro processo DuckDB; não repete falhas permanentes",
+    )
     args = parser.parse_args()
     observed = datetime.fromisoformat(args.observed_at) if args.observed_at else None
-    with duckdb.connect(args.database) as con:
+    with connect_with_retry(args.database, args.write_lock_timeout_seconds) as con:
         print(load_analytics(con, observed_at=observed))
 
 
