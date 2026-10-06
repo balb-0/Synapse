@@ -30,9 +30,9 @@ nominal e I07/I09, entradas/saídas de C03, I19/I20. Nenhum visual vincula
 entidade ou coluna de grão individual (`D01_*/D02_*/D03_*/D04_*/BE_*`,
 `título`, `flag_prorrogada`); nenhum drill-through promete essas chaves.
 
-## Aceite técnico no Power BI Desktop
+## Evidência técnica histórica no Power BI Desktop
 
-O root confirmou o aceite técnico do pacote integrado. O pacote tem SHA-256
+A execução técnica do pacote integrado anterior ao CF-05 foi conferida. O pacote tem SHA-256
 `a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea` e foi
 gerado a partir do commit `ff760d6552a1d5d2d3d9d9da1f3467e2c913416a`, que
 contém o tip RP17 `94e91ef5e9c009a162b02c1986a8ce8b60628e8b`. A definição

@@ -115,7 +115,7 @@ TOM não fornece um marcador do commit exato dentro do engine.
 As consultas retornaram totais C01/C02/C04 de 4/4/3, validação ponderada de
 5 dias com base 2 e preenchimento ponderado de 10 minutos com base 2. Para
 C03, o fechamento de 28/02/2026 e estoque 4 coincidem na soma direta e na
-medida BI-04. Entradas/saídas continuam nulas e o catálogo tem 18 entradas,
+medida BI-04. Entradas/saídas continuam nulas e o catálogo do snapshot anterior ao CF-05 tem 18 entradas,
 17 sem dado. A fonte CB-16 v3 e o aspecto visual do relatório não são
 aceitos por este ensaio sintético.
 

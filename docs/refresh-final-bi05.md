@@ -187,7 +187,7 @@ registra a consulta às 14:15:30 UTC de 06/10/2026, no Desktop `2.158.1177.0`,
 Windows `10.0.26200.0`. As sete contagens e totais coincidem com a tabela
 anterior; C03 retornou estado sem fechamento observado e valor nulo.
 Validação teve média 8,55 dias com base 20; preenchimento ficou nulo com
-base 0. O catálogo manteve 18 linhas e 17 estados sem dado.
+base 0. O catálogo do snapshot anterior ao CF-05 manteve 18 linhas e 17 estados sem dado.
 
 A [conferência do recibo](evidencias/bi05/conferencia-desktop-v3.json) passou
 contra o DuckDB e o manifesto da mesma carga, a revisão esperada `f068a01`
