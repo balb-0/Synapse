@@ -35,7 +35,10 @@ class FixtureBITests(unittest.TestCase):
             {path.name for path in self.generation.iterdir()},
             {"manifest.json", *(f"{name}.parquet" for name in PUBLICATIONS)},
         )
-        self.assertEqual(json.loads((self.output / "current.json").read_text())["generation"], self.manifest["generation"])
+        self.assertEqual(
+            json.loads((self.output / "current.json").read_text())["generation"],
+            self.manifest["generation"],
+        )
         self.assertEqual(json.loads((self.generation / "manifest.json").read_text()), self.manifest)
         expected = {
             "PUB_C01_CICLO": 2,
@@ -46,7 +49,10 @@ class FixtureBITests(unittest.TestCase):
             "PUB_QUALIDADE_RELACAO": 8,
             "PUB_QUALIDADE_DUPLICIDADE": 5,
         }
-        model = Path(__file__).resolve().parents[2] / "powerbi/CentralPesquisasBI.SemanticModel/definition/tables"
+        model = (
+            Path(__file__).resolve().parents[2]
+            / "powerbi/CentralPesquisasBI.SemanticModel/definition/tables"
+        )
         for name, entry in self.manifest["tables"].items():
             path = self.generation / entry["file"]
             self.assertEqual(entry["rows"], expected[name])
@@ -54,13 +60,24 @@ class FixtureBITests(unittest.TestCase):
             self.assertEqual(entry["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
             self.assertEqual(
                 entry["columns"],
-                [column[0] for column in self.reader.execute("SELECT * FROM read_parquet(?) LIMIT 0", [str(path)]).description],
+                [
+                    column[0]
+                    for column in self.reader.execute(
+                        "SELECT * FROM read_parquet(?) LIMIT 0", [str(path)]
+                    ).description
+                ],
             )
             tmdl = (model / f"{name}.tmdl").read_text()
-            self.assertIn(f'\\{name}.parquet', tmdl)
+            self.assertIn(f"\\{name}.parquet", tmdl)
             for column in entry["columns"]:
                 self.assertIn(f"\tcolumn {column}\n", tmdl)
-            for forbidden in ("source_checksum", "email", "enunciado", "respondent_id", "pesquisa_id"):
+            for forbidden in (
+                "source_checksum",
+                "email",
+                "enunciado",
+                "respondent_id",
+                "pesquisa_id",
+            ):
                 self.assertNotIn(forbidden, entry["columns"])
 
     def test_weighted_means_missing_dates_month_end_profiles_and_quality(self):
@@ -70,7 +87,10 @@ class FixtureBITests(unittest.TestCase):
         c01_empty = self.rows("PUB_C01_CICLO", "WHERE area = 'Educação'")[0]
         self.assertEqual(c01_empty[4:6], (None, 0))
         c02 = self.rows("PUB_C02_PARTICIPACAO", "ORDER BY mes_resposta NULLS LAST")
-        self.assertEqual([row[2].isoformat() if row[2] else None for row in c02], ["2026-01-01", "2026-03-01", None])
+        self.assertEqual(
+            [row[2].isoformat() if row[2] else None for row in c02],
+            ["2026-01-01", "2026-03-01", None],
+        )
         self.assertEqual(c02[0][3:], (2, 20, 2))
         self.assertEqual(c02[1][3:], (1, None, 0))
         self.assertEqual(c02[2][3:], (1, None, 0))

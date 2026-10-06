@@ -70,7 +70,16 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True, help="diretório privado fora do Git")
     args = parser.parse_args()
     manifest = generate(args.output)
-    print(json.dumps({"generation": manifest["generation"], "load_reference": manifest["load_reference"], "rows": {name: entry["rows"] for name, entry in manifest["tables"].items()}}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "generation": manifest["generation"],
+                "load_reference": manifest["load_reference"],
+                "rows": {name: entry["rows"] for name, entry in manifest["tables"].items()},
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 if __name__ == "__main__":
