@@ -9,8 +9,8 @@ mesma carga que produziu a publicação.
 
 O usuário enviou um pacote explicitamente identificado como **v3** após o
 primeiro pacote desta rodada. A execução válida deste registro deve usar v3;
-o SHA-256, o inventário e o ID da geração serão anexados depois da carga e
-da conferência.
+o SHA-256 confirmado é `d307d74bc81000317c74d59431cfbc71bf938bd15e41e39fcb397f699468a39e`.
+O inventário e o ID da geração serão anexados depois da conferência da publicação.
 
 O primeiro pacote tinha SHA-256
 `d6cc8043562972659acc5a83f963a7938c91c494a754ade80c4e7e23d7648cd7` e
@@ -27,7 +27,7 @@ de categorias, identificadores de pessoas/empresas/pesquisas ou credenciais.
 A execução estrita inicial rejeitou o prefixo processado de `respostas` porque
 `respondent_id` chegou em notação científica textual. Essa execução parcial
 foi preservada para diagnóstico e não produziu uma geração aceita. A fonte
-está sendo reprocessada com a regra corrigida de identificador opaco.
+foi reprocessada com a regra corrigida de identificador opaco.
 
 O adaptador conserva esse identificador como texto; não reconstrói um inteiro
 nem o relaciona automaticamente a `cliente_id` ou à fonte `respondentes`.
@@ -35,6 +35,28 @@ A correção do schema de produção corresponde ao commit `894445d`, com testes
 focados informados pelo responsável. O recibo final deverá identificar o
 código e o adaptador efetivamente executados, além das novas contagens. Nenhum
 resultado parcial desta tentativa substitui os totais da execução completa.
+
+## Ingestão concluída
+
+| Fonte | Extraídas | Carregadas | Rejeitadas | Duplicadas |
+| --- | ---: | ---: | ---: | ---: |
+| pesquisas | 366 | 366 | 0 | 0 |
+| empresas | 779 | 779 | 0 | 0 |
+| clientes | 5430 | 5429 | 1 | 0 |
+| questoes | 3297 | 3186 | 111 | 0 |
+| respondentes | 18735 | 17740 | 995 | 0 |
+| respostas | 281835 | 266080 | 15755 | 0 |
+
+As seis fontes têm equação balanceada e objeto marcado como carregado.
+Cinco CSVs têm bytes iguais ao pacote de agosto; a execução leu esses arquivos
+do pacote v3 e carregou um DuckDB novo. O prefixo `august_` em alguns IDs de
+execução é um rótulo legado do script derivado do hash da fonte, sem reaproveitar
+as tabelas de uma execução antiga.
+
+A rotina privada de respostas conservou a regra de texto opaco e usou escrita
+em blocos parametrizados de 128 linhas na retomada, com uma thread DuckDB.
+O recibo registra os hashes do adaptador inicial e dessa rotina de retomada,
+além do commit do ETL; não atribui o runtime privado ao código versionado.
 
 ## Sequência de conferência
 
@@ -59,7 +81,7 @@ a publicação com conexão somente de leitura e os limites de distribuição.
 
 ## Evidência e estado
 
-A ingestão sobre o pacote v3 está em andamento. A publicação deve usar a
+A ingestão sobre o pacote v3 terminou. A carga analítica e a publicação usam a
 revisão corrigida do publicador, após a verificação de falhas encontradas em
 `develop`. O recibo identificará o código de ingestão, carga analítica e
 publicação separadamente; não reutiliza manifesto de uma execução parcial. O ID da geração,
