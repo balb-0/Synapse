@@ -5,6 +5,11 @@ stages:
   - lint
   - test
 
+# Runner institucional com capacidade confirmada na rodada CF-01.
+default:
+  tags:
+    - inteli-gitlab-runner-prd
+
 variables:
   PYTHONPATH: src
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
