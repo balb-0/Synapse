@@ -8,7 +8,7 @@ Os PDFs de diagramas existentes em `docs/assets/diagramas/` não substituem esta
 
 ## Gerar e conferir
 
-Execute na raiz do repositório, com Python 3.12 e as bibliotecas de sistema
+Execute na raiz do repositório, com Git 2.40+, Python 3.12 e as bibliotecas de sistema
 Pango e Fontconfig disponíveis. Em Debian/Ubuntu, instale `libpango-1.0-0`,
 `libpangoft2-1.0-0` e `fontconfig`; `poppler-utils` permite a inspeção visual.
 As dependências de exportação ficam separadas das dependências do ETL.
