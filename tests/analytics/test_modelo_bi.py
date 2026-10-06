@@ -99,6 +99,52 @@ class PublishedModelContractTests(unittest.TestCase):
         self.assertEqual(visited, len(nodes), "filter propagation graph has a cycle")
         self.assertTrue(all(not outgoing[table] for table in nodes if table.startswith("PUB_C0")))
 
+    def test_calculated_table_columns_map_to_dax_output_columns(self):
+        calculated_tables = []
+        for path in sorted(TABLES.glob("*.tmdl")):
+            source = path.read_text(encoding="utf-8")
+            if not re.search(r"(?m)^\s*partition\s+[^\n]+\s*=\s*calculated\s*$", source):
+                continue
+
+            columns = []
+            lines = source.splitlines()
+            for index, line in enumerate(lines):
+                match = re.match(r"\tcolumn\s+([^\s=]+)(?:\s*=.*)?$", line)
+                if not match:
+                    continue
+
+                # A column expression defines a calculated column in the
+                # model; only unassigned columns are outputs of the table DAX.
+                if "=" in line:
+                    continue
+
+                properties = []
+                for property_line in lines[index + 1 :]:
+                    if re.match(r"\t(?:column|measure|partition|hierarchy)\b", property_line):
+                        break
+                    properties.append(property_line.strip())
+                columns.append((match.group(1), properties))
+
+            self.assertTrue(columns, f"calculated table {path.stem} has no output columns")
+            calculated_tables.append(path.stem)
+            for name, properties in columns:
+                with self.subTest(table=path.stem, column=name):
+                    self.assertIn("isNameInferred", properties)
+                    self.assertIn("isDataTypeInferred", properties)
+                    self.assertIn(f"sourceColumn: [{name}]", properties)
+
+        self.assertEqual(
+            set(calculated_tables),
+            {
+                "DIM_AREA",
+                "DIM_INDICADORES_BLOQUEADOS",
+                "DIM_STATUS_PESQUISA",
+                "DIM_TEMPO",
+                "DIM_TIPO_PERGUNTA",
+                "DIM_TIPO_PESQUISA",
+            },
+        )
+
     def test_month_sort_key_is_functional_for_c02_and_c03_dates(self):
         source = (TABLES / "DIM_TEMPO.tmdl").read_text(encoding="utf-8")
         self.assertRegex(source, r"(?m)^\s*sortByColumn:\s*ano_mes_ordenacao$")

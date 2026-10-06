@@ -6,22 +6,30 @@ table DIM_INDICADORES_BLOQUEADOS
 	column indicador
 		dataType: string
 		summarizeBy: none
-		sourceColumn: indicador
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [indicador]
 
 	column medida
 		dataType: string
 		summarizeBy: none
-		sourceColumn: medida
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [medida]
 
 	column status
 		dataType: string
 		summarizeBy: none
-		sourceColumn: status
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [status]
 
 	column motivo
 		dataType: string
 		summarizeBy: none
-		sourceColumn: motivo
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [motivo]
 
 	partition DIM_INDICADORES_BLOQUEADOS = calculated
 		mode: import

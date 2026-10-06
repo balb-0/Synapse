@@ -5,42 +5,56 @@ table DIM_TEMPO
 		isHidden
 		summarizeBy: none
 		formatString: Short Date
-		sourceColumn: data
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [data]
 
 	column ano
 		dataType: int64
 		summarizeBy: none
-		sourceColumn: ano
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [ano]
 
 	column numero_trimestre
 		dataType: int64
 		isHidden
 		summarizeBy: none
-		sourceColumn: numero_trimestre
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [numero_trimestre]
 
 	column trimestre
 		dataType: string
 		summarizeBy: none
 		sortByColumn: numero_trimestre
-		sourceColumn: trimestre
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [trimestre]
 
 	column numero_mes
 		dataType: int64
 		isHidden
 		summarizeBy: none
-		sourceColumn: numero_mes
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [numero_mes]
 
 	column mes
 		dataType: string
 		summarizeBy: none
 		sortByColumn: numero_mes
-		sourceColumn: mes
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [mes]
 
 	column ano_mes
 		dataType: string
 		summarizeBy: none
 		sortByColumn: ano_mes_ordenacao
-		sourceColumn: ano_mes
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [ano_mes]
 
 	column ano_mes_ordenacao = IF(ISBLANK([data]), BLANK(), YEAR([data]) * 100 + MONTH([data]))
 		dataType: int64
