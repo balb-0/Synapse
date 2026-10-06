@@ -109,9 +109,13 @@ a publicação com conexão somente de leitura e os limites de distribuição.
 
 A ingestão, carga analítica, reconciliação, publicação e conferência de métricas
 da geração v3 terminaram. O [recibo](evidencias/cb16/geracao-v3.json) limita a
-aceitação à integridade dos sete arquivos e às métricas observáveis. O refresh
-e a validação DAX no Desktop continuam pendentes nas tarefas BI. O recibo não
-afirma a implementação de CB-15 nem a observação dos quatro cubos.
+aceitação à integridade dos sete arquivos e às métricas observáveis. Ele foi
+publicado antes da validação no Desktop. Evidências BI posteriores registram o
+[refresh e as consultas DAX da v3](refresh-final-bi05.md) e a
+[troca da origem no Desktop](validacao-acesso-bi.md). Esses registros não mudam
+o escopo nem o conteúdo deste recibo; a aceitação visual do pacote final ainda
+está em andamento. O recibo CB-16 não afirma a implementação de CB-15 nem a
+observação dos quatro cubos.
 
 C03 exige um fechamento mensal observado. Sem essa fonte, o estado é
 `not_observed`, e um Parquet vazio não comprova estoque zero. Entradas e saídas
