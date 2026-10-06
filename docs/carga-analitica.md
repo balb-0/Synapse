@@ -25,3 +25,22 @@ Também é possível chamar `load_analytics(con, observed_at=...)` com uma conex
 - `analytics_load_run` registra um UUID da carga, instante, SHA-256 dos IDs técnicos das quatro views correntes e checksum selecionado de respondentes. `LoadResult.load_id` identifica a linha. `current_source_digests(con)` recalcula os quatro fingerprints para verificar se a origem corrente ainda corresponde à carga. O manifesto é inserido na mesma transação dos fatos.
 
 As dimensões têm uma linha desconhecida por contrato. Ausência estrutural em FK opcional continua `NULL`; órfão usa a chave desconhecida. A tabela de reconciliação é uma fotografia da carga corrente, enquanto o ledger C03 é histórico. Os atributos de cargo e departamento ficam apenas no banco interno, sem publicação externa automática.
+
+## Execução com o conjunto autorizado
+
+Em 2026-10-06, a rotina acima foi executada em `data/duckdb/cb13-v3-analitico.duckdb`, cópia local e ignorada pelo Git de `data/duckdb/real_warehouse_fast4.duckdb`. O banco original e os CSVs do parceiro foram lidos sem alteração. Os objetos de controle das cinco fontes consumidas pela carga (`pesquisas`, `empresas`, `clientes`, `questoes` e `respondentes`) têm SHA-256 correspondente aos respectivos CSVs de `Central de Pesquisas - MD11 ES v3/`. O snapshot de `respondentes` foi considerado elegível pela rotina.
+
+- `load_id`: `65d139e0-488d-4601-9361-ae153731145c`.
+- `loaded_at` no DuckDB: `2026-10-06 20:32:49` (horário local).
+- O relatório de reconciliação retornou `source_digests_match=true` e `reconciled=true`; C01, C02 e C04 não tiveram chaves faltantes, inesperadas ou descartes. Não houve vínculos órfãos registrados. O resultado `reconciled=true` atesta a consistência da carga disponível, sem transformar C03 em mês observado.
+
+| Cubo e fato | Fonte elegível | Linhas no fato | Cobertura observada |
+| --- | ---: | ---: | --- |
+| C01 — `FATO_CICLO_PESQUISA` | 366 pesquisas | 366 | 366/366 pesquisas; duração de validação 20/366, coleta 358/366, tabulação 330/366 e ciclo total 331/366. |
+| C02 — `FATO_PARTICIPACAO` | 17.740 ocorrências de respondentes | 17.740 | 17.740/17.740 ocorrências; vínculo de pesquisa 17.740/17.740, pessoa 16.883/17.740 e data da pesquisa 17.601/17.740. `hora_inicio` e `hora_termino` estão ausentes nas 17.740 linhas de origem; data da resposta e minutos de preenchimento têm cobertura 0/17.740. |
+| C03 — `FATO_PIPELINE_MENSAL` | Nenhum fechamento mensal observado | 0 | **Bloqueado para cobertura mensal:** nenhum registro em `analytics_pipeline_closure`. Status `not_observed`; zero linhas não representa estoque zero. |
+| C04 — `FATO_PESQUISA_PERGUNTA` | 3.186 questões | 3.186 | 3.186/3.186 pares pesquisa–pergunta, todos vinculados por ID; data da pesquisa 3.158/3.186. |
+
+O pacote autorizado contém também `respostas.csv`, mas `ingestao_respostas_atual` está vazia **nesta cópia local**. A rotina C01–C04 não lê essa fonte; portanto esta execução não comprova cobertura de respostas nem autoriza indicadores derivados delas. A publicação de qualquer medida dependente de respostas fica bloqueada até que essa fonte esteja carregada e conciliada.
+
+O parceiro disponibilizou apenas este retrato da base, sem uma observação do estado no fim de um mês. Assim, C03 permanece bloqueado por falta dessa fonte temporal; recarregar o mesmo retrato não resolve a cobertura. Quando houver um fechamento mensal efetivamente observado e autorizado, ele poderá ser registrado com `--observed-at`. Não se deve atribuir ao retrato atual uma data histórica presumida.
