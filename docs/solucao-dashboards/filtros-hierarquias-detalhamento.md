@@ -1,9 +1,10 @@
 # Filtros, hierarquias e detalhamento suportados (RP-16, issue #321)
 
 Os dados de C02 têm grão mensal por área e tipo (`PUB_C02_PARTICIPACAO`);
-empresa distinta por pesquisa e pesquisa individual não são publicadas. Esses
-dois valores aparecem como avisos de texto e não filtram o relatório. Drill por
-tempo, área e tipo ocorre onde o agregado publicado permite; nenhum
+empresa distinta por pesquisa e pesquisa individual não são publicadas. C01
+também não publica ano de edição nem complexidade. Esses valores aparecem como
+avisos de texto e não filtram o relatório. Drill por tempo, área e tipo
+ocorre onde o agregado publicado permite; nenhum
 drill-through promete Chave individual (pesquisa/empresa/pessoa) ausente dos
 sete Parquet. Verificação reproduzível: `tests/analytics/test_report_filters.py`.
 
@@ -14,8 +15,8 @@ sete Parquet. Verificação reproduzível: `tests/analytics/test_report_filters.
 | Produção e Volume | Área | `DIM_AREA.area` | Total; filtra `PUB_C01_CICLO` |
 | Produção e Volume | Tipo | `DIM_TIPO_PESQUISA.tipo` | Total |
 | Produção e Volume | Status | `DIM_STATUS_PESQUISA.status` | Total |
-| Produção e Volume | Ano | `DIM_INDICADORES_BLOQUEADOS.motivo` | Sem dado: `ano_edicao` sem origem homologada — exibe motivo, não filtra |
-| Produção e Volume | Complexidade | `DIM_INDICADORES_BLOQUEADOS.motivo` | Sem dado em C01 (`complexidade` só existe em `PUB_C03`) |
+| Produção e Volume | Aviso de ano de edição (texto) | — | Indisponível: C01 não publica ano de edição; o aviso não filtra |
+| Produção e Volume | Aviso de complexidade (texto) | — | Indisponível em C01; o campo só é publicado em C03 e o aviso não filtra |
 | Participação agregada (C02) | Área | `DIM_AREA.area` | Total |
 | Participação agregada (C02) | Tipo | `DIM_TIPO_PESQUISA.tipo` | Total |
 | Participação agregada (C02) | Ano | `DIM_TEMPO.ano` | Deriva do mês de resposta observado em C02 |
