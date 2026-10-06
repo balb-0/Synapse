@@ -159,3 +159,13 @@ Essa falha não foi aceita como refresh bem-sucedido. A restauração do arquivo
 e uma nova atualização com consultas ao engine ainda aguardam o recibo de
 recuperação neste registro. Uma consulta ao cache anterior, sozinha, não
 comprova que a atualização com o arquivo ausente funcionou.
+
+## Fixture antigo e qualidade
+
+A troca registrada acima partiu da geração `665cb490...`, cujo conteúdo
+de qualidade antecede a correção da chave composta de respostas/questões.
+Os recibos provam aquela execução e as contagens, mas o total de
+correspondências do fixture publicado foi 11/13 em vez de 10/13 da consulta
+composta independente. O novo fixture `2c699f0b...` aguarda nova execução
+Desktop. As tabelas de qualidade v3 foram conferidas contra a ingestão
+sem divergências; os números do fixture antigo não aceitam I18.
