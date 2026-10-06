@@ -94,3 +94,20 @@ não acabar com dois campos "Área" diferentes no mesmo relatório. Coluna
 oculta continua funcionando normalmente como lado do relacionamento — ocultar
 não desativa o relacionamento, só tira a coluna da lista de campos do
 relatório.
+
+## Modelo carregado no Desktop
+
+O [recibo do fixture](evidencias/bi03/desktop-modelo.json) registra consulta
+real em VM Windows em 06/10/2026 às 14:04:07 UTC. As 13 partições do projeto
+estavam processadas sem erro; o engine respondeu às consultas das sete
+publicações. A comparação TOM do TMDL conferido com o engine teve 128 itens
+e zero diferenças no escopo de tabelas, colunas, medidas, partições,
+relacionamentos, hierarquias e expressões.
+
+A comparação exclui tabelas automáticas de data, seus relacionamentos e
+colunas internas de numeração de linha. Portanto, as afirmações de
+cardinalidade e filtro acima descrevem os relacionamentos declarados pelo
+projeto. Elas não descrevem todos os objetos internos que o Desktop cria.
+O pacote sintético carregado foi ligado ao commit de origem `9726fd6` pelo
+inventário de 98 arquivos; o engine não fornece um marcador desse commit.
+A carga v3 e a navegação visual pelas hierarquias têm aceites separados.
