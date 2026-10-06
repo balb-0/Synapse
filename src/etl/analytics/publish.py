@@ -184,15 +184,20 @@ def _sql_qualidade_campo() -> str:
 
 
 def _sql_qualidade_relacao() -> str:
-    partes = [
-        f"""SELECT '{filha}.{col_filha}' AS relacao,
-               COUNT(*)::BIGINT AS qtd_chaves_informadas,
-               COUNT(p.{col_pai})::BIGINT AS qtd_chaves_correspondentes
-          FROM {_view_atual(filha)} f
-          LEFT JOIN {_view_atual(pai)} p ON p.{col_pai} = f.{col_filha}
-         WHERE f.{col_filha} IS NOT NULL"""
-        for filha, col_filha, pai, col_pai in RELACOES_QUALIDADE
-    ]
+    partes = []
+    for filha, col_filha, pai, col_pai in RELACOES_QUALIDADE:
+        predicate = f"p.{col_pai} = f.{col_filha}"
+        if filha == "respostas" and pai == "questoes":
+            predicate += " AND p.pesquisa_id = f.pesquisa_id"
+        partes.append(
+            f"""SELECT '{filha}.{col_filha}' AS relacao,
+                   COUNT(*)::BIGINT AS qtd_chaves_informadas,
+                   COUNT(CASE WHEN EXISTS (
+                       SELECT 1 FROM {_view_atual(pai)} p WHERE {predicate}
+                   ) THEN 1 END)::BIGINT AS qtd_chaves_correspondentes
+              FROM {_view_atual(filha)} f
+             WHERE f.{col_filha} IS NOT NULL"""
+        )
     return "\n         UNION ALL\n".join(partes)
 
 
