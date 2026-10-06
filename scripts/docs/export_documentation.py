@@ -147,12 +147,14 @@ def select_snapshot(root: Path, inputs: set[Path], local_links: set[Path]) -> st
     for target in local_links:
         relative = target.relative_to(root).as_posix()
         result = subprocess.run(
-            ["git", "cat-file", "-e", f"{revision}:{relative}"],
+            ["git", "cat-file", "blob", f"{revision}:{relative}"],
             cwd=root,
             capture_output=True,
         )
         if result.returncode:
             raise ValueError(f"Link local não existe na revisão publicada: {relative}")
+        if hashlib.sha256(result.stdout).hexdigest() != digest(target):
+            raise ValueError(f"Link local tem alteração não commitada: {relative}")
     return revision
 
 
@@ -183,6 +185,7 @@ def prepare(root: Path = ROOT) -> tuple[str, dict]:
     inputs = {source, root / "requirements-docs.txt", Path(__file__).resolve()}
     inputs.update(parser.assets)
     inputs.update((root / FONTS).glob("*"))
+    inputs.update(parser.local_links)
     # Ignore publication-only commits when selecting a snapshot, avoiding a SHA
     # cycle between the PDF and the commit that adds the PDF and its manifest.
     repository_revision = select_snapshot(root, inputs, parser.local_links)

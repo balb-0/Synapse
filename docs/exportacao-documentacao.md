@@ -35,7 +35,10 @@ Git da fonte, snapshot dos links locais, número de páginas e SHA-256 do PDF.
 `source_revision` é a última revisão que alterou `docs/projeto.md`.
 `repository_revision` é a última revisão que alterou uma entrada de exportação
 ou um arquivo ligado. Links locais apontam para esse snapshot; a exportação
-confere que cada destino existe nele. Commits que alteram apenas PDF/manifesto
+confere que cada destino existe nele e tem o mesmo conteúdo do arquivo atual.
+Destinos alterados sem commit, inclusive mudanças no stage, bloqueiam exportação
+e `--check`. Os hashes desses destinos também entram no manifesto.
+Commits que alteram apenas PDF/manifesto
 não mudam essa revisão, evitando a dependência circular de incluir no PDF o SHA do
 próprio commit que publica o PDF. O `--check` compara os hashes da fonte e entradas atuais,
 inclusive mudanças ainda não commitadas.

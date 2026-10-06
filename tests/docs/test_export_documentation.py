@@ -115,6 +115,27 @@ class ExportValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "não existe na revisão"):
             export.select_snapshot(self.root, {self.source}, {target})
 
+    def test_modified_existing_link_target_blocks_snapshot(self):
+        self.commit_source()
+        target = self.root / "docs/novo.md"
+        target.write_text("Texto original", encoding="utf-8")
+        self.git("add", "docs/novo.md")
+        self.git("commit", "-m", "add target")
+        target.write_text("Texto alterado", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "alteração não commitada"):
+            export.select_snapshot(self.root, {self.source}, {target})
+
+    def test_staged_existing_link_target_blocks_snapshot(self):
+        self.commit_source()
+        target = self.root / "docs/novo.md"
+        target.write_text("Texto original", encoding="utf-8")
+        self.git("add", "docs/novo.md")
+        self.git("commit", "-m", "add target")
+        target.write_text("Texto alterado", encoding="utf-8")
+        self.git("add", "docs/novo.md")
+        with self.assertRaisesRegex(ValueError, "alteração não commitada"):
+            export.select_snapshot(self.root, {self.source}, {target})
+
 
 if __name__ == "__main__":
     unittest.main()
