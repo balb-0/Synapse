@@ -1,6 +1,6 @@
 # Resposta ao feedback de conformidade geral
 
-Esta matriz relaciona os 37 critérios recebidos em 06/10/2026 às fontes do G05. Ela registra evidências e limites de verificação, sem recalcular a nota ou substituir a avaliação institucional. Base da conferência: `develop` em `c2ebb02`, acrescida de CF-01, CF-02 e CF-03 nesta branch. O PDF integral, gerador e proveniência estão incluídos; o estado de integração em `develop` depende da ordem de merge das três MRs.
+Esta matriz relaciona os 37 critérios recebidos em 06/10/2026 às fontes do G05. Ela registra evidências e limites de verificação, sem recalcular a nota ou substituir a avaliação institucional. Base documental da conferência: `develop` em `c2ebb02`, integrada às entregas anteriores de BI/pipeline e às correções CF-01 a CF-05. CF-06 resolve conflitos de integração e regenera o PDF e sua proveniência neste snapshot. O estado de `develop` depende dos merges; a presença nesta branch não comprova publicação no destino.
 
 ## Como reproduzir a conferência
 
@@ -51,5 +51,9 @@ Leia o [portal](index.md), execute os comandos do [README](../README.md) e confi
 - [CF-01, card #341](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/341): README, portal, referências e esta matriz.
 - [CF-02, card #342](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/342): guias específicos de banco, apresentação e testes.
 - [CF-03, card #343](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/343): PDF integral, geração e validação.
+
+- [CF-04, card #344](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/344): fechamento C03 observado vazio e reuso de publicação.
+- [CF-05, card #345](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/345): completude física de preenchimento e bloqueio explícito de I16.
+- [CF-06, card #346](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/346): integração, resolução dos conflitos e PDF final.
 
 Cada card recebe o link da MR correspondente e cada MR aponta para o card. A conclusão desta correção documental não registra aceite de sessões S1–S4, teste humano novo ou publicação produtiva. Essas provas têm tarefas e evidências próprias.
