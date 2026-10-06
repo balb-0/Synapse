@@ -73,6 +73,23 @@ class ReportDefinitionTests(unittest.TestCase):
         category = visual["query"]["queryState"]["Category"]["projections"][0]
         self.assertEqual(category["field"]["Column"]["Property"], "data_fim_mes")
 
+    def test_c02_count_charts_use_auto_count_axes_and_only_count_selectors(self):
+        page = REPORT / "definition/pages/e18bd740de609936581b/visuals"
+        for visual_id in ("v2_area", "v2_frequent", "v2_time", "v2_absent"):
+            visual = json.loads((page / visual_id / "visual.json").read_text())["visual"]
+            value_axis = visual["objects"]["valueAxis"][0]["properties"]
+            self.assertEqual(value_axis["start"]["expr"]["Literal"]["Value"], "0D", visual_id)
+            self.assertNotIn("end", value_axis, visual_id)
+            self.assertNotIn("labelDisplayUnits", value_axis, visual_id)
+            label_properties = visual["objects"].get("labels", [{}])[0].get("properties", {})
+            self.assertNotIn("labelDisplayUnits", label_properties, visual_id)
+
+            selectors = {
+                item.get("selector", {}).get("metadata")
+                for item in visual["objects"].get("dataPoint", [])
+            }
+            self.assertEqual(selectors, {"PUB_C02_PARTICIPACAO.Qtd Participacoes"}, visual_id)
+
 
 if __name__ == "__main__":
     unittest.main()
