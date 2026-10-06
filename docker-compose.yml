@@ -98,6 +98,32 @@ services:
         gelf-address: "udp://127.0.0.1:12201"
         tag: "etl-scheduler"
 
+  # Sinal periódico independente dos flows: detecta indisponibilidade da API
+  # mesmo quando não há ingestões. Não espera service_healthy nem o coletor.
+  health-monitor:
+    build: .
+    depends_on:
+      prefect-server:
+        condition: service_started
+    command: ["python", "scripts/orchestration/health_monitor.py", "--interval-seconds", "60", "--timeout-seconds", "30"]
+    environment:
+      PREFECT_API_URL: ${PREFECT_API_URL:-http://prefect-server:4200/api}
+      ETL_DUCKDB_PATH: /data/warehouse.duckdb
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - duck-data:/data
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    stop_grace_period: 35s
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "etl-health-monitor"
+
   runner:
     build: .
     depends_on:
