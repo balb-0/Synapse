@@ -23,3 +23,15 @@ As três parcelas são mutuamente exclusivas: **preparação** é montar e atual
 | **Horas potencialmente liberadas/mês** | **10** | **36** | **104** | `relatórios×horas + casos×horas + erros×horas`. |
 
 Os números são deliberadamente testáveis e não são estimativas estatísticas de um conjunto observado. O cenário alto exige 16 entregas mensais e 104 horas liberáveis; sem esse volume, ele não deve ser usado como previsão central.
+
+## Valoração por período
+
+| Parcela de capacidade liberada | Cauteloso (R$/mês) | Base (R$/mês) | Alto (R$/mês) |
+| :--- | ---: | ---: | ---: |
+| Preparação de relatório | 1.118,18 | 4.472,73 | 13.418,20 |
+| Retrabalho | 139,77 | 279,55 | 559,09 |
+| Correção de erros | 139,77 | 279,55 | 559,09 |
+| **Benefício econômico potencial/mês** | **1.397,73** | **5.031,82** | **14.536,38** |
+| **Em 12 meses, sem rampa de adoção** | **16.772,75** | **60.381,89** | **174.436,57** |
+
+Fórmula por mês: `(N_rel×h_rel + N_retrabalho×h_retrabalho + N_erros×h_erro) × R$ 139,77289/h`. Exemplo base: `(8×4 + 2×1 + 1×2)×139,77289 = R$ 5.031,82/mês`. Os valores anuais são o resultado de 12 vezes o valor mensal **antes** do arredondamento e representam capacidade, não receita nem redução comprovada de desembolso.
