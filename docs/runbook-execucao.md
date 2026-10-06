@@ -71,7 +71,7 @@ Serviços definidos em `docker-compose.yml`:
   http://localhost:4200 e health check em http://localhost:4200/api/health
   (volume `prefect-data`: agendamentos e histórico sobrevivem a
   `docker compose down/up`).
-- `scheduler`: serve o deployment `backfill/agendado-dw` (cron `0 3 * * *`)
+- `scheduler`: serve o deployment `pipeline-completo/agendado-dw` (cron `0 3 * * *`)
   e reinicia sozinho (`restart: unless-stopped`); usa o mesmo ambiente e o
   mesmo banco do `runner`, e o histórico vive no `prefect-server`.
 - `health-monitor`: executa a checagem combinada de API e banco a cada 60s,
@@ -177,7 +177,9 @@ health check da carga, `etl.load.environment.run_health_check`):
 docker compose run --rm --no-deps runner python scripts/orchestration/health_check.py
 ```
 
-Sai com código 1 se qualquer checagem falhar, e publica um evento
+Sai com código 0 quando `status: ok`, 1 quando `status: degraded` e 2 quando
+`status: busy` (API responde, mas outro processo mantém o lock de escrita).
+Publica um evento
 `orchestration.health_check.emitted` no índice `etl-logs-*` (mesmo formato
 técnico das demais camadas, ADR 0001) — consultável no painel do OB-08 e
 usado pelo alerta de falha abaixo. A checagem do Prefect depende da variável
@@ -187,9 +189,13 @@ um endereço.
 
 A checagem do banco abre a conexão direto, sem o retry com espera que a
 carga real usa (`duckdb_repository._connect_with_retry`) — rodar o health
-check durante uma carga em andamento pode reportar `duckdb: falha` por um
-lock de escrita transitório que a carga em si esperaria passar. Não é um
-sinal de pipeline quebrado nesse caso, só de execução concorrente.
+check durante uma carga pode encontrar o lock externo do DuckDB. Esse erro
+específico resulta em `database_status: busy` e `database_available: null`,
+pois o monitor não verificou consulta/persistência e não pode afirmar que o
+banco está indisponível. Com a API saudável, o status geral fica `busy` e não
+aciona o alerta de falha. Se a API também falhar, o status fica `degraded`.
+Após o escritor liberar o arquivo, o próximo ciclo volta a verificar o banco.
+Erros de permissão, corrupção e demais falhas continuam `degraded`.
 
 No Compose, o `runner` usa por padrão
 `PREFECT_API_URL=http://prefect-server:4200/api`, o serviço `prefect-server`
@@ -211,8 +217,8 @@ Create rule → Elasticsearch query**, em vez de um NDJSON não verificável:
 
 | Regra | Índice | Campo de tempo | Consulta (KQL) | Condição | Janela | Frequência |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| ETL - falha de execução | `etl-logs-*` | `@timestamp` | `tags: "etl_error" or (event: "orchestration.health_check.emitted" and status: "degraded")` | contagem **acima de** 0 | últimos 5 min | a cada 1 min |
-| ETL - fila parada | `etl-logs-*` | `@timestamp` | `event.keyword: "orchestration.backfill.emitted" and status: "success"` | contagem **abaixo de** 1 | últimas 26 h | a cada 30 min |
+| ETL - falha de execução | `etl-logs-*` | `@timestamp` | `tags: "etl_error" or level.keyword: "ERROR" or status.keyword: ("failed" or "aborted" or "reconciliation_failed") or (event.keyword: "orchestration.health_check.emitted" and status.keyword: "degraded")` | contagem **acima de** 0 | últimos 5 min | a cada 1 min |
+| ETL - fila parada | `etl-logs-*` | `@timestamp` | `event.keyword: "orchestration.pipeline.emitted" and status: "completed"` | contagem **abaixo de** 1 | últimas 26 h | a cada 30 min |
 | ETL - monitor sem sinal | `etl-logs-*` | `@timestamp` | `event.keyword: "orchestration.health_check.emitted"` | contagem **abaixo de** 1 | últimos 3 min | a cada 1 min |
 
 As regras podem ser criadas pela API de Alerting do Kibana, com a stack no ar.
@@ -228,14 +234,14 @@ curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content
   "name": "ETL - falha de execução", "rule_type_id": ".es-query", "consumer": "stackAlerts",
   "schedule": {"interval": "1m"}, "actions": [],
   "params": {"searchType": "esQuery", "index": ["etl-logs-*"], "timeField": "@timestamp",
-    "esQuery": "{\"query\":{\"bool\":{\"should\":[{\"match\":{\"tags\":\"etl_error\"}},{\"bool\":{\"filter\":[{\"match\":{\"event.keyword\":\"orchestration.health_check.emitted\"}},{\"match\":{\"status\":\"degraded\"}}]}}],\"minimum_should_match\":1}}}",
+    "esQuery": "{\"query\":{\"bool\":{\"should\":[{\"match\":{\"tags\":\"etl_error\"}},{\"term\":{\"level.keyword\":\"ERROR\"}},{\"terms\":{\"status.keyword\":[\"failed\",\"aborted\",\"reconciliation_failed\"]}},{\"bool\":{\"filter\":[{\"term\":{\"event.keyword\":\"orchestration.health_check.emitted\"}},{\"term\":{\"status.keyword\":\"degraded\"}}]}}],\"minimum_should_match\":1}}}",
     "size": 5, "thresholdComparator": ">", "threshold": [0], "timeWindowSize": 5, "timeWindowUnit": "m"}}'
 
 curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d '{
   "name": "ETL - fila parada", "rule_type_id": ".es-query", "consumer": "stackAlerts",
   "schedule": {"interval": "30m"}, "actions": [],
   "params": {"searchType": "esQuery", "index": ["etl-logs-*"], "timeField": "@timestamp",
-    "esQuery": "{\"query\":{\"bool\":{\"filter\":[{\"term\":{\"event.keyword\":\"orchestration.backfill.emitted\"}},{\"term\":{\"status.keyword\":\"success\"}}]}}}",
+    "esQuery": "{\"query\":{\"bool\":{\"filter\":[{\"term\":{\"event.keyword\":\"orchestration.pipeline.emitted\"}},{\"term\":{\"status.keyword\":\"completed\"}}]}}}",
     "size": 5, "thresholdComparator": "<", "threshold": [1], "timeWindowSize": 26, "timeWindowUnit": "h"}}'
 
 curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d '{
@@ -250,12 +256,17 @@ A primeira regra cobre tanto uma falha real do pipeline (traceback do Python
 vazando no stdout/stderr, capturado pelo Logstash com a tag `etl_error` —
 ver `observability/logstash/pipeline/etl.conf`; JSON inválido também recebe a
 tag de diagnóstico `_jsonparsefailure`) quanto uma falha detectada
-pelo próprio health check acima. A segunda cobre o deployment agendado
+pelo próprio health check acima. A consulta inclui também JSON com
+`level: ERROR` e estados explícitos `failed`, `aborted` ou
+`reconciliation_failed`, inclusive a saída JSON da CLI sem traceback.
+A marca `etl_error` não é necessária para esses registros estruturados.
+Um health check `busy` com API saudável não é falha e não satisfaz a consulta.
+A segunda cobre o deployment agendado
 parar de rodar (cron diário às 03:00, `scripts/orchestration/deployment.py`)
 — 26h dá margem sobre as 24h de intervalo esperado. Seu filtro usa o evento
-de conclusão bem-sucedida do backfill, após carga analítica e publicação; os
+de conclusão do pipeline completo, após carga analítica e publicação; os
 sinais de saúde e o início de um flow que falhou não provam uma entrega.
-A regra não distingue backfills manuais de agendados.
+A regra não distingue pipelines completos manuais de agendados.
 A terceira detecta a falta de relatório de saúde durante três minutos; pode
 indicar monitor parado ou interrupção na coleta, não identifica a causa.
 
@@ -358,10 +369,10 @@ continua impedindo duplicatas.
 - Flows em `src/etl/orchestration/flow.py`: `ingest-object` (um objeto:
   verificação de idempotência → extração → transformação → carga →
   reconciliação → confirmação do objeto). `backfill` confirma os subflows por
-  fonte; quando `analytics_output` está configurado, executa também a carga
-  analítica e a publicação do conjunto. O agendado DW e `manual-dw` passam
-  esse parâmetro e as seis fontes; o manual de objeto termina na ingestão
-  tratada, para não publicar um conjunto incompleto.
+  fonte e termina na ingestão tratada. O flow `pipeline-completo`, em
+  `src/etl/orchestration/pipeline.py`, chama o backfill, a carga analítica,
+  a reconciliação e a publicação. O agendado DW e `manual-dw` usam esse flow
+  com as seis fontes e `publish_dir=/data/publicacao`.
 - Retry: as tarefas `extract`, `transform` e `load` têm `retries=2` com
   condição (`_should_retry`), que só repete erro transitório ou inesperado.
   As tarefas analíticas seguem também retry finito e propagam a falha ao flow.
@@ -370,10 +381,10 @@ continua impedindo duplicatas.
   leitura são reexecutadas dentro da extração (`RetryExecutor`, configurável
   por `ETL_EXTRACTION_*`).
 - Deployment agendado: `python scripts/orchestration/deployment.py` serve o
-  deployment `backfill/agendado-dw` (cron `0 3 * * *`) para as seis fontes.
-  `ETL_ANALYTICS_OUTPUT=/data/published` mantém as gerações no volume `duck-data`.
+  deployment `pipeline-completo/agendado-dw` (cron `0 3 * * *`) para as seis fontes.
+  `ETL_PUBLISH_DIR=/data/publicacao` mantém as gerações no volume `duck-data`.
   Os deployments `ingest-object/manual`, `backfill/backfill` e
-  `backfill/manual-dw`, declarados em `prefect.yaml`, são
+  `pipeline-completo/manual-dw`, declarados em `prefect.yaml`, são
   publicados pela CLI a partir da raiz do repositório (com o ambiente no ar):
 
   ```bash
@@ -390,7 +401,7 @@ continua impedindo duplicatas.
   prefect deployment run 'ingest-object/manual' -p source=empresas \
       -p bucket=sindusfarma -p key=landing/empresas.csv -p reprocess=true
   # Conjunto completo seguido por carga analítica/publicação:
-  prefect deployment run 'backfill/manual-dw'
+  prefect deployment run 'pipeline-completo/manual-dw'
   ```
 
 ## Disparo pela chegada de objeto

@@ -165,7 +165,7 @@ class CanonicalVolumeQueryTests(unittest.TestCase):
             sum(e["loaded_count"] for e in historical_events if e["event"] in allowed), 3
         )
 
-    def test_queue_alert_requires_successful_backfill_not_monitor_heartbeats(self) -> None:
+    def test_queue_alert_requires_completed_pipeline_not_monitor_heartbeats(self) -> None:
         import re
 
         runbook = (ROOT / "docs/runbook-execucao.md").read_text()
@@ -175,10 +175,51 @@ class CanonicalVolumeQueryTests(unittest.TestCase):
         self.assertEqual(
             query["query"]["bool"]["filter"],
             [
-                {"term": {"event.keyword": "orchestration.backfill.emitted"}},
-                {"term": {"status.keyword": "success"}},
+                {"term": {"event.keyword": "orchestration.pipeline.emitted"}},
+                {"term": {"status.keyword": "completed"}},
             ],
         )
+
+    def test_failure_alert_matches_structured_errors_but_not_writer_contention(self) -> None:
+        import re
+
+        runbook = (ROOT / "docs/runbook-execucao.md").read_text()
+        rules = [json.loads(body) for body in re.findall(r"-d '(\{.*?\})'", runbook, re.DOTALL)]
+        rule = next(rule for rule in rules if rule.get("name") == "ETL - falha de execução")
+        query = json.loads(rule["params"]["esQuery"])["query"]
+
+        def matches(clause, record):
+            if "bool" in clause:
+                boolean = clause["bool"]
+                return all(matches(item, record) for item in boolean.get("filter", [])) and sum(
+                    matches(item, record) for item in boolean.get("should", [])
+                ) >= boolean.get("minimum_should_match", 0)
+            operator = next(iter(clause))
+            field, expected = next(iter(clause[operator].items()))
+            value = record.get(field.removesuffix(".keyword"))
+            if operator == "terms":
+                return value in expected
+            return expected in value if isinstance(value, list) else value == expected
+
+        for record in (
+            {"event": "orchestration.pipeline.emitted", "status": "failed", "level": "INFO"},
+            {"status": "failed", "failed_stage": "publication"},  # JSON da CLI sem event/level
+            {"event": "orchestration.pipeline.emitted", "status": "aborted"},
+            {"event": "orchestration.pipeline.emitted", "status": "reconciliation_failed"},
+            {"logger": "prefect.flow_runs", "level": "ERROR"},
+            {"event": "orchestration.health_check.emitted", "status": "degraded"},
+            {"tags": ["etl_error"]},
+        ):
+            with self.subTest(record=record):
+                self.assertTrue(matches(query, record))
+        for record in (
+            {"event": "orchestration.health_check.emitted", "status": "busy", "level": "INFO"},
+            {"event": "orchestration.health_check.emitted", "status": "ok", "level": "INFO"},
+            {"event": "orchestration.pipeline.emitted", "status": "completed", "level": "INFO"},
+            {"message": "failed attempts: 0", "level": "INFO"},
+        ):
+            with self.subTest(record=record):
+                self.assertFalse(matches(query, record))
 
     def test_rejections_use_same_canonical_event_filter_as_volumes(self) -> None:
         objects = {
