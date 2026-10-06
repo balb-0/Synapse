@@ -5,12 +5,16 @@ Percorrido estático das três páginas finais do relatório
 com vínculos de filtros e drill conferidos pela definição PBIR. Evidência
 reproduzível: `tests/analytics/test_report_semantics.py`,
 `tests/analytics/test_report_bindings.py`, `test_report_filters.py` e
-`test_report_definition.py` — 26 testes passam com:
+`test_report_definition.py` — a suíte estática pode ser executada com:
 `PYTHONPATH=src python -m unittest tests.analytics.test_report_semantics tests.analytics.test_report_bindings tests.analytics.test_report_filters tests.analytics.test_report_definition -v`.
-O aceite técnico de refresh, consultas e capturas do pacote integrado no
+A conferência técnica histórica de refresh, consultas e capturas do pacote integrado no
 Power BI Desktop foi registrado em 2026-10-06; a evidência e seus limites
 estão descritos abaixo. As sessões humanas S1–S4 e a revisão externa de Anna
 continuam pendentes.
+
+As capturas são do snapshot anterior ao CF-05. As mudanças de C03 e
+completude após esse pacote ainda exigem nova rodada Desktop; o aceite
+final atual permanece pendente.
 
 ## Percurso estático por página (filtros simultâneos + drill)
 

@@ -1,5 +1,10 @@
 # BI-05: conferência da geração final
 
+As consultas e capturas Desktop deste registro são do snapshot anterior ao
+CF-05. Seus resultados históricos 18 entradas/17 estados "Sem dado" não
+representam o catálogo atual: 19 entradas/18 "Sem dado", com I16 bloqueado.
+A execução Desktop após CF-04/CF-05 e o aceite final permanecem pendentes.
+
 CB-16 publicou a geração `6b1eaa686aac43b18b6d6545e1c2c5f1` da fonte v3,
 com `load_reference` `afcde424-45e8-457b-8793-bf0866d142b2`.
 A publicação foi conferida contra o DuckDB e a geração v3 foi atualizada e

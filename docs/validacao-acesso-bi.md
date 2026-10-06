@@ -1,6 +1,7 @@
 # Validação de conexão e atualização no Power BI
 
-Este registro atende BI-02, BI-05 e BI-06 e mantém o procedimento de DX-04.
+Este registro reúne evidência técnica de BI-02, BI-05 e BI-06 e mantém
+o procedimento de DX-04. O aceite final após CF-04/CF-05 permanece pendente.
 O projeto consumidor é `powerbi/CentralPesquisasBI.pbip`, com sete partições
 Parquet e dimensões calculadas. O consumidor recebe somente a geração
 publicada; o DuckDB de ingestão permanece na máquina autorizada de carga.
@@ -44,13 +45,13 @@ Registre também a troca entre duas gerações. Evite nomes de usuário, registr
 IDs de pessoa/empresa, e-mails ou credenciais. Uma captura do dashboard com
 dados sintéticos demonstra o visual; não prova qual geração foi importada.
 
-| Etapa | Geração e execução | Resultado |
+| Etapa | Geração e execução | Resultado técnico e aceite |
 | :--- | :--- | :--- |
 | BI-01 | Migração de duas páginas e 48 visuais | Estrutura migrada; o pacote integrado inclui as entregas posteriores RP-13/RP-14/RP-17 |
-| BI-02 | Fixture corrigido `2c699f0b...` | Sete tabelas consultadas no Desktop real, partições processadas sem erro |
-| BI-03/BI-04 | Pacote integrado `ff760d6` | Projeção TOM com 128 itens/zero diferenças; médias e estoque do fixture consultados |
-| BI-05 | Geração CB-16 `6b1eaa686aac43b18b6d6545e1c2c5f1` | Publicação, origem e refresh do pacote corrigido conferidos |
-| BI-06 | Refresh e troca de geração | Fixture corrigido e v3 consultados; troca final registrada; falha de arquivo e recuperação histórica documentadas |
+| BI-02 | Fixture corrigido `2c699f0b...` | Consulta técnica e refresh do snapshot anterior conferidos; revalidação atual pendente |
+| BI-03/BI-04 | Pacote integrado `ff760d6` | Consulta técnica conferida no snapshot anterior; 128 itens/zero diferenças TOM; aceite atual pendente |
+| BI-05 | Geração CB-16 `6b1eaa686aac43b18b6d6545e1c2c5f1` | Publicação, origem e refresh comprovados para `ff760d6`; aceite após CF-04/CF-05 pendente |
+| BI-06 | Refresh e troca de geração | Troca e consultas técnicas históricas registradas; aceite final atual pendente |
 
 Os recibos finais abaixo sustentam a conferência de conexão e atualização. Card fechado, branch criada, pipeline ou recibo preenchido não
 comprovam execução no Power BI Desktop.
@@ -250,7 +251,8 @@ C02 v3 retornou soma nula, base 0 e média nula. A completude física de preench
 1844495/2584786 (0,7135967929259908), a integridade 833146/833146 (1),
 e a duplicidade (275840-275840)/275840 (0). Os numeradores e denominadores
 conferem com a apuração independente da ingestão. O catálogo manteve
-18 entradas/17 estados "Sem dado" e duas medidas textuais individuais.
+18 entradas/17 estados "Sem dado" e duas medidas textuais individuais
+no snapshot anterior ao CF-05; o catálogo atual tem 19/18.
 A taxa diagnóstica de finalização não é medida DAX publicada e não integra
 os recibos públicos. C03 v3 retornou data e estoque nulos com motivo
 textual de indisponibilidade. O pacote Desktop `ff760d6` não representava fechamento global

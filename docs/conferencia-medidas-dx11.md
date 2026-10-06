@@ -1,5 +1,10 @@
 # Conferência das medidas contra a apuração de referência
 
+As consultas e capturas Desktop deste registro são do snapshot anterior ao
+CF-05. Seus resultados históricos 18 entradas/17 estados "Sem dado" não
+representam o catálogo atual: 19 entradas/18 "Sem dado", com I16 bloqueado.
+A execução Desktop após CF-04/CF-05 e o aceite final permanecem pendentes.
+
 Cumpre a DX-11: confere cada medida publicada contra os valores já apurados
 (`docs/resultados_analise.txt`, `docs/dmc.md`), com o resultado anexado —
 automatizado onde há referência numérica fixa, documentado como checklist
@@ -68,14 +73,14 @@ rodar. Tabela de apoio:
 
 ## Indicadores sinalizados (DX-10)
 
-`DIM_INDICADORES_BLOQUEADOS` é um catálogo de 18 linhas, não 18 medidas DAX.
-Confira suas colunas `indicador`, `medida`, `status` e `motivo`, os 17 estados
-"Sem dado", o único estado "Parcial" e `Qtd Indicadores Sem Dado` = 17. Só
+`DIM_INDICADORES_BLOQUEADOS` é atualmente um catálogo de 19 linhas. Não é uma coleção de 19 medidas DAX.
+Confira suas colunas `indicador`, `medida`, `status` e `motivo`, os 18 estados
+"Sem dado", o único estado "Parcial" e `Qtd Indicadores Sem Dado` = 18. Só
 `Taxa de Prorrogacao` e `Representatividade` têm medidas textuais próprias;
 confira que cada uma exibe o motivo em qualquer contexto de filtro. Para os
 demais itens, valide a linha do catálogo, sem esperar uma medida numérica ou
-textual implementada. As consultas 6/6a do Desktop listam as quatro colunas,
-conferem a contagem de 18 linhas/17 sem dado e mostram apenas essas duas
+textual implementada. As consultas 6/6a do Desktop devem listar as quatro colunas e
+conferir o catálogo atual de 19 linhas/18 sem dado e mostram apenas essas duas
 medidas de texto junto com `Qtd Indicadores Sem Dado`.
 
 ## Medidas DAX do C03 (BI-04)

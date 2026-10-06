@@ -1,5 +1,10 @@
 # BI-02: ensaio de importação das sete tabelas no Power BI Desktop
 
+As consultas e capturas Desktop deste registro são do snapshot anterior ao
+CF-05. Seus resultados históricos 18 entradas/17 estados "Sem dado" não
+representam o catálogo atual: 19 entradas/18 "Sem dado", com I16 bloqueado.
+A execução Desktop após CF-04/CF-05 e o aceite final permanecem pendentes.
+
 Este ensaio usa dados **sintéticos**. A referência `synthetic-bi02-fixture` no
 manifesto identifica o fixture, não uma carga conciliada de produção. A execução
 local de Python valida os Parquet e o contrato do modelo. A execução no
