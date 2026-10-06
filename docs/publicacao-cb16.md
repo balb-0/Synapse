@@ -10,7 +10,8 @@ mesma carga que produziu a publicação.
 O usuário enviou um pacote explicitamente identificado como **v3** após o
 primeiro pacote desta rodada. A execução válida deste registro deve usar v3;
 o SHA-256 confirmado é `d307d74bc81000317c74d59431cfbc71bf938bd15e41e39fcb397f699468a39e`.
-O inventário e o ID da geração serão anexados depois da conferência da publicação.
+O [recibo público da geração](evidencias/cb16/geracao-v3.json) registra o
+inventário e o ID após a conferência da publicação.
 
 O primeiro pacote tinha SHA-256
 `d6cc8043562972659acc5a83f963a7938c91c494a754ade80c4e7e23d7648cd7` e
@@ -31,10 +32,12 @@ foi reprocessada com a regra corrigida de identificador opaco.
 
 O adaptador conserva esse identificador como texto; não reconstrói um inteiro
 nem o relaciona automaticamente a `cliente_id` ou à fonte `respondentes`.
-A correção do schema de produção corresponde ao commit `894445d`, com testes
-focados informados pelo responsável. O recibo final deverá identificar o
-código e o adaptador efetivamente executados, além das novas contagens. Nenhum
-resultado parcial desta tentativa substitui os totais da execução completa.
+A correção do schema de produção corresponde ao commit `894445d`. A ingestão
+desta geração executou o código de `fd6864e` com adaptador privado de
+`respondent_id` opaco (SHA-256
+`b9702c67f926bf360db40b19ca3164b027e2449ebb819058142882e82e4aeec0`).
+A carga analítica e a publicação executaram `894445d`. O recibo distingue esses
+componentes e não atribui o adaptador privado ao commit de produção.
 
 ## Ingestão concluída
 
@@ -57,6 +60,29 @@ A rotina privada de respostas conservou a regra de texto opaco e usou escrita
 em blocos parametrizados de 128 linhas na retomada, com uma thread DuckDB.
 O recibo registra os hashes do adaptador inicial e dessa rotina de retomada,
 além do commit do ETL; não atribui o runtime privado ao código versionado.
+
+## Conferência da geração publicada
+
+A geração imutável é `6b1eaa686aac43b18b6d6545e1c2c5f1`, com
+`load_reference` `afcde424-45e8-457b-8793-bf0866d142b2`. O manifesto e os
+sete Parquet têm hashes, esquemas e contagens conferidos no recibo público.
+
+| Publicação | Linhas | Resultado |
+| --- | ---: | --- |
+| C01 ciclo | 57 grupos, 366 pesquisas | métricas conferidas |
+| C02 participação | 32 grupos, 17.740 participações | métricas conferidas |
+| C03 pipeline mensal | 0 | `not_observed`, sem fechamento mensal |
+| C04 instrumento | 45 grupos, 3.186 perguntas | métricas conferidas |
+| Qualidade campo | 64 | contagens conferidas |
+| Qualidade relação | 8 | contagens conferidas |
+| Qualidade duplicidade | 5 | contagens conferidas |
+
+O verificador independente reconstruiu os grupos C01, C02 e C04 a partir da
+ingestão tratada. Comparou contagens, somas e denominadores com a publicação;
+houve zero grupos divergentes. A reconciliação da carga aponta zero descartes
+analíticos e zero diferenças nesses três cubos. Em C02, o tempo de
+preenchimento não está disponível para nenhuma das 17.740 participações;
+nenhuma média foi inferida. C03 continua sem observação de fechamento.
 
 ## Sequência de conferência
 
@@ -81,12 +107,11 @@ a publicação com conexão somente de leitura e os limites de distribuição.
 
 ## Evidência e estado
 
-A ingestão sobre o pacote v3 terminou. A carga analítica e a publicação usam a
-revisão corrigida do publicador, após a verificação de falhas encontradas em
-`develop`. O recibo identificará o código de ingestão, carga analítica e
-publicação separadamente; não reutiliza manifesto de uma execução parcial. O ID da geração,
-`load_reference`, sete contagens e hashes ainda não foram anexados a este
-registro. Não há declaração de conclusão ou aceite final nesta etapa.
+A ingestão, carga analítica, reconciliação, publicação e conferência de métricas
+da geração v3 terminaram. O [recibo](evidencias/cb16/geracao-v3.json) limita a
+aceitação à integridade dos sete arquivos e às métricas observáveis. O refresh
+e a validação DAX no Desktop continuam pendentes nas tarefas BI. O recibo não
+afirma a implementação de CB-15 nem a observação dos quatro cubos.
 
 C03 exige um fechamento mensal observado. Sem essa fonte, o estado é
 `not_observed`, e um Parquet vazio não comprova estoque zero. Entradas e saídas
