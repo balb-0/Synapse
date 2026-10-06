@@ -207,7 +207,7 @@ class PublishCubesTests(unittest.TestCase):
             reader.close()
 
     def test_physical_completion_counts_cells_without_applicability_filter(self):
-        first = publish_cubes(self.database, self.output, load_reference="physical-completion")
+        first = publish_cubes(self.database, self.output, load_reference="synthetic-physical-completion")
         reader = duckdb.connect(":memory:")
         self.addCleanup(reader.close)
         publication = self.output / first["generation"] / "PUB_QUALIDADE_CAMPO.parquet"
@@ -228,7 +228,7 @@ class PublishCubesTests(unittest.TestCase):
             writer.execute("UPDATE ingestao_clientes_atual SET departamento = ''")
         finally:
             writer.close()
-        second = publish_cubes(self.database, self.output, load_reference="non-null-cell")
+        second = publish_cubes(self.database, self.output, load_reference="synthetic-non-null-cell")
         self.assertEqual(
             reader.execute(
                 "SELECT qtd_linhas, qtd_preenchidas FROM read_parquet(?)"
@@ -244,7 +244,7 @@ class PublishCubesTests(unittest.TestCase):
             writer.execute("DELETE FROM ingestao_questoes_atual")
         finally:
             writer.close()
-        manifest = publish_cubes(self.database, self.output, load_reference="empty-source")
+        manifest = publish_cubes(self.database, self.output, load_reference="synthetic-empty-source")
         reader = duckdb.connect(":memory:")
         self.addCleanup(reader.close)
         self.assertEqual(
