@@ -18,6 +18,7 @@ from prefect import flow, get_run_logger, task
 from prefect.cache_policies import NO_CACHE
 from prefect.runtime import flow_run, task_run
 
+from etl.analytics.reconcile import AnalyticsSchemaError
 from etl.extraction import (
     ClientesExtractor,
     EmpresasExtractor,
@@ -172,7 +173,7 @@ def _should_retry(task, task_run, state) -> bool:
     """
     try:
         state.result(raise_on_failure=True)
-    except (ExtractionError, ValueError, KeyError, UnbalancedLoadError):
+    except (AnalyticsSchemaError, ExtractionError, ValueError, KeyError, UnbalancedLoadError):
         # Erros da extração já chegam terminais (transitório foi reexecutado
         # internamente); config/schema/objeto ausente também não se repetem.
         # Reconciliação desbalanceada é determinística para os mesmos lotes:

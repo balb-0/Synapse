@@ -14,6 +14,10 @@ from etl.load.config import DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS
 from etl.load.connection import connect_with_retry
 
 
+class AnalyticsSchemaError(RuntimeError):
+    """Schema analítico ausente; repetir a mesma consulta não cria as tabelas."""
+
+
 @dataclass(frozen=True)
 class CubeCount:
     cube: str
@@ -212,7 +216,7 @@ def _require_analytics_schema(con: duckdb.DuckDBPyConnection) -> None:
     }
     missing_tables = sorted(required - existing)
     if missing_tables:
-        raise RuntimeError(
+        raise AnalyticsSchemaError(
             "camada analítica ausente; execute load_analytics antes da reconciliação: "
             + ", ".join(missing_tables)
         )
