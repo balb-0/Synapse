@@ -1,4 +1,4 @@
-"""Conferência independente da geração BI e do recibo do Desktop."""
+"""Validação dos arquivos da geração BI e do recibo do Desktop."""
 
 from __future__ import annotations
 
