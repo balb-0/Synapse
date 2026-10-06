@@ -36,9 +36,11 @@ publicada; o DuckDB de ingestão permanece na máquina autorizada de carga.
 
 ## Evidência necessária para o aceite
 
-As capturas devem mostrar projeto/versão, parâmetro com caminho sanitizado,
-conclusão ou erro do refresh e resultados DAX das sete tabelas. Registre também
-a troca entre duas gerações. Evite nomes de usuário, registros individuais,
+As evidências, reunindo capturas e recibos, registram projeto/versão, parâmetro
+com caminho sanitizado, conclusão ou erro do refresh e resultados DAX das sete
+tabelas. A captura do resumo v3 mostra pasta, geração, data, sete contagens e
+agregados; o recibo medido fornece versão, projeção TOM e proveniência.
+Registre também a troca entre duas gerações. Evite nomes de usuário, registros individuais,
 IDs de pessoa/empresa, e-mails ou credenciais. Uma captura do dashboard com
 dados sintéticos demonstra o visual; não prova qual geração foi importada.
 
