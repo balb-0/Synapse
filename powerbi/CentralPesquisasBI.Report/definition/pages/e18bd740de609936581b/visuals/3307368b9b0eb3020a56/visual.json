@@ -20,16 +20,16 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Pesquisa"
+                      "Entity": "DIM_TEMPO"
                     }
                   },
-                  "Property": "Ano"
+                  "Property": "ano"
                 }
               },
-              "queryRef": "BE_Pesquisa.Ano",
-              "nativeQueryRef": "Ano",
+              "queryRef": "DIM_TEMPO.ano",
+              "nativeQueryRef": "ano",
               "active": true,
-              "displayName": "Ano"
+              "displayName": "ano"
             }
           ]
         }
