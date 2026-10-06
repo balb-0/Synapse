@@ -49,6 +49,7 @@ class PublishedModelContractTests(unittest.TestCase):
             ("PUB_C03_PIPELINE_MENSAL.data_fim_mes", "DIM_TEMPO.data"),
         }
         relationships = _relationships()
+        self.assertEqual(len(relationships), len(expected))
         actual = {
             (relationship["fromColumn"], relationship["toColumn"]) for relationship in relationships
         }
@@ -58,6 +59,17 @@ class PublishedModelContractTests(unittest.TestCase):
         outgoing: dict[str, set[str]] = {}
         indegree: dict[str, int] = {}
         for relationship in relationships:
+            self.assertEqual(
+                set(relationship),
+                {
+                    "name",
+                    "fromCardinality",
+                    "toCardinality",
+                    "crossFilteringBehavior",
+                    "fromColumn",
+                    "toColumn",
+                },
+            )
             source_table, source_column = relationship["fromColumn"].split(".")
             target_table, target_column = relationship["toColumn"].split(".")
             self.assertTrue(source_table.startswith("PUB_C0"))
@@ -66,7 +78,7 @@ class PublishedModelContractTests(unittest.TestCase):
             self.assertIn(target_column, _columns(target_table))
             self.assertEqual(relationship["fromCardinality"], "many")
             self.assertEqual(relationship["toCardinality"], "one")
-            self.assertEqual(relationship["crossFilteringBehavior"], "single")
+            self.assertEqual(relationship["crossFilteringBehavior"], "oneDirection")
 
             # Model filter flow from the one-side dimension to the many-side fact.
             nodes.update((target_table, source_table))

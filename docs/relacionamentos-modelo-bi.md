@@ -53,7 +53,7 @@ dimensão filtra o fato, nunca o contrário):
 relationship DimArea_PubC01Ciclo
 	fromCardinality: many
 	toCardinality: one
-	crossFilteringBehavior: single
+	crossFilteringBehavior: oneDirection
 	fromColumn: PUB_C01_CICLO.area
 	toColumn: DIM_AREA.area
 ```
