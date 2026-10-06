@@ -88,7 +88,7 @@ g05/
 ├─ observability/kibana/                              # Saved objects do painel operacional (OB-08)
 ├─ observability/prefect-logging.yml                  # Perfil de logging JSON do Prefect para o coletor
 ├─ Dockerfile                                         # Imagem do runner do ETL
-├─ requirements.txt                                   # Dependências de execução (minio, prefect, duckdb)
+├─ requirements.txt                                   # Dependências de execução do ETL
 ├─ .env.example                                       # Modelo das variáveis de ambiente do ETL
 ├─ .gitlab/
 │  └─ merge_request_templates/                        # Template de Merge Request
@@ -121,6 +121,14 @@ python -m pip install -r requirements.txt -r requirements-transformation-dev.txt
 > As bases reais do parceiro, bancos DuckDB e gerações Parquet ficam em diretório externo restrito e não devem entrar no Git. Os CSVs de `tests/fixtures/` são sintéticos e versionados para os testes. Excluir dados brutos não prova sozinho a ausência de dados pessoais em capturas, PDF ou caches do Power BI; revise os artefatos antes de publicá-los, conforme [gestão de configuração](docs/gestao-configuração.md).
 
 ## Execução do ETL
+
+Verifique `python --version`, `git --version`, `docker compose version` e `jq --version` antes de seguir o runbook. `jq` é um executável do sistema; instale-o pelo gerenciador da sua plataforma. Se quiser apenas verificar a sintaxe JSON sem ele, use `python -m json.tool docs/dmc.json > /dev/null`; isso não substitui o validador de domínio.
+
+Para gerar os gráficos da análise quantitativa, instale a dependência opcional separadamente no ambiente virtual:
+
+```bash
+python -m pip install 'matplotlib==3.9.4'
+```
 
 O pipeline de ingestão (CSVs → MinIO → Prefect → DuckDB) sobe com Docker
 Compose e é executado pelos entrypoints em `scripts/orchestration/`:
