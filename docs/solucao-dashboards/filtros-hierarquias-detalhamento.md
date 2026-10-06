@@ -20,7 +20,7 @@ sete Parquet. Verificação reproduzível: `tests/analytics/test_report_filters.
 | Benchmark Externo — V2 | Pesquisa | `DIM_INDICADORES_BLOQUEADOS.motivo` | Sem dado: pesquisa nominal não publicada |
 | Estoque e Qualidade | Status | `DIM_STATUS_PESQUISA.status` | Total; filtra `PUB_C03` |
 | Estoque e Qualidade | Área | `DIM_AREA.area` | Total |
-| Estoque e Qualidade | Mês | `DIM_TEMPO.ano_mes` | Meses com fechamento observado; mês sem snapshot não vira zero |
+| Estoque e Qualidade | Mês | `DIM_TEMPO.ano_mes` | Meses observados em C02 ou C03; sem linha C03 no mês, o estoque fica indisponível |
 
 Filtros simultâneos propagam da dimensão para o fato em direção única,
 conforme `docs/relacionamentos-modelo-bi.md`; cruzamento entre fatos só por
