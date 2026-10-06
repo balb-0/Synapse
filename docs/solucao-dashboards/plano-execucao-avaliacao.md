@@ -18,14 +18,17 @@ O plano de validação com usuários está fechado e versionado em
 | Documento | Conteúdo | Tarefas |
 | :--- | :--- | :--- |
 | [`perfis-e-criterios.md`](../usabilidade/perfis-e-criterios.md) | Perfis UC01–UC04 × PBs × RFs; critérios de aceite e testes já documentados; lacunas | base |
-| [`tarefas-navegacao-filtros.md`](../usabilidade/tarefas-navegacao-filtros.md) | Navegação entre telas e filtros hierárquicos (com limpeza e recorte vazio) | 6 |
-| [`tarefas-detalhamento.md`](../usabilidade/tarefas-detalhamento.md) | Agregado → detalhe, dentro e entre telas, com justificativa do número | 4 |
-| [`tarefas-comparacao-segmentacao.md`](../usabilidade/tarefas-comparacao-segmentacao.md) | Comparação entre períodos equivalentes e 2–3 filtros simultâneos | 5 |
+| [`tarefas-navegacao-filtros.md`](../usabilidade/tarefas-navegacao-filtros.md) | Navegação nas duas páginas e filtros planos (com limpeza e recorte vazio) | 6 |
+| [`tarefas-detalhamento.md`](../usabilidade/tarefas-detalhamento.md) | Agregado → detalhe com justificativa; duas tarefas futuras fora da rodada | 4 |
+| [`tarefas-comparacao-segmentacao.md`](../usabilidade/tarefas-comparacao-segmentacao.md) | Comparação por edição/divulgação e filtros simultâneos; uma tarefa fora da rodada | 5 |
 | [`roteiro-execucao.md`](../usabilidade/roteiro-execucao.md) | Participantes P1–P4, ordem em blocos, métricas e guarda de evidência | roteiro |
 
 <sup>Material produzido pelos autores (2026)</sup>
 
 </div><br>
+
+Das 15 tarefas planejadas, 12 estão na rodada e três dependem das páginas
+Resultados/Qualidade ausentes (T-DET-03, T-DET-04 e T-SEG-02).
 
 Toda tarefa tem situação real, passos esperados, critério de sucesso
 observável e tempo aceitável; as métricas coletadas são conclusão, tempo,
@@ -48,9 +51,8 @@ estão descritos em [`solucao_dashboard.md`](../solucao_dashboard.md).
 Regras já fixadas para a execução (roteiro, §6):
 
 - fichas preenchidas **durante** a sessão, nunca de memória;
-- indisponibilidade das telas finais na janela → **piloto sobre o protótipo
-  D01–D04**, identificado como piloto na ficha, com reexecução nas telas
-  finais registrada separadamente;
+- executar somente as 12 tarefas do report de duas páginas; manter as três
+  dependentes de Resultados/Qualidade fora do denominador, sem resultado presumido;
 - nenhuma célula de resultado vazia, presumida ou copiada entre sessões.
 
 Esta seção será atualizada com a síntese das rodadas (taxa de conclusão por
@@ -68,8 +70,10 @@ reports são avaliados (cada um verificável tela a tela):
 2. **Denominador explícito** — toda taxa exibe numerador e denominador;
    denominador ausente → "indisponível" com motivo (RF04/RF05; protótipo já
    implementa `null`, nunca `0%`).
-3. **Temporalidade rotulada** — `data_solicitacao` como padrão; outro marco
-   sempre selecionado e rotulado (RF01/RF03).
+3. **Temporalidade rotulada** — RF01/RF03 pedem solicitação como padrão.
+   As páginas entregues usam `ano_edicao` em Produção e ano de divulgação
+   no Benchmark; esses desvios devem ficar explícitos no rótulo e na tarefa,
+   sem afirmar que medem solicitações.
 4. **Semiaditividade respeitada** — estoque mensal do pipeline não é somado
    entre períodos (contrato C03).
 5. **Rastreabilidade** — cada número da tela final deve rastrear a um

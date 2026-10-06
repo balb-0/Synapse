@@ -7,18 +7,18 @@ Além das métricas padrão, este bloco confere **precisão do dado exibido**
 contra valores de referência e a **coerência do indicador entre
 granularidades** — as duas exigências do card.
 
-> **Estado: aguardando execução.** Fichas preenchidas durante as sessões;
-> este documento só entra em revisão (MR) com as fichas completas. Alvo:
-> telas RP-08; na indisponibilidade, piloto sobre o protótipo D01–D04,
-> identificado na ficha.
+> Estado: aguardando execução. A revisão do plano não preenche resultados.
+> O alvo são as duas páginas entregues com CSVs sintéticos; fichas e capturas
+> de sessão real ainda não existem. T-SEG-02 fica fora por ausência de Resultados.
+> Comparação contra o DW depende de RP-13/RP-14, além da validação do modelo.
 
 ## Identificação da rodada
 
 | Campo | Valor |
 | :--- | :--- |
-| Alvo | Telas Power BI de Operação (RP-03) e Participação (RP-04) na `develop`; Resultados/Qualidade pendentes |
+| Alvo | Produção e Volume e Benchmark Externo — V2; Resultados/Qualidade fora da rodada |
 | Versão/commit do alvo | _a preencher_ |
-| Fonte dos valores de referência | _a preencher_ (ex.: `dados-dashboard.json` da mesma versão, consultas do repositório analítico) |
+| Fonte dos valores de referência | _a preencher_: CSVs sintéticos da versão do alvo; consultas DW somente após integração do report |
 | Datas das sessões | _a preencher_ |
 | Moderador / Observador | _a preencher_ |
 
@@ -70,9 +70,9 @@ o mesmo recorte aplicado na tela:
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | T-CMP-01 (período A) | | | | | |
 | T-CMP-01 (período B) | | | | | |
-| T-CMP-02 (mês de pico) | | | | | |
+| T-CMP-02 (ano de divulgação com pico) | | | | | |
 | T-SEG-01 | | | | | |
-| T-SEG-02 | | | | | |
+| T-SEG-02 | Fora da rodada: Resultados ausente | — | — | — | — |
 
 Divergência é registrada com os dois valores e o recorte — nunca ajustada na
 ficha.
@@ -102,11 +102,11 @@ denominador antes de recalcular; para estoque, comparar o mesmo snapshot.
 | T-CMP-02 | | | | | | |
 | T-SEG-03 | | | | | | |
 
-## Ficha S3 — P3 (UC02): T-SEG-02
+## Ficha S3 — P3 (UC02): T-SEG-02 fora da rodada
 
 | Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-SEG-02 | | | | | | |
+| T-SEG-02 | Fora da rodada: Resultados ausente | — | — | — | — | |
 
 ## Síntese da rodada
 
