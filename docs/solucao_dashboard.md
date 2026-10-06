@@ -17,6 +17,9 @@ os visuais aos indicadores e dimensões disponíveis no modelo analítico.
 
 ![Tela Produção e Volume](assets/dashboard/relatorio-producao-volume.png)
 
+Captura histórica com dados sintéticos. O título do gráfico de etapas foi
+corrigido no PBIR para dias corridos; a imagem ainda não foi recapturada.
+
 ### Objetivo
 
 Apresentar uma visão operacional do portfólio de pesquisas, permitindo
@@ -26,7 +29,7 @@ acompanhar volume, situação do ciclo, duração das etapas e prorrogações.
 
 | Filtro | Uso |
 | :--- | :--- |
-| Ano | Define o período analisado. |
+| Ano | Filtra `D01_CicloPesquisa[ano_edicao]`; não representa ano de solicitação. |
 | Área | Restringe o portfólio à área selecionada. |
 | Tipo | Restringe o portfólio ao tipo de pesquisa selecionado. |
 | Status | Permite analisar as pesquisas por situação no ciclo. |
@@ -50,9 +53,9 @@ acompanhar volume, situação do ciclo, duração das etapas e prorrogações.
 ### Base analítica
 
 A tela está alinhada ao tema do cubo C01 — Portfólio e Ciclo. Os principais
-recortes são status, área, tipo, complexidade e ano da edição. A dimensão
-temporal por `data_solicitacao` está definida no modelo analítico para a
-evolução das comparações por período.
+recortes são status, área, tipo, complexidade e ano da edição. Nesta página, o filtro temporal é `ano_edicao`, não `data_solicitacao`.
+O ano do Benchmark deriva de `data_divulgacao`; os dois marcos não são
+equivalentes e não devem ser comparados como solicitações.
 
 ## Implementação técnica — Produção e Volume
 
@@ -82,6 +85,9 @@ disponíveis, e um par de datas incompleto não representa uma duração válida
 ## Benchmark Externo — V2
 
 ![Tela Benchmark Externo — V2](assets/dashboard/benchmark.png)
+
+Captura histórica com dados sintéticos, anterior à correção do denominador
+da coorte por área. A execução DAX e a nova captura permanecem pendentes.
 
 ### Objetivo
 
@@ -187,7 +193,7 @@ As medidas personalizadas implementam as regras de negócio abaixo:
 | `BE Demais empresas` | Remove a empresa selecionada e conta somente as demais empresas no mesmo recorte. |
 | `BE Percentual observado` | Divide as demais empresas pelo denominador observado do recorte; denominador zero resulta em vazio. |
 | `BE % empresa por área` | Divide as pesquisas da empresa pelo total da própria empresa nas áreas selecionadas. |
-| `BE % demais por área` | Calcula a média do percentual das demais empresas, preservando as áreas selecionadas. |
+| `BE % demais por área` | Forma uma coorte fixa de demais empresas observadas em todas as áreas selecionadas; calcula o percentual por empresa e inclui zero quando ela não participa da área do eixo. Sem coorte, retorna vazio. |
 | `BE Empresas por faixa` | Conta empresas dentro dos limites `Minimo` e `Maximo` da faixa selecionada, excluindo a empresa analisada. |
 | `BE Selecionada por faixa` | Marca a faixa que contém a quantidade de pesquisas da empresa selecionada. |
 | `BE Empresa participou` | Retorna `Sim` ou `Não` conforme exista registro da empresa na pesquisa; sem seleção única, solicita a seleção de uma empresa. |
@@ -224,8 +230,9 @@ fechamento do período selecionado.
 
 As páginas de Produção e Benchmark usam o grão por pesquisa e empresa da
 camada de demonstração. O modelo Parquet publica agregados por categoria; essa
-separação preserva a finalidade de cada artefato e orienta a adaptação dos
-visuais à geração oficial.
+publicação não permite comparação por empresa nem detalhe por pesquisa.
+RP-13/RP-14 exigem redesenho desses visuais ou ampliação autorizada do contrato
+de acesso. Trocar a fonte sem rever o grão não atende esses casos.
 
 ## Hierarquias, drill-down e drill-through
 
@@ -244,20 +251,23 @@ feito por filtro cruzado e tabela de detalhe, e não por drill hierárquico.
 Mês, Área → Tipo → Perfil) e o drill-through serão concluídos na **Sprint 5**, quando as páginas forem
 ligadas à geração Parquet (ver [Integração com a camada Gold](#integração-com-a-camada-gold)).
 As tarefas T-DET de [`tarefas-detalhamento.md`](usabilidade/tarefas-detalhamento.md)
-estão escritas para os dois modos. Para medidas não aditivas, a coerência
+usam filtro cruzado e detalhe nas duas páginas atuais; as que exigem
+Resultados/Qualidade ficam fora desta rodada. Para medidas não aditivas, a coerência
 entre níveis é verificada pelos componentes da medida (numerador e
 denominador). Estoque mensal não é somado entre meses.
 
 
+## Plano de tarefas de usabilidade
 
 O [roteiro de execução](usabilidade/roteiro-execucao.md) organiza 15 tarefas
-para quatro perfis de uso. As atividades reproduzem consultas típicas da
+para quatro perfis de uso, sendo 12 na rodada das duas páginas e três fora
+da rodada por dependerem de Resultados/Qualidade. As atividades reproduzem consultas típicas da
 Central e associam cada interação a um resultado observável.
 
 | Grupo de tarefas | Interação proposta | Evidência registrada |
 | :--- | :--- | :--- |
 | [Navegação e filtros](usabilidade/tarefas-navegacao-filtros.md) | Localizar o painel, selecionar ano, área, tipo e status e combinar segmentações. | Contexto selecionado, mudança dos visuais e leitura do resultado. |
-| [Detalhamento](usabilidade/tarefas-detalhamento.md) | Partir de um indicador agregado e localizar a pesquisa correspondente na tabela. | Caminho percorrido e explicação do número apresentado. |
+| [Detalhamento](usabilidade/tarefas-detalhamento.md) | Partir do total por status ou do benchmark e justificar o detalhe no mesmo recorte. | Caminho percorrido e explicação do número apresentado. |
 | [Comparação e segmentação](usabilidade/tarefas-comparacao-segmentacao.md) | Comparar períodos e aplicar recortes simultâneos. | Valores do mesmo recorte, interpretação da medida e resposta dos painéis. |
 
 O plano prevê registro de conclusão, tempo, desvios, erros de interpretação e
@@ -303,8 +313,8 @@ identificadas nas sessões são tratadas em
 
 | Limitação | Análise crítica | Proposta |
 | :--- | :--- | :--- |
-| Páginas sobre CSV de demonstração, não sobre a geração Parquet | Os valores validam a composição e a leitura das páginas, mas não a precisão contra os cubos publicados | Sprint 5: ligar as páginas ao `CentralPesquisasBI.SemanticModel` e conferir cada visual com o `manifest.json` |
-| Sem drill hierárquico nas páginas | O usuário chega ao detalhe por filtro cruzado, mas não desce um nível temporal ou de área | Sprint 5: trocar os eixos pelas hierarquias `Calendario` e `Area, Tipo e Perfil` e criar uma página de drill-through por pesquisa |
+| Páginas sobre CSV de demonstração, não sobre a geração Parquet | Os valores validam a composição e a leitura das páginas, mas não a precisão contra os cubos publicados | RP-13/RP-14: redesenhar visuais para os agregados publicados ou homologar publicação com grão e acesso suficientes; conferir as medidas com o manifesto |
+| Sem drill hierárquico nas páginas | O usuário chega ao detalhe por filtro cruzado, mas não desce um nível temporal ou de área | Sprint 5: trocar os eixos pelas hierarquias `Calendario` e `Area, Tipo e Perfil` ; detalhe por pesquisa depende de ampliação autorizada do grão, ausente no Parquet |
 | Ciclo apresentado em dias corridos | O parceiro pediu dias úteis na Rodada 0, e as duas métricas não são equivalentes | Incluir o calendário de dias úteis no C01 e rotular a unidade em cada visual |
 | Sessões moderadas S1–S4 ainda não executadas | Só a Rodada 0 (retorno do parceiro) tem resultados; ainda não há medidas de tempo nem de taxa de sucesso | Sprint 5: executar S1–S4 com as fichas preparadas depois da ligação ao Parquet |
 | Participação de mercado sem fonte homologada | Publicá-la como indicador seria incorreto | Manter como "participação observada" até a homologação (DR02) |
