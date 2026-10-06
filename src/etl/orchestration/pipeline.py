@@ -212,6 +212,14 @@ def run_pipeline(
             except Exception as error:
                 raise failed("reconciliation", error) from error
             if not report["reconciled"] or report["load_id"] != analytics["load_id"]:
+                _log_event(
+                    logger,
+                    PIPELINE_EVENT,
+                    status="reconciliation_failed",
+                    failed_stage="reconciliation",
+                    load_id=analytics["load_id"],
+                    duration_ms=round((time.monotonic() - started) * 1000, 3),
+                )
                 raise ReconciliationFailedError(
                     "relatório analítico não reconciliou com esta carga"
                 )
