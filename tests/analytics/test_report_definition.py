@@ -50,6 +50,20 @@ class ReportDefinitionTests(unittest.TestCase):
         for path in REPORT.rglob("*.json"):
             json.loads(path.read_text())
 
+    def test_c01_unavailable_prorrogation_is_explanatory_text(self):
+        page = REPORT / "definition/pages/5d499bb7bb62646ad6e5/visuals"
+        notices = {
+            "pvprorrocard0000015": "I05 (prorrogação): sem dado publicado em C01.",
+            "pvprorrotable000016": "Sem detalhamento por área no escopo C01.",
+        }
+        for visual_id, notice in notices.items():
+            payload = json.loads((page / visual_id / "visual.json").read_text())
+            visual = payload["visual"]
+            self.assertEqual(visual.get("visualType"), "textbox")
+            self.assertNotIn("query", visual)
+            self.assertIn(notice, json.dumps(visual, ensure_ascii=False))
+            self.assertNotIn("Taxa de Prorrogacao", json.dumps(visual))
+
 
 if __name__ == "__main__":
     unittest.main()
