@@ -48,7 +48,7 @@ dados sintéticos demonstra o visual; não prova qual geração foi importada.
 | BI-02 | Fixture `synthetic-bi02-fixture` | Sete tabelas consultadas no Desktop real, partições processadas sem erro |
 | BI-03/BI-04 | Pacote integrado `f068a01` | Projeção TOM com 128 itens/zero diferenças; médias e estoque do fixture consultados |
 | BI-05 | Geração CB-16 `6b1eaa686aac43b18b6d6545e1c2c5f1` | Publicação, origem e refresh v3 conferidos; revisão visual final pendente |
-| BI-06 | Refresh e troca de geração | Fixture e v3 consultados; troca registrada, teste de cópia incompleta pendente |
+| BI-06 | Refresh e troca de geração | Fixture e v3 consultados; troca registrada, falha de arquivo ausente observada; recuperação pendente |
 
 Até completar as evidências de cada etapa, o respectivo aceite permanece
 pendente. Card fechado, branch criada, pipeline ou recibo preenchido não
@@ -119,7 +119,7 @@ exata do projeto e não são capturas do ensaio integrado aprovado. O recibo
 posterior registra o modelo corrigido processado e consultado.
 
 A publicação v3 está conferida em CB-16. O refresh e a troca de geração
-têm os recibos adicionais abaixo. O teste de cópia incompleta e a revisão
+têm os recibos adicionais abaixo. A falha de arquivo ausente foi observada; sua recuperação e a revisão
 visual final continuam pendentes.
 
 ## Troca do fixture para a geração v3
@@ -141,5 +141,21 @@ com estoque e fluxos indisponíveis.
 
 Esta rodada usou o pacote `f068a01` e antecede os ajustes de títulos do
 relatório. Confirma conexão, troca e atualização do modelo daquela revisão.
-O teste de arquivo ausente e as capturas finais serão registrados depois
-da execução; os estados existentes não antecipam seu resultado.
+A falha de arquivo ausente está registrada abaixo. Sua recuperação e as
+capturas finais serão registradas depois da execução.
+
+## Falha de arquivo ausente observada
+
+Ao remover `PUB_C01_CICLO.parquet` somente da cópia privada Windows da geração
+v3 e clicar Atualizar, o Desktop exibiu sete consultas bloqueadas e o erro
+"File or Folder: Could not find file" para C01. O
+[recibo do diagnóstico](evidencias/bi06/arquivo-ausente-v3.json) registra a
+observação em 06/10/2026 às 14:19:20 UTC; a
+[captura do diálogo](evidencias/bi06/arquivo-ausente-v3.png) mostra a falha
+sem dados de origem ou credenciais. O pacote imutável da publicação ficou
+preservado.
+
+Essa falha não foi aceita como refresh bem-sucedido. A restauração do arquivo
+e uma nova atualização com consultas ao engine ainda aguardam o recibo de
+recuperação neste registro. Uma consulta ao cache anterior, sozinha, não
+comprova que a atualização com o arquivo ausente funcionou.
