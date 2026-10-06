@@ -1,6 +1,6 @@
 # Resposta ao feedback de conformidade geral
 
-Esta matriz relaciona os 37 critérios recebidos em 06/10/2026 às fontes do G05. Ela registra evidências e limites de verificação, sem recalcular a nota ou substituir a avaliação institucional. Base da conferência: `develop` em `c2ebb02`, acrescida de CF-01 e CF-02 nesta branch. CF-03 é uma entrega separada: o PDF ainda está pendente nesta branch. Confira a respectiva MR para a exportação e o aceite técnico.
+Esta matriz relaciona os 37 critérios recebidos em 06/10/2026 às fontes do G05. Ela registra evidências e limites de verificação, sem recalcular a nota ou substituir a avaliação institucional. Base da conferência: `develop` em `c2ebb02`, acrescida de CF-01, CF-02 e CF-03 nesta branch. O PDF integral, gerador e proveniência estão incluídos; o estado de integração em `develop` depende da ordem de merge das três MRs.
 
 ## Como reproduzir a conferência
 
@@ -38,10 +38,10 @@ Leia o [portal](index.md), execute os comandos do [README](../README.md) e confi
 | 28 | Documentação acessível | README usa links relativos para o [portal](index.md); entrada por atividade, ADRs e comandos. | GitLab pode exigir autenticação institucional. |
 | 29 | Markdown existente | Documento principal, portal, contratos e ADRs são `.md`. | PDF é uma exportação, Markdown continua a fonte. |
 | 30 | Links funcionais e sem restrição | Validação dos destinos locais e referências externas listadas em CF-01. | Não prometer disponibilidade pública dos perfis, do GitLab ou de fontes privadas. |
-| 31 | Formatação mínima | Títulos, tabelas, blocos de código e links nos documentos; a conferência da renderização do PDF está prevista em CF-03, ainda fora desta branch. | Texto extraído do PDF sozinho não prova layout correto. |
+| 31 | Formatação mínima | Títulos, tabelas, blocos de código e links nos documentos; CF-03 inclui exportação integral, conferência de páginas renderizadas e proveniência verificável. | Texto extraído do PDF sozinho não prova layout correto. |
 | 32 | Seções principais preenchidas | [Projeto](projeto.md), seções 1 a 8: contexto, objetivos, arquitetura, modelagem, requisitos/governança, referências e resultados. | Metas futuras e tarefas humanas pendentes não podem ser convertidas em evidência executada. |
 | 33 | Arquivos temporários removidos | `.gitignore` separa bancos, bases reais, caches e ambientes locais. | Não remover artefato histórico útil apenas por não ser código executável; não certificar todo histórico com essa regra. |
-| 34 | PDF da documentação principal | CF-03 prevê exportar `docs/projeto.md` integralmente, com gerador e proveniência; PDF principal ainda ausente nesta branch. | PDFs de fluxogramas já existentes não atendiam esse critério. Exportação precisa ser regenerada quando a fonte mudar. |
+| 34 | PDF da documentação principal | CF-03 exporta `docs/projeto.md` integralmente em [PDF](assets/documentacao/documentacao-principal.pdf), com [gerador/verificação](exportacao-documentacao.md) e manifesto. | PDFs de fluxogramas já existentes não atendiam esse critério. Exportação precisa ser regenerada quando a fonte mudar. |
 | 35 | Repositórios auxiliares | README e [referências](referencias.md) declaram não haver auxiliar obrigatório na configuração entregue. | Não inventar repositório para preencher critério; ferramentas externas não são projetos complementares do grupo. |
 | 36 | Arquitetura detalhada | [ADRs](adrs/index.md), cinco visões ISO/IEC 10746 e [UML](assets/uml/) no portal. | Estado “proposto” de uma ADR é preservado; diagramas devem acompanhar o fluxo da versão avaliada. |
 | 37 | Testes e massas formais | [`tests/`](../tests/) por domínio, fixtures sintéticas e testes de integração/e2e; CF-02 acrescenta [guia específico](../tests/README.md). | Teste com fixture não substitui conferência Desktop ou sessão humana; `skip` não é aprovação. |

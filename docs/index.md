@@ -2,6 +2,8 @@
 
 Este é o ponto de entrada para documentação, contratos e evidências do G05. O [README](../README.md) explica a instalação; o [documento principal](projeto.md) reúne o contexto, requisitos, modelagem e governança.
 
+A [versão PDF integral do documento principal](assets/documentacao/documentacao-principal.pdf) permite leitura offline. O [procedimento de exportação](exportacao-documentacao.md) explica proveniência, atualização e limites. Contratos e evidências ligados pelo documento continuam em arquivos separados.
+
 ## Comece pela sua atividade
 
 | Atividade | Entrada e próxima leitura |
