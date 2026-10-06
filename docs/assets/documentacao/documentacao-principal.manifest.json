@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "source": "docs/projeto.md",
-  "source_revision": "256096f4e4ef9dd6e4523be2e321eff934971986",
-  "repository_revision": "8c4d75b7e7af13fc6ba92992e6cbc9f1a9cd21f7",
+  "source_revision": "893b0b386c88f5212245fbb07925d56639661b3a",
+  "repository_revision": "02c1c5aa2f2eb5e38bee1b7263ac6cb9f60636ad",
   "scope": "Conteúdo integral de docs/projeto.md; links não expandem outros documentos.",
   "mermaid": "Definições integrais como código; imagens existentes preservadas.",
   "inputs": {
@@ -33,18 +33,18 @@
     "docs/assets/uml/casos-de-uso-etl.svg": "221da4666352f070a523290c37e22a0a4adbab1a724fde71350781982e9190c4",
     "docs/assets/uml/componentes-etl.plantuml": "9c8e2b05ab75454ed825c1e79d5e45fa9519c45f1fea4a9524ed3f80307542f2",
     "docs/assets/uml/componentes-etl.svg": "f334452d1f755104760810d6b745ad0592373cc61a7b0a051c06dfd9aae4a568",
-    "docs/assets/uml/sequencia-ingestao-etl.plantuml": "2b2911be33b77fc6f28c1b0afe5299615ea2c631177c2e84390e0db47f07db4e",
-    "docs/assets/uml/sequencia-ingestao-etl.svg": "abe8a8dead23603248eeeda1d362ce3d1caa8affe3b6122ab24cdd94ee87f214",
+    "docs/assets/uml/sequencia-ingestao-etl.plantuml": "3300e8f2fae82c20af295ca7884de04e1cca9e8a3d86b4490a252c90fb8fa33e",
+    "docs/assets/uml/sequencia-ingestao-etl.svg": "a105caab2362ffc1727cad70ce6ce5aff415473e644156d78887f94e63a93496",
     "docs/checklist-entregaveis-sprint3.md": "5f86d6e92d766dacebf88cf00b8e5d5cc8e89a633e1834403f244eea01596be1",
-    "docs/contrato-fisico-cubos.md": "896288a9f0d80ee957c5b7b797943b66f638c14f2a394814fef6a369645a5caa",
-    "docs/dmc.json": "7652876f78a1d8f1faa1c69325f3659fa53c5c9991bbb2fa9656d6c9bfd33c36",
+    "docs/contrato-fisico-cubos.md": "29b956d04394a465c11093abb955d20598fbf5f1bf9267700e210f228f4c495c",
+    "docs/dmc.json": "149a17c01ae8f88363ba15268146979cae692149dd7e1ac14b6abfd6c81c2791",
     "docs/fontes-e-dependencias.md": "5aca8af18b08204bf4da342d2e8a1d2d25f4a31966a0dfee567cb9327bc38ced",
     "docs/matriz-evidencias-problem-canvas.md": "d4bae59a3575ebf5ea53f7b933f6c038aa4862a3912872e5e24b9dc559c7eed8",
     "docs/matriz-rastreabilidade-sprint3.md": "63a4dbd2ac6daa04e644b69b19684c0ad193efc49ef167619faf895c2977af76",
     "docs/modelagem_quantitativa_de_dados_do_parceiro.md": "e4d47ec61bfd250a02bcbf73118e225e636c10158ab93a1e904401253832ceb5",
-    "docs/projeto.md": "f42332a3fc137ea6224518d393c8309f69f8788336f23e139252d116577af28a",
-    "docs/visao-computacional-etl.md": "51f55d46d7109713599b6910af0680ffc11f30cb021173b1d2e9e4fc732e69da",
-    "docs/visao-engenharia-etl.md": "19bd314443bc9a46aca7c71f940b01bc849d6c2ca7b66c6f16e445d8348266ef",
+    "docs/projeto.md": "b041d89ba1b4a6c6213410d2e0786e672449d0fc0305e7576e53478e94fc6124",
+    "docs/visao-computacional-etl.md": "48250d4693a198488faa3688bbcfdd236e8771f688bf8b8befe4fba57b80169d",
+    "docs/visao-engenharia-etl.md": "90ac12a37a203657f64cd5c06d6793c3d970eb4dbde8336b392c6a0032a51691",
     "docs/visao-informacao-etl.md": "5a451f08ddb0ed11d78f4225b8fdf606f714d1f5806d651f9519fac48547cda2",
     "docs/visao-negocio-etl.md": "2bc0ff3d347eaf719a3ebd5d15cf0f71997140a93e303ddf38351ed2e6653e5a",
     "docs/visao-tecnologia-etl.md": "17cff5315f90e712e71c59c02f66bae79502aa93d529663ee1a4c89dea7c4056",
@@ -71,5 +71,5 @@
     "zopfli": "0.4.3"
   },
   "pages": 161,
-  "pdf_sha256": "d8114173e0deb9dbb369dc19c402499bdff3319e15bd8dcef959a10be44253b8"
+  "pdf_sha256": "36f54874749b29678eb76211dcdec616702ad768462db8b4eb9f0c17e6a9cdb8"
 }
