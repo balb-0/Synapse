@@ -49,10 +49,27 @@ que não usam a orquestração não participam desse lock; evite executá-los em
 paralelo com o pipeline. A conexão DuckDB também protege contra outro processo
 que mantenha o arquivo aberto.
 
+Antes de transformar ou carregar, o checksum e a versão de cada lote precisam
+coincidir com o checksum usado para verificar a identidade do objeto. Se a fonte
+mudar entre as duas leituras, `SourceChangedError` interrompe o flow antes de
+confirmar qualquer lote desse objeto; a classificação impede retry automático
+sobre uma fonte instável.
+
 Uma falha analítica preserva checkpoints e objetos já confirmados na ingestão.
 Ao repetir o comando, esses objetos ficam `ignored`, e os fatos são reconstruídos
 na transação da carga. A reconciliação exige a carga deste run e as origens
-correntes. A publicação verifica novamente essa condição antes de escrever.
+correntes. A reconciliação lê todas as consultas em uma transação de leitura.
+O publicador verifica de novo a reconciliação e o load reference dentro da mesma
+transação que executa os sete COPYs. Uma carga substituída entre a checagem da
+tarefa e a abertura do publicador é recusada; os arquivos não recebem a referência
+de uma carga diferente do snapshot exportado.
+
+Fixtures sem controles analíticos só podem publicar usando um load reference
+explicitamente marcado `synthetic-...`; isso não é aceite de geração final.
+Com controles presentes, esse marcador não dispensa a reconciliação nem o
+load reference efetivo. A qualidade da relação resposta/questão considera
+`pesquisa_id` e `pergunta_id`; cada resposta conta uma vez, mesmo quando a
+fonte pai contém mais de uma ocorrência da chave.
 
 A geração anterior fica ativa se a publicação falhar antes da troca atômica de
 `current.json`. Se a troca já ocorreu e a mesma tarefa for repetida, ela só
