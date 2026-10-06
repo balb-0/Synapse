@@ -86,3 +86,25 @@ exigem lógica diferente (tentativa de conversão de tipo por campo, e
 comparação textual de título entre fontes) que nenhum script existente já
 calcula de forma reutilizável. Ficam registradas como candidatas à mesma
 extensão de `publish.py`, sinalizadas como indisponíveis pela DX-10 até lá.
+
+## Conferência da semântica (06/10/2026)
+
+A correção altera descrições, rótulos PBIR e o catálogo de disponibilidade;
+a fórmula e os sete arquivos publicados permanecem com o mesmo contrato.
+O cartão e a tabela da página `c03c04qualidade01` usam "Completude de
+preenchimento". O catálogo atual tem 19 entradas, sendo 18 "Sem dado" e
+I03 "Parcial", após explicitar o bloqueio de I16.
+
+Os testes de publicação exercitam nulos em campos de matriz de questões
+não matriciais, soma de células por campo, texto não nulo vazio e fonte sem
+linhas. Os testes PBIR verificam que os vínculos continuam apontando para
+`PUB_QUALIDADE_CAMPO.Completude` e que seus rótulos não atribuem o resultado
+a I16. Esses testes executam SQL em DuckDB e inspecionam definições; não
+executam DAX nem renderizam a página no Power BI Desktop.
+
+Capturas e recibos de Desktop anteriores a esta correção registram a revisão
+executada na sua data. O título anterior "Completude aplicável (I16)" e as
+contagens 18/17, quando presentes, são históricos e não demonstram o estado
+corrigido. Não foi produzida uma nova captura Desktop nesta correção; a
+conferência visual e o refresh desse modelo continuam necessários para
+registrar sua execução no Desktop.

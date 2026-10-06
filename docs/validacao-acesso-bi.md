@@ -64,7 +64,7 @@ diante), o que a publicação atual sustenta:
 | `PUB_C02_PARTICIPACAO` | Contagem de participações, média de preenchimento | Empresas distintas por pesquisa (I07), representatividade/participação de mercado (I09) |
 | `PUB_C03_PIPELINE_MENSAL` | Estoque mensal por status/área/tipo/perfil | Entradas e saídas do mês (I05x) — coluna existe mas está sempre `NULL` sem histórico de transições |
 | `PUB_C04_INSTRUMENTO` | Perguntas por área e tipo | Distribuição de respostas (I12), respondentes distintos (I13) |
-| `PUB_QUALIDADE_CAMPO` | Completude por campo (I16) | — |
+| `PUB_QUALIDADE_CAMPO` | Completude de preenchimento (todas as linhas por campo) | Completude aplicável (I16) — regras homologadas não publicadas |
 | `PUB_QUALIDADE_RELACAO` | Integridade referencial (I18) | — |
 | `PUB_QUALIDADE_DUPLICIDADE` | Taxa de duplicidade (I17) | — |
 | *(nenhum arquivo)* | — | Parseabilidade (I19), divergência de título (I20) — sem consulta publicada nesta rodada |
