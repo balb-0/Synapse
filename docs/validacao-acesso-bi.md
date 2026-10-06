@@ -82,8 +82,11 @@ comprovam execução no Power BI Desktop.
   não pode substituir a ausência por zero.
 - C04 conta associações pesquisa-pergunta, não respostas ou respondentes.
 - Parseabilidade e divergência de título não têm consulta publicada nesta
-  geração. Indicadores bloqueados mantêm valor numérico em branco e motivo
-  textual, conforme [sinalização](sinalizacao-indicadores-bloqueados.md).
+  geração. `DIM_INDICADORES_BLOQUEADOS` contém 18 entradas: 17 com status
+  "Sem dado" e uma "Parcial". O catálogo registra os motivos; não implementa
+  uma medida numérica vazia para cada entrada. As duas medidas individuais
+  `Taxa de Prorrogacao` e `Representatividade` retornam texto com o motivo,
+  conforme [sinalização](sinalizacao-indicadores-bloqueados.md).
 
 ## Tratamento de erro
 
