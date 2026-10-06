@@ -8,7 +8,6 @@ import unittest
 from datetime import date
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 DEFINITION = ROOT / "powerbi/CentralPesquisasBI.SemanticModel/definition"
 TABLES = DEFINITION / "tables"
@@ -24,9 +23,7 @@ def _relationships() -> list[dict[str, str]]:
     result = []
     for block in re.split(r"(?m)^relationship\s+", source)[1:]:
         name, *lines = block.splitlines()
-        properties = dict(
-            re.findall(r"(?m)^\s*([A-Za-z]+):\s*(.+?)\s*$", "\n".join(lines))
-        )
+        properties = dict(re.findall(r"(?m)^\s*([A-Za-z]+):\s*(.+?)\s*$", "\n".join(lines)))
         properties["name"] = name.strip()
         result.append(properties)
     return result
@@ -53,8 +50,7 @@ class PublishedModelContractTests(unittest.TestCase):
         }
         relationships = _relationships()
         actual = {
-            (relationship["fromColumn"], relationship["toColumn"])
-            for relationship in relationships
+            (relationship["fromColumn"], relationship["toColumn"]) for relationship in relationships
         }
         self.assertEqual(actual, expected)
 
