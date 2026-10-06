@@ -8,8 +8,8 @@ Esta pasta é a camada de banco do G05. O DuckDB é embutido: o processo Python 
 | :--- | :--- | :--- |
 | [`001_ingestao_tratada.sql`](001_ingestao_tratada.sql) | Ingestão tipada, metadados e views de estado atual. | [`etl.load.ddl`](../../src/etl/load/ddl.py), derivada do schema de transformação. |
 | [`002_dimensoes.sql`](002_dimensoes.sql) | Dimensões conformadas, chave determinística e membro desconhecido. | [`etl.analytics.dimensions_ddl`](../../src/etl/analytics/dimensions_ddl.py). |
-| [`003_fatos_ciclo_participacao.sql`](003_fatos_ciclo_participacao.sql) | Fatos de ciclo C01 e participação C02; depende das dimensões. | [`etl.analytics.facts_cycle_participation_ddl`](../../src/etl/analytics/facts_cycle_participation_ddl.py). |
-| [`004_fatos_pipeline_instrumento.sql`](004_fatos_pipeline_instrumento.sql) | Fechamento mensal C03 e instrumento C04; depende das dimensões. | [`etl.analytics.facts_pipeline_instrument_ddl`](../../src/etl/analytics/facts_pipeline_instrument_ddl.py). |
+| [`003_fatos_ciclo_participacao.sql`](003_fatos_ciclo_participacao.sql) | Fatos de ciclo C01 e participação C02; depende das dimensões. | [`etl.analytics.facts_cycle_participation`](../../src/etl/analytics/facts_cycle_participation.py). |
+| [`004_fatos_pipeline_instrumento.sql`](004_fatos_pipeline_instrumento.sql) | Fechamento mensal C03 e instrumento C04; depende das dimensões. | [`etl.analytics.facts_pipeline_instrument`](../../src/etl/analytics/facts_pipeline_instrument.py). |
 
 A ordem numérica descreve as dependências. Aplicar DDL isoladamente não executa ingestão, reconciliação nem publicação. A rotina analítica também administra tabelas técnicas de execução e reconciliação. Para o estado completo, use o código de carga e seus testes; não monte um banco “final” apenas concatenando estes arquivos.
 
@@ -20,8 +20,8 @@ Na raiz do repositório, com as dependências instaladas:
 ```bash
 python scripts/load/render_ddl.py --check
 PYTHONPATH=src python -m etl.analytics.dimensions_ddl --check
-PYTHONPATH=src python -m etl.analytics.facts_cycle_participation_ddl --check
-PYTHONPATH=src python -m etl.analytics.facts_pipeline_instrument_ddl --check
+PYTHONPATH=src python -m etl.analytics.facts_cycle_participation --check
+PYTHONPATH=src python -m etl.analytics.facts_pipeline_instrument --check
 ```
 
 `--check` compara a saída gerada com o SQL versionado e falha se divergir. Para regenerar após uma mudança no contrato, execute o mesmo comando sem `--check`, revise o diff e rode a suíte da camada. Não altere apenas o SQL se a fonte geradora permanecer diferente.
