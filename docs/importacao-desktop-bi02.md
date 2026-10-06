@@ -74,13 +74,13 @@ em BI-05 nem a validação visual das páginas migradas.
 
 O [recibo sanitizado](evidencias/bi02/desktop-fixture.json) registra consultas
 reais no Analysis Services local do Power BI Desktop em
-2026-10-06 às 14:04:07 UTC, depois da sincronização do relógio da VM.
+2026-10-06 às 14:08:45 UTC, depois da sincronização do relógio da VM.
 A execução foi automatizada; não há declaração de operação por uma pessoa.
 A geração `665cb490f85d49529488b4910e094923` usa a referência
 `synthetic-bi02-fixture`, com as sete contagens iguais à tabela acima.
 
 As 13 partições do projeto e duas partições automáticas de data estavam
-processadas sem erro. O pacote PBIP de origem `9726fd6` teve 98 arquivos
+processadas sem erro. O pacote PBIP integrado de origem `f068a01` teve 98 arquivos
 conferidos por hash; a projeção semântica via TOM comparou 128 itens de origem
 e do engine, com zero diferenças. O caminho local do parâmetro foi conferido
 separadamente, pois sua adaptação para Windows não integra o hash do modelo.
@@ -92,3 +92,10 @@ C03, o fechamento de 28/02/2026 e estoque 4 coincidem na soma direta e na
 medida BI-04. Entradas/saídas continuam nulas e o catálogo tem 18 entradas,
 17 sem dado. A fonte CB-16 v3 e o aspecto visual do relatório não são
 aceitos por este ensaio sintético.
+
+O recibo corrente é do pacote integrado `f068a01`, SHA256
+`88a33f4963e9f2912794ad165c003d03822d24986817c2ce5909c8551207f89e`,
+consultado em Power BI Desktop `2.158.1177.0` no Windows `10.0.26200.0`.
+O recibo inicial do pacote `9726fd6` permanece no mesmo diretório de
+evidências com sufixo `-inicial`; ele é histórico e usa o relógio já
+sincronizado. Ambos usam o fixture, não a fonte final CB-16.
