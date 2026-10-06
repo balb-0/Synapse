@@ -8,12 +8,29 @@ relatório e a geração final têm evidências próprias.
 
 ## Preparar a geração
 
-Use o publicador corrigido da camada analítica (`894445d` ou revisão
-integrada equivalente) para gerar o fixture. Um checkout anterior à correção
+Use o publicador corrigido da camada analítica, commit
+`894445ddc92a7fce172b4f90c09b52f5650f354e`, incluído no
+[MR !289](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/289),
+para gerar o fixture. A revisão integrada `be132f1` usada na regeneração
+contém essa correção; o script do fixture não foi alterado para a execução. Um checkout anterior à correção
 da chave composta de respostas/questões reproduz a divergência histórica
 de I18 descrita no fim desta página. Com as dependências de
 `requirements.txt` instaladas, escolha uma
 pasta privada **fora de qualquer repositório Git**:
+
+Antes de executar, use um checkout que contenha o script BI-02 e esse commit
+upstream. Confira a ancestralidade:
+
+```bash
+git merge-base --is-ancestor 894445ddc92a7fce172b4f90c09b52f5650f354e HEAD
+```
+
+Saída diferente de zero não satisfaz o pré-requisito: integre o upstream
+corrigido antes de gerar. Confira ainda que a publicação de relações usa
+`EXISTS` e que respostas/questões compara pesquisa e pergunta juntas. A
+branch isolada de BI-02, sem essa integração, não foi declarada validada com
+o publicador corrigido. O recibo de Desktop sempre identifica a revisão do
+pacote integrado efetivamente executado.
 
 ```bash
 PYTHONPATH=src python scripts/analytics/gerar_fixture_bi.py \
