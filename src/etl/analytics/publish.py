@@ -16,7 +16,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from etl.analytics.reconcile import reconcile_analytics
+from etl.analytics.reconcile import ReconciliationReport, reconcile_analytics
 from etl.load.config import load_duckdb_settings
 from etl.load.connection import connect_with_retry
 
@@ -235,6 +235,52 @@ def _digest(path: Path) -> str:
     return sha.hexdigest()
 
 
+def _monthly_publication(report: ReconciliationReport | None) -> tuple[str, dict]:
+    """Preserve a verified empty closure as a global zero, without inventing a fact group."""
+    query = PUBLICATIONS["PUB_C03_PIPELINE_MENSAL"]
+    if report is None:
+        # A synthetic fixture without the ledger cannot establish observation.
+        return query, {"observation_state": "unverified"}
+    months = [
+        {
+            "month": row["month"],
+            "observed_at": row["observed_at"],
+            "groups": row["groups"],
+            "stock": row["stock"],
+            "state": "observed_zero" if row["groups"] == 0 else "observed_positive",
+        }
+        for row in report.monthly_closures
+    ]
+    query += """
+        UNION ALL
+        SELECT c.data_fim_mes, NULL::VARCHAR, NULL::VARCHAR, NULL::VARCHAR,
+               NULL::VARCHAR, NULL::VARCHAR, 0::BIGINT, NULL::BIGINT, NULL::BIGINT
+          FROM analytics_pipeline_closure c
+         WHERE NOT EXISTS (
+             SELECT 1 FROM FATO_PIPELINE_MENSAL f WHERE f.data_fim_mes = c.data_fim_mes
+         )
+    """
+    return query, {
+        "observation_state": "observed" if months else "not_observed",
+        "fact_rows": sum(row["groups"] for row in months),
+        "empty_closure_rows": sum(row["groups"] == 0 for row in months),
+        "empty_closure_row_rule": "observed_zero month; null cuts and flows; stock=0",
+        "observed_months": months,
+    }
+
+
+def publication_specification(name: str, report: ReconciliationReport | None) -> tuple[str, dict]:
+    """Return the effective query and manifest semantics for the same verified snapshot.
+
+    Publication and orchestrator retry validation must use this contract so
+    neither can omit empty monthly closures or their observation metadata.
+    A missing report is reserved for explicitly synthetic uncontrolled sources.
+    """
+    if name == "PUB_C03_PIPELINE_MENSAL":
+        return _monthly_publication(report)
+    return PUBLICATIONS[name], {}
+
+
 def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
     """Publica uma geração verificada e muda o ponteiro só no fim.
 
@@ -280,6 +326,7 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
                 "WHERE table_schema = current_schema() AND table_name LIKE 'analytics_%'"
             ).fetchall()
         }
+        report = None
         if control_tables:
             report = reconcile_analytics(conn)
             if not report.reconciled or report.load_id != load_reference:
@@ -289,7 +336,8 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
                 "origem sem controle analítico exige referência synthetic-... explícita"
             )
         tables = {}
-        for name, query in PUBLICATIONS.items():
+        for name in PUBLICATIONS:
+            query, metadata = publication_specification(name, report)
             target = staging / f"{name}.parquet"
             conn.execute(
                 f"COPY ({query}) TO {_sql_literal(target)} (FORMAT PARQUET, COMPRESSION ZSTD)"
@@ -300,6 +348,9 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
             source_rows = conn.execute(f"SELECT COUNT(*) FROM ({query})").fetchone()[0]
             if rows != source_rows:
                 raise RuntimeError(f"{name}: contagem Parquet diferente da consulta")
+            if report is not None and name == "PUB_C03_PIPELINE_MENSAL":
+                if rows != metadata["fact_rows"] + metadata["empty_closure_rows"]:
+                    raise RuntimeError(f"{name}: contagem diferente dos grupos e fechamentos")
             source_columns = [column[0] for column in conn.execute(query + " LIMIT 0").description]
             file_columns = [
                 column[0]
@@ -314,6 +365,7 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
                 "rows": rows,
                 "columns": file_columns,
                 "sha256": _digest(target),
+                **metadata,
             }
         conn.execute("COMMIT")
         in_transaction = False

@@ -23,6 +23,12 @@ O estado atual de C01 não é prova do que existia no fim de um mês anterior. `
 
 Entradas e saídas mensais seguem indisponíveis, pois os snapshots não registram transições. Nunca some estoques de meses diferentes. `reconciled=true` indica que a identidade dos cubos correntes, a contagem histórica de C03 e o log dos vínculos órfãos passaram. O ledger conserva as identidades de fechamento, mas o relatório não prova que a captura ocorreu no dia real de negócio declarado por uma fonte externa.
 
+Na [publicação de C03](publicacao-c03-fechamentos.md), um mês conciliado sem
+grupos gera um marcador global de estoque zero no Parquet. A quantidade de
+linhas publicada é `fact_rows + empty_closure_rows`; não é `loaded`, que conta
+as pesquisas dos grupos. O fato e a equação da reconciliação permanecem no seu
+grão original. Mês sem fechamento continua sem linha publicada.
+
 ## Interpretação de estados
 
 - `ok`: contagem e identidades do cubo corrente, ou membros e grupos do fechamento mensal, conferem.
