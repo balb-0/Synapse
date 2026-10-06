@@ -114,7 +114,7 @@ publicado antes da validação no Desktop. Evidências BI posteriores registram 
 [refresh e as consultas DAX da v3](refresh-final-bi05.md) e a
 [troca da origem no Desktop](validacao-acesso-bi.md). Esses registros não mudam
 o escopo nem o conteúdo deste recibo. A conferência técnica do pacote final
-no Desktop consta no [registro RP-17](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/blob/0440ec7a710ebd3a1bbfba7f507ebbcbd485f107/docs/solucao-dashboards/validacao-paginas-finais.md),
+no Desktop consta no [registro RP-17](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/blob/f26657d5c8c9b940d704b02e751be7367d2ff27a/docs/solucao-dashboards/validacao-paginas-finais.md),
 com capturas da fixture sintética e consultas da v3. As sessões humanas S1–S4
 continuam pendentes. O recibo CB-16 não afirma a implementação de CB-15 nem a
 observação dos quatro cubos.
