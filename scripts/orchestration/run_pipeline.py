@@ -15,10 +15,12 @@ quando a reconciliação retorna `reconciled=true`. A saída resume o status por
 fonte do backfill, o `load_id` da geração analítica e a geração publicada.
 
 Códigos de saída: 0 sucesso; 1 falha com a etapa identificada no stderr
-(`PIPELINE FALHOU na etapa <stage>`); 2 parâmetro inválido (argparse).
+(JSON com ``status=failed``, ``failed_stage`` e ``error_type``); 2 parâmetro
+inválido (argparse). Em sucesso, a última linha do stdout é um objeto JSON.
 """
 
 import argparse
+import json
 import os
 import sys
 from datetime import datetime
@@ -56,12 +58,19 @@ def main() -> None:
     except ValueError as error:
         ap.error(str(error))
     except PipelineStageError as error:
-        # Etapa identificada na saída; reexecutar o comando após corrigir a
-        # causa é seguro (ingestão idempotente, fatos substituídos, publicação
-        # atômica preserva o current.json anterior).
-        print(f"PIPELINE FALHOU na etapa {error.stage}: {error}", file=sys.stderr)
+        print(
+            json.dumps(
+                {
+                    "status": "failed",
+                    "failed_stage": error.stage,
+                    "error_type": type(error.__cause__ or error).__name__,
+                },
+                ensure_ascii=False,
+            ),
+            file=sys.stderr,
+        )
         raise SystemExit(1) from error
-    print("PIPELINE:", result)
+    print(json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == "__main__":

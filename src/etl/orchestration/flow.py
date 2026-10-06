@@ -188,7 +188,11 @@ def _is_transient_unexpected(error: Exception) -> bool:
 
     import duckdb
 
-    if isinstance(error, (PermissionError, FileNotFoundError)):
+    if isinstance(error, (TypeError, AttributeError, AssertionError)):
+        return False
+    if isinstance(error, OSError) and not isinstance(
+        error, (TimeoutError, BlockingIOError, ConnectionError)
+    ):
         return False
     if isinstance(error, duckdb.Error) and not isinstance(error, duckdb.TransactionException):
         return False
