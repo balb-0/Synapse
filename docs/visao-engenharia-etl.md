@@ -7,6 +7,10 @@ recupera de uma falha. A visão descreve o ambiente **declarado no repositório*
 existe apenas como decisão está marcada
 como planejada.
 
+Os contratos atualizados descrevem a integração PL (MR !289), OBS (MR !295)
+e reports (MR !294). DW e monitor periódico são entregues pelos suplementos
+PL e OBS; a configuração completa depende da integração dessas branches.
+
 O ambiente e o pipeline de verificação estão registrados no
 [ADR 0004](adrs/0004-execucao-local-e-integracao-continua.md).
 
