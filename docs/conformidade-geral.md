@@ -1,6 +1,6 @@
 # Resposta ao feedback de conformidade geral
 
-Esta matriz relaciona os 37 critérios recebidos em 06/10/2026 às fontes do G05. Ela registra evidências e limites de verificação, sem recalcular a nota ou substituir a avaliação institucional. Base da conferência: `develop` em `c2ebb02`, acrescida das correções CF-01 a CF-03. Arquivos das entregas posteriores devem ser conferidos na respectiva MR antes do merge.
+Esta matriz relaciona os 37 critérios recebidos em 06/10/2026 às fontes do G05. Ela registra evidências e limites de verificação, sem recalcular a nota ou substituir a avaliação institucional. Base da conferência: `develop` em `c2ebb02`, acrescida de CF-01. CF-02 e CF-03 são entregas separadas, pendentes de integração nesta branch; as linhas abaixo identificam explicitamente o trabalho previsto para elas. Confira a respectiva MR para a implementação e o aceite técnico.
 
 ## Como reproduzir a conferência
 
@@ -30,21 +30,21 @@ Leia o [portal](index.md), execute os comandos do [README](../README.md) e confi
 | 20 | Ausência de dados sensíveis nos artefatos | README exige revisão de capturas, PDF, caches e gerações; [decisão de consumo](decisao-consumo-cubos.md) restringe publicação. | Agregado não significa anonimizado; ausência de CSV real não certifica todos os binários ou commits históricos. |
 | 21 | Código-fonte | [`src/`](../src/) contém ETL e relatório legado. | Dados reais ficam fora do Git. |
 | 22 | Organização mínima | [`src/etl/`](../src/etl/) separa extração, transformação, carga, análise e orquestração. | Organização por pacote não prova ausência de acoplamento interno. |
-| 23 | Frontend quando aplicável | [`powerbi/`](../powerbi/) e [`src/pbir dash/`](../src/pbir%20dash/) são a apresentação PBIP/PBIR/TMDL. CF-02 documenta esse papel. | Não há requisito demonstrado de frontend web separado. |
+| 23 | Frontend quando aplicável | [`powerbi/`](../powerbi/) e [`src/pbir dash/`](../src/pbir%20dash/) são a apresentação PBIP/PBIR/TMDL. A documentação específica desse papel está prevista em CF-02, ainda fora desta branch. | Não há requisito demonstrado de frontend web separado. |
 | 24 | Lógica da aplicação | [`src/etl/`](../src/etl/) e entrypoints em [`scripts/`](../scripts/). | Scripts exploratórios têm instruções próprias. |
-| 25 | Banco com README | CF-02 acrescenta README específico em `sql/duckdb/` com as quatro DDLs e procedimento. | DuckDB é arquivo embutido; não há servidor de banco a provisionar. |
+| 25 | Banco com README | CF-02 prevê README em `sql/duckdb/` com as quatro DDLs e procedimento; ausente nesta branch. | DuckDB é arquivo embutido; não há servidor de banco a provisionar. |
 | 26 | Configuração produtiva | [`.env.example`](../.env.example), Compose e runbook explicam configuração local. | O exemplo não comprova ambiente produtivo; credenciais locais, TLS, distribuição e provisionamento exigem decisão própria. |
 | 27 | Docs na raiz | [`docs/`](./) contém documento principal, contratos, governança, ADRs e evidências. | Insumos restritos permanecem externos. |
 | 28 | Documentação acessível | README usa links relativos para o [portal](index.md); entrada por atividade, ADRs e comandos. | GitLab pode exigir autenticação institucional. |
 | 29 | Markdown existente | Documento principal, portal, contratos e ADRs são `.md`. | PDF é uma exportação, Markdown continua a fonte. |
 | 30 | Links funcionais e sem restrição | Validação dos destinos locais e referências externas listadas em CF-01. | Não prometer disponibilidade pública dos perfis, do GitLab ou de fontes privadas. |
-| 31 | Formatação mínima | Títulos, tabelas, blocos de código e links nos documentos; renderização do PDF conferida em CF-03. | Texto extraído do PDF sozinho não prova layout correto. |
+| 31 | Formatação mínima | Títulos, tabelas, blocos de código e links nos documentos; a conferência da renderização do PDF está prevista em CF-03, ainda fora desta branch. | Texto extraído do PDF sozinho não prova layout correto. |
 | 32 | Seções principais preenchidas | [Projeto](projeto.md), seções 1 a 8: contexto, objetivos, arquitetura, modelagem, requisitos/governança, referências e resultados. | Metas futuras e tarefas humanas pendentes não podem ser convertidas em evidência executada. |
 | 33 | Arquivos temporários removidos | `.gitignore` separa bancos, bases reais, caches e ambientes locais. | Não remover artefato histórico útil apenas por não ser código executável; não certificar todo histórico com essa regra. |
-| 34 | PDF da documentação principal | CF-03 exporta `docs/projeto.md` integralmente, com gerador e proveniência; portal recebe o link após a entrega. | PDFs de fluxogramas já existentes não atendiam esse critério. Exportação precisa ser regenerada quando a fonte mudar. |
+| 34 | PDF da documentação principal | CF-03 prevê exportar `docs/projeto.md` integralmente, com gerador e proveniência; PDF principal ainda ausente nesta branch. | PDFs de fluxogramas já existentes não atendiam esse critério. Exportação precisa ser regenerada quando a fonte mudar. |
 | 35 | Repositórios auxiliares | README e [referências](referencias.md) declaram não haver auxiliar obrigatório na configuração entregue. | Não inventar repositório para preencher critério; ferramentas externas não são projetos complementares do grupo. |
 | 36 | Arquitetura detalhada | [ADRs](adrs/index.md), cinco visões ISO/IEC 10746 e [UML](assets/uml/) no portal. | Estado “proposto” de uma ADR é preservado; diagramas devem acompanhar o fluxo da versão avaliada. |
-| 37 | Testes e massas formais | [`tests/`](../tests/) por domínio, fixtures sintéticas e testes de integração/e2e; CF-02 acrescenta guia. | Teste com fixture não substitui conferência Desktop ou sessão humana; `skip` não é aprovação. |
+| 37 | Testes e massas formais | [`tests/`](../tests/) por domínio, fixtures sintéticas e testes de integração/e2e; CF-02 prevê guia específico, ainda ausente nesta branch. | Teste com fixture não substitui conferência Desktop ou sessão humana; `skip` não é aprovação. |
 
 ## Entregas e rastreabilidade
 
