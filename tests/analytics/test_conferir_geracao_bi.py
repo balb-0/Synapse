@@ -74,6 +74,14 @@ class ConferirGeracaoBITest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "contagem Parquet/manifesto"):
             conferir(self.generation, self.database, sintetico=True)
 
+    def test_manifest_version_cannot_be_boolean_or_float(self) -> None:
+        for version in (True, 1.0, "1"):
+            with self.subTest(version=version):
+                self.manifest["version"] = version
+                self._write_manifest()
+                with self.assertRaisesRegex(ValueError, "versão do manifesto inválida"):
+                    conferir(self.generation, self.database, sintetico=True)
+
     def test_desktop_reference_binds_receipt_to_load(self) -> None:
         receipt = self._receipt()
         data = json.loads(receipt.read_text())
@@ -192,6 +200,18 @@ class ConferirGeracaoBITest(unittest.TestCase):
                         package_receipt=package_path,
                         **args,
                     )
+        receipt.write_text(json.dumps(data))
+        for version in (True, 1.0, "1"):
+            with self.subTest(package_version=version):
+                package_path.write_text(json.dumps(dict(package, version=version)))
+                with self.assertRaisesRegex(ValueError, "revisão do pacote divergente"):
+                    conferir(
+                        self.generation,
+                        self.database,
+                        receipt,
+                        package_receipt=package_path,
+                        **args,
+                    )
 
     def test_cube_aggregate_detects_rehashed_bad_values(self) -> None:
         path = self.generation / "PUB_C01_CICLO.parquet"
@@ -207,7 +227,7 @@ class ConferirGeracaoBITest(unittest.TestCase):
         path.write_bytes(changed.read_bytes())
         self.manifest["tables"]["PUB_C01_CICLO"]["sha256"] = self._original_hash()
         self._write_manifest()
-        with self.assertRaisesRegex(ValueError, "agregado diverge"):
+        with self.assertRaisesRegex(ValueError, "conteúdo Parquet/DuckDB divergente"):
             conferir(self.generation, self.database, sintetico=True)
 
     def test_different_generation_and_bad_desktop_aggregate(self) -> None:

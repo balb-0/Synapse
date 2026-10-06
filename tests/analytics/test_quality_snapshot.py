@@ -12,7 +12,7 @@ from unittest import mock
 import duckdb
 
 from etl.analytics.load import load_analytics, selected_respondentes
-from etl.analytics.publish import publish_cubes
+from etl.analytics.publish import publication_specification, publish_cubes
 from etl.analytics.reconcile import reconcile_analytics
 from etl.load.ddl import table_statements, view_statements
 from etl.orchestration import analytics as analytics_module
@@ -269,6 +269,81 @@ class QualitySnapshotTests(unittest.TestCase):
         ).hexdigest()
         (generation / "manifest.json").write_text(json.dumps(manifest))
         with self.assertRaisesRegex(ValueError, "conteúdo Parquet/DuckDB"):
+            conferir(generation, self.database)
+
+    def test_coercible_rehashed_physical_types_block_checker_and_retry_reuse(self):
+        load_id = self.current_snapshot()
+        for changed_type in ("VARCHAR", "DOUBLE", "DECIMAL(20,0)"):
+            with self.subTest(changed_type=changed_type):
+                manifest, generation, _ = self.publish(load_id)
+                target = generation / "PUB_QUALIDADE_CAMPO.parquet"
+                changed = Path(self.temp.name) / "changed-type.parquet"
+                source_literal = "'" + str(target).replace("'", "''") + "'"
+                target_literal = "'" + str(changed).replace("'", "''") + "'"
+                with duckdb.connect(str(self.database)) as con:
+                    query, _ = publication_specification(
+                        "PUB_QUALIDADE_CAMPO", reconcile_analytics(con)
+                    )
+                    con.execute(
+                        f"COPY (SELECT * REPLACE(CAST(qtd_linhas AS {changed_type}) AS qtd_linhas) "
+                        f"FROM read_parquet({source_literal})) TO {target_literal} (FORMAT PARQUET)"
+                    )
+                    # EXCEPT alone cannot enforce schema: both directions are equal
+                    # after DuckDB coerces the differently typed numeric values.
+                    file_query = f"SELECT * FROM read_parquet({target_literal})"
+                    for left, right in ((query, file_query), (file_query, query)):
+                        self.assertEqual(
+                            con.execute(
+                                f"SELECT COUNT(*) FROM (({left}) EXCEPT ALL ({right}))"
+                            ).fetchone()[0],
+                            0,
+                        )
+                target.write_bytes(changed.read_bytes())
+                manifest["tables"]["PUB_QUALIDADE_CAMPO"]["sha256"] = hashlib.sha256(
+                    target.read_bytes()
+                ).hexdigest()
+                (generation / "manifest.json").write_text(json.dumps(manifest))
+                with self.assertRaisesRegex(ValueError, "tipos físicos divergentes"):
+                    conferir(generation, self.database)
+                with mock.patch.object(analytics_module, "_event"):
+                    repaired = analytics_module.publish_warehouse.fn(
+                        str(self.database), str(self.output), load_id
+                    )
+                self.assertNotEqual(manifest["generation"], repaired["generation"])
+                repaired_file = self.output / repaired["generation"] / "PUB_QUALIDADE_CAMPO.parquet"
+                with duckdb.connect() as con:
+                    schema = con.execute(
+                        "SELECT * FROM read_parquet(?) LIMIT 0", [str(repaired_file)]
+                    ).description
+                self.assertEqual(str(schema[2][1]), "BIGINT")
+
+    def test_c03_rehashed_cut_tampering_cannot_hide_behind_equal_monthly_stock(self):
+        self.current_snapshot()
+        manifest, generation, _ = self.publish(self.load(datetime(2026, 9, 30, 23)))
+        target = generation / "PUB_C03_PIPELINE_MENSAL.parquet"
+        changed = Path(self.temp.name) / "changed-c03-cut.parquet"
+        source_literal = "'" + str(target).replace("'", "''") + "'"
+        target_literal = "'" + str(changed).replace("'", "''") + "'"
+        with duckdb.connect() as con:
+            before = con.execute(
+                "SELECT data_fim_mes, sum(qtd_pesquisas_no_status), count(*) "
+                f"FROM read_parquet({source_literal}) GROUP BY 1"
+            ).fetchall()
+            con.execute(
+                "COPY (SELECT * REPLACE('tampered'::VARCHAR AS area) "
+                f"FROM read_parquet({source_literal})) TO {target_literal} (FORMAT PARQUET)"
+            )
+            after = con.execute(
+                "SELECT data_fim_mes, sum(qtd_pesquisas_no_status), count(*) "
+                f"FROM read_parquet({target_literal}) GROUP BY 1"
+            ).fetchall()
+        self.assertEqual(before, after)
+        target.write_bytes(changed.read_bytes())
+        manifest["tables"]["PUB_C03_PIPELINE_MENSAL"]["sha256"] = hashlib.sha256(
+            target.read_bytes()
+        ).hexdigest()
+        (generation / "manifest.json").write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, "PUB_C03_PIPELINE_MENSAL: conteúdo"):
             conferir(generation, self.database)
 
 

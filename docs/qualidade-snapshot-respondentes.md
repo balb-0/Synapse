@@ -58,9 +58,17 @@ fallback.
 conferidor usam a consulta efetiva de `publication_specification`, incluindo os
 [marcadores de fechamento vazio de C03](publicacao-c03-fechamentos.md). Conferem
 os metadados de escopo com tipos e valores exatos. O conferidor também compara
-o conteúdo das três tabelas de qualidade nos dois sentidos com `EXCEPT ALL`,
-além de colunas, hashes e contagens. Um hash recalculado sobre valores
-adulterados não basta para aprovar a geração.
+o conteúdo dos sete Parquet nos dois sentidos com `EXCEPT ALL`, além de
+colunas, tipos físicos, hashes e contagens. Isso inclui os recortes de C03,
+pois mês e estoque iguais não comprovam que área e perfil são os corretos.
+Um hash recalculado sobre valores adulterados não basta para aprovar a geração.
+
+Publicador, conferidor e reuso verificam os tipos físicos contra a consulta
+efetiva antes de comparar valores. A coerção do DuckDB pode tornar números
+em `VARCHAR`, `DOUBLE` ou `DECIMAL` iguais a inteiros em `EXCEPT ALL`; essa
+igualdade não autoriza mudar o schema esperado pelo modelo. O manifesto
+conserva seu formato e a lista de nomes de colunas. A versão do manifesto e
+do recibo de pacote exige inteiro `1`, rejeitando `true`, `1.0` e `"1"`.
 
 ## Verificação reproduzível
 
@@ -71,6 +79,7 @@ PYTHONPATH=src python -m unittest tests.analytics.test_quality_snapshot tests.an
 Os testes usam DuckDB e publicações isoladas fora do Git. Cobrem duas cargas,
 órfãos e nulos somente no arquivo antigo, arquivo mais novo incompleto,
 snapshot vazio, fonte ausente, referência sintética, controle analítico
-parcial, reuso da geração, escopo adulterado e valores regravados com hash
-novo. O conferidor distingue fechamento C03 vazio de ausência de observação.
+parcial, reuso da geração, escopo adulterado, valores e tipos regravados com
+hash novo, recortes C03 alterados sem mudar estoque e versões com tipo incorreto.
+O conferidor distingue fechamento C03 vazio de ausência de observação.
 Essas verificações não afirmam uma nova execução no Power BI Desktop.

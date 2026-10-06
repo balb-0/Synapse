@@ -376,15 +376,16 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
             if report is not None and name == "PUB_C03_PIPELINE_MENSAL":
                 if rows != metadata["fact_rows"] + metadata["empty_closure_rows"]:
                     raise RuntimeError(f"{name}: contagem diferente dos grupos e fechamentos")
-            source_columns = [column[0] for column in conn.execute(query + " LIMIT 0").description]
-            file_columns = [
-                column[0]
-                for column in conn.execute(
-                    f"SELECT * FROM read_parquet({parquet}) LIMIT 0"
-                ).description
-            ]
+            source_schema = conn.execute(query + " LIMIT 0").description
+            file_schema = conn.execute(f"SELECT * FROM read_parquet({parquet}) LIMIT 0").description
+            source_columns = [column[0] for column in source_schema]
+            file_columns = [column[0] for column in file_schema]
             if source_columns != file_columns:
                 raise RuntimeError(f"{name}: colunas Parquet diferentes da consulta")
+            if [str(column[1]) for column in source_schema] != [
+                str(column[1]) for column in file_schema
+            ]:
+                raise RuntimeError(f"{name}: tipos Parquet diferentes da consulta")
             tables[name] = {
                 "file": f"{name}.parquet",
                 "rows": rows,

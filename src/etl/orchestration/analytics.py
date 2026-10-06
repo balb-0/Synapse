@@ -151,11 +151,13 @@ def _published_for_load(
                 return None
             parquet = str(path).replace("'", "''")
             file_query = f"SELECT * FROM read_parquet('{parquet}')"
-            columns = [item[0] for item in connection.execute(file_query + " LIMIT 0").description]
-            expected_columns = [
-                item[0] for item in connection.execute(query + " LIMIT 0").description
-            ]
+            file_schema = connection.execute(file_query + " LIMIT 0").description
+            expected_schema = connection.execute(query + " LIMIT 0").description
+            columns = [item[0] for item in file_schema]
+            expected_columns = [item[0] for item in expected_schema]
             if columns != metadata["columns"] or columns != expected_columns:
+                return None
+            if [str(item[1]) for item in file_schema] != [str(item[1]) for item in expected_schema]:
                 return None
             count = connection.execute(f"SELECT count(*) FROM ({file_query})").fetchone()[0]
             if count != metadata["rows"]:

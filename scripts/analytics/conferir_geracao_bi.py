@@ -128,7 +128,10 @@ def conferir(
     _require(geracao.is_dir(), "geração deve ser um diretório")
     _require(database.is_file(), "database deve ser um arquivo DuckDB")
     manifest = json.loads((geracao / "manifest.json").read_text())
-    _require(manifest.get("version") == 1, "versão do manifesto inválida")
+    _require(
+        type(manifest.get("version")) is int and manifest["version"] == 1,
+        "versão do manifesto inválida",
+    )
     _require(manifest.get("generation") == geracao.name, "ID da geração diverge do diretório")
     reference = manifest.get("load_reference")
     _require(isinstance(reference, str) and bool(reference), "load_reference ausente")
@@ -185,26 +188,29 @@ def conferir(
             path = geracao / entry["file"]
             _require(path.is_file() and not path.is_symlink(), f"{name}: Parquet ausente ou link")
             _require(_sha256(path) == entry["sha256"], f"{name}: SHA256 divergente")
-            observed_columns = [
-                column[0]
-                for column in con.execute(
-                    "SELECT * FROM read_parquet(?) LIMIT 0", [str(path)]
-                ).description
-            ]
+            observed_schema = con.execute(
+                "SELECT * FROM read_parquet(?) LIMIT 0", [str(path)]
+            ).description
+            observed_columns = [column[0] for column in observed_schema]
             _require(observed_columns == columns, f"{name}: colunas físicas divergentes")
+            expected_schema = con.execute(query + " LIMIT 0").description
+            _require(
+                [str(column[1]) for column in observed_schema]
+                == [str(column[1]) for column in expected_schema],
+                f"{name}: tipos físicos divergentes",
+            )
             rows = _parquet(con, path, "SELECT COUNT(*) FROM read_parquet(?)")[0][0]
             _require(rows == entry["rows"], f"{name}: contagem Parquet/manifesto divergente")
             source_rows = con.execute(f"SELECT COUNT(*) FROM ({query})").fetchone()[0]
             _require(rows == source_rows, f"{name}: contagem Parquet/DuckDB divergente")
-            if name.startswith("PUB_QUALIDADE_"):
-                file_query = "SELECT * FROM read_parquet(?)"
-                difference = con.execute(
-                    f"SELECT COUNT(*) FROM (({query}) EXCEPT ALL ({file_query}))", [str(path)]
-                ).fetchone()[0]
-                reverse = con.execute(
-                    f"SELECT COUNT(*) FROM (({file_query}) EXCEPT ALL ({query}))", [str(path)]
-                ).fetchone()[0]
-                _require(difference == reverse == 0, f"{name}: conteúdo Parquet/DuckDB divergente")
+            file_query = "SELECT * FROM read_parquet(?)"
+            difference = con.execute(
+                f"SELECT COUNT(*) FROM (({query}) EXCEPT ALL ({file_query}))", [str(path)]
+            ).fetchone()[0]
+            reverse = con.execute(
+                f"SELECT COUNT(*) FROM (({file_query}) EXCEPT ALL ({query}))", [str(path)]
+            ).fetchone()[0]
+            _require(difference == reverse == 0, f"{name}: conteúdo Parquet/DuckDB divergente")
             report["preparation"]["tables"][name] = rows
 
         report["preparation"]["aggregates"] = {}
@@ -269,7 +275,8 @@ def conferir(
                     package = json.loads(package_receipt.read_text())
                     _require(isinstance(package, dict), "Desktop: recibo do pacote inválido")
                     _require(
-                        package.get("version") == 1
+                        type(package.get("version")) is int
+                        and package["version"] == 1
                         and package.get("source_commit") == model_source_commit,
                         "Desktop: revisão do pacote divergente",
                     )
