@@ -126,6 +126,41 @@ class PeriodicHealthMonitorTests(unittest.TestCase):
         self.assertFalse(report["prefect_available"])
         self.assertTrue(report["database_available"])
 
+    def test_manual_invalid_configuration_emits_one_sanitized_degraded_event(self) -> None:
+        for override in (
+            {"ETL_DUCKDB_PATH": ":memory:"},
+            {"ETL_DUCKDB_THREADS": "secret-user-token@private.example/private/path"},
+        ):
+            with self.subTest(override=override), tempfile.TemporaryDirectory() as directory:
+                environment = dict(os.environ)
+                environment["PYTHONPATH"] = str(ROOT / "src")
+                environment["ETL_DUCKDB_PATH"] = str(Path(directory) / "private-warehouse.duckdb")
+                environment["PREFECT_API_URL"] = "http://user:password-token@private.example/api"
+                environment.update(override)
+                completed = subprocess.run(
+                    [sys.executable, str(health_monitor.HEALTH_CHECK_SCRIPT), "--json-only"],
+                    capture_output=True,
+                    text=True,
+                    timeout=20,
+                    check=False,
+                    env=environment,
+                )
+                self.assertFalse((Path(directory) / "private-warehouse.duckdb").exists())
+            self.assertEqual(completed.returncode, 1, completed.stderr)
+            self.assertEqual(completed.stderr, "")
+            lines = completed.stdout.splitlines()
+            self.assertEqual(len(lines), 1)
+            report = json.loads(lines[0])
+            self.assertEqual(report["event"], health_monitor.HEALTH_CHECK_EVENT)
+            self.assertEqual(report["stage"], "orchestration")
+            self.assertEqual(report["status"], "degraded")
+            self.assertEqual(report["error_type"], "ConfigurationError")
+            self.assertFalse(report["database_available"])
+            self.assertIsNone(report["prefect_available"])
+            for sensitive in (directory, "private.example", "password-token", "secret-user-token"):
+                self.assertNotIn(sensitive, completed.stdout)
+            self.assertNotIn("Traceback", completed.stdout)
+
     def test_intervals_must_be_positive_and_finite(self) -> None:
         for value in ("0", "-1", "nan", "inf"):
             with self.subTest(value=value), self.assertRaises(argparse.ArgumentTypeError):

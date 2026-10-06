@@ -197,6 +197,10 @@ banco está indisponível. Com a API saudável, o status geral fica `busy` e nã
 aciona o alerta de falha. Se a API também falhar, o status fica `degraded`.
 Após o escritor liberar o arquivo, o próximo ciclo volta a verificar o banco.
 Erros de permissão, corrupção e demais falhas continuam `degraded`.
+Configuração inválida antes da conexão também publica um único evento
+`degraded`, com `error_type: ConfigurationError` e código de saída 1.
+O evento omite valores de variáveis, caminhos e URLs; a API não consultada
+fica com `prefect_available: null`.
 
 No Compose, o `runner` usa por padrão
 `PREFECT_API_URL=http://prefect-server:4200/api`, o serviço `prefect-server`
