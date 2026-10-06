@@ -41,3 +41,15 @@ Também faltam preço de suporte com SLA, requisitos de disponibilidade, redes, 
 As identidades foram refeitas com valores internos de FN-02 a FN-04, antes do arredondamento de centavos. A produção tem diferença de R$ 0,01 entre soma das linhas exibidas do investimento e total calculado, explicada pelo arredondamento de cada linha. Não há erro de unidade: infraestrutura começa em USD/mês e é convertida uma vez para BRL/mês; horas de trabalho são por mês ou únicas conforme a tabela. Não se multiplica o investimento por 12 nem se soma piloto e produção.
 
 **Dupla contagem evitada:** o fator-k já compõe o custo de pessoal; o custo de VM já contempla CPU e RAM; suporte funcional de BI e atualização estão nas mesmas horas; preparação normal, retrabalho e erro são eventos distintos; a licença Pro aparece apenas na operação. Uma hora liberada só pode ser monetizada como capacidade **ou** caixa evitado com evidência correspondente.
+
+## Rastreabilidade e decisão
+
+| Card | Artefato de revisão | O que foi verificado |
+| :--- | :--- | :--- |
+| [FN-01 #335](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/335) | [MR !275](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/275), `docs/analise_financeira.md` | Escopo técnico, natureza hipotética e fontes. |
+| [FN-02 #336](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/336) | [MR !277](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/277), `docs/analise-financeira/investimento-inicial.md` | Investimento único, horas, tarifa e exclusões. |
+| [FN-03 #337](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/337) | [MR !279](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/279), `docs/analise-financeira/operacao-mensal.md` | Infraestrutura, pessoal, licença e conversão. |
+| [FN-04 #338](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/338) | [MR !280](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/280), `docs/analise-financeira/beneficios.md` | Horas, eventos distintos e valor econômico condicionado. |
+| [FN-05 #339](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/issues/339) | [MR !281](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/merge_requests/281), `docs/analise-financeira/retorno.md` | TCO, ROI, payback e casos sem retorno. |
+
+**Decisão recomendada:** usar o piloto como instrumento de medição. Não autorizar produção de referência com base no ROI hipotético: mesmo o benefício alto modelado não cobre seu TCO em 12 meses. Antes de contratar, validar os dados de risco, escolher a arquitetura e obter cotação. Se o parceiro pedir VPL, aprovar horizonte, fluxo de caixa e taxa de desconto antes do cálculo. O custo de oportunidade não equivale automaticamente a economia orçamentária.
