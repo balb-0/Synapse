@@ -57,6 +57,10 @@ INGEST_OBJECT_EVENT = "orchestration.ingest_object.emitted"
 BACKFILL_EVENT = "orchestration.backfill.emitted"
 
 
+class SourceChangedError(ValueError):
+    """O objeto mudou entre a verificação de identidade e a extração."""
+
+
 def _current_task_id() -> str | None:
     """Identificador de correlação do Prefect para o marco atual (ADR 0008).
 
@@ -413,6 +417,21 @@ def _ingest_object(
     batches = extract(
         reader, reference, source, run_id=run_id, checkpoint=checkpoint, settings=settings
     )
+    if any(
+        batch.metadata.source_checksum != checksum
+        or batch.checkpoint.source_version != f"sha256:{checksum}"
+        for batch in batches
+    ):
+        _log_event(
+            logger,
+            INGEST_OBJECT_EVENT,
+            status="failed",
+            source=source,
+            run_id=run_id,
+            error_type="SourceChangedError",
+            duration_ms=round((time.monotonic() - started) * 1000, 3),
+        )
+        raise SourceChangedError("o objeto mudou antes da carga; nenhum lote foi confirmado")
     results = transform(batches, source, references, previous, run_id)
     reconciliations = load(db_path, results, tuning, source=source, run_id=run_id)
 
