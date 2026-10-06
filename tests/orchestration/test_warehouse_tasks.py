@@ -258,6 +258,18 @@ class WarehouseTasksTests(unittest.TestCase):
             self.assertIs(task.retry_condition_fn, flow_module._should_retry)
             self.assertEqual(task.timeout_seconds, 3600)
 
+    def test_missing_analytical_schema_is_permanent_and_keeps_runtime_error_contract(self) -> None:
+        from etl.analytics.reconcile import AnalyticsSchemaError
+
+        with duckdb.connect(str(self.database)):
+            pass
+        with self.assertRaises(AnalyticsSchemaError) as context:
+            analytics_module.reconcile_warehouse.fn(str(self.database), "missing-load")
+        self.assertIsInstance(context.exception, RuntimeError)
+        state = mock.Mock()
+        state.result.side_effect = context.exception
+        self.assertFalse(flow_module._should_retry(None, None, state))
+
     def test_invalid_report_gate_logs_failure_without_overwriting_stage(self) -> None:
         from etl.orchestration import pipeline as pipeline_module
 
