@@ -36,8 +36,10 @@ de pesquisa. Use `DIM_TIPO_PERGUNTA` para segmentar questões e não ligue esse
 cubo a `DIM_TIPO_PESQUISA` por um campo que não existe no contrato.
 
 Os campos de relacionamento são os valores categóricos publicados. Em C02,
-`mes_resposta` pode ser `NULL`: a participação permanece no fato agregado,
-mas não recebe um período da `DIM_TEMPO`. Em C03,
+`mes_resposta` pode ser `NULL`: a participação permanece no fato agregado e a
+data em branco é filtrada de `DIM_TEMPO`; a relação deixa essa chave para o
+membro em branco virtual do Power BI, sem materializar uma linha física na
+dimensão. Relatórios devem reconciliar essa parcela em separado. Em C03,
 `data_fim_mes` é sempre o último dia do mês. A dimensão mantém essas datas
 como chaves de relacionamento distintas e deriva a mesma hierarquia de ano,
 trimestre e mês; `ano_mes` deve ser ordenado por `YYYYMM`, não pela data

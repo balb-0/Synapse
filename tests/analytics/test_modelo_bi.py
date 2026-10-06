@@ -172,6 +172,15 @@ class PublishedModelContractTests(unittest.TestCase):
             sort_values_by_label.setdefault(label, set()).add(value.year * 100 + value.month)
         self.assertEqual(sort_values_by_label, {"2026-09": {202609}})
 
+    def test_calendar_filters_blank_fact_dates_out_of_dimension(self):
+        source = (TABLES / "DIM_TEMPO.tmdl").read_text(encoding="utf-8")
+        calendar_expression = source.split("partition DIM_TEMPO = calculated", 1)[1]
+        self.assertRegex(
+            calendar_expression,
+            r"FILTER\(\s*DISTINCT\(UNION\(_DatasParticipacao, _DatasPipeline\)\),"
+            r"\s*NOT ISBLANK\(\[data\]\)\s*\)",
+        )
+
     def test_unknown_and_partial_profile_values_are_explicit(self):
         source = (TABLES / "PUB_C03_PIPELINE_MENSAL.tmdl").read_text(encoding="utf-8")
         profile = source.split("\tcolumn perfil =", 1)[1].split("\n\thierarchy", 1)[0]
