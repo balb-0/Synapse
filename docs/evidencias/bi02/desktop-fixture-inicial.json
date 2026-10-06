@@ -112,6 +112,16 @@
   "limits": [
     "Synthetic fixture, not the final CB16 source generation",
     "TOM equality verifies the declared semantic projection, not an exact source commit marker inside the engine",
-    "This receipt does not establish human operation or report visual acceptance"
-  ]
+    "This receipt does not establish human operation or report visual acceptance",
+    "The old fixture publication predates the composite response/question foreign-key correction; row counts and recorded runtime execution remain factual, but I18/quality acceptance is obsolete"
+  ],
+  "publication_quality_state": "historical_stale_publication",
+  "known_quality_divergence": {
+    "relation": "respostas.pergunta_id",
+    "published_total_matched": 11,
+    "independent_source_total_matched": 10,
+    "total_informed": 13,
+    "required_identity": "pesquisa_id + pergunta_id",
+    "scope": "aggregate across the fixture quality relationship publication"
+  }
 }
