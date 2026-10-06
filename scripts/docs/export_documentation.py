@@ -27,11 +27,14 @@ STYLE = """
 @font-face {font-family:Doc;src:url('fonts/NotoSans-Bold.ttf');font-weight:700}
 @font-face {font-family:Doc;src:url('fonts/NotoSans-Italic.ttf');font-style:italic}
 @font-face {font-family:Mono;src:url('fonts/NotoSansMono-Regular.ttf')}
+@font-face {font-family:DocMath;src:url('fonts/NotoSansMath-Regular.ttf')}
+@font-face {font-family:DocSymbols;src:url('fonts/NotoSansSymbols2-Regular.ttf')}
+@font-face {font-family:DocEmoji;src:url('fonts/NotoColorEmoji-subset.ttf')}
 @page {size:A4 landscape;margin:15mm 17mm 17mm;
  @top-left {content:'Synapse | Central de Pesquisas';font:8pt Doc;color:#586678}
  @bottom-right {content:counter(page) ' / ' counter(pages);font:8pt Doc}
 }
-body {font:10pt/1.45 Doc;color:#17283b}
+body {font:10pt/1.45 Doc,DocMath,DocEmoji,DocSymbols;color:#17283b}
 h1,h2,h3,h4 {color:#17445c;break-after:avoid;line-height:1.2}
 h1 {font-size:21pt;margin:10mm 0 5mm}
 h2 {font-size:16pt;margin-top:7mm} h3 {font-size:12pt}
@@ -43,8 +46,8 @@ th,td {border:0.3pt solid #b2c1c9;padding:2mm;overflow-wrap:anywhere}
 th {background:#e8f0f3;text-align:left} td {vertical-align:top}
 img {display:block;max-width:100%;max-height:145mm;width:auto;height:auto;
  object-fit:contain;margin:4mm auto;break-inside:avoid}
-code {font:8.5pt Mono;overflow-wrap:anywhere}
-pre {font:8pt/1.35 Mono;white-space:pre-wrap;overflow-wrap:anywhere;
+code {font:8.5pt Mono,DocMath,DocEmoji,DocSymbols;overflow-wrap:anywhere}
+pre {font:8pt/1.35 Mono,DocMath,DocEmoji,DocSymbols;white-space:pre-wrap;overflow-wrap:anywhere;
  background:#eef3f5;padding:3mm;border-left:2pt solid #47778c}
 pre code {font:inherit} blockquote {border-left:2pt solid #b0c5cc;
  margin:3mm 0;padding:1mm 4mm;color:#42566a}
@@ -157,6 +160,15 @@ def prepare(root: Path = ROOT) -> tuple[str, dict]:
     inputs = {source, root / "requirements-docs.txt", Path(__file__).resolve()}
     inputs.update(parser.assets)
     inputs.update((root / FONTS).glob("*"))
+    packages = {}
+    for requirement in (root / "requirements-docs.txt").read_text().splitlines():
+        if not requirement or requirement.startswith("#"):
+            continue
+        name, version = requirement.split("==")
+        actual = importlib.metadata.version(name)
+        if actual != version:
+            raise ValueError(f"Dependência {name}: esperada {version}, instalada {actual}")
+        packages[name] = actual
     provenance = {
         "schema_version": 1,
         "source": SOURCE.as_posix(),
@@ -164,9 +176,7 @@ def prepare(root: Path = ROOT) -> tuple[str, dict]:
         "scope": "Conteúdo integral de docs/projeto.md; links não expandem outros documentos.",
         "mermaid": "Definições integrais como código; imagens existentes preservadas.",
         "inputs": {p.relative_to(root).as_posix(): digest(p) for p in sorted(inputs)},
-        "packages": {
-            n: importlib.metadata.version(n) for n in ("weasyprint", "markdown-it-py", "pypdf")
-        },
+        "packages": packages,
     }
     note = (
         '<div class="provenance"><strong>Exportação integral da documentação principal</strong>'

@@ -36,7 +36,8 @@ Git da fonte, número de páginas e SHA-256 do PDF. A revisão é a última que 
 commit que publica o PDF. O `--check` compara os hashes da fonte e entradas atuais,
 inclusive mudanças ainda não commitadas.
 
-As fontes Noto Sans e Noto Sans Mono estão versionadas junto ao artefato, sob
+As fontes Noto Sans, Noto Sans Mono, Noto Sans Math, Noto Sans Symbols 2 e um
+subconjunto de Noto Color Emoji (U+26A0 e U+26D4) estão versionadas junto ao artefato, sob
 [SIL Open Font License](assets/documentacao/fonts/OFL.txt), para manter acentos e
 símbolos sem depender das fontes instaladas na máquina. O formato A4 horizontal
 acomoda tabelas extensas; cabeçalhos de tabelas e paginação permanecem na exportação.
@@ -50,7 +51,8 @@ Os links externos permanecem com seus destinos originais; o exportador não test
 a disponibilidade de serviços externos. Gerar o PDF não valida as afirmações do
 documento nem comprova execução de testes, acesso ao Desktop ou aceite humano.
 
-Pacotes Python estão fixados em `requirements-docs.txt`; bibliotecas de sistema
+Todas as versões Python instaladas precisam coincidir com `requirements-docs.txt`;
+o exportador confere essa igualdade antes de gerar ou validar o PDF. Bibliotecas de sistema
 podem alterar paginação ou bytes entre plataformas. O critério de atualidade é
 a integridade das entradas e do artefato publicado, e não igualdade universal
 de bytes entre sistemas operacionais.
