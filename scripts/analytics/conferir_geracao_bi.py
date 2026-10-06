@@ -12,8 +12,7 @@ from pathlib import Path
 import duckdb
 
 from etl.analytics.load import current_source_digests, selected_respondentes
-from etl.analytics.publish import PUBLICATIONS, publication_specification
-from etl.analytics.reconcile import reconcile_analytics
+from etl.analytics.publish import PUBLICATIONS, publication_report, publication_specification
 
 EXPECTED_COLUMNS = {
     "PUB_C01_CICLO": [
@@ -162,13 +161,7 @@ def conferir(
     try:
         con.execute("BEGIN TRANSACTION")
         report["preparation"]["source_control"] = _check_load_reference(con, reference)
-        has_closure_control = con.execute(
-            "SELECT COUNT(*) FROM information_schema.tables "
-            "WHERE table_schema = current_schema() AND table_name = 'analytics_pipeline_closure'"
-        ).fetchone()[0]
-        source_report = reconcile_analytics(con) if has_closure_control else None
-        if source_report is not None:
-            _require(source_report.reconciled, "origem analítica não reconciliou")
+        source_report = publication_report(con, reference)
         for name, columns in EXPECTED_COLUMNS.items():
             query, expected_semantics = publication_specification(name, source_report)
             entry = tables[name]

@@ -238,6 +238,17 @@ class QualitySnapshotTests(unittest.TestCase):
         )
         self.assertEqual(zero["preparation"]["c03_observation"], "observado")
 
+    def test_missing_snapshot_is_unavailable_and_cannot_publish_a_verified_zero(self):
+        with duckdb.connect(str(self.database)) as con:
+            result = load_analytics(con)
+            report = reconcile_analytics(con)
+        self.assertIsNone(report.respondent_checksum)
+        self.assertEqual(report.cubes[1].status, "source_unavailable")
+        self.assertFalse(report.reconciled)
+        with self.assertRaisesRegex(ValueError, "não reconciliou"):
+            publish_cubes(self.database, self.output, load_reference=result.load_id)
+        self.assertFalse((self.output / "current.json").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

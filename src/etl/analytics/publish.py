@@ -300,6 +300,27 @@ def publication_specification(name: str, report: ReconciliationReport | None) ->
     return PUBLICATIONS[name], {}
 
 
+def publication_report(connection, load_reference: str) -> ReconciliationReport | None:
+    """Establish the same controlled or explicit synthetic context for every consumer.
+
+    The caller keeps a read transaction open across this check and all reads.
+    Any analytic control requires the full reconciled schema, even for a
+    synthetic reference. A partial schema cannot fall back to uncontrolled data.
+    """
+    controls = connection.execute(
+        "SELECT COUNT(*) FROM information_schema.tables "
+        "WHERE table_schema = current_schema() AND table_name LIKE 'analytics_%'"
+    ).fetchone()[0]
+    if controls:
+        report = reconcile_analytics(connection)
+        if not report.reconciled or report.load_id != load_reference:
+            raise ValueError("a origem mudou ou não reconciliou no snapshot de publicação")
+        return report
+    if not load_reference.startswith("synthetic-"):
+        raise ValueError("origem sem controle analítico exige referência synthetic-... explícita")
+    return None
+
+
 def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
     """Publica uma geração verificada e muda o ponteiro só no fim.
 
@@ -338,22 +359,7 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
         )
         conn.execute("BEGIN TRANSACTION")
         in_transaction = True
-        control_tables = {
-            row[0]
-            for row in conn.execute(
-                "SELECT table_name FROM information_schema.tables "
-                "WHERE table_schema = current_schema() AND table_name LIKE 'analytics_%'"
-            ).fetchall()
-        }
-        report = None
-        if control_tables:
-            report = reconcile_analytics(conn)
-            if not report.reconciled or report.load_id != load_reference:
-                raise ValueError("a origem mudou ou não reconciliou no snapshot de publicação")
-        elif not load_reference.startswith("synthetic-"):
-            raise ValueError(
-                "origem sem controle analítico exige referência synthetic-... explícita"
-            )
+        report = publication_report(conn, load_reference)
         tables = {}
         for name in PUBLICATIONS:
             query, metadata = publication_specification(name, report)
