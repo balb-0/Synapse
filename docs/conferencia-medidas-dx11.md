@@ -105,7 +105,7 @@ estoque e data continuam `BLANK()`. A publicação atual não permite testar
 fechamento observado sem nenhum grupo; não declare esse caso aceito até que o
 contrato exponha o marcador.
 
-## Consultas reais do fixture em Power BI Desktop
+## Consultas históricas do fixture em Power BI Desktop
 
 O [recibo das medidas](evidencias/bi04/desktop-medidas-fixture.json) registra
 consulta real em VM Windows em 06/10/2026 às 14:08:45 UTC, após sincronização
@@ -121,7 +121,7 @@ sem dado. A comparação TOM teve 128 itens e zero diferenças para a projeção
 semântica do TMDL conferido, além de 98 arquivos de origem verificados.
 
 O resultado é do fixture sintético. Não substitui a conferência das métricas
-da geração v3. As consultas anexadas não cobrem todas as médias de fases,
+da geração v3. As consultas históricas acima não cobrem todas as médias de fases,
 todos os recortes categóricos ou todos os edge cases do checklist acima.
 Fechamento sem nenhum grupo observado continua sem representação suficiente
 no contrato Parquet; não há aceite desse caso.
@@ -145,6 +145,74 @@ marcados `historical_stale_publication`; não aceitam o KPI I18.
 
 O fixture foi regenerado com o publicador corrigido, na geração
 `2c699f0b066847ee8559f1e31d88f49d`, conservando as sete contagens e
-publicando 10/13. Sua nova execução Desktop ainda precisa do recibo próprio.
+publicando 10/13. Sua execução Desktop corrigida está registrada na seção final desta página.
 A fonte v3 tem todas as relações de qualidade conferidas contra a ingestão
 sem divergências; este problema é da publicação sintética antiga.
+
+## Execução final do pacote integrado
+
+A revisão executada foi `ff760d6552a1d5d2d3d9d9da1f3467e2c913416a`, pacote SHA256
+`a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea`, inventário SHA256
+`1624eef9ad87a61af4146cc0c67e469014cb830829bc9562a04ba70eaeca8ac6`, com 98 arquivos conferidos no Windows.
+O fixture corrigido foi consultado em `2026-10-06T15:44:25.2528117Z` e a v3 em
+`2026-10-06T15:49:13.5533810Z`, no Desktop real `2.158.1177.0`, Windows
+`10.0.26200.0`, por automação em VM. O parâmetro local foi conferido
+por arquivo e pela expressão no modelo ativo. As 13 partições do projeto
+e duas automáticas de data estavam processadas sem erro. A comparação TOM
+teve 128 itens e zero diferenças. Ela compara a projeção semântica
+declarada; não fornece um marcador do commit exato dentro do engine.
+O SHA do pacote executado permanece distinto dos commits documentais
+posteriores anexados às MRs.
+
+### Reproduzir a fonte do PBIP
+
+A revisão executada está [no GitLab](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/tree/ff760d6552a1d5d2d3d9d9da1f3467e2c913416a).
+Busque a branch de validação e abra essa revisão em uma pasta ainda
+inexistente, preservando o checkout de trabalho:
+
+```bash
+git fetch origin test/bi-desktop-integrated
+git worktree add --detach ../bi-pacote-conferido ff760d6552a1d5d2d3d9d9da1f3467e2c913416a
+```
+
+O inventário compara os arquivos versionados de `powerbi/`, exceto
+`powerbi/CentralPesquisasBI.SemanticModel/definition/expressions.tmdl`,
+cujo parâmetro foi adaptado somente na cópia privada Windows. O parâmetro
+tem conferência própria por arquivo e expressão no modelo ativo.
+Esse checkout reproduz a fonte PBIP e seu inventário; a geração Parquet
+autorizada e o ZIP conferido permanecem privados.
+
+A geração corrigida `2c699f0b066847ee8559f1e31d88f49d`, referência
+`synthetic-bi02-fixture`, retornou 2/3/4/2/64/8/5 linhas na ordem C01,
+C02, C03, C04, qualidade por campo, relação e duplicidade. Seus totais
+C01/C02/C04 foram 4/4/3. A integridade retornou 10/13, igual à consulta
+independente de chave composta; o resultado antigo de 11/13 fica histórico.
+As médias de validação, coleta, tabulação e ciclo total foram 5/5/4/15 dias,
+com base 2 em cada fase; preenchimento teve média 10 minutos com base 2.
+
+As consultas DAX de diagnóstico com `DATATABLE` e `DIVIDE` retornaram
+média ponderada 8,2 contra média simples 5, zero numérico para numerador
+zero/base positiva, e `BLANK()` para base zero. São probes de aritmética
+no engine; não são medidas publicadas do modelo.
+
+| Fase C01 v3 | Soma em dias | Base válida | Média ponderada |
+| --- | ---: | ---: | ---: |
+| Validação | 171 | 20 | 8,55 |
+| Coleta | 4960 | 358 | 13,854748603351956 |
+| Tabulação | 3020 | 330 | 9,151515151515152 |
+| Ciclo total | 9468 | 331 | 28,604229607250755 |
+
+C02 v3 retornou soma nula, base 0 e média nula. A completude foi
+1844495/2584786 (0,7135967929259908), a integridade 833146/833146 (1),
+e a duplicidade (275840-275840)/275840 (0). Os numeradores e denominadores
+conferem com a apuração independente da ingestão. O catálogo manteve
+18 entradas/17 estados "Sem dado" e duas medidas textuais individuais.
+A taxa diagnóstica de finalização não é medida DAX publicada e não integra
+os recibos públicos. C03 v3 retornou data e estoque nulos com motivo
+textual de indisponibilidade. O contrato não representa fechamento global
+observado sem grupo; esse caso continua sem aceite, sem converter ausência
+em zero.
+
+Recibos finais do [fixture](evidencias/bi04/desktop-medidas-fixture-final.json)
+e da [v3](evidencias/bi04/desktop-medidas-v3-final.json) mantêm os resultados
+separados das rodadas históricas.
