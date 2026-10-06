@@ -41,3 +41,13 @@ Os dashboards apoiam perguntas sobre ciclo de pesquisas, participação, pipelin
 - **Licença:** a [assinatura Basic autogerenciada da Elastic](https://www.elastic.co/subscriptions) é gratuita na tabela consultada; hospedagem, operação e eventual suporte pago continuam sendo custos separados. Licenças e contratos devem ser confirmados antes de contratar.
 
 Todas as quantidades de horas, relatórios, retrabalho, erros e adoção introduzidas nesta Sprint são **hipóteses de cenário** até que o parceiro forneça dados observados. Cada tabela deve indicar unidade, período, fórmula e origem da tarifa. O horizonte padrão para comparação é de 12 meses após implantação; FN-05 poderá mostrar horizontes adicionais sem misturar gastos iniciais e recorrentes.
+
+## Dados a coletar para substituir as hipóteses
+
+1. Contar relatórios produzidos por mês, tempo por relatório e tempo de conferência, antes e depois do piloto, com a mesma definição de relatório.
+2. Registrar incidentes de qualidade, horas de correção e se a correção já está incluída no tempo por relatório.
+3. Medir CPU, memória, armazenamento, saídas, retenção e horas ligadas do ambiente escolhido.
+4. Validar horas de implantação, treinamento, suporte e atualização com os responsáveis, incluindo custo interno e eventual contrato.
+5. Registrar adoção efetiva, período de estabilização e volume que continuará manual.
+
+Sem esses dados, o resultado serve para análise de sensibilidade e ponto de equilíbrio, não para afirmar economia realizada. A revisão final de premissas, risco e consistência pertence ao FN-06.
