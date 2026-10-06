@@ -44,14 +44,13 @@ dados sintéticos demonstra o visual; não prova qual geração foi importada.
 
 | Etapa | Geração e execução | Resultado |
 | :--- | :--- | :--- |
-| BI-01 | Migração de duas páginas e 48 visuais | Estrutura versionada; aceitação visual do pacote integrado pendente |
-| BI-02 | Fixture `synthetic-bi02-fixture` | Sete tabelas consultadas no Desktop real, partições processadas sem erro |
-| BI-03/BI-04 | Pacote integrado `f068a01` | Projeção TOM com 128 itens/zero diferenças; médias e estoque do fixture consultados |
-| BI-05 | Geração CB-16 `6b1eaa686aac43b18b6d6545e1c2c5f1` | Publicação, origem e refresh v3 conferidos; revisão visual final pendente |
-| BI-06 | Refresh e troca de geração | Fixture e v3 consultados; troca registrada, falha de arquivo ausente observada; recuperação pendente |
+| BI-01 | Migração de duas páginas e 48 visuais | Estrutura migrada; o pacote integrado inclui as entregas posteriores RP-13/RP-14/RP-17 |
+| BI-02 | Fixture corrigido `2c699f0b...` | Sete tabelas consultadas no Desktop real, partições processadas sem erro |
+| BI-03/BI-04 | Pacote integrado `ff760d6` | Projeção TOM com 128 itens/zero diferenças; médias e estoque do fixture consultados |
+| BI-05 | Geração CB-16 `6b1eaa686aac43b18b6d6545e1c2c5f1` | Publicação, origem e refresh do pacote corrigido conferidos |
+| BI-06 | Refresh e troca de geração | Fixture corrigido e v3 consultados; troca final registrada; falha de arquivo e recuperação histórica documentadas |
 
-Até completar as evidências de cada etapa, o respectivo aceite permanece
-pendente. Card fechado, branch criada, pipeline ou recibo preenchido não
+Os recibos finais abaixo sustentam a conferência de conexão e atualização. Card fechado, branch criada, pipeline ou recibo preenchido não
 comprovam execução no Power BI Desktop.
 
 ## Tabelas e agregados a registrar
@@ -62,9 +61,9 @@ comprovam execução no Power BI Desktop.
 | `PUB_C02_PARTICIPACAO` | 32 | 32 | 17740 participações, conforme o recibo v3 |
 | `PUB_C03_PIPELINE_MENSAL` | 0 | 0 | Sem fechamento observado; estoque indisponível |
 | `PUB_C04_INSTRUMENTO` | 45 | 45 | 3186 associações pesquisa-pergunta |
-| `PUB_QUALIDADE_CAMPO` | 64 | 64 | Linhas conferidas; KPI DAX por campo ainda não registrado |
-| `PUB_QUALIDADE_RELACAO` | 8 | 8 | Linhas conferidas; KPI DAX por relação ainda não registrado |
-| `PUB_QUALIDADE_DUPLICIDADE` | 5 | 5 | Linhas conferidas; KPI DAX por tabela ainda não registrado |
+| `PUB_QUALIDADE_CAMPO` | 64 | 64 | Apuração por campo conferida; KPI global 1844495/2584786 |
+| `PUB_QUALIDADE_RELACAO` | 8 | 8 | Apuração por relação conferida; KPI global 833146/833146 |
+| `PUB_QUALIDADE_DUPLICIDADE` | 5 | 5 | Apuração por tabela conferida; KPI global (275840-275840)/275840 |
 
 ## Limites do contrato publicado
 
@@ -119,8 +118,8 @@ exata do projeto e não são capturas do ensaio integrado aprovado. O recibo
 posterior registra o modelo corrigido processado e consultado.
 
 A publicação v3 está conferida em CB-16. O refresh e a troca de geração
-têm os recibos adicionais abaixo. A falha de arquivo ausente foi observada; sua recuperação e a revisão
-visual final continuam pendentes.
+têm os recibos adicionais abaixo. A falha de arquivo e sua recuperação histórica estão registradas; o pacote
+corrigido tem o ensaio final separado abaixo.
 
 ## Troca do fixture para a geração v3
 
@@ -141,8 +140,8 @@ com estoque e fluxos indisponíveis.
 
 Esta rodada usou o pacote `f068a01` e antecede os ajustes de títulos do
 relatório. Confirma conexão, troca e atualização do modelo daquela revisão.
-A falha de arquivo ausente está registrada abaixo. Sua recuperação e as
-capturas finais serão registradas depois da execução.
+A falha de arquivo ausente está registrada abaixo. A recuperação da mesma revisão aparece no recibo específico; o ensaio do
+pacote corrigido está registrado separadamente.
 
 ## Falha de arquivo ausente observada
 
@@ -155,9 +154,9 @@ observação em 06/10/2026 às 14:19:20 UTC; a
 sem dados de origem ou credenciais. O pacote imutável da publicação ficou
 preservado.
 
-Essa falha não foi aceita como refresh bem-sucedido. A restauração do arquivo
-e uma nova atualização com consultas ao engine ainda aguardam o recibo de
-recuperação neste registro. Uma consulta ao cache anterior, sozinha, não
+Essa falha não foi aceita como refresh bem-sucedido. O arquivo foi restaurado, o projeto reaberto e atualizado, com nova consulta
+às 14:36:59 UTC. O [recibo de recuperação](evidencias/bi06/desktop-recuperacao-v3-historica.json)
+registra as sete contagens e a projeção TOM da revisão histórica `f068a01`. Uma consulta ao cache anterior, sozinha, não
 comprova que a atualização com o arquivo ausente funcionou.
 
 ## Fixture antigo e qualidade
@@ -166,6 +165,116 @@ A troca registrada acima partiu da geração `665cb490...`, cujo conteúdo
 de qualidade antecede a correção da chave composta de respostas/questões.
 Os recibos provam aquela execução e as contagens, mas o total de
 correspondências do fixture publicado foi 11/13 em vez de 10/13 da consulta
-composta independente. O novo fixture `2c699f0b...` aguarda nova execução
-Desktop. As tabelas de qualidade v3 foram conferidas contra a ingestão
+composta independente. O novo fixture `2c699f0b...` tem execução Desktop corrigida na seção final. As tabelas de qualidade v3 foram conferidas contra a ingestão
 sem divergências; os números do fixture antigo não aceitam I18.
+
+## Execução final do pacote integrado
+
+A revisão executada foi `ff760d6552a1d5d2d3d9d9da1f3467e2c913416a`, pacote SHA256
+`a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea`, inventário SHA256
+`1624eef9ad87a61af4146cc0c67e469014cb830829bc9562a04ba70eaeca8ac6`, com 98 arquivos conferidos no Windows.
+O fixture corrigido foi consultado em `2026-10-06T15:44:25.2528117Z` e a v3 em
+`2026-10-06T15:49:13.5533810Z`, no Desktop real `2.158.1177.0`, Windows
+`10.0.26200.0`, por automação em VM. O parâmetro local foi conferido
+por arquivo e pela expressão no modelo ativo. As 13 partições do projeto
+e duas automáticas de data estavam processadas sem erro. A comparação TOM
+teve 128 itens e zero diferenças. Ela compara a projeção semântica
+declarada; não fornece um marcador do commit exato dentro do engine.
+O SHA do pacote executado permanece distinto dos commits documentais
+posteriores anexados às MRs.
+
+### Reproduzir a fonte do PBIP
+
+A revisão executada está [no GitLab](https://git.inteli.edu.br/graduacao/2026-2a/t13/g05/-/tree/ff760d6552a1d5d2d3d9d9da1f3467e2c913416a).
+Busque a branch de validação e abra essa revisão em uma pasta ainda
+inexistente, preservando o checkout de trabalho:
+
+```bash
+git fetch origin test/bi-desktop-integrated
+git worktree add --detach ../bi-pacote-conferido ff760d6552a1d5d2d3d9d9da1f3467e2c913416a
+```
+
+O inventário compara os arquivos versionados de `powerbi/`, exceto
+`powerbi/CentralPesquisasBI.SemanticModel/definition/expressions.tmdl`,
+cujo parâmetro foi adaptado somente na cópia privada Windows. O parâmetro
+tem conferência própria por arquivo e expressão no modelo ativo.
+Esse checkout reproduz a fonte PBIP e seu inventário; a geração Parquet
+autorizada e o ZIP conferido permanecem privados.
+
+A geração corrigida `2c699f0b066847ee8559f1e31d88f49d`, referência
+`synthetic-bi02-fixture`, retornou 2/3/4/2/64/8/5 linhas na ordem C01,
+C02, C03, C04, qualidade por campo, relação e duplicidade. Seus totais
+C01/C02/C04 foram 4/4/3. A integridade retornou 10/13, igual à consulta
+independente de chave composta; o resultado antigo de 11/13 fica histórico.
+As médias de validação, coleta, tabulação e ciclo total foram 5/5/4/15 dias,
+com base 2 em cada fase; preenchimento teve média 10 minutos com base 2.
+
+As somas C02 por Ano, Trimestre e Mês retornaram o total 4 incluindo
+o membro em branco virtual. Uma participação tem mês nulo; as três com
+data e a parcela em branco reconciliam o total. C03 teve estoque 3 em
+31/01/2026 e 4 em 28/02/2026. Os totais por Área, Área/Tipo e
+Área/Tipo/Perfil coincidiram com 3 e 4 em cada fechamento. O último estoque
+foi 4, sem somar os dois fechamentos em 7. Março de 2026 existe no
+calendário por C02 e não tem fechamento C03; estoque retornou `BLANK()`.
+Na v3, todas as 17740 participações têm mês nulo. Os totais por níveis do
+calendário incluem esse membro em branco; a parcela com data é zero.
+A v3 não oferece fechamento C03 para demonstrar navegação temporal observada.
+Essas consultas exercitam as definições carregadas e a reconciliação por
+nível; não declaram operação humana de drill na interface.
+
+As consultas DAX de diagnóstico com `DATATABLE` e `DIVIDE` retornaram
+média ponderada 8,2 contra média simples 5, zero numérico para numerador
+zero/base positiva, e `BLANK()` para base zero. São probes de aritmética
+no engine; não são medidas publicadas do modelo.
+
+| Fase C01 v3 | Soma em dias | Base válida | Média ponderada |
+| --- | ---: | ---: | ---: |
+| Validação | 171 | 20 | 8,55 |
+| Coleta | 4960 | 358 | 13,854748603351956 |
+| Tabulação | 3020 | 330 | 9,151515151515152 |
+| Ciclo total | 9468 | 331 | 28,604229607250755 |
+
+C02 v3 retornou soma nula, base 0 e média nula. A completude foi
+1844495/2584786 (0,7135967929259908), a integridade 833146/833146 (1),
+e a duplicidade (275840-275840)/275840 (0). Os numeradores e denominadores
+conferem com a apuração independente da ingestão. O catálogo manteve
+18 entradas/17 estados "Sem dado" e duas medidas textuais individuais.
+A taxa diagnóstica de finalização não é medida DAX publicada e não integra
+os recibos públicos. C03 v3 retornou data e estoque nulos com motivo
+textual de indisponibilidade. O contrato não representa fechamento global
+observado sem grupo; esse caso continua sem aceite, sem converter ausência
+em zero.
+
+A [troca final](evidencias/bi06/troca-fixture-corrigido-v3-final.json)
+liga as gerações e os recibos de consulta. Os caminhos locais ficam
+sanitizados; nenhuma geração, DuckDB ou dado de origem é versionado.
+
+Os resultados detalhados ficam nos recibos sanitizados do
+[fixture corrigido](evidencias/bi02/desktop-fixture-corrigido-final.json) e da
+[v3 final](evidencias/bi05/desktop-v3-final.json). Eles incluem contagens,
+agregados, qualidade, fechamentos C03 do fixture e indisponibilidade C03 v3.
+
+## Capturas finais e seus limites
+
+O [índice de capturas](evidencias/bi06/capturas-finais.json) registra o pacote
+executado, geração, hash de cada PNG e leituras do relógio UTC imediatamente
+antes/depois da captura. A resolução dessas leituras é de um segundo; horários
+iguais indicam o mesmo segundo UTC, sem precisão de subsegundo. Os caminhos
+de artefatos do ambiente foram removidos do índice público.
+
+As três imagens de [C01](evidencias/bi06/final-fixture-c01.png),
+[C02](evidencias/bi06/final-fixture-c02.png) e
+[C03/C04/qualidade](evidencias/bi06/final-fixture-c03-c04.png) mostram o
+fixture sintético. C02 tem eixo de contagem 0–3 compatível com as barras;
+C03 mostra fechamentos mensais categóricos. Elas demonstram os visuais
+sintéticos, sem serem capturas dos registros da fonte v3.
+
+A [captura de resumo v3](evidencias/bi06/final-v3-summary.png) é uma tela
+nativa de console que apresenta o resumo dos recibos de consultas reais ao
+engine do Desktop. Mostra caminho da geração copiada, data UTC da consulta,
+ID da geração, fonte PBIP, sete contagens, totais C01/C02/C04 e motivo de
+indisponibilidade C03, sem categorias privadas ou registros individuais.
+A data da consulta e o intervalo da captura são campos distintos. Essa imagem
+não é uma captura da página do relatório nem fornece um marcador Git dentro
+do engine. A [conferência final BI-05](evidencias/bi05/conferencia-desktop-v3-final.json)
+compara os recibos com a origem e a publicação da mesma carga.

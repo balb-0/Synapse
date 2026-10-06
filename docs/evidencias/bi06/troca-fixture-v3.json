@@ -44,6 +44,7 @@
     "after": "a4f7dfacddaf155b277d06e699f8019a48fba2f5a13b2570d8eb54ea7812ff64"
   },
   "status": "executed_and_counts_changed_as_expected",
-  "missing_file_recovery": "pending",
-  "report_visual_acceptance": "pending"
+  "missing_file_recovery": "executed_in_interim_package_f068a01; see desktop-recuperacao-v3-historica.json",
+  "report_visual_acceptance": "historical_before_report_fixes; latest package has separate final receipts",
+  "historical_fixture_quality_state": "historical_stale_publication"
 }
