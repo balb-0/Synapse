@@ -249,6 +249,11 @@ A [troca final](evidencias/bi06/troca-fixture-corrigido-v3-final.json)
 liga as gerações e os recibos de consulta. Os caminhos locais ficam
 sanitizados; nenhuma geração, DuckDB ou dado de origem é versionado.
 
+Os resultados detalhados ficam nos recibos sanitizados do
+[fixture corrigido](evidencias/bi02/desktop-fixture-corrigido-final.json) e da
+[v3 final](evidencias/bi05/desktop-v3-final.json). Eles incluem contagens,
+agregados, qualidade, fechamentos C03 do fixture e indisponibilidade C03 v3.
+
 ## Capturas finais e seus limites
 
 O [índice de capturas](evidencias/bi06/capturas-finais.json) registra o pacote
