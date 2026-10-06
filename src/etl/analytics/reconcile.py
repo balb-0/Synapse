@@ -10,6 +10,8 @@ import duckdb
 
 from etl.analytics.dimensions_ddl import unknown_key
 from etl.analytics.load import current_source_digests, selected_respondentes
+from etl.load.config import DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS
+from etl.load.connection import connect_with_retry
 
 
 @dataclass(frozen=True)
@@ -401,12 +403,17 @@ def reconcile_analytics(con: duckdb.DuckDBPyConnection) -> ReconciliationReport:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("database", help="arquivo DuckDB com ingestão e cubos carregados")
+    parser.add_argument(
+        "--write-lock-timeout-seconds",
+        type=float,
+        default=DEFAULT_WRITE_LOCK_TIMEOUT_SECONDS,
+        help="Tempo máximo de espera por outro processo DuckDB",
+    )
     args = parser.parse_args()
-    con = duckdb.connect(args.database, read_only=True)
-    try:
+    with connect_with_retry(args.database, args.write_lock_timeout_seconds, read_only=True) as con:
+        con.execute("BEGIN TRANSACTION")
         report = reconcile_analytics(con)
-    finally:
-        con.close()
+        con.execute("COMMIT")
     print(json.dumps(report.as_dict(), ensure_ascii=False, sort_keys=True))
     if not report.reconciled:
         parser.exit(1)
