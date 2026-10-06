@@ -58,7 +58,7 @@ services:
       retries: 20
 
   # Serve os deployments com agendamento: mantém
-  # `ingest-object/agendado` (cron `0 3 * * *`, ver
+  # `pipeline-completo/agendado-dw` (cron `0 3 * * *`, ver
   # `scripts/orchestration/deployment.py`) ativo enquanto o ambiente roda.
   # `restart: unless-stopped` faz o agendamento sobreviver ao reinício do
   # contêiner; os agendamentos e o histórico vivem no `prefect-server`
@@ -85,6 +85,7 @@ services:
       ETL_MINIO_SECRET_KEY: minioadmin
       ETL_MINIO_INPUT_PREFIX: landing
       ETL_DUCKDB_PATH: /data/warehouse.duckdb
+      ETL_PUBLISH_DIR: /data/publicacao
       PREFECT_API_URL: http://prefect-server:4200/api
     volumes:
       - duck-data:/data
@@ -97,6 +98,32 @@ services:
       options:
         gelf-address: "udp://127.0.0.1:12201"
         tag: "etl-scheduler"
+
+  # Sinal periódico independente dos flows: detecta indisponibilidade da API
+  # mesmo quando não há ingestões. Não espera service_healthy nem o coletor.
+  health-monitor:
+    build: .
+    depends_on:
+      prefect-server:
+        condition: service_started
+    command: ["python", "scripts/orchestration/health_monitor.py", "--interval-seconds", "60", "--timeout-seconds", "30"]
+    environment:
+      PREFECT_API_URL: ${PREFECT_API_URL:-http://prefect-server:4200/api}
+      ETL_DUCKDB_PATH: /data/warehouse.duckdb
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - duck-data:/data
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    stop_grace_period: 35s
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "etl-health-monitor"
 
   runner:
     build: .
