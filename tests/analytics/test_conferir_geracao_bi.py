@@ -137,6 +137,44 @@ class ConferirGeracaoBITest(unittest.TestCase):
             result["desktop"]["provenance"]["engine_loaded_revision"], "nao_comprovada"
         )
         self.assertEqual(result["final_acceptance"], "pendente")
+        projection = {
+            "status": "matched",
+            "source_sha256": "f" * 64,
+            "engine_sha256": "f" * 64,
+            "source_items": 12,
+            "engine_items": 12,
+            "difference_count": 0,
+            "differences": [],
+            "scope": "test semantic projection",
+        }
+        data.update(engine_semantic_projection_verified=True, engine_model_verification=projection)
+        receipt.write_text(json.dumps(data))
+        result = conferir(
+            self.generation, self.database, receipt, package_receipt=package_path, **args
+        )
+        self.assertEqual(
+            result["desktop"]["provenance"]["engine_semantic_projection"], "recibo_confere"
+        )
+        self.assertEqual(
+            result["desktop"]["provenance"]["engine_loaded_revision"], "nao_comprovada"
+        )
+        for field, value in (
+            ("engine_sha256", "e" * 64),
+            ("engine_items", 13),
+            ("difference_count", False),
+            ("differences", ["table/measure"]),
+        ):
+            with self.subTest(projection_field=field):
+                changed = dict(data, engine_model_verification=dict(projection, **{field: value}))
+                receipt.write_text(json.dumps(changed))
+                with self.assertRaisesRegex(ValueError, "projeção semântica"):
+                    conferir(
+                        self.generation,
+                        self.database,
+                        receipt,
+                        package_receipt=package_path,
+                        **args,
+                    )
         for field, value in (
             ("package_sha256", "e" * 64),
             ("model_inventory_sha256", "f" * 64),
