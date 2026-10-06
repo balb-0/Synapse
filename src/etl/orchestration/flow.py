@@ -180,7 +180,7 @@ def _should_retry(task, task_run, state) -> bool:
 
 
 def _is_transient_unexpected(error: Exception) -> bool:
-    """Erro inesperado repete, exceto S3 permanente (ex.: ``NoSuchKey``).
+    """Repete transitórios; schema DuckDB, caminho e permissão falham rápido.
 
     O ``minio`` é importado tarde para não virar dependência dura do módulo:
     sem ele instalado, todo erro inesperado continua repetindo.

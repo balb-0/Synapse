@@ -165,6 +165,13 @@ def run_pipeline(
     if len(results) != len(selected) or {result.get("source") for result in results} != set(
         selected
     ):
+        _log_event(
+            logger,
+            PIPELINE_EVENT,
+            status="aborted",
+            failed_stage="backfill",
+            duration_ms=round((time.monotonic() - started) * 1000, 3),
+        )
         raise PipelineAbortedError("o backfill não confirmou uma ocorrência de cada fonte")
     pending = [
         result["source"] for result in results if result.get("status") not in COMPLETED_STATUSES
@@ -183,32 +190,40 @@ def run_pipeline(
 
     # O mesmo lock de ingest_object exclui escritores orquestrados enquanto
     # as três tasks executam. Cada task fecha sua conexão antes da próxima.
-    with database_lock(
-        database_settings.database_path, database_settings.write_lock_timeout_seconds
-    ):
-        try:
-            analytics = load_warehouse(db_path, observed_at)
-        except Exception as error:
-            raise failed("load_analytics", error) from error
-        try:
-            report = reconcile_warehouse(db_path, analytics["load_id"])
-        except ValueError as error:
-            _log_event(
-                logger,
-                PIPELINE_EVENT,
-                status="reconciliation_failed",
-                failed_stage="reconciliation",
-                error=type(error).__name__,
-            )
-            raise ReconciliationFailedError(str(error)) from error
-        except Exception as error:
-            raise failed("reconciliation", error) from error
-        if not report["reconciled"] or report["load_id"] != analytics["load_id"]:
-            raise ReconciliationFailedError("relatório analítico não reconciliou com esta carga")
-        try:
-            manifest = publish_warehouse(db_path, str(destination), analytics["load_id"])
-        except Exception as error:
-            raise failed("publication", error) from error
+    try:
+        with database_lock(
+            database_settings.database_path, database_settings.write_lock_timeout_seconds
+        ):
+            try:
+                analytics = load_warehouse(db_path, observed_at)
+            except Exception as error:
+                raise failed("load_analytics", error) from error
+            try:
+                report = reconcile_warehouse(db_path, analytics["load_id"])
+            except ValueError as error:
+                _log_event(
+                    logger,
+                    PIPELINE_EVENT,
+                    status="reconciliation_failed",
+                    failed_stage="reconciliation",
+                    error=type(error).__name__,
+                )
+                raise ReconciliationFailedError(str(error)) from error
+            except Exception as error:
+                raise failed("reconciliation", error) from error
+            if not report["reconciled"] or report["load_id"] != analytics["load_id"]:
+                raise ReconciliationFailedError(
+                    "relatório analítico não reconciliou com esta carga"
+                )
+            try:
+                manifest = publish_warehouse(db_path, str(destination), analytics["load_id"])
+            except Exception as error:
+                raise failed("publication", error) from error
+
+    except PipelineStageError:
+        raise
+    except Exception as error:
+        raise failed("load_analytics", error) from error
 
     _log_event(
         logger,
