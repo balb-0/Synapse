@@ -357,20 +357,23 @@ continua impedindo duplicatas.
 
 - Flows em `src/etl/orchestration/flow.py`: `ingest-object` (um objeto:
   verificação de idempotência → extração → transformação → carga →
-  reconciliação → confirmação do objeto → carga analítica → publicação Parquet)
-  e `backfill` (subflows por fonte, seguidos por uma carga/publicação do conjunto).
+  reconciliação → confirmação do objeto). `backfill` confirma os subflows por
+  fonte; quando `analytics_output` está configurado, executa também a carga
+  analítica e a publicação do conjunto. O agendado DW e `manual-dw` passam
+  esse parâmetro e as seis fontes; o manual de objeto termina na ingestão
+  tratada, para não publicar um conjunto incompleto.
 - Retry: as tarefas `extract`, `transform` e `load` têm `retries=2` com
-  condição (`_should_retry`) — só repete erro transitório ou inesperado;
-  As tarefas analíticas seguem também retry finito e propagam a falha ao flow;
-  falha permanente (credencial, schema, objeto ausente, `NoSuchKey`) ou
+  condição (`_should_retry`), que só repete erro transitório ou inesperado.
+  As tarefas analíticas seguem também retry finito e propagam a falha ao flow.
+  Falha permanente (credencial, schema, objeto ausente, `NoSuchKey`) ou
   limite interno de retry já esgotado falham rápido. Falhas transitórias de
   leitura são reexecutadas dentro da extração (`RetryExecutor`, configurável
   por `ETL_EXTRACTION_*`).
 - Deployment agendado: `python scripts/orchestration/deployment.py` serve o
   deployment `backfill/agendado-dw` (cron `0 3 * * *`) para as seis fontes.
   `ETL_ANALYTICS_OUTPUT=/data/published` mantém as gerações no volume `duck-data`.
-  Os deployments
-  `ingest-object/manual` e `backfill`, declarados em `prefect.yaml`, são
+  Os deployments `ingest-object/manual`, `backfill/backfill` e
+  `backfill/manual-dw`, declarados em `prefect.yaml`, são
   publicados pela CLI a partir da raiz do repositório (com o ambiente no ar):
 
   ```bash
@@ -386,6 +389,8 @@ continua impedindo duplicatas.
   ```bash
   prefect deployment run 'ingest-object/manual' -p source=empresas \
       -p bucket=sindusfarma -p key=landing/empresas.csv -p reprocess=true
+  # Conjunto completo seguido por carga analítica/publicação:
+  prefect deployment run 'backfill/manual-dw'
   ```
 
 ## Disparo pela chegada de objeto
