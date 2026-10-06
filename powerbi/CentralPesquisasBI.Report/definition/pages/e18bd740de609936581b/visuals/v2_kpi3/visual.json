@@ -23,13 +23,13 @@
                       "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "Qtd Participacoes"
+                  "Property": "Media Minutos Preenchimento"
                 }
               },
-              "queryRef": "PUB_C02_PARTICIPACAO.Qtd Participacoes",
-              "nativeQueryRef": "Participações no recorte",
+              "queryRef": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento",
+              "nativeQueryRef": "Média de preenchimento (min)",
               "active": true,
-              "displayName": "Participações no recorte"
+              "displayName": "Média de preenchimento (min)"
             }
           ]
         }
