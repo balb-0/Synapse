@@ -121,7 +121,7 @@ Os totais C01/C02/C04 foram 4/4/3.
 O estoque da medida BI-04 foi 4 no último fechamento, 28/02/2026, igual à
 soma direta filtrada na fato C03. As medidas de entrada e saída retornaram
 valor nulo e o motivo de ausência de histórico. As duas medidas textuais
-bloqueadas exibiram os motivos; o catálogo retornou 18 linhas e 17 estados
+bloqueadas exibiram os motivos; o catálogo do snapshot anterior ao CF-05 retornou 18 linhas e 17 estados
 sem dado. A comparação TOM teve 128 itens e zero diferenças para a projeção
 semântica do TMDL conferido, além de 98 arquivos de origem verificados.
 
@@ -210,7 +210,7 @@ no engine; não são medidas publicadas do modelo.
 C02 v3 retornou soma nula, base 0 e média nula. A completude foi
 1844495/2584786 (0,7135967929259908), a integridade 833146/833146 (1),
 e a duplicidade (275840-275840)/275840 (0). Os numeradores e denominadores
-conferem com a apuração independente da ingestão. O catálogo manteve
+conferem com a apuração independente da ingestão. O catálogo do snapshot anterior ao CF-05 manteve
 18 entradas/17 estados "Sem dado" e duas medidas textuais individuais.
 A taxa diagnóstica de finalização não é medida DAX publicada e não integra
 os recibos públicos. C03 v3 retornou data e estoque nulos com motivo
