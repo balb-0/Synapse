@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Pesquisa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "Área"
+                  "Property": "area"
                 }
               },
-              "queryRef": "BE_Pesquisa.Área",
+              "queryRef": "PUB_C02_PARTICIPACAO.area",
               "nativeQueryRef": "Área",
               "active": true,
               "displayName": "Área"
@@ -40,30 +40,32 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "BE % empresa por área"
+                  "Property": "Qtd Participacoes"
                 }
               },
-              "queryRef": "BE_Empresa.BE % empresa por área",
-              "nativeQueryRef": "Sua empresa",
-              "displayName": "Sua empresa"
+              "queryRef": "PUB_C02_PARTICIPACAO.Qtd Participacoes",
+              "nativeQueryRef": "Participações por área",
+              "active": true,
+              "displayName": "Participações por área"
             },
             {
               "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "BE % demais por área"
+                  "Property": "Media Minutos Preenchimento"
                 }
               },
-              "queryRef": "BE_Empresa.BE % demais por área",
-              "nativeQueryRef": "Demais empresas",
-              "displayName": "Demais empresas"
+              "queryRef": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento",
+              "nativeQueryRef": "Média de preenchimento (min)",
+              "active": true,
+              "displayName": "Média de preenchimento (min)"
             }
           ]
         }
@@ -75,10 +77,10 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "BE_Empresa"
+                    "Entity": "PUB_C02_PARTICIPACAO"
                   }
                 },
-                "Property": "BE % empresa por área"
+                "Property": "Qtd Participacoes"
               }
             },
             "direction": "Descending"
@@ -265,7 +267,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE % empresa por área"
+            "metadata": "PUB_C02_PARTICIPACAO.Qtd Participacoes"
           }
         },
         {
@@ -283,7 +285,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE % demais por área"
+            "metadata": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento"
           }
         }
       ]

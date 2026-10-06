@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Sua empresa × benchmark agregado no recorte atual",
+                    "value": "Benchmark agregado por área, tipo e mês (PUB_C02_PARTICIPACAO) — sem empresa/pesquisa individual",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "14px",
