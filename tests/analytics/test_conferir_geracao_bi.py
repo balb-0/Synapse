@@ -35,6 +35,7 @@ class ConferirGeracaoBITest(unittest.TestCase):
         report = conferir(self.generation, self.database, sintetico=True)
         receipt = {
             "generation": self.generation.name,
+            "load_reference": self.manifest["load_reference"],
             "tables": report["preparation"]["tables"],
             "aggregates": {
                 "PUB_C01_CICLO": {"column": "qtd_pesquisas", "value": 4},
@@ -71,6 +72,15 @@ class ConferirGeracaoBITest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "contagem Parquet/manifesto"):
             conferir(self.generation, self.database, sintetico=True)
 
+    def test_desktop_reference_binds_receipt_to_load(self) -> None:
+        receipt = self._receipt()
+        data = json.loads(receipt.read_text())
+        for reference in ("different-load", None):
+            with self.subTest(load_reference=reference):
+                data["load_reference"] = reference
+                receipt.write_text(json.dumps(data))
+                with self.assertRaisesRegex(ValueError, "Desktop: load_reference"):
+                    conferir(self.generation, self.database, receipt, sintetico=True)
     def _original_hash(self) -> str:
         return hashlib.sha256((self.generation / "PUB_C01_CICLO.parquet").read_bytes()).hexdigest()
 
@@ -195,6 +205,7 @@ class ConferirGeracaoBITest(unittest.TestCase):
             result["preparation"]["c03_observation"], "sem_fechamento_observado_na_publicacao"
         )
         original["generation"] = generation.name
+        original["load_reference"] = manifest["load_reference"]
         original["tables"] = result["preparation"]["tables"]
         original["aggregates"]["PUB_C03_PIPELINE_MENSAL"] = {
             "column": "qtd_pesquisas_no_status",

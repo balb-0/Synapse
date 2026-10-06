@@ -58,6 +58,7 @@ devem ser trocados por números reais antes da execução do conferidor:
 ```json
 {
   "generation": "ID_DA_GERACAO",
+  "load_reference": "ID_DA_CARGA_NO_MANIFESTO",
   "tables": {
     "PUB_C01_CICLO": "<contagem C01>",
     "PUB_C02_PARTICIPACAO": "<contagem C02>",
@@ -80,7 +81,9 @@ Para C03 sem fechamento, substitua sua entrada por
 `{"column":"qtd_pesquisas_no_status","state":"sem_fechamento_observado","value":null}`.
 Execute novamente com `--desktop /caminho/privado/recibo-desktop.json`. O
 resultado `desktop.status: recibo_confere` compara os sete números e os quatro agregados
-com a publicação e o banco. O recibo, isoladamente, não prova que o refresh
+com a publicação e o banco. O recibo deve informar também `load_reference`
+exatamente igual ao manifesto; referência ausente ou diferente causa falha,
+mesmo quando as contagens coincidem. O recibo, isoladamente, não prova que o refresh
 ocorreu no aplicativo; mantenha a evidência da execução junto dele.
 
 Para ensaio local com o fixture, use `--sintetico`. Essa opção apenas permite

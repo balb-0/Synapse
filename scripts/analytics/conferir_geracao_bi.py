@@ -218,6 +218,10 @@ def conferir(
         if desktop is not None:
             receipt = json.loads(desktop.read_text())
             _require(receipt.get("generation") == geracao.name, "Desktop: geração diferente")
+            _require(
+                receipt.get("load_reference") == reference,
+                "Desktop: load_reference divergente ou ausente",
+            )
             receipt_tables = receipt.get("tables")
             _require(
                 isinstance(receipt_tables, dict)
