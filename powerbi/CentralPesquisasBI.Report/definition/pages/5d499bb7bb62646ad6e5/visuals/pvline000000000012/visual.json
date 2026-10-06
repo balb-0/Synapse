@@ -27,8 +27,8 @@
                 }
               },
               "queryRef": "PUB_C01_CICLO.Qtd Pesquisas",
-              "nativeQueryRef": "Taxa de finalização",
-              "displayName": "Taxa de finalização"
+              "nativeQueryRef": "Pesquisas no recorte (base da taxa)",
+              "displayName": "Pesquisas no recorte (base da taxa)"
             }
           ]
         }
