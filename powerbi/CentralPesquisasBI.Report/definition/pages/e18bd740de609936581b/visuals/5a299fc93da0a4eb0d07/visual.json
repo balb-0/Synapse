@@ -452,7 +452,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Participação por pesquisa'"
+                  "Value": "'Participações agregadas por área, tipo e mês'"
                 }
               }
             },
@@ -497,7 +497,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Top 8 por presença agregada das demais empresas.'"
+                  "Value": "'C02 não identifica empresas nem respostas individuais.'"
                 }
               }
             },

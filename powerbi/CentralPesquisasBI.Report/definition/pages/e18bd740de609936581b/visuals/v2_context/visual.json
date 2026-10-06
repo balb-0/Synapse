@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Benchmark agregado por área, tipo e mês (PUB_C02_PARTICIPACAO) — sem empresa/pesquisa individual",
+                    "value": "Dados C02 no grão área, tipo e mês; empresa e pesquisa individual não são publicados.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "14px",
