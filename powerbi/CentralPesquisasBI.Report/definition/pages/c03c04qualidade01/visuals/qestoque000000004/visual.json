@@ -163,6 +163,13 @@
       "categoryAxis": [
         {
           "properties": {
+            "axisType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Categorical'"
+                }
+              }
+            },
             "labelColor": {
               "solid": {
                 "color": {
