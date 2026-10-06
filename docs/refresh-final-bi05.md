@@ -118,6 +118,17 @@ carregada pelo engine continua `nao_comprovada`: ADOMD não expõe o SHA do cód
 carregado. O recibo, isoladamente, não prova o refresh no aplicativo; mantenha
 a evidência da execução e abertura do pacote conferido junto dele.
 
+Quando a consulta Windows também compara o TMDL conferido com o modelo ativo
+via TOM, registre `engine_semantic_projection_verified: true` e
+`engine_model_verification`. O conferidor exige `status: matched`, SHA256 de
+origem e engine iguais, contagens positivas e iguais de itens, zero diferenças,
+lista vazia de diferenças e escopo descrito. Esse resultado fica separado em
+`desktop.provenance.engine_semantic_projection: recibo_confere`. A igualdade
+da projeção semântica declarada não identifica o commit exato dentro do engine.
+Sem essa evidência, o campo fica `nao_conferida`; um flag sozinho não comprova
+a comparação. A conferência dos recibos continua exigindo evidência da
+execução efetiva das consultas e do refresh.
+
 Para ensaio local com o fixture, use `--sintetico`. Essa opção apenas permite
 conferir um `load_reference` iniciado por `synthetic`; o resultado mantém
 `synthetic: true` e `final_acceptance: pendente`. A aceitação final exige a
