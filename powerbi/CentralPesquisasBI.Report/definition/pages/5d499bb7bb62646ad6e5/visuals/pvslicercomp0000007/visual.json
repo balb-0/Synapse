@@ -20,16 +20,16 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "DIM_INDICADORES_BLOQUEADOS"
                     }
                   },
-                  "Property": "complexidade"
+                  "Property": "motivo"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.complexidade",
-              "nativeQueryRef": "complexidade",
+              "queryRef": "DIM_INDICADORES_BLOQUEADOS.motivo",
+              "nativeQueryRef": "motivo",
               "active": true,
-              "displayName": "complexidade"
+              "displayName": "motivo"
             }
           ]
         }
@@ -62,7 +62,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Complexidade'"
+                  "Value": "'Complexidade — sem dado em C01'"
                 }
               }
             },

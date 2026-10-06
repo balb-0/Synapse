@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
                   "Property": "area"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.area",
+              "queryRef": "PUB_C01_CICLO.area",
               "nativeQueryRef": "area",
               "active": true,
               "displayName": "area"
@@ -40,13 +40,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Pesquisas"
+                  "Property": "Qtd Pesquisas"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Pesquisas",
+              "queryRef": "PUB_C01_CICLO.Qtd Pesquisas",
               "nativeQueryRef": "Pesquisas",
               "displayName": "Pesquisas"
             }
@@ -60,10 +60,10 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "D01_CicloPesquisa"
+                    "Entity": "PUB_C01_CICLO"
                   }
                 },
-                "Property": "Pesquisas"
+                "Property": "Qtd Pesquisas"
               }
             },
             "direction": "Descending"
