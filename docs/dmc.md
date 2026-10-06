@@ -862,7 +862,7 @@ fontes confirmadas e tenta novamente carga, reconciliação e publicação.
 | Métricas coletadas | Implementadas: duração, recebidos, carregados, rejeitados, duplicados, bytes, tentativas, latência e estado por etapa, em eventos JSON das quatro etapas coletados pela Elastic Stack e exibidos no painel Kibana. |
 | Alertas | Implementados no ambiente local: "ETL - falha de execução" (erro do pipeline ou health check degradado de Prefect/DuckDB) e "ETL - fila parada" (26 h sem evento de orquestração); divergência de reconciliação interrompe o lote (`UnbalancedLoadError`). |
 | Linhagem | `run_id`, `task_id`, fonte, bucket, objeto, versão, hash, lote, `source_offset`, schema e timestamps; o `event_id` do disparo compõe o `run_id` (ADR 0008). |
-| Custo estimado | Estimativa paramétrica em [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md): local medido com custo incremental zero; piloto e produção projetados por componente (processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção). Valores projetados não são cotação. |
+| Custo estimado | Estimativa paramétrica em [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md): local com premissa de contratação adicional de infraestrutura zero, sem medição ou fatura; piloto e produção projetados por componente (processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção). Valores projetados não são cotação. |
 
 O evento `orchestration.pipeline.emitted` registra `status=completed` somente
 depois da publicação. Em falha, `failed_stage` identifica a etapa; `stage`

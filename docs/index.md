@@ -1,4 +1,22 @@
-# Índice da documentação
+# Portal da documentação
+
+Este é o ponto de entrada para documentação, contratos e evidências do G05. O [README](../README.md) explica a instalação; o [documento principal](projeto.md) reúne o contexto, requisitos, modelagem e governança.
+
+A [versão PDF integral do documento principal](assets/documentacao/documentacao-principal.pdf) permite leitura offline. O [procedimento de exportação](exportacao-documentacao.md) explica proveniência, atualização e limites. Contratos e evidências ligados pelo documento continuam em arquivos separados.
+
+## Comece pela sua atividade
+
+| Atividade | Entrada e próxima leitura |
+| :--- | :--- |
+| Entender o projeto e os requisitos | [Documento principal](projeto.md) e [fontes/dependências](fontes-e-dependencias.md) |
+| Executar o ETL ou investigar uma falha | [Runbook](runbook-execucao.md), [ambiente DuckDB](ambiente-duckdb.md) e [contrato de ingestão](ddl-ingestao.md) |
+| Consultar decisões e arquitetura | [Índice completo das ADRs](adrs/index.md), [visão computacional](visao-computacional-etl.md) e [diagramas UML](assets/uml/) |
+| Entender o consumo analítico e o BI | [Decisão de consumo](decisao-consumo-cubos.md), [solução dos dashboards](solucao_dashboard.md) e [validação de acesso](validacao-acesso-bi.md) |
+| Auditar a avaliação geral | [Matriz de conformidade](conformidade-geral.md) e [referências externas](referencias.md) |
+| Consultar a estrutura do banco, BI e testes | [Banco/DDL](../sql/duckdb/README.md), [apresentação Power BI](../powerbi/README.md) e [guia de testes](../tests/README.md) |
+| Desenvolver e verificar mudanças | [Regras de desenvolvimento](dev-rules.md), [gestão de configuração](gestao-configuração.md) e [matriz de rastreabilidade](matriz-rastreabilidade-sprint3.md) |
+
+Os documentos históricos registram a sprint e a data da evidência. Um plano, uma captura antiga ou uma checklist vazia não comprova validação da versão atual. Consulte a MR da mudança e seu pipeline no SHA de origem para o estado de entrega.
 
 ## Produto e entregáveis
 
@@ -14,7 +32,7 @@
 | [`fontes-e-dependencias.md`](fontes-e-dependencias.md) | Mapa de fontes, limitações e dependências entre os três entregáveis da Sprint 1 |
 | [`contrato-lote-extraido.md`](contrato-lote-extraido.md) | Interface comum dos extratores, contrato de lote, checkpoint e metadados |
 | [`configuracao-extracao.md`](configuracao-extracao.md) | Configuração segura de caminhos, endpoints e credenciais da extração |
-| [`adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | ADR proposto para o ETL orientado a eventos com Python, Prefect, MinIO, DuckDB e Elastic Stack |
+| [`adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md`](adrs/0001-arquitetura-etl-python-prefect-minio-duckdb.md) | ADR aceito para o ETL orientado a eventos com Python, Prefect, MinIO, DuckDB e Elastic Stack |
 | [`adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md`](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md) | ADR da identidade de registro e das versões na tabela de ingestão tratada |
 | [`adrs/0004-execucao-local-e-integracao-continua.md`](adrs/0004-execucao-local-e-integracao-continua.md) | ADR do ambiente local em contêineres, do escopo do CI e da exclusão do Deploy Contínuo |
 | [`extratores.md`](extratores.md) | Implementação e limites dos extratores das seis fontes; pesquisas e empresas entregues na LN-04 |
@@ -27,6 +45,7 @@
 | [`smoke-pipeline-completo-sprint5.md`](smoke-pipeline-completo-sprint5.md) | Evidência real do smoke do comando único: seis fontes, `load_id`, reconciliação aprovada, geração publicada com sete contagens e falha controlada com reexecução |
 | [`solucao_dashboard.md`](solucao_dashboard.md) | Estado verificado das duas páginas Power BI, relação com os Parquet publicados, plano e pendências do barema |
 | [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md) | Estimativa paramétrica dos ambientes local, piloto e de produção, com premissas, fórmulas, fontes e limites |
+| [`analise_financeira.md`](analise_financeira.md) | Resumo executivo, descrição técnica e convenções para os cenários financeiros da Sprint 5 |
 
 O levantamento e o mapa da estrutura dos dashboards estão em
 [`solucao-dashboards/estrutura-dashboards.md`](solucao-dashboards/estrutura-dashboards.md).
@@ -77,15 +96,16 @@ documento principal.
 
 - [Checklist dos entregáveis](checklist-entregaveis-sprint3.md): obrigações, exclusões e critérios de avaliação do enunciado (AN-01).
 - [Matriz de rastreabilidade](matriz-rastreabilidade-sprint3.md): cada requisito ligado a tarefa, evidência e estado observado no repositório (AN-02).
-- [Índice das ADRs](adrs/index.md): status verbatim das três decisões e o que falta para cada uma ser aceita (AN-03).
+- [Índice das ADRs](adrs/index.md): status das oito decisões registradas e os limites de implantação (AN-03).
 - Visões ISO/IEC 10746: [negócio](visao-negocio-etl.md) (AN-04), [informação](visao-informacao-etl.md) (AN-05), [computacional](visao-computacional-etl.md) (AN-06), [engenharia](visao-engenharia-etl.md) (AN-07) e [tecnologia](visao-tecnologia-etl.md) (AN-08).
 - Diagramas UML em [`assets/uml/`](assets/uml/): [casos de uso](assets/uml/casos-de-uso-etl.plantuml) (AN-09), [componentes](assets/uml/componentes-etl.plantuml) (AN-10) e [sequência da ingestão](assets/uml/sequencia-ingestao-etl.plantuml) (AN-11).
 
 As visões descrevem o estado observado no repositório em 25/09/2026.
-Observabilidade (Elastic Stack, painel, health check e alertas), disparo por
-evento (`watch_landing.py`), camada analítica e CI consolidado estão
-integrados; permanece marcado como planejado apenas o que não existe no código
-(por exemplo, a área `bronze` do MinIO e a publicação em serviço Power BI).
+Observabilidade, disparo por evento (`watch_landing.py`), camada analítica e CI
+têm arquivos versionados. A presença desses componentes não comprova que o
+flow chama a carga analítica e a publicação: confira o encadeamento e as
+evidências da versão avaliada. A área `bronze` do MinIO e a publicação no Power
+BI Service permanecem propostas, sem implantação registrada nesse índice.
 
 ## Evidências e protótipos
 

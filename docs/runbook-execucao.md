@@ -36,10 +36,10 @@ Copie `.env.example` para `.env` e preencha. O `.env` não é versionado. As
 variáveis reais, lidas por `src/etl/extraction/config.py` e
 `src/etl/load/config.py`:
 
-| Variável | Padrão | Papel |
+| Variável | Padrão ou exemplo local | Papel |
 | :--- | :--- | :--- |
-| `ETL_MINIO_ENDPOINT` | `http://minio:9000` | Endpoint do MinIO (com scheme) |
-| `ETL_MINIO_BUCKET` | `sindusfarma-data` | Bucket de entrada |
+| `ETL_MINIO_ENDPOINT` | `http://minio:9000` (exemplo no Compose; obrigatório) | Endpoint do MinIO; no host use a porta publicada, por exemplo `http://localhost:9000` |
+| `ETL_MINIO_BUCKET` | `sindusfarma` (exemplo; obrigatório) | Bucket criado pelo Compose local |
 | `ETL_MINIO_INPUT_PREFIX` | `landing` | Prefixo dos objetos de entrada |
 | `ETL_MINIO_ACCESS_KEY` / `ETL_MINIO_SECRET_KEY` | — | Credenciais do MinIO (obrigatórias) |
 | `ETL_REQUEST_TIMEOUT_SECONDS` | `30` | Timeout das requisições ao MinIO |
@@ -52,6 +52,8 @@ variáveis reais, lidas por `src/etl/extraction/config.py` e
 | `ETL_DUCKDB_THREADS` / `ETL_DUCKDB_MEMORY_LIMIT` | — | Tuning da conexão DuckDB (ausente = padrão do DuckDB) |
 | `ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS` | `300` | Espera pelo lock de escrita do arquivo |
 | `ETL_PUBLISH_DIR` | — | Destino da publicação Parquet do pipeline completo (fora do checkout; no runner do Compose, `/data/publicacao`) |
+
+O código não fornece padrão para endpoint, bucket ou credenciais; configure os valores explicitamente. Copiar `.env` não exporta variáveis automaticamente para comandos Python executados no host. No Compose, as variáveis declaradas no serviço prevalecem para esse processo. `PREFECT_API_URL` vazio mantém a API interna padrão do runner; não preencha `localhost` nesse arquivo para um comando dentro do container.
 
 No runner do Compose, `ETL_DUCKDB_PATH` é `/data/warehouse.duckdb`, em volume persistente. Flow e repositório usam esse mesmo contrato de configuração; o TLS do MinIO é derivado do esquema do endpoint.
 
@@ -392,8 +394,15 @@ Comando único que encadeia as quatro etapas no mesmo `ETL_DUCKDB_PATH` e só
 publica os sete Parquet quando a reconciliação aprova a carga
 (`reconciled=true`); o manifesto da geração aponta o `load_id` efetivo.
 
+O backfill lê objetos já presentes no bucket e prefixo de entrada. Antes de executar,
+carregue as seis fontes autorizadas no MinIO conforme a [configuração de extração](configuracao-extracao.md)
+e confirme os objetos no bucket `sindusfarma`, prefixo `landing`. `run_pipeline.py`
+não copia fontes nem semeia fixtures; um ambiente vazio não contém dados para a carga.
+Para ensaio sintético, siga o [smoke de extração](smoke-test-extracao.md); seu resultado
+não substitui a geração final autorizada.
+
 ```bash
-# fluxo completo das seis fontes, publicando em ETL_PUBLISH_DIR (/data/publicacao)
+# processa as seis fontes já presentes, publicando em ETL_PUBLISH_DIR (/data/publicacao)
 docker compose run --rm --no-deps runner python scripts/orchestration/run_pipeline.py
 
 # seis fontes explícitas; a ordem é normalizada pelo pipeline
