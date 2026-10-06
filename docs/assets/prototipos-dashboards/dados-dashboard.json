@@ -354,12 +354,15 @@
     "matriz_regras_i16_i20": [
       {
         "denominador": 4008,
-        "descricao": "4 ausências inesperadas em 4008 elementos de matriz aplicáveis.",
+        "descricao": "Diagnóstico exploratório do snapshot: 4 ausências em 4008 elementos de matriz considerados aplicáveis; não homologa nem publica I16 normativo.",
+        "estado_i16_normativo": "indisponivel",
+        "finalidade": "demonstrativo_historico",
         "formatado": "99,9%",
         "id_regra": "I16",
-        "nome": "Completude aplicável da matriz",
+        "nome": "Diagnóstico de matriz (histórico; I16 não homologado)",
         "numerador": 4004,
         "percentual": 99.9,
+        "regra_homologada": false,
         "status": "divergencia_observada"
       },
       {

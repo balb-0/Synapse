@@ -84,7 +84,7 @@ em produção.
 | I13 | **Respondentes distintos na fonte de respostas:** contagem distinta de `respondent_id`, sem união presumida com clientes. |
 | I14 | **Questões por tipo:** contagem distinta de perguntas; calculável agora. |
 | I15 | **Estado de validação e versão:** indisponível sem versão, área revisora, decisão e timestamp. |
-| I16 | **Completude aplicável:** células preenchidas sobre células aplicáveis; calculável agora. |
+| I16 | **Completude aplicável:** células preenchidas sobre células aplicáveis; requisito indisponível até homologar e publicar regras de obrigatoriedade por campo e tipo/status. O perfilamento é exploratório. |
 | I17 | **Taxa de duplicidade:** linhas além da primeira no grão sobre linhas avaliadas; calculável agora. |
 | I18 | **Integridade referencial:** chaves correspondentes sobre chaves informadas, calculada por relação. |
 | I19 | **Parseabilidade:** valores convertíveis sobre valores informados avaliados; calculável agora. |
@@ -107,7 +107,7 @@ ou metadado.
 | Portfólio e ciclo | I01–I05 calculáveis; I06 aguarda regra de atraso, prioridade e data de referência | Central de Pesquisas e gestores; D01, filtros, detalhe condicionado à autorização e relatório | Priorizar pesquisas, localizar marcos ausentes, comparar durações e avaliar prorrogação sem misturar dias corridos e úteis |
 | Adesão e participação | I07 calculável; I09–I10 exigem reconciliação; I08 e I11 aguardam universo elegível | Central, áreas técnicas e gestores; D02 e tabelas com numerador, denominador e indisponibilidade | Identificar empresas participantes e públicos com menor participação; calcular adesão ou engajamento somente quando o denominador existir |
 | Resultados e questionários | I12–I14 calculáveis; I15 aguarda versão e decisão de validação | Áreas técnicas, Central e gestores; D03, filtros por questão e resultados agregados | Interpretar distribuições, avaliar o instrumento e verificar validação sem tratar elemento de resposta como pessoa |
-| Qualidade, rastreabilidade e publicação | I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções e avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
+| Qualidade, rastreabilidade e publicação | I17–I20 calculáveis no perfilamento; I16 aguarda regras homologadas de aplicabilidade; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções e avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
 
 ### 1.5 Usuários e canais
 
@@ -207,9 +207,12 @@ futura.
 
 ### 2.10 KPIs de governança e qualidade
 
-São calculáveis pelo perfilamento atual: completude por campo e aplicabilidade,
+São calculáveis pelo perfilamento atual: preenchimento físico por campo,
 unicidade ou duplicidade por chave, integridade referencial, parseabilidade por
-tipo e divergência de título. Todo KPI deve registrar numerador, denominador,
+tipo e divergência de título. O diagnóstico condicional de matriz é
+exploratório e histórico; não homologa I16. A completude aplicável de I16
+permanece indisponível até homologar e publicar regras de obrigatoriedade
+por campo e tipo/status. Todo KPI deve registrar numerador, denominador,
 unidade, grão, fonte e regra.
 
 Dependem do pipeline: frescor por timestamp de carga, cobertura de linhagem,

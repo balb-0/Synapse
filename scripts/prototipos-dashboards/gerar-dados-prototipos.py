@@ -726,7 +726,10 @@ def process_data(input_dir, processado_em=None):
         "matriz_regras_i16_i20": [
             {
                 "id_regra": "I16",
-                "nome": "Completude aplicável da matriz",
+                "nome": "Diagnóstico de matriz (histórico; I16 não homologado)",
+                "finalidade": "demonstrativo_historico",
+                "estado_i16_normativo": "indisponivel",
+                "regra_homologada": False,
                 "numerador": len(respostas_matriz) - matriz_ausencias,
                 "denominador": len(respostas_matriz),
                 "percentual": round_pct(
@@ -736,7 +739,7 @@ def process_data(input_dir, processado_em=None):
                     round_pct(len(respostas_matriz) - matriz_ausencias, len(respostas_matriz))
                 ),
                 "status": "divergencia_observada" if matriz_ausencias else "conforme",
-                "descricao": f"{matriz_ausencias} ausências inesperadas em {len(respostas_matriz)} elementos de matriz aplicáveis.",
+                "descricao": f"Diagnóstico exploratório do snapshot: {matriz_ausencias} ausências em {len(respostas_matriz)} elementos de matriz considerados aplicáveis; não homologa nem publica I16 normativo.",
             },
             {
                 "id_regra": "I17",
