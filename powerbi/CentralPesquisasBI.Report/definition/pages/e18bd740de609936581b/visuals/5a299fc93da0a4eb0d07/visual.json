@@ -3,10 +3,10 @@
   "name": "5a299fc93da0a4eb0d07",
   "position": {
     "x": 1087.0182389177437,
-    "y": 661.22768450295928,
+    "y": 661.2276845029593,
     "z": 25000,
     "height": 382.376615533277,
-    "width": 801.48810242782952,
+    "width": 801.4881024278295,
     "tabOrder": 25000
   },
   "visual": {
@@ -20,45 +20,80 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Pesquisa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "Pesquisa"
+                  "Property": "area"
                 }
               },
-              "queryRef": "BE_Pesquisa.Pesquisa",
-              "nativeQueryRef": "Pesquisa",
-              "displayName": "Pesquisa"
+              "queryRef": "PUB_C02_PARTICIPACAO.area",
+              "nativeQueryRef": "Área",
+              "active": true,
+              "displayName": "Área"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "PUB_C02_PARTICIPACAO"
+                    }
+                  },
+                  "Property": "tipo"
+                }
+              },
+              "queryRef": "PUB_C02_PARTICIPACAO.tipo",
+              "nativeQueryRef": "Tipo",
+              "active": true,
+              "displayName": "Tipo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "PUB_C02_PARTICIPACAO"
+                    }
+                  },
+                  "Property": "mes_resposta"
+                }
+              },
+              "queryRef": "PUB_C02_PARTICIPACAO.mes_resposta",
+              "nativeQueryRef": "Mês",
+              "active": true,
+              "displayName": "Mês"
             },
             {
               "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "BE % observado Top 8"
+                  "Property": "Qtd Participacoes"
                 }
               },
-              "queryRef": "BE_Empresa.BE % observado Top 8",
-              "nativeQueryRef": "% agregado das demais empresas",
-              "displayName": "% agregado das demais empresas"
+              "queryRef": "PUB_C02_PARTICIPACAO.Qtd Participacoes",
+              "nativeQueryRef": "Participações (ocorrências)",
+              "active": true,
+              "displayName": "Participações (ocorrências)"
             },
             {
               "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "BE Empresa participou"
+                  "Property": "Media Minutos Preenchimento"
                 }
               },
-              "queryRef": "BE_Empresa.BE Empresa participou",
-              "nativeQueryRef": "Sua empresa participou",
-              "displayName": "Sua empresa participou"
+              "queryRef": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento",
+              "nativeQueryRef": "Média preench. (min)",
+              "active": true,
+              "displayName": "Média preench. (min)"
             }
           ]
         }
@@ -70,13 +105,13 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "BE_Empresa"
+                    "Entity": "PUB_C02_PARTICIPACAO"
                   }
                 },
-                "Property": "BE Empresa participou"
+                "Property": "Qtd Participacoes"
               }
             },
-            "direction": "Ascending"
+            "direction": "Descending"
           }
         ]
       }
@@ -272,7 +307,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Pesquisa.Pesquisa"
+            "metadata": "PUB_C02_PARTICIPACAO.area"
           }
         },
         {
@@ -286,7 +321,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE % observado Top 8"
+            "metadata": "PUB_C02_PARTICIPACAO.Qtd Participacoes"
           }
         },
         {
@@ -300,7 +335,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE Empresa participou"
+            "metadata": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento"
           }
         }
       ]
@@ -417,7 +452,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Participação por pesquisa'"
+                  "Value": "'Participações agregadas por área, tipo e mês'"
                 }
               }
             },
@@ -462,7 +497,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Top 8 por presença agregada das demais empresas.'"
+                  "Value": "'C02 não identifica empresas nem respostas individuais.'"
                 }
               }
             },

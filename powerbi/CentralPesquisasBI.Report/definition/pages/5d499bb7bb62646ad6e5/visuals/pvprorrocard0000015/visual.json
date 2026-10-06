@@ -20,13 +20,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Pesquisas Prorrogadas"
+                  "Property": "Taxa de Prorrogacao"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Pesquisas Prorrogadas",
+              "queryRef": "PUB_C01_CICLO.Taxa de Prorrogacao",
               "nativeQueryRef": "Prorrogadas",
               "displayName": "Prorrogadas"
             }

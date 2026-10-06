@@ -5,8 +5,8 @@
     "x": 1087.0182389177437,
     "y": 238.77666384829087,
     "z": 20000,
-    "height": 410.76265249426262,
-    "width": 801.48810242782952,
+    "height": 410.7626524942626,
+    "width": 801.4881024278295,
     "tabOrder": 20000
   },
   "visual": {
@@ -20,16 +20,16 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Pesquisa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "Ano"
+                  "Property": "mes_resposta"
                 }
               },
-              "queryRef": "BE_Pesquisa.Ano",
-              "nativeQueryRef": "Ano",
+              "queryRef": "PUB_C02_PARTICIPACAO.mes_resposta",
+              "nativeQueryRef": "Mês (resposta)",
               "active": true,
-              "displayName": "Ano"
+              "displayName": "Mês (resposta)"
             }
           ]
         },
@@ -40,30 +40,16 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "BE Pesquisas por ano"
+                  "Property": "Qtd Participacoes"
                 }
               },
-              "queryRef": "BE_Empresa.BE Pesquisas por ano",
-              "nativeQueryRef": "Sua empresa",
-              "displayName": "Sua empresa"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "BE_Empresa"
-                    }
-                  },
-                  "Property": "BE Média demais por ano"
-                }
-              },
-              "queryRef": "BE_Empresa.BE Média demais por ano",
-              "nativeQueryRef": "Benchmark agregado",
-              "displayName": "Benchmark agregado"
+              "queryRef": "PUB_C02_PARTICIPACAO.Qtd Participacoes",
+              "nativeQueryRef": "Participações por mês",
+              "active": true,
+              "displayName": "Participações por mês"
             }
           ]
         }
@@ -75,10 +61,10 @@
               "Column": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "BE_Pesquisa"
+                    "Entity": "PUB_C02_PARTICIPACAO"
                   }
                 },
-                "Property": "Ano"
+                "Property": "mes_resposta"
               }
             },
             "direction": "Ascending"
@@ -245,7 +231,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE Pesquisas por ano"
+            "metadata": "PUB_C02_PARTICIPACAO.Qtd Participacoes"
           }
         },
         {
@@ -263,7 +249,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE Média demais por ano"
+            "metadata": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento"
           }
         }
       ],
@@ -425,7 +411,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Evolução da participação'"
+                  "Value": "'Participações por mês'"
                 }
               }
             },
@@ -470,7 +456,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Quantidade de pesquisas por ano; com um ano, compare as duas colunas.'"
+                  "Value": "'Ocorrências agregadas por mês de resposta.'"
                 }
               }
             },

@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
                   "Property": "tipo"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.tipo",
+              "queryRef": "PUB_C01_CICLO.tipo",
               "nativeQueryRef": "Tipo",
               "active": true,
               "displayName": "Tipo"
@@ -40,13 +40,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Ciclo Médio Validação em Dias Corridos"
+                  "Property": "Media Dias Validacao"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Ciclo Médio Validação em Dias Corridos",
+              "queryRef": "PUB_C01_CICLO.Media Dias Validacao",
               "nativeQueryRef": "Validação",
               "displayName": "Validação"
             },
@@ -55,13 +55,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Ciclo Médio Coleta em Dias Corridos"
+                  "Property": "Media Dias Coleta"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Ciclo Médio Coleta em Dias Corridos",
+              "queryRef": "PUB_C01_CICLO.Media Dias Coleta",
               "nativeQueryRef": "Coleta",
               "displayName": "Coleta"
             },
@@ -70,13 +70,13 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Ciclo Médio Tabulação em Dias Corridos"
+                  "Property": "Media Dias Tabulacao"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Ciclo Médio Tabulação em Dias Corridos",
+              "queryRef": "PUB_C01_CICLO.Media Dias Tabulacao",
               "nativeQueryRef": "Tabulação",
               "displayName": "Tabulação"
             }
@@ -292,7 +292,7 @@
             }
           },
           "selector": {
-            "metadata": "D01_CicloPesquisa.Ciclo Médio Validação em Dias Corridos"
+            "metadata": "PUB_C01_CICLO.Media Dias Validacao"
           }
         },
         {
@@ -310,7 +310,7 @@
             }
           },
           "selector": {
-            "metadata": "D01_CicloPesquisa.Ciclo Médio Coleta em Dias Corridos"
+            "metadata": "PUB_C01_CICLO.Media Dias Coleta"
           }
         },
         {
@@ -328,7 +328,7 @@
             }
           },
           "selector": {
-            "metadata": "D01_CicloPesquisa.Ciclo Médio Tabulação em Dias Corridos"
+            "metadata": "PUB_C01_CICLO.Media Dias Tabulacao"
           }
         }
       ]
@@ -347,7 +347,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Tempo por Etapa e Tipo (dias úteis)'"
+                  "Value": "'Tempo por Etapa e Tipo (dias corridos)'"
                 }
               }
             },

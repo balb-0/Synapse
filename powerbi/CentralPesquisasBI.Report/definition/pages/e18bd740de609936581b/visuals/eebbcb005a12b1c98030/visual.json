@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "eebbcb005a12b1c98030",
   "position": {
-    "x": 295.54873777026211,
-    "y": 661.22768450295928,
+    "x": 295.5487377702621,
+    "y": 661.2276845029593,
     "z": 26000,
     "height": 382.376615533277,
-    "width": 783.12066674719176,
+    "width": 783.1206667471918,
     "tabOrder": 26000
   },
   "visual": {
@@ -20,16 +20,16 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Faixa"
+                      "Entity": "DIM_INDICADORES_BLOQUEADOS"
                     }
                   },
-                  "Property": "Faixa"
+                  "Property": "motivo"
                 }
               },
-              "queryRef": "BE_Faixa.Faixa",
-              "nativeQueryRef": "Faixa",
+              "queryRef": "DIM_INDICADORES_BLOQUEADOS.motivo",
+              "nativeQueryRef": "Motivo de indisponibilidade",
               "active": true,
-              "displayName": "Faixa"
+              "displayName": "Motivo de indisponibilidade"
             }
           ]
         },
@@ -40,30 +40,16 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "DIM_INDICADORES_BLOQUEADOS"
                     }
                   },
-                  "Property": "BE Empresas por faixa"
+                  "Property": "Qtd Indicadores Sem Dado"
                 }
               },
-              "queryRef": "BE_Empresa.BE Empresas por faixa",
-              "nativeQueryRef": "Demais empresas",
-              "displayName": "Demais empresas"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "BE_Empresa"
-                    }
-                  },
-                  "Property": "BE Selecionada por faixa"
-                }
-              },
-              "queryRef": "BE_Empresa.BE Selecionada por faixa",
-              "nativeQueryRef": "Faixa da sua empresa",
-              "displayName": "Faixa da sua empresa"
+              "queryRef": "DIM_INDICADORES_BLOQUEADOS.Qtd Indicadores Sem Dado",
+              "nativeQueryRef": "Indicadores sem dado",
+              "active": true,
+              "displayName": "Indicadores sem dado"
             }
           ]
         }
@@ -75,10 +61,10 @@
               "Column": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "BE_Faixa"
+                    "Entity": "DIM_INDICADORES_BLOQUEADOS"
                   }
                 },
-                "Property": "Faixa"
+                "Property": "motivo"
               }
             },
             "direction": "Ascending"
@@ -297,7 +283,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE Empresas por faixa"
+            "metadata": "DIM_INDICADORES_BLOQUEADOS.Qtd Indicadores Sem Dado"
           }
         },
         {
@@ -315,7 +301,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE Selecionada por faixa"
+            "metadata": "DIM_INDICADORES_BLOQUEADOS.Qtd Indicadores Sem Dado"
           }
         }
       ]
@@ -432,7 +418,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Posição no benchmark'"
+                  "Value": "'Indicadores sem dado por motivo'"
                 }
               }
             },
@@ -477,7 +463,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'A faixa teal indica a posição da sua empresa.'"
+                  "Value": "'Quantidade de indicadores sem dado agrupada pelo motivo.'"
                 }
               }
             },
@@ -524,57 +510,5 @@
       ]
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "8e2c565aa1bca57dcaa8",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "BE_Empresa"
-              }
-            },
-            "Property": "BE Empresas por faixa"
-          }
-        },
-        "type": "Advanced",
-        "filter": {
-          "Version": 2,
-          "From": [
-            {
-              "Name": "b1",
-              "Entity": "BE_Empresa",
-              "Type": 0
-            }
-          ],
-          "Where": [
-            {
-              "Condition": {
-                "Comparison": {
-                  "ComparisonKind": 1,
-                  "Left": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Source": "b1"
-                        }
-                      },
-                      "Property": "BE Empresas por faixa"
-                    }
-                  },
-                  "Right": {
-                    "Literal": {
-                      "Value": "0L"
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        }
-      }
-    ]
   }
 }

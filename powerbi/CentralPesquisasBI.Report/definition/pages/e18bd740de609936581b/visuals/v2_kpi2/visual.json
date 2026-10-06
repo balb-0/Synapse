@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "v2_kpi2",
   "position": {
-    "x": 816.28138706334892,
-    "y": 90.697931895927667,
+    "x": 816.2813870633489,
+    "y": 90.69793189592767,
     "z": 16000,
     "height": 125.58175185589984,
-    "width": 495.35024343160489,
+    "width": 495.3502434316049,
     "tabOrder": 16000
   },
   "visual": {
@@ -20,15 +20,16 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "DIM_INDICADORES_BLOQUEADOS"
                     }
                   },
-                  "Property": "BE Empresas observadas"
+                  "Property": "Qtd Indicadores Sem Dado"
                 }
               },
-              "queryRef": "BE_Empresa.BE Empresas observadas",
-              "nativeQueryRef": "Empresas no recorte",
-              "displayName": "Empresas no recorte"
+              "queryRef": "DIM_INDICADORES_BLOQUEADOS.Qtd Indicadores Sem Dado",
+              "nativeQueryRef": "Qtd. de indicadores sem dado",
+              "active": true,
+              "displayName": "Qtd. de indicadores sem dado"
             }
           ]
         }
