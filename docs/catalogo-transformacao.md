@@ -93,7 +93,7 @@ Os testes e códigos de rejeição estão na [matriz de validação](matriz-tran
 | `id_resposta` | `ingestao_respostas.resposta_id` | `VARCHAR` | rejeitar | id |
 | `pesquisa_id` | `ingestao_respostas.pesquisa_id` | `VARCHAR` | rejeitar | id |
 | `id_pergunta` | `ingestao_respostas.pergunta_id` | `VARCHAR` | rejeitar | id |
-| `respondent_id` | `ingestao_respostas.respondent_id` | `VARCHAR` | rejeitar | id |
+| `respondent_id` | `ingestao_respostas.respondent_id` | `VARCHAR` | rejeitar | text |
 | `id_empresa` | `ingestao_respostas.empresa_id` | `VARCHAR` | null | id |
 | `alternativa` | `ingestao_respostas.alternativa` | `VARCHAR` | null | text |
 | `linha_matriz` | `ingestao_respostas.linha_matriz` | `VARCHAR` | null | text |
