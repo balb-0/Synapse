@@ -43,6 +43,7 @@ table DIM_INDICADORES_BLOQUEADOS
 						{"I12", "Distribuicao agregada de respostas", "Sem dado", "Nenhum dos quatro cubos publica distribuicao de respostas."},
 						{"I13", "Respondentes distintos na fonte de respostas", "Sem dado", "Nao publicado; qtd_participacoes conta ocorrencia, nao pessoa."},
 						{"I15", "Estado de validacao e versao", "Sem dado", "Falta versao, area revisora, decisao e timestamp, mesmo motivo da camada de dados."},
+						{"I16", "Completude aplicavel", "Sem dado", "Regras homologadas de obrigatoriedade por campo e tipo/status nao publicadas. Completude mede preenchimento sobre todas as linhas, incluindo nulos condicionais, e nao substitui I16."},
 						{"I19", "Parseabilidade", "Sem dado", "Nao publicado nesta rodada; exigiria testar conversao de tipo por campo."},
 						{"I20", "Divergencia de titulo", "Sem dado", "Nao publicado nesta rodada; sem consulta equivalente em publish.py."},
 						{"I21", "Frescor da fonte", "Sem dado", "Falta timestamp de carga e regra aprovada, mesmo motivo da camada de dados."},

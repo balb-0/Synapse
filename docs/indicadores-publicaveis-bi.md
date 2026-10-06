@@ -66,7 +66,7 @@ publicação não seleciona, fica indisponível na camada BI mesmo quando
 
 | ID | Indicador | Camada de dados | Camada BI | Fonte publicada | Motivo do bloqueio (BI) |
 | :-- | :-- | :-- | :-- | :-- | :-- |
-| I16 | Completude aplicável | Calculável | **Calculável** | `PUB_QUALIDADE_CAMPO.qtd_preenchidas` / `qtd_linhas` por tabela e campo | — (publicado pela extensão de DX-09 a `publish.py`) |
+| I16 | Completude aplicável | Calculável | **Sem dado** | — | Regras homologadas de obrigatoriedade por campo e tipo/status não publicadas. `PUB_QUALIDADE_CAMPO` mede preenchimento sobre todas as linhas, incluindo nulos condicionais, e não substitui I16. |
 | I17 | Taxa de duplicidade | Calculável | **Calculável** | `PUB_QUALIDADE_DUPLICIDADE.qtd_linhas` / `qtd_chaves_distintas` por tabela | — (idem) |
 | I18 | Integridade referencial | Calculável | **Calculável** | `PUB_QUALIDADE_RELACAO.qtd_chaves_correspondentes` / `qtd_chaves_informadas` por relação | — (idem) |
 | I19 | Parseabilidade | Calculável | **Sem dado** | — | Não publicado nesta rodada; exigiria testar conversão de tipo por campo e publicar a taxa (candidato a uma próxima extensão de `publish.py`, mesmo padrão de I16–I18). |
@@ -77,10 +77,17 @@ publicação não seleciona, fica indisponível na camada BI mesmo quando
 | I24 | Cobertura do processamento | Sem dado | **Sem dado** | — | Mesmo motivo da camada de dados: falta catálogo e execuções. |
 | I25 | Conformidade de acesso | Sem dado | **Sem dado** | — | Mesmo motivo da camada de dados: falta política e logs. |
 
+A medida adicional `Completude` permanece calculável como completude de
+preenchimento. Ela usa `COUNT(coluna)` sobre `COUNT(*)` por campo, sem
+excluir linhas onde o campo seja opcional ou inaplicável. É um diagnóstico
+físico da ingestão tratada, sem classificar a ausência como defeito. O
+requisito I16 de completude aplicável continua distinto e indisponível no
+modelo publicado até que suas regras sejam homologadas e publicadas.
+
 ## Síntese
 
-De 25 indicadores do catálogo, **7 são calculáveis na camada BI** (I01, I02,
-I04 só em média, I14, I16, I17 e I18); **I03 é parcial** e **17 estão sem
+De 25 indicadores do catálogo, **6 são calculáveis na camada BI** (I01, I02,
+I04 só em média, I14, I17 e I18); **I03 é parcial** e **18 estão sem
 dado disponível** nessa camada — seis deles (I07, I09, I12, I13, I19, I20) porque a
 consulta de publicação não seleciona a coluna, não porque o dado não exista
 na camada física. Essa diferença é o motivo pelo qual este documento existe
