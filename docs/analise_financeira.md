@@ -19,3 +19,16 @@ O custo de infraestrutura já estimado em `docs/estimativa-custos-ambiente.md` �
 | Riscos | Que premissas podem invalidar o cálculo? | FN-06, #340 |
 
 Os modelos são complementares. Valores de pessoal entram uma única vez: horas de construção no investimento, horas de sustentação na operação e horas liberadas no benefício, com populações e períodos explícitos.
+
+## Descrição técnica do que existe
+
+O repositório contém extratores Python para seis fontes, transformação com contratos e testes, carga tratada em DuckDB e SQL dos fatos e dimensões analíticos. A orquestração usa Prefect; MinIO é o armazenamento de objetos do fluxo. O modelo de BI versiona um projeto Power BI e as especificações dos quatro cubos. A publicação analítica e a integração de ponta a ponta têm condições e limites descritos nos respectivos contratos; uma tela prototipada ou um contrato não comprova operação produtiva contínua.
+
+| Camada | Evidência versionada | Limite relevante para a análise financeira |
+| :--- | :--- | :--- |
+| Extração e transformação | `src/etl/extraction/`, `src/etl/transformation/` e testes correspondentes | A disponibilidade e a frequência das fontes ainda precisam ser confirmadas no piloto. |
+| Carga e cubos | `src/etl/load/`, `sql/duckdb/`, `docs/contrato-fisico-cubos.md` | O custo de operação depende de volume, retenção e frequência reais. |
+| Orquestração e observabilidade | `src/etl/orchestration/`, `prefect.yaml`, `docs/estimativa-custos-ambiente.md` | Elastic Stack aparece no cenário de custo, mas não deve ser contabilizada como economia comprovada. |
+| Consumo | `powerbi/`, `docs/solucao_dashboard.md`, `docs/acesso-cubos-bi.md` | O benefício de relatórios depende de adoção, treinamento e substituição de trabalho manual. |
+
+Os dashboards apoiam perguntas sobre ciclo de pesquisas, participação, pipeline mensal e resultados/instrumentos. A decisão financeira é se o ganho operacional esperado justifica implantar e sustentar essas capacidades. O objetivo de reduzir cruzamentos manuais consta de `docs/projeto.md` e `docs/matriz-evidencias-problem-canvas.md`; esses documentos também registram que a magnitude de horas e retrabalho ainda não foi medida.
