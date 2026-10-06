@@ -1,0 +1,444 @@
+{
+  "schema_version": 1,
+  "source_package": {
+    "version": "v3",
+    "sha256": "d307d74bc81000317c74d59431cfbc71bf938bd15e41e39fcb397f699468a39e",
+    "authorization": "package explicitly supplied as v3 by user in this session"
+  },
+  "sources": {
+    "pesquisas": {
+      "filename": "pesquisas.csv",
+      "rows": 366,
+      "columns": 33,
+      "bytes": 132693,
+      "sha256": "b8b5773018953a59d25fabb0875825660efe1723fdd37af58a2d85b46b80e7dc"
+    },
+    "empresas": {
+      "filename": "empresas.csv",
+      "rows": 779,
+      "columns": 9,
+      "bytes": 66691,
+      "sha256": "850aaa1840cd24f43c033a0f06d339c9b5186bdaad10f1b653c956e307d3ded5"
+    },
+    "clientes": {
+      "filename": "clientes.csv",
+      "rows": 5430,
+      "columns": 5,
+      "bytes": 393677,
+      "sha256": "5073960065f3ce92a3eab34eeebb38af2b0aaa7e398c862963444a5b608719af"
+    },
+    "questoes": {
+      "filename": "questoes.csv",
+      "rows": 3297,
+      "columns": 13,
+      "bytes": 1125401,
+      "sha256": "a133b7129152850b01af445298baee4a6f4868a74d0b0a9f248442a78f131a36"
+    },
+    "respondentes": {
+      "filename": "respondentes.csv",
+      "rows": 18735,
+      "columns": 6,
+      "bytes": 411628,
+      "sha256": "cb53e8517e7c43793f14131bd76a792f658c808c034f56da95c3235444afca05"
+    },
+    "respostas": {
+      "filename": "respostas.csv",
+      "rows": 281835,
+      "columns": 9,
+      "bytes": 20291071,
+      "sha256": "0266558e7611783cad86f2184186c2344cf2e340039c62c64e6ef64713e244de"
+    }
+  },
+  "source_adapter": {
+    "purpose": "Reprocess v3 respostas with respondent_id preserved as opaque source token",
+    "source_file": "respostas.csv",
+    "source_sha256": "0266558e7611783cad86f2184186c2344cf2e340039c62c64e6ef64713e244de",
+    "conversion": "respondent_id kind=id to required kind=text only in this private ingestion process; strip whitespace through existing text normalizer; no Decimal expansion and no ID reconstruction",
+    "validation": {
+      "literal_nonempty_token_preserved": true,
+      "blank_required_violation": true,
+      "normalized_response_keys_unique": 281835
+    },
+    "optimized_runtime": {
+      "script_sha256": "a4b41d13e78ff6800f60c479358b08d53842d1f67b1a3be1376e44d94dcfeef7",
+      "bulk_values_chunk": 128,
+      "duckdb_threads": 1,
+      "pandas": "3.0.6",
+      "numpy": "2.5.3"
+    }
+  },
+  "source_adapter_execution_sha256": "b9702c67f926bf360db40b19ca3164b027e2449ebb819058142882e82e4aeec0",
+  "source_identifier_rule_semantics_commit": "894445ddc92a7fce172b4f90c09b52f5650f354e",
+  "ingestion": {
+    "pesquisas": {
+      "extracted": 366,
+      "loaded": 366,
+      "rejected": 0,
+      "duplicates": 0,
+      "balanced": true,
+      "object_marked_loaded": true
+    },
+    "empresas": {
+      "extracted": 779,
+      "loaded": 779,
+      "rejected": 0,
+      "duplicates": 0,
+      "balanced": true,
+      "object_marked_loaded": true
+    },
+    "clientes": {
+      "extracted": 5430,
+      "loaded": 5429,
+      "rejected": 1,
+      "duplicates": 0,
+      "balanced": true,
+      "object_marked_loaded": true
+    },
+    "questoes": {
+      "extracted": 3297,
+      "loaded": 3186,
+      "rejected": 111,
+      "duplicates": 0,
+      "balanced": true,
+      "object_marked_loaded": true
+    },
+    "respondentes": {
+      "extracted": 18735,
+      "loaded": 17740,
+      "rejected": 995,
+      "duplicates": 0,
+      "balanced": true,
+      "object_marked_loaded": true
+    },
+    "respostas": {
+      "extracted": 281835,
+      "loaded": 266080,
+      "rejected": 15755,
+      "duplicates": 0,
+      "balanced": true,
+      "object_marked_loaded": true
+    }
+  },
+  "implementation_commits": {
+    "ingestion": "fd6864e4f50e1d9ee995d0116274dc8b0cd2ff4c",
+    "analytics": "894445ddc92a7fce172b4f90c09b52f5650f354e",
+    "publication": "894445ddc92a7fce172b4f90c09b52f5650f354e"
+  },
+  "source_comparison": {
+    "respondentes": {
+      "bytes_equal_to_prior_package": true,
+      "execution": "fresh_v3_ingestion"
+    },
+    "respostas": {
+      "bytes_equal_to_prior_package": false,
+      "execution": "fresh_v3_ingestion"
+    },
+    "clientes": {
+      "bytes_equal_to_prior_package": true,
+      "execution": "fresh_v3_ingestion"
+    },
+    "empresas": {
+      "bytes_equal_to_prior_package": true,
+      "execution": "fresh_v3_ingestion"
+    },
+    "pesquisas": {
+      "bytes_equal_to_prior_package": true,
+      "execution": "fresh_v3_ingestion"
+    },
+    "questoes": {
+      "bytes_equal_to_prior_package": false,
+      "execution": "fresh_v3_ingestion"
+    }
+  },
+  "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+  "load_reference": "afcde424-45e8-457b-8793-bf0866d142b2",
+  "published_at_utc": "2026-10-06T13:51:39.927736+00:00",
+  "manifest_sha256": "7593530089355c139f50529e9600d496e11a8262e00064364fe4fde378efc4e4",
+  "tables": {
+    "PUB_C01_CICLO": {
+      "file": "PUB_C01_CICLO.parquet",
+      "rows": 57,
+      "columns": [
+        "area",
+        "status",
+        "tipo",
+        "qtd_pesquisas",
+        "soma_dias_validacao",
+        "qtd_validacao_disponivel",
+        "soma_dias_coleta",
+        "qtd_coleta_disponivel",
+        "soma_dias_tabulacao",
+        "qtd_tabulacao_disponivel",
+        "soma_dias_ciclo_total",
+        "qtd_ciclo_total_disponivel"
+      ],
+      "sha256": "4bbab9a2e9a1d9c4c8b7c59c5e3cdccf9f684cdd677d9d01da0a66ecb6f1e353",
+      "manifest_check": "ok"
+    },
+    "PUB_C02_PARTICIPACAO": {
+      "file": "PUB_C02_PARTICIPACAO.parquet",
+      "rows": 32,
+      "columns": [
+        "area",
+        "tipo",
+        "mes_resposta",
+        "qtd_participacoes",
+        "soma_minutos_preenchimento",
+        "qtd_preenchimento_disponivel"
+      ],
+      "sha256": "98056ac1e8ac1d9be3bb3448f86cd82bc670f6b98f17dbce87a4b1339a142b0c",
+      "manifest_check": "ok"
+    },
+    "PUB_C03_PIPELINE_MENSAL": {
+      "file": "PUB_C03_PIPELINE_MENSAL.parquet",
+      "rows": 0,
+      "columns": [
+        "data_fim_mes",
+        "status",
+        "area",
+        "tipo",
+        "complexidade",
+        "tipo_resposta",
+        "qtd_pesquisas_no_status",
+        "qtd_entradas_no_mes",
+        "qtd_saidas_no_mes"
+      ],
+      "sha256": "80c89f635056f98e64f8289ed38507fc0d514d206307d5755630a1ab6d993f87",
+      "manifest_check": "ok"
+    },
+    "PUB_C04_INSTRUMENTO": {
+      "file": "PUB_C04_INSTRUMENTO.parquet",
+      "rows": 45,
+      "columns": [
+        "area",
+        "tipo_pergunta",
+        "qtd_perguntas"
+      ],
+      "sha256": "7b6153d16e7b873960cd628917bb14a43346b9c820bf2aec159433c0faa91818",
+      "manifest_check": "ok"
+    },
+    "PUB_QUALIDADE_CAMPO": {
+      "file": "PUB_QUALIDADE_CAMPO.parquet",
+      "rows": 64,
+      "columns": [
+        "tabela",
+        "campo",
+        "qtd_linhas",
+        "qtd_preenchidas"
+      ],
+      "sha256": "a27e660d3accad8d97809a74bb5c1e5840058cad2ea3174e757a981249138d41",
+      "manifest_check": "ok"
+    },
+    "PUB_QUALIDADE_RELACAO": {
+      "file": "PUB_QUALIDADE_RELACAO.parquet",
+      "rows": 8,
+      "columns": [
+        "relacao",
+        "qtd_chaves_informadas",
+        "qtd_chaves_correspondentes"
+      ],
+      "sha256": "de9a591d805abf032fd5f8aac214ae7214c1f5fd71ad1e55e6f578d61d64a96d",
+      "manifest_check": "ok"
+    },
+    "PUB_QUALIDADE_DUPLICIDADE": {
+      "file": "PUB_QUALIDADE_DUPLICIDADE.parquet",
+      "rows": 5,
+      "columns": [
+        "tabela",
+        "qtd_linhas",
+        "qtd_chaves_distintas"
+      ],
+      "sha256": "e23c1db03d6f66546937ff6d826f67de6c31330a86d7d83bcd0a073b3833e764",
+      "manifest_check": "ok"
+    }
+  },
+  "analytics_reconciliation": {
+    "load_id": "afcde424-45e8-457b-8793-bf0866d142b2",
+    "source_digests_match": true,
+    "cubes": [
+      {
+        "cube": "C01",
+        "eligible": 366,
+        "loaded": 366,
+        "discarded": 0,
+        "difference": 0,
+        "missing_keys": 0,
+        "unexpected_keys": 0,
+        "status": "ok"
+      },
+      {
+        "cube": "C02",
+        "eligible": 17740,
+        "loaded": 17740,
+        "discarded": 0,
+        "difference": 0,
+        "missing_keys": 0,
+        "unexpected_keys": 0,
+        "status": "ok"
+      },
+      {
+        "cube": "C03",
+        "eligible": null,
+        "loaded": 0,
+        "discarded": 0,
+        "difference": null,
+        "missing_keys": 0,
+        "unexpected_keys": 0,
+        "status": "not_observed"
+      },
+      {
+        "cube": "C04",
+        "eligible": 3186,
+        "loaded": 3186,
+        "discarded": 0,
+        "difference": 0,
+        "missing_keys": 0,
+        "unexpected_keys": 0,
+        "status": "ok"
+      }
+    ],
+    "orphan_reasons": [],
+    "orphan_audit": [
+      {
+        "source": "respondentes",
+        "target": "DIM_PESQUISA",
+        "reason": "pesquisa_id_ausente",
+        "expected": 0,
+        "logged": 0,
+        "missing_ids": 0,
+        "unexpected_ids": 0
+      },
+      {
+        "source": "respondentes",
+        "target": "DIM_EMPRESA",
+        "reason": "empresa_id_ausente",
+        "expected": 0,
+        "logged": 0,
+        "missing_ids": 0,
+        "unexpected_ids": 0
+      },
+      {
+        "source": "respondentes",
+        "target": "DIM_PESSOA",
+        "reason": "cliente_id_ausente",
+        "expected": 0,
+        "logged": 0,
+        "missing_ids": 0,
+        "unexpected_ids": 0
+      },
+      {
+        "source": "questoes",
+        "target": "DIM_PESQUISA",
+        "reason": "sem_vinculo_unico",
+        "expected": 0,
+        "logged": 0,
+        "missing_ids": 0,
+        "unexpected_ids": 0
+      },
+      {
+        "source": "questoes",
+        "target": "DIM_PESQUISA",
+        "reason": "id_divergente",
+        "expected": 0,
+        "logged": 0,
+        "missing_ids": 0,
+        "unexpected_ids": 0
+      }
+    ],
+    "monthly_closures": [],
+    "reconciled": true
+  },
+  "source_metric_verification": {
+    "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+    "load_reference": "afcde424-45e8-457b-8793-bf0866d142b2",
+    "verified_at_utc": "2026-10-06T13:56:58.338461+00:00",
+    "method": "independent Python/SQL aggregation of treated ingestion; no publisher SQL used; compares cube groups, unavailable sums, denominators and quality counts; FK checks use EXISTS with complete question identity",
+    "verifier_sha256": "98538fe11d1b55fc2ef4e332ccb1f0b0222d4ef27479e548f7426e25b7521d5e",
+    "checks": {
+      "PUB_C01_CICLO": {
+        "groups_expected": 57,
+        "groups_published": 57,
+        "duplicate_groups": 0,
+        "mismatched_groups": 0,
+        "source_totals": {
+          "rows": 366,
+          "validacao": {
+            "sum": 171,
+            "available": 20
+          },
+          "coleta": {
+            "sum": 4960,
+            "available": 358
+          },
+          "tabulacao": {
+            "sum": 3020,
+            "available": 330
+          },
+          "ciclo_total": {
+            "sum": 9468,
+            "available": 331
+          }
+        },
+        "status": "ok"
+      },
+      "PUB_C02_PARTICIPACAO": {
+        "groups_expected": 32,
+        "groups_published": 32,
+        "duplicate_groups": 0,
+        "mismatched_groups": 0,
+        "source_totals": {
+          "rows": 17740,
+          "preenchimento": {
+            "sum": null,
+            "available": 0
+          }
+        },
+        "status": "ok"
+      },
+      "PUB_C04_INSTRUMENTO": {
+        "groups_expected": 45,
+        "groups_published": 45,
+        "duplicate_groups": 0,
+        "mismatched_groups": 0,
+        "source_totals": {
+          "rows": 3186
+        },
+        "status": "ok"
+      },
+      "PUB_QUALIDADE_CAMPO": {
+        "groups_published": 64,
+        "mismatched_groups": 0,
+        "status": "ok"
+      },
+      "PUB_QUALIDADE_RELACAO": {
+        "groups_published": 8,
+        "mismatched_groups": 0,
+        "status": "ok",
+        "method": "EXISTS per informed child occurrence; question identity is research+question, never question alone"
+      },
+      "PUB_QUALIDADE_DUPLICIDADE": {
+        "groups_published": 5,
+        "mismatched_groups": 0,
+        "status": "ok"
+      },
+      "PUB_C03_PIPELINE_MENSAL": {
+        "observed_closures": 0,
+        "published_rows": 0,
+        "status": "not_observed",
+        "stock": null,
+        "flows": null
+      }
+    },
+    "current_cubes_match": true,
+    "all_four_cubes_observed": false
+  },
+  "acceptance": {
+    "publication_integrity": "verified",
+    "source_metrics_c01_c02_c04": "verified",
+    "quality_metrics": "verified",
+    "c03_observation": "not_observed",
+    "cb15_task_implementation": "not_asserted_by_this_receipt",
+    "desktop_refresh": "pending",
+    "all_four_cubes_observed": false
+  }
+}

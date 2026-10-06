@@ -103,3 +103,10 @@ arquivo DuckDB é a fronteira técnica do acesso publicado.
   Uma nova geração tem outro caminho; atualize `PastaPublicacaoBI` para a nova subpasta dos sete arquivos.
 - Se o relatório somar meses de C03 ou mostrar zero para duração ausente,
   corrija a medida do relatório conforme a tabela acima.
+
+## Registro da execução CB-16
+
+A [publicação e conferência CB-16](publicacao-cb16.md) registra a origem da
+execução, as dependências e os resultados agregados da geração entregue nesta
+rodada. Esse registro separa a integridade da publicação da cobertura mensal
+de C03 e do refresh no Power BI Desktop.
