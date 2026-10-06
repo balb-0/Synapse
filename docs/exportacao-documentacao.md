@@ -11,12 +11,13 @@ Os PDFs de diagramas existentes em `docs/assets/diagramas/` não substituem esta
 Execute na raiz do repositório, com Python 3.12 e as bibliotecas de sistema
 Pango e Fontconfig disponíveis. Em Debian/Ubuntu, instale `libpango-1.0-0`,
 `libpangoft2-1.0-0` e `fontconfig`; `poppler-utils` permite a inspeção visual.
-As dependências de exportação ficam separadas das dependências do ETL:
+As dependências de exportação ficam separadas das dependências do ETL.
 
 Use um clone com histórico Git completo para obter as revisões de proveniência.
 Em clones rasos, execute `git fetch --unshallow` antes da exportação. O exportador
-recusa histórico incompleto. O job `docs-publication` da CI usa `GIT_DEPTH: "0"`
+recusa histórico incompleto. O job `docs` da CI usa `GIT_DEPTH: "0"`
 e valida o artefato sem renderizar novamente; nesse modo, não precisa de Pango.
+Instale as dependências e execute:
 
 ```sh
 python -m venv /tmp/g05-docs-venv
