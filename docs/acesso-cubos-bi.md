@@ -100,6 +100,6 @@ arquivo DuckDB é a fronteira técnica do acesso publicado.
   permissão e estado da carga, depois execute novamente.
 - Se o Power BI não encontrar o arquivo, confirme que a geração inteira foi
   copiada para a máquina Windows e selecione os arquivos locais da subpasta.
-  Uma nova geração tem outro caminho; atualize a origem dos quatro arquivos.
+  Uma nova geração tem outro caminho; atualize `PastaPublicacaoBI` para a nova subpasta dos sete arquivos.
 - Se o relatório somar meses de C03 ou mostrar zero para duração ausente,
   corrija a medida do relatório conforme a tabela acima.
