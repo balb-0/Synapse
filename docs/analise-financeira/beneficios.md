@@ -35,3 +35,11 @@ Os números são deliberadamente testáveis e não são estimativas estatística
 | **Em 12 meses, sem rampa de adoção** | **16.772,75** | **60.381,89** | **174.436,57** |
 
 Fórmula por mês: `(N_rel×h_rel + N_retrabalho×h_retrabalho + N_erros×h_erro) × R$ 139,77289/h`. Exemplo base: `(8×4 + 2×1 + 1×2)×139,77289 = R$ 5.031,82/mês`. Os valores anuais são o resultado de 12 vezes o valor mensal **antes** do arredondamento e representam capacidade, não receita nem redução comprovada de desembolso.
+
+## Validação de ganho e dinheiro
+
+**Economia de caixa confirmada: indisponível.** O modelo não afirma redução de folha ou contrato. Para reconhecer uma economia de caixa, identificar a despesa específica evitada, período, aprovação e prova contábil. Para reconhecer benefício de capacidade, identificar a tarefa de destino e seu valor; não somar essa mesma hora novamente como despesa evitada.
+
+No piloto, comparar grupos de relatórios equivalentes antes e depois: registrar identificador, complexidade, responsável, início/fim de preparação, revisões e erros pós-entrega. Medir a taxa de adoção e descontar relatórios que continuem manuais. Se a adoção efetiva for `a` (0 a 1), `benefício realizado elegível = benefício bruto × a`, desde que as horas por entrega também sejam verificadas. FN-05 usa 100% apenas como limite superior de cenário; uma rampa de adoção desloca o ponto de equilíbrio.
+
+Benefícios de qualidade, transparência e decisão melhor podem ser relevantes, mas ficam **não monetizados** enquanto não houver método de atribuição e evidência. Não adicionamos receita hipotética por decisões melhores nem valor financeiro por erros sem custo conhecido além das horas de correção explicitadas.
