@@ -35,6 +35,7 @@ from etl.extraction import (
 )
 from etl.load import DuckDbLoadRepository, UnbalancedLoadError
 from etl.load.config import load_duckdb_settings
+from etl.orchestration.lock import database_lock
 from etl.transformation.consistency import RELATIONS, ReferenceData
 from etl.transformation.pipeline import transform_object
 from etl.transformation.schema import KEYS
@@ -333,8 +334,7 @@ def load(db_path: str, results: list, tuning: dict, *, source: str, run_id: str)
     return reconciliations
 
 
-@flow(name="ingest-object")
-def ingest_object(
+def _ingest_object(
     source: str,
     bucket: str,
     key: str,
@@ -420,7 +420,6 @@ def ingest_object(
         # lote; só falta marcar o objeto inteiro como concluído.
         repo.mark_object_loaded(source, checksum, run_id)
 
-    loaded = sum(r["loaded"] for r in reconciliations)
     _log_event(
         logger,
         INGEST_OBJECT_EVENT,
@@ -429,7 +428,6 @@ def ingest_object(
         run_id=run_id,
         object_key=key,
         source_checksum=checksum,
-        loaded_count=loaded,
         duration_ms=round((time.monotonic() - started) * 1000, 3),
     )
     return {
@@ -440,6 +438,35 @@ def ingest_object(
     }
 
 
+@flow(name="ingest-object")
+def ingest_object(
+    source: str,
+    bucket: str,
+    key: str,
+    *,
+    version_id: str | None = None,
+    event_id: str | None = None,
+    reprocess: bool = False,
+    db_path: str | None = None,
+) -> dict:
+    """Confirma um objeto sob o mesmo lock usado pelo trecho DW/publicação.
+
+    Este flow não publica um conjunto após receber apenas uma fonte. Use
+    ``backfill(..., analytics_output=...)`` para concluir as seis fontes e DW.
+    """
+    settings = load_duckdb_settings({"database_path": db_path})
+    with database_lock(settings.database_path, settings.write_lock_timeout_seconds):
+        return _ingest_object(
+            source,
+            bucket,
+            key,
+            version_id=version_id,
+            event_id=event_id,
+            reprocess=reprocess,
+            db_path=str(settings.database_path),
+        )
+
+
 @flow(name="backfill")
 def backfill(
     sources: list[str],
@@ -448,12 +475,22 @@ def backfill(
     prefix: str = "landing",
     reprocess: bool = False,
     db_path: str | None = None,
+    analytics_output: str | None = None,
+    observed_at: datetime | None = None,
 ) -> dict:
     """Backfill controlado de um conjunto explícito de fontes.
 
     A janela, as fontes e o modo (reprocesso) são parâmetros e ficam registrados
     no histórico do run do Prefect. Cada fonte roda como um subflow `ingest-object`.
     """
+    if analytics_output is not None:
+        from etl.orchestration.analytics import SOURCE_ORDER
+
+        if len(sources) != len(SOURCE_ORDER) or set(sources) != set(SOURCE_ORDER):
+            raise ValueError("a publicação exige as seis fontes completas, sem repetição")
+        sources = list(SOURCE_ORDER)
+    elif observed_at is not None:
+        raise ValueError("observed_at exige analytics_output")
     logger = get_run_logger()
     _log_event(
         logger,
@@ -470,7 +507,17 @@ def backfill(
             source=source, bucket=bucket, key=key, reprocess=reprocess, db_path=db_path
         )
         resultados.append({"source": source, "status": outcome["status"]})
+    analytics = None
+    if analytics_output is not None:
+        from etl.orchestration.analytics import complete_warehouse
+
+        analytics = complete_warehouse(
+            db_path=db_path,
+            output=analytics_output,
+            observed_at=observed_at,
+        )
     return {
+        "analytics": analytics,
         "mode": "backfill",
         "reprocess": reprocess,
         "sources": list(sources),
