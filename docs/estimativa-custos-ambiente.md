@@ -9,7 +9,7 @@ de compra.
 
 - **Data-base:** 24/09/2026.
 - **Moeda:** dólar dos Estados Unidos (USD), sem conversão cambial.
-- **Horizonte:** mês de 30 dias; 730 horas para recursos ligados continuamente.
+- **Horizonte:** mês de referência de 730 horas (365 × 24 ÷ 12, cerca de 30,42 dias) para recursos ligados continuamente.
 - **Regime:** preços sob demanda, sem reserva, crédito promocional ou contrato.
 - **Precisão:** duas casas decimais; valores intermediários não são arredondados.
 
@@ -17,11 +17,11 @@ de compra.
 
 | Classe | Significado neste documento |
 | :--- | :--- |
-| **Medido** | Valor observado em fatura ou medidor. Só existe para o custo incremental de infraestrutura do ambiente local, que é USD 0,00 porque usa equipamento e conexão já disponíveis. Não houve medição de energia, mão de obra ou de nuvem. |
+| **Premissa local** | USD 0,00 para contratação adicional de infraestrutura, assumindo equipamento e conexão já disponíveis. Não houve fatura ou medição para apurar esse valor; energia, mão de obra e depreciação não estão incluídas. |
 | **Referência** | Tarifa unitária adotada apenas para tornar a comparação reproduzível. Precisa ser substituída por cotação na região e conta escolhidas. |
 | **Projetado** | Resultado de quantidade estimada multiplicada pela tarifa de referência. Não é gasto observado. |
 
-Nenhum total do piloto ou da produção deve ser apresentado como custo medido.
+Nenhum total local, do piloto ou da produção deve ser apresentado como custo medido. O custo local de contratação adicional é uma premissa; os demais totais são projeções.
 
 ## 3. Premissas de capacidade e operação
 
