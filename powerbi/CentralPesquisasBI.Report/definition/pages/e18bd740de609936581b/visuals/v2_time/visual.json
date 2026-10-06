@@ -50,22 +50,6 @@
               "nativeQueryRef": "Participações por mês",
               "active": true,
               "displayName": "Participações por mês"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "PUB_C02_PARTICIPACAO"
-                    }
-                  },
-                  "Property": "Media Minutos Preenchimento"
-                }
-              },
-              "queryRef": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento",
-              "nativeQueryRef": "Média de preenchimento (min)",
-              "active": true,
-              "displayName": "Média de preenchimento (min)"
             }
           ]
         }
@@ -377,7 +361,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Evolução da participação'"
+                  "Value": "'Participações por mês'"
                 }
               }
             },

@@ -282,7 +282,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Tempo por Etapa e Tipo (dias úteis)'"
+                  "Value": "'Estoque no fechamento mensal'"
                 }
               }
             },

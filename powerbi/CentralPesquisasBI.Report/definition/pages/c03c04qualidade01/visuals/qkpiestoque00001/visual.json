@@ -140,7 +140,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'taxa de finalização'"
+                  "Value": "'Estoque no último fechamento observado'"
                 }
               }
             },
@@ -343,7 +343,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Insight em destaque'"
+                  "Value": "'Estoque no último fechamento observado'"
                 }
               }
             },

@@ -225,7 +225,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Acompanhamento das Pesquisas'"
+                  "Value": "'Duplicidade por fonte'"
                 }
               }
             },

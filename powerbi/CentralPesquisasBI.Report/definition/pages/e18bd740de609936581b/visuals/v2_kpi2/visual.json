@@ -27,9 +27,9 @@
                 }
               },
               "queryRef": "DIM_INDICADORES_BLOQUEADOS.Qtd Indicadores Sem Dado",
-              "nativeQueryRef": "Indicadores sem dado (I07: empresa distinta)",
+              "nativeQueryRef": "Qtd. de indicadores sem dado",
               "active": true,
-              "displayName": "Indicadores sem dado (I07: empresa distinta)"
+              "displayName": "Qtd. de indicadores sem dado"
             }
           ]
         }

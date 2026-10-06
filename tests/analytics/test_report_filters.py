@@ -15,6 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 REPORT = ROOT / "powerbi/CentralPesquisasBI.Report"
 MODEL = ROOT / "powerbi/CentralPesquisasBI.SemanticModel"
+BENCHMARK_PAGE = "e18bd740de609936581b"
+PRODUCTION_PAGE = "5d499bb7bb62646ad6e5"
 
 BANNED_ENTITIES = {
     "D01_CicloPesquisa",
@@ -106,7 +108,55 @@ class ReportFiltersTests(unittest.TestCase):
             for ent, prop in refs:
                 if ent is None or not (ent.startswith("DIM_") or ent.startswith("PUB_")):
                     offenders.append(f"{path.parent.name}: {ent}.{prop}")
-        self.assertEqual(offenders, [], "slicer fora de DIM_*/PUB_*")
+                if ent == "DIM_INDICADORES_BLOQUEADOS" and prop == "motivo":
+                    offenders.append(
+                        f"{path.parent.name}: indisponibilidade exposta como slicer"
+                    )
+        self.assertEqual(
+            offenders, [], "slicer fora do contrato DIM_*/PUB_*"
+        )
+
+    def test_c01_unavailable_year_and_complexity_are_explanatory_text(self):
+        page_dir = REPORT / "definition/pages" / PRODUCTION_PAGE
+        notices = {
+            "pvslicerano00000003": "Ano de edição indisponível em C01",
+            "pvslicercomp0000007": "Complexidade indisponível em C01",
+        }
+        for visual_id, expected_text in notices.items():
+            visual = json.loads(
+                (page_dir / "visuals" / visual_id / "visual.json").read_text()
+            )["visual"]
+            self.assertEqual(visual.get("visualType"), "textbox")
+            self.assertNotIn("query", visual)
+            self.assertIn(expected_text, json.dumps(visual, ensure_ascii=False))
+
+        mapping_path = ROOT / "docs/solucao-dashboards/filtros-hierarquias-detalhamento.md"
+        mapping = mapping_path.read_text()
+        self.assertIn("Aviso de ano de edição (texto)", mapping)
+        self.assertIn("Aviso de complexidade (texto)", mapping)
+
+    def test_c02_unavailable_company_and_research_values_are_explanatory_text(self):
+        page_dir = REPORT / "definition/pages" / BENCHMARK_PAGE
+        page = json.loads((page_dir / "page.json").read_text())
+        self.assertEqual(page["displayName"], "Participação agregada (C02)")
+
+        notices = {
+            "d3ee05e7e9ee90a905a0": "Empresa distinta por pesquisa (I07) indisponível",
+            "f8529f56a2b696a08788": "Pesquisa individual indisponível",
+        }
+        for visual_id, expected_text in notices.items():
+            visual = json.loads(
+                (page_dir / "visuals" / visual_id / "visual.json").read_text()
+            )["visual"]
+            self.assertEqual(visual.get("visualType"), "textbox")
+            self.assertNotIn("query", visual)
+            self.assertIn(expected_text, json.dumps(visual, ensure_ascii=False))
+
+        mapping_path = ROOT / "docs/solucao-dashboards/filtros-hierarquias-detalhamento.md"
+        mapping = mapping_path.read_text()
+        self.assertIn("grão mensal por área e tipo", mapping)
+        self.assertIn("Aviso de empresa distinta por pesquisa (texto)", mapping)
+        self.assertIn("Aviso de pesquisa individual (texto)", mapping)
 
     def test_no_drillthrough_to_individual_keys(self):
         offenders = []

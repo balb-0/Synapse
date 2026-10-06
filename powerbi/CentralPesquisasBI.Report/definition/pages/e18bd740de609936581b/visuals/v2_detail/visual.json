@@ -427,7 +427,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Detalhe da sua empresa'"
+                  "Value": "'Detalhe agregado por área, tipo e mês'"
                 }
               }
             },
