@@ -2,8 +2,9 @@
 
 Este ensaio usa dados **sintéticos**. A referência `synthetic-bi02-fixture` no
 manifesto identifica o fixture, não uma carga conciliada de produção. A execução
-local de Python valida os Parquet e o contrato do modelo; a aceitação visual no
-Power BI Desktop depende de uma máquina Windows com o aplicativo instalado.
+local de Python valida os Parquet e o contrato do modelo. A execução no
+Desktop real em VM Windows foi registrada abaixo; a aceitação visual do
+relatório e a geração final têm evidências próprias.
 
 ## Preparar a geração
 
@@ -65,5 +66,29 @@ Contagens esperadas deste fixture:
 
 Guarde um registro de aceitação com versão do Power BI Desktop, geração,
 contagens, consultas DAX, erros e capturas de tela. O teste automatizado de
-BI-02 não substitui essa execução no Desktop. Até a execução em Windows, a
-importação visual e o refresh das sete partições permanecem **pendentes**.
+BI-02 não substitui essa execução no Desktop. A conferência registrada abaixo
+prova a importação e as consultas do fixture; não substitui o refresh final
+em BI-05 nem a validação visual das páginas migradas.
+
+## Execução registrada em Windows
+
+O [recibo sanitizado](evidencias/bi02/desktop-fixture.json) registra consultas
+reais no Analysis Services local do Power BI Desktop em
+2026-10-06 às 14:04:07 UTC, depois da sincronização do relógio da VM.
+A execução foi automatizada; não há declaração de operação por uma pessoa.
+A geração `665cb490f85d49529488b4910e094923` usa a referência
+`synthetic-bi02-fixture`, com as sete contagens iguais à tabela acima.
+
+As 13 partições do projeto e duas partições automáticas de data estavam
+processadas sem erro. O pacote PBIP de origem `9726fd6` teve 98 arquivos
+conferidos por hash; a projeção semântica via TOM comparou 128 itens de origem
+e do engine, com zero diferenças. O caminho local do parâmetro foi conferido
+separadamente, pois sua adaptação para Windows não integra o hash do modelo.
+TOM não fornece um marcador do commit exato dentro do engine.
+
+As consultas retornaram totais C01/C02/C04 de 4/4/3, validação ponderada de
+5 dias com base 2 e preenchimento ponderado de 10 minutos com base 2. Para
+C03, o fechamento de 28/02/2026 e estoque 4 coincidem na soma direta e na
+medida BI-04. Entradas/saídas continuam nulas e o catálogo tem 18 entradas,
+17 sem dado. A fonte CB-16 v3 e o aspecto visual do relatório não são
+aceitos por este ensaio sintético.
