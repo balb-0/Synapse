@@ -235,6 +235,45 @@ class PublishCubesTests(unittest.TestCase):
             publish_cubes(self.database, inside_repo, load_reference="synthetic-run-test-1")
         self.assertFalse(inside_repo.exists())
 
+    def test_source_without_controls_requires_explicit_synthetic_reference(self):
+        with self.assertRaisesRegex(ValueError, "synthetic-"):
+            publish_cubes(self.database, self.output, load_reference="run-without-control")
+        self.assertFalse((self.output / "current.json").exists())
+        self.assertFalse(list(self.output.glob(".pending-*")))
+
+    def test_question_relation_uses_research_and_question_without_multiplying_children(self):
+        with duckdb.connect(str(self.database)) as connection:
+            connection.execute(
+                "INSERT INTO ingestao_questoes_atual "
+                "SELECT * REPLACE('other-research' AS pesquisa_id) "
+                "FROM ingestao_questoes_atual WHERE pergunta_id='q1'"
+            )
+        manifest = publish_cubes(self.database, self.output, load_reference="synthetic-composite")
+        path = self.output / manifest["generation"] / "PUB_QUALIDADE_RELACAO.parquet"
+        with duckdb.connect() as reader:
+            result = reader.execute(
+                "SELECT qtd_chaves_informadas, qtd_chaves_correspondentes "
+                "FROM read_parquet(?) WHERE relacao='respostas.pergunta_id'",
+                [str(path)],
+            ).fetchone()
+        self.assertEqual(result, (2, 1))
+
+    def test_question_id_from_another_research_does_not_match(self):
+        with duckdb.connect(str(self.database)) as connection:
+            connection.execute(
+                "UPDATE ingestao_respostas_atual SET pesquisa_id='other-research' "
+                "WHERE pergunta_id='q1'"
+            )
+        manifest = publish_cubes(self.database, self.output, load_reference="synthetic-orphan")
+        path = self.output / manifest["generation"] / "PUB_QUALIDADE_RELACAO.parquet"
+        with duckdb.connect() as reader:
+            result = reader.execute(
+                "SELECT qtd_chaves_informadas, qtd_chaves_correspondentes "
+                "FROM read_parquet(?) WHERE relacao='respostas.pergunta_id'",
+                [str(path)],
+            ).fetchone()
+        self.assertEqual(result, (2, 0))
+
 
 if __name__ == "__main__":
     unittest.main()

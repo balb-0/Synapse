@@ -8,6 +8,8 @@ import os
 import tempfile
 import threading
 import unittest
+from contextlib import contextmanager
+from io import BytesIO
 from pathlib import Path
 from unittest import mock
 
@@ -109,6 +111,92 @@ class WarehouseTasksTests(unittest.TestCase):
         self.assertEqual(
             hashlib.sha256(repaired.read_bytes()).hexdigest(), second["tables"][table]["sha256"]
         )
+
+    def test_source_replaced_between_reconciliation_and_copy_keeps_previous_pointer(self) -> None:
+        previous_load = self.prepare_analytics()
+        previous = analytics_module.publish_warehouse.fn(
+            str(self.database), str(self.output), previous_load
+        )
+        pointer = (self.output / "current.json").read_bytes()
+        existing = set(self.output.iterdir())
+        candidate_load = analytics_module.load_warehouse.fn(str(self.database))["load_id"]
+        actual_publish = analytics_module.publish_cubes
+        replacements = []
+
+        def replace_source_then_publish(*args, **kwargs):
+            with duckdb.connect(str(self.database)) as connection:
+                connection.execute(
+                    "UPDATE ingestao_pesquisas SET idempotency_key=idempotency_key||'-changed', "
+                    "data_entrega=DATE '2026-12-01'"
+                )
+                replacements.append(analytics_module.load_analytics(connection).load_id)
+            return actual_publish(*args, **kwargs)
+
+        with (
+            mock.patch.object(
+                analytics_module, "publish_cubes", side_effect=replace_source_then_publish
+            ),
+            self.assertRaisesRegex(ValueError, "snapshot de publicação"),
+        ):
+            analytics_module.publish_warehouse.fn(
+                str(self.database), str(self.output), candidate_load
+            )
+        self.assertNotEqual(replacements[0], candidate_load)
+        self.assertEqual((self.output / "current.json").read_bytes(), pointer)
+        self.assertEqual(set(self.output.iterdir()), existing)
+        self.assertTrue((self.output / previous["generation"] / "manifest.json").is_file())
+
+    def test_source_changed_without_analytical_reload_cannot_be_published_directly(self) -> None:
+        load_id = self.prepare_analytics()
+        with duckdb.connect(str(self.database)) as connection:
+            connection.execute(
+                "UPDATE ingestao_pesquisas SET idempotency_key=idempotency_key||'-changed', "
+                "data_entrega=DATE '2026-12-01'"
+            )
+        with self.assertRaisesRegex(ValueError, "snapshot de publicação"):
+            analytics_module.publish_cubes(self.database, self.output, load_reference=load_id)
+        self.assertFalse((self.output / "current.json").exists())
+        self.assertFalse(list(self.output.glob(".pending-*")))
+
+    def test_changed_object_is_rejected_before_transform_load_or_confirmation(self) -> None:
+        original = fixtures.payload("empresas")
+        changed = original.replace(b"Empresa Alfa", b"Empresa Corrigida")
+        self.assertNotEqual(original, changed)
+
+        class ChangingReader:
+            opens = 0
+
+            @contextmanager
+            def open(self, reference):
+                self.opens += 1
+                yield BytesIO(original if self.opens == 1 else changed)
+
+        reader = ChangingReader()
+        transformer = mock.Mock(wraps=flow_module.transform.fn)
+        loader = mock.Mock(wraps=flow_module.load.fn)
+        with (
+            mock.patch.object(flow_module, "MinioObjectReader", lambda client: reader),
+            mock.patch.object(flow_module, "extract", flow_module.extract.fn),
+            mock.patch.object(flow_module, "transform", transformer),
+            mock.patch.object(flow_module, "load", loader),
+            self.assertRaises(flow_module.SourceChangedError),
+        ):
+            flow_module.ingest_object.fn(
+                "empresas", "landing-test", "landing/empresas.csv", db_path=str(self.database)
+            )
+        transformer.assert_not_called()
+        loader.assert_not_called()
+        with flow_module.DuckDbLoadRepository(str(self.database)) as repository:
+            self.assertIsNone(repository.load("empresas"))
+            self.assertEqual(
+                repository._conn.execute("SELECT count(*) FROM _control_object").fetchone()[0], 0
+            )
+            self.assertEqual(
+                repository._conn.execute("SELECT count(*) FROM ingestao_empresas").fetchone()[0], 0
+            )
+        state = mock.Mock()
+        state.result.side_effect = flow_module.SourceChangedError("changed")
+        self.assertFalse(flow_module._should_retry(None, None, state))
 
     def test_reconciliation_failure_does_not_publish_and_ingestion_remains_complete(self) -> None:
         load_id = self.prepare_analytics()
