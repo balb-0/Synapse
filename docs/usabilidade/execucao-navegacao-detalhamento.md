@@ -1,31 +1,23 @@
 # Execução — tarefas de navegação, filtros e detalhamento
 
 Registro das sessões que executam os blocos A (navegação), B (filtros) e C
-(detalhamento) do [roteiro](roteiro-execucao.md).
+(detalhamento) do [roteiro](roteiro-execucao.md): sessões **S1** e **S2** da
+rodada final, conforme a [preparação](preparacao-sessoes.md).
 
 > **Estado: aguardando execução.** As fichas abaixo são preenchidas **durante
-> as sessões**, nunca de memória. Este documento só entra em revisão (MR)
-> depois das sessões realizadas, com as fichas completas e as capturas em
-> [`evidencias/`](evidencias/). Alvo de execução: telas dos reports (RP-08);
-> na indisponibilidade delas na janela da sprint, executa-se como **piloto
-> sobre o protótipo D01–D04**, identificado como tal na ficha.
+> as sessões**, nunca de memória, sobre as páginas finais validadas no RP-17.
 
-## Identificação da rodada
+## Identificação da rodada final
 
 | Campo | Valor |
 | :--- | :--- |
-| Alvo | Telas Power BI de Operação (RP-03) e Participação (RP-04), mergeadas na `develop`; telas de Resultados e Qualidade pendentes (MR aberto) |
-| Versão/commit do alvo | _a preencher na sessão (commit da develop no dia)_ |
+| Alvo | _a preencher_ |
+| Versão do relatório | _a preencher_ |
+| Geração Parquet | _a preencher_ |
+| Fonte dos valores de referência | _a preencher_ |
+| Formato | _a preencher_ |
 | Datas das sessões | _a preencher_ |
-| Moderador | _a preencher_ |
-| Observador | _a preencher_ |
-
-Tarefas executáveis nesta rodada (alvo disponível): T-NAV-01, T-FIL-01,
-T-FIL-02, T-FIL-03, T-FIL-04, T-DET-01, T-DET-02. Bloqueadas até as telas de
-Resultados/Qualidade entrarem na `develop`: T-NAV-02 (percurso completo das
-quatro telas), T-DET-03 (detalhamento entre telas via D03) e T-DET-04
-(regra de qualidade na D04) — executá-las antes exige o protótipo como alvo,
-registrado como tal.
+| Moderadora / Observador | _a preencher_ |
 
 ## Rodada 0 — validação com o parceiro (sprint review)
 
@@ -39,7 +31,7 @@ registrado como tal.
 
 Esta rodada não segue o protocolo moderado do [roteiro](roteiro-execucao.md)
 (não mede tempo, desvio nem conclusão por tarefa) — é registro de validação
-com o usuário real, complementar às sessões S1–S4, que permanecem pendentes.
+com o usuário real, complementar às sessões S1–S4.
 
 ### Achados sobre navegação e detalhamento
 
@@ -60,52 +52,52 @@ com o usuário real, complementar às sessões S1–S4, que permanecem pendentes
   ([`execucao-comparacao-segmentacao.md`](execucao-comparacao-segmentacao.md)),
   onde pertencem.
 
+## Como preencher as fichas
+
+- **Conclusão**: sim / assist. (com assistência) / não.
+- **Tempo**: mm:ss, do enunciado ao critério de sucesso; **Aceitável?**
+  compara com o tempo da tarefa.
+- **Desvios**: número de páginas/cliques fora dos passos esperados e
+  descrição curta.
+- **Recorte interpretado**: o recorte que o participante declarou estar
+  vendo, nas palavras dele.
+- **Valor exibido × referência**: o número lido na página e o valor do
+  recorte em [`valores-referencia-v3.md`](evidencias/valores-referencia-v3.md);
+  **Discrepância** = `não`, `de dado` (valores diferentes) ou `de leitura`
+  (valor certo, interpretação errada).
+- **Justificativa do número** (bloco C): transcrição curta e avaliação
+  correta / incompleta / errada.
+
 ## Ficha S1 — P1 (UC01, analista da Central)
 
-Tarefas do participante nesta rodada: T-NAV-01, T-FIL-01, T-FIL-04, T-DET-01.
-
-| Tarefa | Conclusão (sim/assist./não) | Tempo | Aceitável? | Desvios (nº e descrição) | Erros observados | Justificativa do número (C) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-NAV-01 | | | | | | — |
-| T-FIL-01 | | | | | | — |
-| T-FIL-04 | | | | | | — |
-| T-DET-01 | | | | | | |
+| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte interpretado | Valor exibido × referência | Discrepância | Justificativa do número |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| T-NAV-01 | | | | | | | | | — |
+| T-NAV-02 | | | | | | | | | — |
+| T-FIL-01 | | | | | | | | | — |
+| T-FIL-04 | | | | | | | | | — |
+| T-DET-01 | | | | | | | | | |
+| T-DET-05 | | | | | | | | | |
 
 Think-aloud e observações da sessão: _a preencher_
 
-## Ficha S2 — P2 (UC03, gestor)
+## Ficha S2 — P2 (UC02, área técnica e papel de governança)
 
-Tarefas: T-NAV-01, T-FIL-02, T-DET-02.
-
-| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Justificativa do número (C) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-NAV-01 | | | | | | — |
-| T-FIL-02 | | | | | | — |
-| T-DET-02 | | | | | | |
-
-Think-aloud e observações: _a preencher_
-
-## Ficha S3 — P3 (UC02, área técnica)
-
-Tarefas: T-NAV-02, T-DET-03.
-
-| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Justificativa do número (C) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-NAV-02 | | | | | | — |
-| T-DET-03 | | | | | | |
+| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte interpretado | Valor exibido × referência | Discrepância | Justificativa do número |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| T-FIL-02 | | | | | | | | | — |
+| T-FIL-03 | | | | | | | | | — |
+| T-DET-02 | | | | | | | | | |
+| T-DET-03 | | | | | | | | | |
+| T-DET-04 | | | | | | | | | |
 
 Think-aloud e observações: _a preencher_
 
-## Ficha S4 — P4 (governança, papel exercido)
+## Conferência dos valores exibidos
 
-Tarefas: T-FIL-03, T-DET-04.
-
-| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Justificativa do número (C) |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-FIL-03 | | | | | | — |
-| T-DET-04 | | | | | | |
-
-Think-aloud e observações: _a preencher_
+| Tarefa | Recorte | Valor exibido | Valor de referência | Confere? | Observação |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| | | | | | |
 
 ## Debrief (perguntas fixas, por participante)
 
@@ -113,12 +105,10 @@ Think-aloud e observações: _a preencher_
 | :--- | :--- | :--- |
 | P1 | | |
 | P2 | | |
-| P3 | | |
-| P4 | | |
 
-## Síntese da rodada
+## Síntese de S1–S2
 
 _A preencher após as sessões: taxa de conclusão por bloco, tarefas fora do
 tempo aceitável, desvios recorrentes e erros por tipo (estado confundido,
 recorte não percebido, número sem justificativa). Alimenta o registro de
-limitações (US-08)._
+[limitações e propostas](limitacoes-e-propostas.md)._

@@ -22,6 +22,8 @@
 | [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Inventário técnico das seis fontes do ETL: formato, grão, chaves, volumes, integridade, acesso e disponibilidade |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 | [`usabilidade/`](usabilidade/) | Plano de usabilidade dos dashboards: perfis e critérios, tarefas de navegação, detalhamento e comparação, roteiro de execução e limitações |
+| [`usabilidade/preparacao-sessoes.md`](usabilidade/preparacao-sessoes.md) | Preparação das sessões S1–S4: participantes por perfil, versão do relatório, geração v3, checklist pré-sessão e regra de captura |
+| [`usabilidade/evidencias/valores-referencia-v3.md`](usabilidade/evidencias/valores-referencia-v3.md) | Valores de referência agregados por recorte de tarefa, calculados direto sobre a geração v3 com `consultas-referencia.sql` |
 | [`solucao-dashboards/`](solucao-dashboards/) | Documento da solução de dashboards: implementação a partir dos cubos, plano/execução/avaliação de qualidade e checklist contra os critérios |
 | [`smoke-observabilidade-sprint4.md`](smoke-observabilidade-sprint4.md) | Evidência real do smoke OB-11: execução concluída, falha controlada, alerta ativo, painel Kibana e histórico Prefect |
 | [`solucao_dashboard.md`](solucao_dashboard.md) | Estado verificado das duas páginas Power BI, relação com os Parquet publicados, plano e pendências do barema |
