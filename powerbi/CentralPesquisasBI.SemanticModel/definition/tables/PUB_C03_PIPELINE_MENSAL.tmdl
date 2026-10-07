@@ -1,5 +1,8 @@
 table PUB_C03_PIPELINE_MENSAL
 
+	measure 'Estoque no Status' = SUM(PUB_C03_PIPELINE_MENSAL[qtd_pesquisas_no_status])
+		formatString: #,0
+
 	column data_fim_mes
 		dataType: dateTime
 		isHidden

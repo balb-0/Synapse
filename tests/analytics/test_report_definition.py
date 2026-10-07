@@ -22,7 +22,8 @@ class ReportDefinitionTests(unittest.TestCase):
         pages = REPORT / "definition/pages"
         metadata = json.loads((pages / "pages.json").read_text())
         order = metadata["pageOrder"]
-        self.assertEqual(len(order), 2)
+        self.assertEqual(len(order), 3)
+        self.assertIn("c03c04qualidade01", order)
         self.assertEqual(len(set(order)), len(order))
         self.assertEqual(set(order), {p.name for p in pages.iterdir() if p.is_dir()})
         self.assertIn(metadata["activePageName"], order)
@@ -63,6 +64,14 @@ class ReportDefinitionTests(unittest.TestCase):
             self.assertNotIn("query", visual)
             self.assertIn(notice, json.dumps(visual, ensure_ascii=False))
             self.assertNotIn("Taxa de Prorrogacao", json.dumps(visual))
+
+    def test_c03_monthly_stock_uses_categorical_closing_dates(self):
+        path = REPORT / "definition/pages/c03c04qualidade01/visuals/qestoque000000004/visual.json"
+        visual = json.loads(path.read_text())["visual"]
+        axis_type = visual["objects"]["categoryAxis"][0]["properties"]["axisType"]
+        self.assertEqual(axis_type["expr"]["Literal"]["Value"], "'Categorical'")
+        category = visual["query"]["queryState"]["Category"]["projections"][0]
+        self.assertEqual(category["field"]["Column"]["Property"], "data_fim_mes")
 
     def test_c02_count_charts_use_auto_count_axes_and_only_count_selectors(self):
         page = REPORT / "definition/pages/e18bd740de609936581b/visuals"
