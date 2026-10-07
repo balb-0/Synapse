@@ -6,6 +6,36 @@ tarefas de [navegação e filtros](tarefas-navegacao-filtros.md),
 [detalhamento](tarefas-detalhamento.md) e
 [comparação e segmentação](tarefas-comparacao-segmentacao.md).
 
+## 0. Páginas finais avaliadas (Sprint 5)
+
+As tarefas foram escritas sobre o protótipo D01–D04. Na Sprint 5, o alvo das
+sessões passa a ser o relatório
+[`CentralPesquisasBI.Report`](../../powerbi/CentralPesquisasBI.Report/), que
+consome a geração Parquet descrita em
+[`acesso-cubos-bi.md`](../acesso-cubos-bi.md) e foi validado tecnicamente no
+RP-17 ([validação das páginas finais](../solucao-dashboards/validacao-paginas-finais.md)).
+A correspondência entre as telas planejadas e as páginas publicadas é:
+
+<div align="center">
+<sub>Tabela 0 - Telas do protótipo e páginas finais do relatório</sub><br>
+
+| Tela do protótipo | Página final | Fonte publicada | Grão disponível | Filtros da página |
+| :--- | :--- | :--- | :--- | :--- |
+| D01 Operação | Produção e Volume | `PUB_C01_CICLO` | Área × status × tipo, sem eixo de tempo | Área, Tipo, Status (ano de edição e complexidade aparecem como aviso, sem filtrar) |
+| D02 Participação | Participação agregada (C02) | `PUB_C02_PARTICIPACAO` | Área × tipo × mês de resposta, sem empresa nem pesquisa | Ano (de `DIM_TEMPO`), Área, Tipo (empresa e pesquisa aparecem como aviso) |
+| D03 Resultados | Estoque, Instrumento e Qualidade | `PUB_C04_INSTRUMENTO` | Área × tipo de pergunta | Área |
+| D04 Qualidade | Estoque, Instrumento e Qualidade | `PUB_QUALIDADE_*` | Tabela/campo, relação e tabela de origem | Nenhum (escopo global) |
+| — (fluxo mensal) | Estoque, Instrumento e Qualidade | `PUB_C03_PIPELINE_MENSAL` | Fechamento mensal × status × área × tipo × perfil | Status, Área, Mês |
+
+<sup>Material produzido pelos autores (2026), a partir da definição PBIR do RP-17</sup>
+
+</div><br>
+
+Consequências para o plano: D03 e D04 deixam de ser telas separadas e passam a
+ser seções da terceira página; nenhuma página publica pesquisa, empresa ou
+pessoa individual, então o detalhamento termina no menor grão agregado da
+tabela correspondente.
+
 ## 1. Participantes
 
 Perfis mapeados aos públicos do [levantamento](perfis-e-criterios.md). No
