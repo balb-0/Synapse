@@ -368,20 +368,36 @@ na comunicação do recorte e dos estados sem dado**. A comparação temporal
 foi o único ponto em que o dado em si impediu a tarefa (mês de resposta
 vazio na v3).
 
-## Qualidade técnica e funcional
+## 5. Avaliação da qualidade técnica e funcional
 
-A solução reúne identidade visual consistente, filtros agrupados, cartões de
-síntese, gráficos de distribuição e tabelas de acompanhamento. Os dois temas
-analíticos atendem a perguntas distintas: Produção e Volume acompanha o ciclo
-das pesquisas; Benchmark Externo compara a participação observada da empresa
-selecionada com o conjunto disponível.
+Avaliação dos critérios do enunciado com a evidência que a sustenta.
+**Atende** = sem achado de severidade 3 ou 4 no critério; **atende
+parcialmente** = o critério funciona, mas há achado grave ou impeditivo
+registrado.
 
-A qualidade técnica é acompanhada pelo vínculo entre cada visual, sua medida
-DAX e o recorte aplicado. A qualidade funcional é acompanhada pelas tarefas
-de navegação, detalhamento e comparação, com conferência de valores e registro
-das observações em [`docs/usabilidade/`](usabilidade/). As evoluções
-identificadas nas sessões são tratadas em
-[`limitacoes-e-propostas.md`](usabilidade/limitacoes-e-propostas.md).
+<div align="center">
+<sub>Tabela 9 - Critérios de qualidade, evidência e avaliação</sub><br>
+
+| Critério | Evidência | Avaliação | O que falta |
+| :--- | :--- | :--- | :--- |
+| Clareza e coerência visual | Identidade única nas três páginas; títulos descritivos com unidade ("dias corridos") e grão ("por área, status e tipo"); avisos textuais para dado não publicado | Atende parcialmente | Estados `sem dado` exibidos em branco (A15, A05, A11); texto "dados simulados" na página C02 (A10); códigos I05/C02 na interface (A22) |
+| Organização lógica das visualizações | Ordem filtros → cartões → gráficos → tabelas; uma página por tema analítico | Atende | Cartão "Indicadores sem dado" em posição de destaque na página C02 (A11); total repetido em dois cartões (A03) |
+| Consistência entre dados exibidos e métricas dos cubos | 17 de 17 valores conferidos; 9 de 9 verificações de coerência; totais do Desktop iguais ao manifesto (RP-17, BI-05) | Atende | — |
+| Fluidez na navegação e na aplicação de filtros | Interações entre 0,3 s e 1,1 s; seleção cruzada nos gráficos; filtros simples entendidos (T-SEG-01, T-SEG-03) | Atende parcialmente | Slicers não sincronizados entre páginas (A12); sem drill-down nos eixos (A06); sem ação de limpar filtros (A04); escopo dos filtros da terceira página não indicado (A14) |
+| Aderência ao objetivo analítico | Páginas respondem portfólio, ciclo, participação, instrumento e qualidade no grão publicado, sem prometer indicador sem fonte | Atende parcialmente | Comparação temporal impossível na v3 (A17) e ausência de período em C01 (A18); duração em dias corridos e não úteis (A20) |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+**Aproveitamento dos cubos e do modelo.** Os quatro cubos e as três tabelas
+de qualidade têm visual nas páginas; as cinco dimensões conformadas filtram
+os fatos em direção única, sem relação fato–fato; todas as médias e taxas
+são ponderadas pela base válida e devolvem vazio, e não zero, sem
+denominador; indicadores sem fonte aparecem com motivo. Duas capacidades do
+modelo ainda não chegam às páginas: as hierarquias `Calendario` e
+`Area, Tipo e Perfil` (sem uso nos eixos) e a medida `Estado do Estoque`
+(sem visual que a exiba).
 
 ## Limitações e propostas
 
