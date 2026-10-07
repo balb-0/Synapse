@@ -26,7 +26,7 @@
 | [`usabilidade/evidencias/valores-referencia-v3.md`](usabilidade/evidencias/valores-referencia-v3.md) | Valores de referência agregados por recorte de tarefa, calculados direto sobre a geração v3 com `consultas-referencia.sql` |
 | [`solucao-dashboards/`](solucao-dashboards/) | Documento da solução de dashboards: implementação a partir dos cubos, plano/execução/avaliação de qualidade e checklist contra os critérios |
 | [`smoke-observabilidade-sprint4.md`](smoke-observabilidade-sprint4.md) | Evidência real do smoke OB-11: execução concluída, falha controlada, alerta ativo, painel Kibana e histórico Prefect |
-| [`solucao_dashboard.md`](solucao_dashboard.md) | Estado verificado das duas páginas Power BI, relação com os Parquet publicados, plano e pendências do barema |
+| [`solucao_dashboard.md`](solucao_dashboard.md) | Solução final de dashboards: três páginas sobre os cubos Parquet, medidas e dimensões por visual, relacionamentos, DAX, plano e resultados de usabilidade, avaliação de qualidade e limitações |
 | [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md) | Estimativa paramétrica dos ambientes local, piloto e de produção, com premissas, fórmulas, fontes e limites |
 | [`analise_financeira.md`](analise_financeira.md) | Resumo executivo, descrição técnica e convenções para os cenários financeiros da Sprint 5 |
 
