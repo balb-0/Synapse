@@ -117,11 +117,17 @@ recorte aplicado na página e o valor de
 
 | Tarefa | Recorte usado (filtros e período) | Valor exibido | Valor de referência | Confere? | Observação |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-CMP-01 | | | | | |
-| T-CMP-02 | | | | | |
-| T-SEG-01 | | | | | |
-| T-SEG-02 | | | | | |
-| T-SEG-03 | | | | | |
+| T-NAV-01 (S3) | nenhum | 366; finalizada 332 | R-NAV-01: 366; 332 | sim | — |
+| T-CMP-01 | Ano = "(Em branco)" (única opção) | 17.740 | R-CMP-01: nenhum ano observado; 17.740 sem mês | sim | Valor certo; a comparação pedida é `sem dado` porque `mes_resposta` está vazio nas 32 linhas |
+| T-CMP-02 | nenhum | uma barra "(Em branco)" com 17.740 | R-CMP-02: uma categoria sem mês, 17.740 | sim | O gráfico mostra o vazio como categoria, sem aviso de mês indisponível |
+| T-SEG-01 | Área = sindical trabalhista e rh; Tipo = pesquisa fixa anual | 44 | R-SEG-01: 44 | sim | — |
+| T-SEG-02 | C01: Área = assuntos regulatórios; Tipo = solicitação de associado; Status = finalizada. C04: Área reaplicada | 37; múltipla escolha 400 | R-SEG-02: 37; R-DET-03 área: 400 | sim | Tipo de pesquisa e Status não filtram C04 (sem relacionamento, por desenho) |
+| T-SEG-03 | + Status = em tabulação; depois sem Status | cartões em branco; 44 | R-SEG-03: 0 linhas; 44 | sim | Vazio correto, sem mensagem de recorte vazio |
+
+**Resultado:** 6 de 6 valores conferem com a referência no recorte aplicado
+— nenhuma discrepância de dado. Somadas às 11 conferências de S1–S2
+([ficha de navegação](execucao-navegacao-detalhamento.md#conferência-dos-valores-exibidos)),
+a rodada final conferiu 17 de 17 valores.
 
 Divergência é registrada com os dois valores e o recorte — nunca ajustada na
 ficha.
