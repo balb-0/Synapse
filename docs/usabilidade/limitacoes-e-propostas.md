@@ -239,3 +239,45 @@ dos cubos (`src/etl/analytics/`).
 <sup>Material produzido pelos autores (2026)</sup>
 
 </div><br>
+
+## 5. Tratamento dos impeditivos
+
+Os dois achados de severidade 4 foram encaminhados na síntese de S3–S4
+([E2 e E3](execucao-comparacao-segmentacao.md#encaminhamentos-para-rp-17-e-bi-04)).
+Nenhum deles é erro de cálculo, por isso o aceite de dado das páginas não
+volta para BI-04; o que fica condicionado é o **aceite de usabilidade** das
+tarefas afetadas.
+
+### A15 — estoque em branco sem motivo
+
+- **Correção especificada:** o modelo entregue no BI-06 já contém a medida
+  `Estado do Estoque` (`PUB_C03_PIPELINE_MENSAL`; ainda ausente da definição
+  da branch do RP-17), que devolve
+  "Indisponível: a geração publicada não contém linha C03 para o período
+  selecionado." quando não há fechamento, e "Disponível no fechamento de
+  dd/MM/aaaa" quando há. Depois da integração BI-06 + RP-17, a correção é de
+  vínculo, sem DAX novo: incluir essa
+  medida como valor de referência (subtítulo) do cartão `qkpiestoque00001` e
+  como subtítulo do gráfico `qestoque000000004`.
+- **Destino:** RP (páginas finais), com conferência em BI-04.
+- **Critério de fechamento:** com a geração v3, o cartão mostra o motivo
+  textual; com a fixture que tem fechamento (estoque 3 em 31/01/2026 e 4 em
+  28/02/2026, [RP-17](../solucao-dashboards/validacao-paginas-finais.md)), o
+  cartão mostra o valor e a data. T-NAV-02 é reexecutada.
+- **Estado:** encaminhado.
+
+### A17 — comparação temporal sem mês de resposta
+
+- **Correção especificada:** a causa está no dado, não no relatório:
+  `mes_resposta` chega vazio às 32 linhas de C02, coerente com
+  `respondentes.hora_inicio` a 0% de completude na tabela de qualidade. A
+  correção definitiva depende de a origem fornecer a data de resposta e de a
+  carga de C02 derivá-la (CB). Mitigação no relatório: substituir a barra
+  "(Em branco)" por aviso textual e ocultar o slicer Ano quando ele só
+  contiver vazio, para que a página declare o `sem dado` em vez de
+  apresentá-lo como categoria.
+- **Destino:** CB (dado e publicação de C02) e RP (mitigação).
+- **Critério de fechamento:** nova geração com `mes_resposta` preenchido e
+  T-CMP-01/T-CMP-02 reexecutadas com sucesso; até lá, a mitigação é
+  verificada lendo a página com a v3.
+- **Estado:** encaminhado; permanece como limitação efetiva da geração v3.
