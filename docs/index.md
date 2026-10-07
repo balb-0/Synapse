@@ -70,6 +70,7 @@ documento principal.
 - [Repositório de carga](repositorio-de-carga.md): escrita em lote no DuckDB, contagens confirmadas pelo banco, serialização de escrita e convergência do lote reexecutado.
 - [Compensação e retomada de execuções com falha parcial](compensacao-e-retomada-de-carga.md): o que uma falha entre lotes deixa registrado e a partir de que ponto a tentativa seguinte retoma.
 - [Runbook de execução do ETL](runbook-execucao.md): pré-requisitos, variáveis de ambiente, ambiente Docker, execução do pipeline, testes, CI e troubleshooting.
+- [Manual de implementação e reprodução](manual_implementacao_parceiro.md): instalação de um ambiente novo, operação do pipeline, publicação BI e ensaio independente.
 
 ## Camada analítica — Sprint 4
 
