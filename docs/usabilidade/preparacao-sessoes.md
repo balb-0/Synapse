@@ -54,3 +54,28 @@ sessões medem.
 
 Cada sessão segue a ordem fixa do roteiro (§2): aquecimento de 1 minuto,
 blocos A–D nas tarefas atribuídas e debrief com as duas perguntas fixas.
+
+## 3. Versão do relatório e geração usadas
+
+Todas as sessões usam **o mesmo relatório e a mesma geração**. Trocar
+qualquer um dos dois exige uma nova rodada.
+
+<div align="center">
+<sub>Tabela 3 - Alvo das sessões</sub><br>
+
+| Item | Valor |
+| :--- | :--- |
+| Relatório | `powerbi/CentralPesquisasBI.pbip`, páginas Produção e Volume; Participação agregada (C02); Estoque, Instrumento e Qualidade |
+| Versão do relatório | Tip do RP-17 `94e91ef5e9c009a162b02c1986a8ce8b60628e8b`, pacote integrado com SHA-256 `a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea` ([validação RP-17](../solucao-dashboards/validacao-paginas-finais.md)) |
+| Geração Parquet | v3 `6b1eaa686aac43b18b6d6545e1c2c5f1`, `load_reference` `afcde424-45e8-457b-8793-bf0866d142b2` ([publicação CB-16](../acesso-cubos-bi.md)) |
+| Linhas esperadas por tabela (manifesto) | `PUB_C01_CICLO` 57; `PUB_C02_PARTICIPACAO` 32; `PUB_C03_PIPELINE_MENSAL` 0; `PUB_C04_INSTRUMENTO` 45 |
+| Parâmetro do modelo | `PastaPublicacaoBI` apontando para a subpasta local da geração v3, fora do repositório |
+| Ambiente | Power BI Desktop em Windows, modo de leitura (sem painel de edição aberto) |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+A geração v3 não tem fechamento mensal observado em C03 (0 linhas). Isso é
+estado `sem dado` da publicação, não falha de carga, e as tarefas que passam
+pela seção de estoque medem justamente se a página comunica esse estado.
