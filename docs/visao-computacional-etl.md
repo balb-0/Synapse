@@ -4,8 +4,14 @@ Decomposição do pipeline em componentes, com a interface que cada um expõe, a
 responsabilidade que assume e a que explicitamente recusa. As assinaturas foram
 lidas do código em [`src/etl/`](../src/etl/); quando um componente existe apenas
 como contrato, a linha diz **planejado** e nomeia onde o contrato está escrito.
-Estado conferido em 25/09/2026, após a integração da observabilidade (OB-03 a
-OB-11) e das correções de reconciliação da Sprint 4.
+Base registrada em 25/09/2026; revisão de contratos em 06/10/2026 com o
+flow completo DW e o monitor periódico. Descreve código e configuração
+versionados, sem afirmar execução desses deployments no ambiente do parceiro.
+
+Esta revisão descreve o conjunto integrado dos suplementos PL (MR !289),
+OBS (MR !295) e reports (MR !294). O código novo de DW e monitor periódico
+é entregue pelas branches PL e OBS; conferir esses contratos após integrar
+as três entregas.
 
 O diagrama de componentes correspondente está em
 [`assets/uml/componentes-etl.plantuml`](assets/uml/componentes-etl.plantuml) e é
@@ -49,11 +55,13 @@ como número fixo neste documento.
 
 ### Componentes acrescentados ao fluxo servido
 
-| Componente | Entrada | Saída | Responsabilidade verificável | Estado em `develop` |
+| Componente | Entrada | Saída | Responsabilidade verificável | Estado no código versionado |
 | :--- | :--- | :--- | :--- | :--- |
-| Servidor de deployment | Parâmetros do deployment `ingest-object/agendado` | Flow run do Prefect | Manter o deployment disponível para agenda e disparo manual | Implementado em `scripts/orchestration/deployment.py`, servido pelo serviço `scheduler` do Compose contra o `prefect-server` |
+| Servidor de deployment | Parâmetros do deployment `pipeline-completo/agendado-dw` | Flow run do Prefect | Manter o deployment disponível para agenda e disparo manual | Implementado em `scripts/orchestration/deployment.py`, servido pelo serviço `scheduler` do Compose contra o `prefect-server` |
 | Emissor de eventos da carga | `LoadResult` e `BatchMetadata` | `LoadBatchLogEvent` | Publicar status, duração e contagens sem conteúdo de negócio | Implementado em `src/etl/load/log_events.py` |
 | Sink de logging padrão | Evento técnico | Registro JSON no logger Python | Serializar o evento sem acoplar o repositório ao transporte | Implementado para extração, transformação, carga e orquestração |
+| Pipeline completo DW | `run_pipeline(sources=None, *, publish_dir, reprocess=False, db_path=None, observed_at=None)` | Backfill confirmado, load_id, reconciliação e geração publicada | Confirmar seis fontes antes de `load_warehouse` → `reconcile_warehouse` → `publish_warehouse`; compartilhar lock com writers de ingestão e propagar falhas | Implementado em `src/etl/orchestration/pipeline.py` e `src/etl/orchestration/analytics.py` (PL, MR !289) |
+| Monitor periódico | Configuração Prefect/DuckDB e intervalo de 60s | Um relatório por ciclo, com limite de 30s | Consultar saúde mesmo sem execução de flows; distinguir lock busy de indisponibilidade | Serviço `health-monitor` em [`docker-compose.yml`](../docker-compose.yml), usando `scripts/orchestration/health_monitor.py` (OBS, MR !295) |
 | Health check da orquestração | `PREFECT_API_URL` e configuração do DuckDB | Evento `orchestration.health_check.emitted` e código de saída | Verificar disponibilidade do Prefect e do banco | Implementado em [`health.py`](../src/etl/orchestration/health.py) e `scripts/orchestration/health_check.py` |
 | Coletor de telemetria | Log JSON no stdout | Índice `etl-logs-*` e painel Kibana | Transportar e reter sinais operacionais | Implementado: driver GELF → Logstash → Elasticsearch |
 | Camada analítica | Views tratadas e controles | Dimensões, fatos C01–C04 e 7 Parquet publicados | Materializar e publicar o contrato dimensional | Implementado em [`src/etl/analytics/`](../src/etl/analytics/) |
@@ -97,9 +105,11 @@ registros. Um lote inconsistente não chega à transformação.
 
 ### Interfaces do caminho servido e da telemetria
 
-O ponto de entrada servido é o próprio flow `ingest_object`. O script de
-deployment fornece nome, cron e parâmetros padrão; execuções pela agenda, UI ou
-CLI chegam à mesma assinatura e produzem o mesmo histórico de estados.
+O ponto de entrada da agenda DW é `run_pipeline`, flow `pipeline-completo`.
+O script de deployment fornece cron, seis fontes e `publish_dir`. O manual DW
+usa a mesma assinatura; `ingest_object` e `backfill` isolados continuam
+limitados à ingestão tratada. Sem observação real de fechamento, C03 permanece
+`not_observed`; a agenda não cria evidência mensal.
 
 | Fronteira | Contrato | Falha observável |
 | :--- | :--- | :--- |

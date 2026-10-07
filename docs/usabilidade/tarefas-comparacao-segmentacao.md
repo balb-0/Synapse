@@ -6,38 +6,37 @@ de [`tarefas-navegacao-filtros.md`](tarefas-navegacao-filtros.md). Duas regras
 específicas deste grupo, herdadas dos critérios de aceite (§6.1.1, RF01 e
 RF03):
 
-- **Períodos equivalentes**: comparação temporal só vale entre janelas
-  comparáveis (mesmo tamanho, mesmo marco); o critério de sucesso sempre
-  exige que o participante **identifique o campo de data** em uso —
-  `data_solicitacao` é o padrão e qualquer outro marco precisa aparecer
-  rotulado.
-- **Segmentação simultânea**: com dois ou mais filtros ativos, o participante
-  precisa saber dizer **qual recorte está vendo** — filtros acumulados sem
-  consciência do recorte são a principal fonte de leitura errada.
+- Comparação em Produção usa anos de edição completos (`ano_edicao`), mantendo
+  os demais filtros. Não mede entradas por solicitação.
+- Evolução no Benchmark usa ano de divulgação (`BE_Pesquisa[Ano]`), com empresa
+  selecionada. Não se compara esse ano ao de edição como se fossem o mesmo marco.
+- Com dois ou mais filtros ativos, o participante deve enunciar o recorte.
 
-## T-CMP-01 — Comparar dois períodos equivalentes do portfólio
+## T-CMP-01 — Comparar dois anos de edição do portfólio
 
 - **Perfil-alvo:** UC03 (gestor).
 - **Situação real:** "A diretoria perguntou se o volume de pesquisas
-  solicitadas cresceu em relação ao período anterior. Responda com os números
+  por edição cresceu de um ano para outro. Responda com os números
   da solução."
-- **Passos esperados:** D01 → aplicar período A (janela padrão por
-  `data_solicitacao`) → registrar a contagem → aplicar o período B
-  equivalente → comparar.
+- **Passos esperados:** Produção e Volume → selecionar ano de edição A → registrar a
+  contagem → selecionar ano de edição B, mantendo área/tipo/status iguais → comparar.
 - **Critério de sucesso:** apresenta as duas contagens, diz qual período teve
-  mais solicitações **e identifica o campo de data usado** na comparação.
+  mais pesquisas **e identifica `ano_edicao`** como marco, sem afirmar
+  crescimento das solicitações.
 - **Tempo aceitável:** 4 minutos.
 
-## T-CMP-02 — Ler a evolução mensal sem misturar marcos temporais
+## T-CMP-02 — Ler a evolução anual da participação
 
 - **Perfil-alvo:** UC01 (analista da Central).
-- **Situação real:** "Aponte em qual mês houve mais entradas de pesquisas e
-  confirme qual data define 'entrada' nesse gráfico."
-- **Passos esperados:** D01 → visual de evolução temporal → identificar o
-  pico → conferir o rótulo/legenda do marco temporal.
-- **Critério de sucesso:** aponta o mês de pico e nomeia o marco temporal do
-  visual; se o participante presumir outro marco ("é a data de entrega?"),
-  a dúvida registrada vira achado sobre a rotulagem.
+- **Situação real:** "Para uma empresa, aponte o ano com mais pesquisas em que
+  há participação observada e explique qual data define o ano."
+- **Passos esperados:** Benchmark Externo — V2 → selecionar uma empresa →
+  visual Evolução da participação → identificar pico → conferir o ano de
+  divulgação (`BE_Pesquisa[Ano]`, derivado de `data_divulgacao`).
+- **Critério de sucesso:** aponta o ano e a contagem de pesquisas distintas,
+  distingue a série da selecionada da média das demais e nomeia o marco.
+  A ausência de rótulo claro deve ser registrada como achado; não pressupor
+  uma evolução mensal ou uma data de entrada que a página não oferece.
 - **Tempo aceitável:** 3 minutos.
 
 ## T-SEG-01 — Dois filtros simultâneos e leitura do recorte
@@ -46,19 +45,21 @@ RF03):
 - **Situação real:** "Quantas pesquisas de uma mesma área e de um mesmo tipo
   existem no portfólio? Ao final, descreva exatamente o que o número
   representa."
-- **Passos esperados:** D01 → filtro de área → filtro de tipo (mantendo o de
+- **Passos esperados:** Produção e Volume → filtro de área → filtro de tipo (mantendo o de
   área) → leitura da contagem.
 - **Critério de sucesso:** informa a contagem **e enuncia o recorte completo**
-  ("pesquisas da área X e do tipo Y, no período padrão") sem omitir nenhum
+  ("pesquisas da área X e do tipo Y, nos anos de edição selecionados") sem omitir nenhum
   filtro ativo.
 - **Tempo aceitável:** 3 minutos.
 
-## T-SEG-02 — Três filtros simultâneos cruzando telas
+## T-SEG-02 — Três filtros simultâneos cruzando telas (fora da rodada)
+
+- **Estado:** fora da rodada; exige Resultados (D03), ausente no report entregue.
 
 - **Perfil-alvo:** UC02 (área técnica).
 - **Situação real:** "Para um conjunto filtrado por área, tipo e status,
   verifique a distribuição por tipo de questão nos resultados."
-- **Passos esperados:** D01 → aplicar os três filtros → navegar a D03 →
+- **Passos esperados:** Produção e Volume → aplicar os três filtros → navegar a D03 →
   conferir se o recorte se manteve → ler a distribuição por tipo de questão.
 - **Critério de sucesso:** lê a distribuição para o recorte certo e confirma
   quais dos três filtros permaneceram ativos após a navegação (perceber
@@ -70,7 +71,7 @@ RF03):
 - **Perfil-alvo:** UC01 (analista da Central).
 - **Situação real:** "Empilhe filtros até obter um recorte sem pesquisas e
   explique o que a tela está dizendo."
-- **Passos esperados:** D01 → acumular período curto + área + tipo + status
+- **Passos esperados:** Produção e Volume → acumular ano de edição + área + tipo + status
   até zerar → ler o estado exibido → remover UM filtro e observar o retorno
   de resultados.
 - **Critério de sucesso:** distingue "recorte sem correspondência" de erro,
@@ -81,10 +82,10 @@ RF03):
 
 ## Dependências e limites declarados
 
-- As comparações usam apenas contagens calculáveis do snapshot (I01–I05);
-  nenhuma tarefa pede taxa que dependa de denominador indisponível (I08,
-  I11) — se a tela exibir "indisponível", ler esse estado corretamente é o
-  comportamento esperado, não um bloqueio da tarefa.
-- Comparação entre períodos usa janelas equivalentes por `data_solicitacao`;
-  tarefas não pedem "período" solto sem marco definido (regra do RF03 contra
-  referência temporal ambígua).
+- T-CMP-01, T-CMP-02, T-SEG-01 e T-SEG-03 estão na rodada; T-SEG-02 permanece
+  fora por falta de página. O registro não converte bloqueio em execução.
+- Os números da demonstração vêm de CSVs sintéticos e devem ser conferidos
+  contra a mesma versão desses arquivos. A precisão contra o DW só pode ser
+  aceita após a integração e o redesenho dos visuais em RP-13/RP-14.
+- Ano de edição e ano de divulgação não são janelas de solicitação nem mês
+  de resposta dos cubos. O moderador registra o campo correto em cada tarefa.
