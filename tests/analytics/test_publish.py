@@ -122,6 +122,15 @@ class PublishCubesTests(unittest.TestCase):
         current = json.loads((self.output / "current.json").read_text())
         generation = self.output / current["generation"]
         self.assertEqual(manifest["load_reference"], "synthetic-run-test-1")
+        self.assertEqual(
+            manifest["tables"]["PUB_C03_PIPELINE_MENSAL"]["observation_state"], "unverified"
+        )
+        self.assertNotIn("observed_months", manifest["tables"]["PUB_C03_PIPELINE_MENSAL"])
+        for name in ("PUB_QUALIDADE_CAMPO", "PUB_QUALIDADE_RELACAO"):
+            self.assertEqual(
+                manifest["tables"][name]["population_scope"]["respondentes"],
+                "synthetic_unverified_physical_rows",
+            )
         self.assertEqual(set(manifest["tables"]), set(PUBLICATIONS))
         self.assertEqual(
             {item.name for item in generation.iterdir()},
@@ -165,7 +174,7 @@ class PublishCubesTests(unittest.TestCase):
         finally:
             reader.close()
 
-    def test_publishes_quality_indicators_i16_i17_i18(self):
+    def test_publishes_physical_completion_integrity_and_duplicates(self):
         manifest = publish_cubes(self.database, self.output, load_reference="synthetic-run-test-1")
         current = json.loads((self.output / "current.json").read_text())
         generation = self.output / current["generation"]
@@ -201,6 +210,60 @@ class PublishCubesTests(unittest.TestCase):
                 self.assertNotIn("enunciado", columns)
         finally:
             reader.close()
+
+    def test_physical_completion_counts_cells_without_applicability_filter(self):
+        first = publish_cubes(
+            self.database, self.output, load_reference="synthetic-physical-completion"
+        )
+        reader = duckdb.connect(":memory:")
+        self.addCleanup(reader.close)
+        publication = self.output / first["generation"] / "PUB_QUALIDADE_CAMPO.parquet"
+        # Both questions are non-matrix. Their matrix fields still have a
+        # physical denominator; no mandatory-field/conditional rule is inferred.
+        self.assertEqual(
+            reader.execute(
+                "SELECT SUM(qtd_linhas), SUM(qtd_preenchidas) FROM read_parquet(?)"
+                " WHERE tabela = 'questoes' AND campo IN ('linhas_matriz', 'colunas_matriz')",
+                [str(publication)],
+            ).fetchone(),
+            (4, 0),
+        )
+        # Each selected field contributes one cell per row. SQL COUNT counts
+        # a non-null empty string; it does not validate semantic content.
+        writer = duckdb.connect(str(self.database))
+        try:
+            writer.execute("UPDATE ingestao_clientes_atual SET departamento = ''")
+        finally:
+            writer.close()
+        second = publish_cubes(self.database, self.output, load_reference="synthetic-non-null-cell")
+        self.assertEqual(
+            reader.execute(
+                "SELECT qtd_linhas, qtd_preenchidas FROM read_parquet(?)"
+                " WHERE tabela = 'clientes' AND campo = 'departamento'",
+                [str(self.output / second["generation"] / "PUB_QUALIDADE_CAMPO.parquet")],
+            ).fetchone(),
+            (2, 2),
+        )
+
+    def test_physical_completion_empty_source_publishes_zero_base(self):
+        writer = duckdb.connect(str(self.database))
+        try:
+            writer.execute("DELETE FROM ingestao_questoes_atual")
+        finally:
+            writer.close()
+        manifest = publish_cubes(
+            self.database, self.output, load_reference="synthetic-empty-source"
+        )
+        reader = duckdb.connect(":memory:")
+        self.addCleanup(reader.close)
+        self.assertEqual(
+            reader.execute(
+                "SELECT qtd_linhas, qtd_preenchidas FROM read_parquet(?)"
+                " WHERE tabela = 'questoes' AND campo = 'linhas_matriz'",
+                [str(self.output / manifest["generation"] / "PUB_QUALIDADE_CAMPO.parquet")],
+            ).fetchone(),
+            (0, 0),
+        )
 
     def test_failure_keeps_previous_generation_current(self):
         first = publish_cubes(self.database, self.output, load_reference="synthetic-run-test-1")

@@ -31,6 +31,7 @@ O projeto integra as fontes da Central de Pesquisas do Sindusfarma em um ETL Pyt
 Comece pelo [portal da documentação](docs/index.md). Ele liga o [documento principal](docs/projeto.md), as [decisões arquiteturais](docs/adrs/index.md), o [runbook de execução](docs/runbook-execucao.md) e os contratos por etapa.
 
 - [Matriz do feedback de conformidade](docs/conformidade-geral.md): evidência, correção e limite de cada critério.
+- [PDF integral da documentação principal](docs/assets/documentacao/documentacao-principal.pdf) e [geração/verificação](docs/exportacao-documentacao.md).
 - [Referências técnicas e normativas](docs/referencias.md): fontes externas e sua aplicação no projeto.
 
 ## Dashboards
@@ -99,6 +100,8 @@ g05/
 ├─ .gitignore
 └─ README.md
 ```
+
+Os guias de [banco/DDL](sql/duckdb/README.md), [apresentação Power BI](powerbi/README.md) e [testes e massas sintéticas](tests/README.md) explicam como navegar e verificar cada camada.
 
 ## Requisitos
 

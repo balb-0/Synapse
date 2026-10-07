@@ -36,10 +36,10 @@ Copie `.env.example` para `.env` e preencha. O `.env` não é versionado. As
 variáveis reais, lidas por `src/etl/extraction/config.py` e
 `src/etl/load/config.py`:
 
-| Variável | Padrão | Papel |
+| Variável | Padrão ou exemplo local | Papel |
 | :--- | :--- | :--- |
-| `ETL_MINIO_ENDPOINT` | `http://minio:9000` | Endpoint do MinIO (com scheme) |
-| `ETL_MINIO_BUCKET` | `sindusfarma-data` | Bucket de entrada |
+| `ETL_MINIO_ENDPOINT` | `http://minio:9000` (exemplo no Compose; obrigatório) | Endpoint do MinIO; no host use a porta publicada, por exemplo `http://localhost:9000` |
+| `ETL_MINIO_BUCKET` | `sindusfarma` (exemplo; obrigatório) | Bucket criado pelo Compose local |
 | `ETL_MINIO_INPUT_PREFIX` | `landing` | Prefixo dos objetos de entrada |
 | `ETL_MINIO_ACCESS_KEY` / `ETL_MINIO_SECRET_KEY` | — | Credenciais do MinIO (obrigatórias) |
 | `ETL_REQUEST_TIMEOUT_SECONDS` | `30` | Timeout das requisições ao MinIO |
@@ -52,6 +52,8 @@ variáveis reais, lidas por `src/etl/extraction/config.py` e
 | `ETL_DUCKDB_THREADS` / `ETL_DUCKDB_MEMORY_LIMIT` | — | Tuning da conexão DuckDB (ausente = padrão do DuckDB) |
 | `ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS` | `300` | Espera pelo lock de escrita do arquivo |
 | `ETL_PUBLISH_DIR` | — | Destino da publicação Parquet do pipeline completo (fora do checkout; no runner do Compose, `/data/publicacao`) |
+
+O código não fornece padrão para endpoint, bucket ou credenciais; configure os valores explicitamente. Copiar `.env` não exporta variáveis automaticamente para comandos Python executados no host. No Compose, as variáveis declaradas no serviço prevalecem para esse processo. `PREFECT_API_URL` vazio mantém a API interna padrão do runner; não preencha `localhost` nesse arquivo para um comando dentro do container.
 
 No runner do Compose, `ETL_DUCKDB_PATH` é `/data/warehouse.duckdb`, em volume persistente. Flow e repositório usam esse mesmo contrato de configuração; o TLS do MinIO é derivado do esquema do endpoint.
 
@@ -72,9 +74,11 @@ Serviços definidos em `docker-compose.yml`:
   http://localhost:4200 e health check em http://localhost:4200/api/health
   (volume `prefect-data`: agendamentos e histórico sobrevivem a
   `docker compose down/up`).
-- `scheduler`: serve o deployment `ingest-object/agendado` (cron `0 3 * * *`)
+- `scheduler`: serve o deployment `pipeline-completo/agendado-dw` (cron `0 3 * * *`)
   e reinicia sozinho (`restart: unless-stopped`); usa o mesmo ambiente e o
   mesmo banco do `runner`, e o histórico vive no `prefect-server`.
+- `health-monitor`: executa a checagem combinada de API e banco a cada 60s,
+  com limite de 30s por ciclo e recuperação do processo pelo Compose.
 - `runner`: contêiner Python com Prefect e DuckDB (`Dockerfile`), com `src/` e
   `scripts/` montados; permanece ativo (`sleep infinity`) para comandos
   interativos, enquanto o smoke usa containers one-shot para que o stdout seja
@@ -121,9 +125,19 @@ operacional de execucao (OB-08)"**. O painel mostra, por execução:
 - **duração por etapa** (`etl-viz-duracao`: média e máximo de `duration_ms`
   agrupados por `stage`);
 - **volumes por fonte** (`etl-viz-volumes`: soma de `byte_count`,
-  `record_count`, `extracted_count`, `loaded_count`);
+  `record_count`, `extracted_count`, `loaded_count` por `source` e `stage`.
+  O filtro inclui somente `extraction.batch.emitted`,
+  `transformation.batch.emitted`, `load.batch.emitted` e
+  `orchestration.load.emitted`. Ele exclui o resumo
+  `orchestration.ingest_object.emitted`, inclusive nos eventos históricos que
+  ainda têm `loaded_count`. Assim, três linhas carregadas são três na etapa
+  `load` e três na etapa `orchestration`, sem somar o mesmo objeto duas vezes
+  dentro da mesma etapa. A tabela agrupa por fonte e etapa e não mostra total
+  geral (`showTotal: false`). Não some `loaded_count` entre essas etapas como
+  linhas únicas do pipeline);
 - **rejeições e duplicatas** (`etl-viz-rejeicoes`: soma de `rejected_count` e
-  `duplicate_count` por fonte e etapa);
+  `duplicate_count` por fonte e etapa, com os mesmos eventos canônicos do
+  painel de volumes para excluir resumos redundantes);
 - **tentativas de repetição** (`etl-viz-retries`: contagem por
   `event.keyword`, com a tentativa média em campos separados —
   `attempt` só existe em `extraction.retry.emitted`, `attempts` só em
@@ -137,7 +151,45 @@ painel.
 
 ### Health check da orquestração (OB-09)
 
-Checa, numa só chamada, se o servidor Prefect configurado responde e se o
+O serviço `health-monitor` do Compose executa a primeira checagem ao iniciar
+e repete o ciclo a cada 60 segundos, descontando o tempo da checagem. O
+subprocesso tem limite de 30 segundos; timeout, impossibilidade de iniciar ou
+saída sem relatório conclusivo produzem `status: degraded`. Uma falha não
+encerra os ciclos. `restart: unless-stopped` recupera a saída do processo
+principal; `stop_grace_period: 35s` permite terminar uma checagem limitada a
+30 segundos durante `docker compose stop`. O serviço depende apenas do
+início do Prefect, sem esperar sua saúde e sem depender do coletor.
+
+```bash
+docker compose up -d health-monitor
+docker compose ps health-monitor
+docker compose logs --since 5m health-monitor
+```
+
+Cada ciclo emite exatamente um relatório JSON no stdout, enviado pelo driver
+GELF ao mesmo Logstash do runner. O recebimento depende da stack de
+observabilidade; UDP continua sem garantia de entrega. Timeout não afirma
+que a API ou o banco estão indisponíveis: registra que a checagem não
+concluiu. O alerta de ausência de sinal abaixo detecta também um monitor
+parado ou perda de telemetria. O monitor não reinicia o Prefect nem o banco.
+
+Uma [verificação local limitada](evidencias/observabilidade/runtime-local-2026-10-06.json)
+executou o CLI real do monitor fora do Compose, com DuckDB temporário isolado.
+Com a API local sem listener, dois ciclos sucessivos emitiram `degraded`,
+`prefect_available: false` e `database_available: true`. Outra execução usou
+uma API HTTP controlada: duas respostas 200 produziram `ok` e a resposta 503
+seguinte produziu `degraded`. O objeto salvo `etl-viz-volumes` foi lido com
+eventos agregados sintéticos; o filtro excluiu o resumo antigo e manteve
+`load` e `orchestration` em linhas de etapa distintas, sem total geral. Os 13
+testes focados do monitor passaram. Os blobs dos arquivos verificados no
+checkout `cef8b15` coincidem com a referência de integração `ff760d6`;
+isso não verifica toda a árvore de integração.
+
+Essa prova local não iniciou Elasticsearch, Logstash, Kibana, Prefect Server
+nem o Compose, e não testou entrega GELF, indexação, renderização do painel
+ou regras de alerta ativas. Nenhuma notificação foi criada ou enviada.
+
+A checagem manual continua disponível. Checa se o servidor Prefect configurado responde e se o
 banco de ingestão aceita conexão/consulta/persistência (reaproveita o mesmo
 health check da carga, `etl.load.environment.run_health_check`):
 
@@ -145,7 +197,9 @@ health check da carga, `etl.load.environment.run_health_check`):
 docker compose run --rm --no-deps runner python scripts/orchestration/health_check.py
 ```
 
-Sai com código 1 se qualquer checagem falhar, e publica um evento
+Sai com código 0 quando `status: ok`, 1 quando `status: degraded` e 2 quando
+`status: busy` (API responde, mas outro processo mantém o lock de escrita).
+Publica um evento
 `orchestration.health_check.emitted` no índice `etl-logs-*` (mesmo formato
 técnico das demais camadas, ADR 0001) — consultável no painel do OB-08 e
 usado pelo alerta de falha abaixo. A checagem do Prefect depende da variável
@@ -155,9 +209,17 @@ um endereço.
 
 A checagem do banco abre a conexão direto, sem o retry com espera que a
 carga real usa (`etl.load.connection.connect_with_retry`) — rodar o health
-check durante uma carga em andamento pode reportar `duckdb: falha` por um
-lock de escrita transitório que a carga em si esperaria passar. Não é um
-sinal de pipeline quebrado nesse caso, só de execução concorrente.
+check durante uma carga pode encontrar o lock externo do DuckDB. Esse erro
+específico resulta em `database_status: busy` e `database_available: null`,
+pois o monitor não verificou consulta/persistência e não pode afirmar que o
+banco está indisponível. Com a API saudável, o status geral fica `busy` e não
+aciona o alerta de falha. Se a API também falhar, o status fica `degraded`.
+Após o escritor liberar o arquivo, o próximo ciclo volta a verificar o banco.
+Erros de permissão, corrupção e demais falhas continuam `degraded`.
+Configuração inválida antes da conexão também publica um único evento
+`degraded`, com `error_type: ConfigurationError` e código de saída 1.
+O evento omite valores de variáveis, caminhos e URLs; a API não consultada
+fica com `prefect_available: null`.
 
 No Compose, o `runner` usa por padrão
 `PREFECT_API_URL=http://prefect-server:4200/api`, o serviço `prefect-server`
@@ -174,16 +236,20 @@ O schema de saved object de uma regra de alerta do Kibana (`type: "alert"`)
 muda com mais frequência entre versões do que o de dashboard/visualização
 (OB-08) e as regras de alerta não são importadas por NDJSON. Uma regra mal formada
 falha silenciosamente — pior do que simplesmente não existir — por isso as
-duas regras mínimas abaixo ficam documentadas para criação manual em **Stack Management → Rules →
+três regras mínimas abaixo ficam documentadas para criação manual em **Stack Management → Rules →
 Create rule → Elasticsearch query**, em vez de um NDJSON não verificável:
 
 | Regra | Índice | Campo de tempo | Consulta (KQL) | Condição | Janela | Frequência |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| ETL - falha de execução | `etl-logs-*` | `@timestamp` | `tags: "etl_error" or (event: "orchestration.health_check.emitted" and status: "degraded")` | contagem **acima de** 0 | últimos 5 min | a cada 1 min |
-| ETL - fila parada | `etl-logs-*` | `@timestamp` | `stage: "orchestration"` | contagem **abaixo de** 1 | últimas 26 h | a cada 30 min |
+| ETL - falha de execução | `etl-logs-*` | `@timestamp` | `tags: "etl_error" or level.keyword: "ERROR" or status.keyword: ("failed" or "aborted" or "reconciliation_failed") or (event.keyword: "orchestration.health_check.emitted" and status.keyword: "degraded")` | contagem **acima de** 0 | últimos 5 min | a cada 1 min |
+| ETL - fila parada | `etl-logs-*` | `@timestamp` | `event.keyword: "orchestration.pipeline.emitted" and status: "completed"` | contagem **abaixo de** 1 | últimas 26 h | a cada 30 min |
+| ETL - monitor sem sinal | `etl-logs-*` | `@timestamp` | `event.keyword: "orchestration.health_check.emitted"` | contagem **abaixo de** 1 | últimos 3 min | a cada 1 min |
 
-As mesmas regras também podem ser criadas pela API de Alerting do Kibana,
-com a stack no ar. Esse caminho foi usado no smoke de 25/09/2026
+As regras podem ser criadas pela API de Alerting do Kibana, com a stack no ar.
+Os exemplos a seguir incluem a correção do filtro de fila e a regra nova de
+ausência de sinal. É necessário aplicar essas alterações à stack; o arquivo
+versionado não altera regras existentes. A criação das duas regras originais
+pela API foi usada no smoke de 25/09/2026
 ([evidência](smoke-observabilidade-sprint4.md)) e evita recriar as regras à
 mão após um `docker compose down -v`:
 
@@ -192,33 +258,57 @@ curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content
   "name": "ETL - falha de execução", "rule_type_id": ".es-query", "consumer": "stackAlerts",
   "schedule": {"interval": "1m"}, "actions": [],
   "params": {"searchType": "esQuery", "index": ["etl-logs-*"], "timeField": "@timestamp",
-    "esQuery": "{\"query\":{\"bool\":{\"should\":[{\"match\":{\"tags\":\"etl_error\"}},{\"bool\":{\"filter\":[{\"match\":{\"event.keyword\":\"orchestration.health_check.emitted\"}},{\"match\":{\"status\":\"degraded\"}}]}}],\"minimum_should_match\":1}}}",
+    "esQuery": "{\"query\":{\"bool\":{\"should\":[{\"match\":{\"tags\":\"etl_error\"}},{\"term\":{\"level.keyword\":\"ERROR\"}},{\"terms\":{\"status.keyword\":[\"failed\",\"aborted\",\"reconciliation_failed\"]}},{\"bool\":{\"filter\":[{\"term\":{\"event.keyword\":\"orchestration.health_check.emitted\"}},{\"term\":{\"status.keyword\":\"degraded\"}}]}}],\"minimum_should_match\":1}}}",
     "size": 5, "thresholdComparator": ">", "threshold": [0], "timeWindowSize": 5, "timeWindowUnit": "m"}}'
 
 curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d '{
   "name": "ETL - fila parada", "rule_type_id": ".es-query", "consumer": "stackAlerts",
   "schedule": {"interval": "30m"}, "actions": [],
   "params": {"searchType": "esQuery", "index": ["etl-logs-*"], "timeField": "@timestamp",
-    "esQuery": "{\"query\":{\"match\":{\"stage\":\"orchestration\"}}}",
+    "esQuery": "{\"query\":{\"bool\":{\"filter\":[{\"term\":{\"event.keyword\":\"orchestration.pipeline.emitted\"}},{\"term\":{\"status.keyword\":\"completed\"}}]}}}",
     "size": 5, "thresholdComparator": "<", "threshold": [1], "timeWindowSize": 26, "timeWindowUnit": "h"}}'
+
+curl -s -X POST localhost:5601/api/alerting/rule -H 'kbn-xsrf: true' -H 'Content-Type: application/json' -d '{
+  "name": "ETL - monitor sem sinal", "rule_type_id": ".es-query", "consumer": "stackAlerts",
+  "schedule": {"interval": "1m"}, "actions": [],
+  "params": {"searchType": "esQuery", "index": ["etl-logs-*"], "timeField": "@timestamp",
+    "esQuery": "{\"query\":{\"match\":{\"event.keyword\":\"orchestration.health_check.emitted\"}}}",
+    "size": 5, "thresholdComparator": "<", "threshold": [1], "timeWindowSize": 3, "timeWindowUnit": "m"}}'
 ```
 
 A primeira regra cobre tanto uma falha real do pipeline (traceback do Python
 vazando no stdout/stderr, capturado pelo Logstash com a tag `etl_error` —
 ver `observability/logstash/pipeline/etl.conf`; JSON inválido também recebe a
 tag de diagnóstico `_jsonparsefailure`) quanto uma falha detectada
-pelo próprio health check acima. A segunda cobre o deployment agendado
+pelo próprio health check acima. A consulta inclui também JSON com
+`level: ERROR` e estados explícitos `failed`, `aborted` ou
+`reconciliation_failed`, inclusive a saída JSON da CLI sem traceback.
+A marca `etl_error` não é necessária para esses registros estruturados.
+Um health check `busy` com API saudável não é falha e não satisfaz a consulta.
+A segunda cobre o deployment agendado
 parar de rodar (cron diário às 03:00, `scripts/orchestration/deployment.py`)
-— 26h dá margem sobre as 24h de intervalo esperado. Nenhuma das duas precisa
-de uma action/connector configurada para "disparar alerta visível": o
-estado da regra já aparece em **Alerts** no Kibana quando ativa.
+— 26h dá margem sobre as 24h de intervalo esperado. Seu filtro usa o evento
+de conclusão do pipeline completo, após carga analítica e publicação; os
+sinais de saúde e o início de um flow que falhou não provam uma entrega.
+A regra não distingue pipelines completos manuais de agendados.
+A terceira detecta a falta de relatório de saúde durante três minutos; pode
+indicar monitor parado ou interrupção na coleta, não identifica a causa.
+
+Os exemplos têm `actions: []`. A captura do smoke também mostra "No actions".
+Isso registra o estado em **Alerts** no Kibana, sem enviar e-mail, mensagem
+ou webhook. Não há conector externo configurado ou testado nestas evidências.
+Para habilitar notificações, o responsável deve fornecer destino e
+credenciais, criar um connector em Stack Management e vinculá-lo à regra.
+Guardar credenciais no armazenamento de connectors do Kibana, sem versioná-las.
+O aceite de notificação exige uma falha controlada e o recebimento no destino;
+a presença de uma regra ativa no Kibana não prova esse recebimento.
 
 ### Smoke de observabilidade (OB-11)
 
 Roteiro para provar, com uma execução real, os cenários exigidos pelo card:
 uma execução concluída e uma falha controlada com o alerta correspondente.
 Pré-requisitos: `docker compose up -d` (inclui `prefect-server` e a Elastic
-Stack), painel importado e as duas regras de alerta criadas (seções acima).
+Stack), painel importado e as regras de alerta criadas (seções acima).
 
 ```bash
 ./scripts/orchestration/smoke_observabilidade.sh
@@ -304,8 +394,15 @@ Comando único que encadeia as quatro etapas no mesmo `ETL_DUCKDB_PATH` e só
 publica os sete Parquet quando a reconciliação aprova a carga
 (`reconciled=true`); o manifesto da geração aponta o `load_id` efetivo.
 
+O backfill lê objetos já presentes no bucket e prefixo de entrada. Antes de executar,
+carregue as seis fontes autorizadas no MinIO conforme a [configuração de extração](configuracao-extracao.md)
+e confirme os objetos no bucket `sindusfarma`, prefixo `landing`. `run_pipeline.py`
+não copia fontes nem semeia fixtures; um ambiente vazio não contém dados para a carga.
+Para ensaio sintético, siga o [smoke de extração](smoke-test-extracao.md); seu resultado
+não substitui a geração final autorizada.
+
 ```bash
-# fluxo completo das seis fontes, publicando em ETL_PUBLISH_DIR (/data/publicacao)
+# processa as seis fontes já presentes, publicando em ETL_PUBLISH_DIR (/data/publicacao)
 docker compose run --rm --no-deps runner python scripts/orchestration/run_pipeline.py
 
 # seis fontes explícitas; a ordem é normalizada pelo pipeline
@@ -349,16 +446,23 @@ geração vigente — a troca é atômica e só acontece no fim.
 
 - Flows em `src/etl/orchestration/flow.py`: `ingest-object` (um objeto:
   verificação de idempotência → extração → transformação → carga →
-  reconciliação) e `backfill` (subflows por fonte).
+  reconciliação → confirmação do objeto). `backfill` confirma os subflows por
+  fonte e termina na ingestão tratada. O flow `pipeline-completo`, em
+  `src/etl/orchestration/pipeline.py`, chama o backfill, a carga analítica,
+  a reconciliação e a publicação. O agendado DW e `manual-dw` usam esse flow
+  com as seis fontes e `publish_dir=/data/publicacao`.
 - Retry: as tarefas `extract`, `transform` e `load` têm `retries=2` com
-  condição (`_should_retry`) — só repete erro transitório ou inesperado;
-  falha permanente (credencial, schema, objeto ausente, `NoSuchKey`) ou
+  condição (`_should_retry`), que só repete erro transitório ou inesperado.
+  As tarefas analíticas seguem também retry finito e propagam a falha ao flow.
+  Falha permanente (credencial, schema, objeto ausente, `NoSuchKey`) ou
   limite interno de retry já esgotado falham rápido. Falhas transitórias de
   leitura são reexecutadas dentro da extração (`RetryExecutor`, configurável
   por `ETL_EXTRACTION_*`).
 - Deployment agendado: `python scripts/orchestration/deployment.py` serve o
-  deployment `ingest-object/agendado` (cron `0 3 * * *`). Os deployments
-  `ingest-object/manual` e `backfill`, declarados em `prefect.yaml`, são
+  deployment `pipeline-completo/agendado-dw` (cron `0 3 * * *`) para as seis fontes.
+  `ETL_PUBLISH_DIR=/data/publicacao` mantém as gerações no volume `duck-data`.
+  Os deployments `ingest-object/manual`, `backfill/backfill` e
+  `pipeline-completo/manual-dw`, declarados em `prefect.yaml`, são
   publicados pela CLI a partir da raiz do repositório (com o ambiente no ar):
 
   ```bash
@@ -372,8 +476,10 @@ geração vigente — a troca é atômica e só acontece no fim.
   http://localhost:4200):
 
   ```bash
-  prefect deployment run 'ingest-object/agendado' -p source=empresas \
+  prefect deployment run 'ingest-object/manual' -p source=empresas \
       -p bucket=sindusfarma -p key=landing/empresas.csv -p reprocess=true
+  # Conjunto completo seguido por carga analítica/publicação:
+  prefect deployment run 'pipeline-completo/manual-dw'
   ```
 
 ## Disparo pela chegada de objeto

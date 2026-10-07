@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "execution_mode": "automated queries against real Power BI Desktop on a Windows virtual machine",
+  "generation": "665cb490f85d49529488b4910e094923",
+  "load_reference": "synthetic-bi02-fixture",
+  "synthetic": true,
+  "queried_at_utc": "2026-10-06T14:04:07.6289766Z",
+  "source": "Power BI Desktop local Analysis Services via AdomdClient",
+  "project_source_commit": "9726fd6d5670061170f2d8c0d716b12d199d5994",
+  "package_sha256": "140ffcc9336c67973ec5a8fafc5bfc5fbaf4f3a3a6d5d62cedd008a0971a6ace",
+  "model_inventory_sha256": "de0c9fcce5a17612f0c3911bd4efb8f99c270e58fd3bdffff1017a42230ce62f",
+  "verified_model_files": 98,
+  "query_script_sha256": "3fe90f6e4fe76ee785a0a1842137f94eddc8e37116c2f72f8c65f16978eee7a2",
+  "engine_loaded_revision_verified": false,
+  "engine_semantic_projection_verified": true,
+  "engine_model_verification": {
+    "status": "matched",
+    "source_sha256": "c6da2101ca5872168df79c3d914062e08230862beab4a6215dc3bcdc69f62e50",
+    "engine_sha256": "c6da2101ca5872168df79c3d914062e08230862beab4a6215dc3bcdc69f62e50",
+    "source_items": 128,
+    "engine_items": 128,
+    "difference_count": 0,
+    "scope": "tables, columns, measures, partitions, relationships, hierarchies and model expressions; runtime auto date tables and their relationships, and row-number columns excluded"
+  },
+  "local_parameter_binding": {
+    "generation_path_sanitized": "C:\\BI\\<pacote>\\data\\g1",
+    "file_present_and_path_matched": true,
+    "excluded_from_byte_hash": true
+  },
+  "partitions": {
+    "status": "all_processed_without_error",
+    "project_tables": [
+      "DIM_AREA",
+      "DIM_INDICADORES_BLOQUEADOS",
+      "DIM_STATUS_PESQUISA",
+      "DIM_TEMPO",
+      "DIM_TIPO_PERGUNTA",
+      "DIM_TIPO_PESQUISA",
+      "PUB_C01_CICLO",
+      "PUB_C02_PARTICIPACAO",
+      "PUB_C03_PIPELINE_MENSAL",
+      "PUB_C04_INSTRUMENTO",
+      "PUB_QUALIDADE_CAMPO",
+      "PUB_QUALIDADE_DUPLICIDADE",
+      "PUB_QUALIDADE_RELACAO"
+    ],
+    "project_partitions_processed": 13,
+    "automatic_date_partitions_processed": 2,
+    "all_partitions_processed": 15
+  },
+  "receipt_sha256": "a13740d4467eb3c7bf0826143b56e1b947d32514504d478fabd8460924f56cc2",
+  "limits": [
+    "Synthetic fixture, not the final CB16 source generation",
+    "TOM equality verifies the declared semantic projection, not an exact source commit marker inside the engine",
+    "This receipt does not establish human operation or report visual acceptance",
+    "The old fixture publication predates the composite response/question foreign-key correction; row counts and recorded runtime execution remain factual, but I18/quality acceptance is obsolete"
+  ],
+  "aggregates": {
+    "PUB_C01_CICLO": {
+      "column": "qtd_pesquisas",
+      "value": 4
+    },
+    "PUB_C02_PARTICIPACAO": {
+      "column": "qtd_participacoes",
+      "value": 4
+    },
+    "PUB_C04_INSTRUMENTO": {
+      "column": "qtd_perguntas",
+      "value": 3
+    },
+    "PUB_C03_PIPELINE_MENSAL": {
+      "column": "qtd_pesquisas_no_status",
+      "month_end": "2026-02-28",
+      "value": 4
+    }
+  },
+  "checks": {
+    "c01": {
+      "weighted_validation": 5,
+      "valid_base": 2,
+      "blocked_extension": "Indisponivel: coluna de prorrogacao nao publicada no cubo BI (ver docs/indicadores-publicaveis-bi.md, I05)"
+    },
+    "c02": {
+      "weighted_minutes": 10,
+      "valid_base": 2,
+      "blocked_representativity": "Indisponivel: participacao de mercado (I09) nao publicada no cubo BI; fonte autoritativa pendente de homologacao (docs/dmc.md, DR02)"
+    },
+    "c03": {
+      "reference_date": "2026-02-28",
+      "latest_stock": 4,
+      "entries": null,
+      "exits": null,
+      "bi04_measures": {
+        "status": "queried",
+        "reference_date": "2026-02-28",
+        "latest_stock": 4,
+        "stock_state": "Disponível no fechamento de 28/02/2026",
+        "entries": null,
+        "entries_state": "Indisponível: histórico de transições de status não publicado.",
+        "exits": null,
+        "exits_state": "Indisponível: histórico de transições de status não publicado."
+      }
+    },
+    "blocked_indicators": {
+      "count": 17,
+      "catalog_rows": 18
+    }
+  },
+  "publication_quality_state": "historical_stale_publication",
+  "known_quality_divergence": {
+    "relation": "respostas.pergunta_id",
+    "published_total_matched": 11,
+    "independent_source_total_matched": 10,
+    "total_informed": 13,
+    "required_identity": "pesquisa_id + pergunta_id",
+    "scope": "aggregate across the fixture quality relationship publication"
+  }
+}

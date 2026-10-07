@@ -190,9 +190,10 @@ class ReportSemanticsTests(unittest.TestCase):
         table = (MODEL / "DIM_INDICADORES_BLOQUEADOS.tmdl").read_text()
         rows = re.findall(r'\{\s*"(I\d+)"\s*,\s*"[^"]*"\s*,\s*"([^"]+)"', table)
         unavailable = [indicator for indicator, status in rows if status == "Sem dado"]
-        self.assertEqual(len(rows), 18)
-        self.assertEqual(len(unavailable), 17)
+        self.assertEqual(len(rows), 19)
+        self.assertEqual(len(unavailable), 18)
         self.assertEqual(len(unavailable), len(set(unavailable)))
+        self.assertIn("I16", unavailable)
 
         chart = load_visual(BENCHMARK_PAGE, "eebbcb005a12b1c98030")
         self.assertEqual(visual_title(chart), "Indicadores sem dado por motivo")
@@ -252,7 +253,7 @@ class ReportSemanticsTests(unittest.TestCase):
 
         kpis = {
             "qkpicompletude0003": (
-                "Completude aplicável (I16)",
+                "Completude de preenchimento",
                 ("PUB_QUALIDADE_CAMPO", "Completude"),
             ),
             "qkpiestoque00001": (
@@ -271,7 +272,7 @@ class ReportSemanticsTests(unittest.TestCase):
             self.assertEqual(set(field_refs(visual)), {("Measure", *measure)})
 
         tables = {
-            "qtabcompletud00007": "Completude por tabela e campo",
+            "qtabcompletud00007": "Preenchimento por tabela e campo",
             "qtabduplicida00009": "Duplicidade por fonte",
             "qtabintegrida00008": "Integridade por relação",
             "qtabestoque000006": "Estoque por área, status e tipo",

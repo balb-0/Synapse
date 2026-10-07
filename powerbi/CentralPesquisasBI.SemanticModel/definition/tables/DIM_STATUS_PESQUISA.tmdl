@@ -3,7 +3,9 @@ table DIM_STATUS_PESQUISA
 	column status
 		dataType: string
 		summarizeBy: none
-		sourceColumn: status
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [status]
 
 	partition DIM_STATUS_PESQUISA = calculated
 		mode: import

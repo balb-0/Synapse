@@ -5,42 +5,61 @@ table DIM_TEMPO
 		isHidden
 		summarizeBy: none
 		formatString: Short Date
-		sourceColumn: data
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [data]
 
 	column ano
 		dataType: int64
 		summarizeBy: none
-		sourceColumn: ano
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [ano]
 
 	column numero_trimestre
 		dataType: int64
 		isHidden
 		summarizeBy: none
-		sourceColumn: numero_trimestre
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [numero_trimestre]
 
 	column trimestre
 		dataType: string
 		summarizeBy: none
 		sortByColumn: numero_trimestre
-		sourceColumn: trimestre
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [trimestre]
 
 	column numero_mes
 		dataType: int64
 		isHidden
 		summarizeBy: none
-		sourceColumn: numero_mes
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [numero_mes]
 
 	column mes
 		dataType: string
 		summarizeBy: none
 		sortByColumn: numero_mes
-		sourceColumn: mes
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [mes]
 
 	column ano_mes
 		dataType: string
 		summarizeBy: none
-		sortByColumn: data
-		sourceColumn: ano_mes
+		sortByColumn: ano_mes_ordenacao
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [ano_mes]
+
+	column ano_mes_ordenacao = IF(ISBLANK([data]), BLANK(), YEAR([data]) * 100 + MONTH([data]))
+		dataType: int64
+		isHidden
+		summarizeBy: none
 
 	hierarchy Calendario
 		lineageTag: calendario-hierarchy
@@ -59,16 +78,20 @@ table DIM_TEMPO
 		source = ```
 				VAR _DatasParticipacao = SELECTCOLUMNS(PUB_C02_PARTICIPACAO, "data", [mes_resposta])
 				VAR _DatasPipeline = SELECTCOLUMNS(PUB_C03_PIPELINE_MENSAL, "data", [data_fim_mes])
-				VAR _Datas = DISTINCT(UNION(_DatasParticipacao, _DatasPipeline))
+				VAR _Datas =
+					FILTER(
+						DISTINCT(UNION(_DatasParticipacao, _DatasPipeline)),
+						NOT ISBLANK([data])
+					)
 				VAR _ComColunas =
 					ADDCOLUMNS(
 						_Datas,
-						"ano", YEAR([data]),
-						"numero_trimestre", QUARTER([data]),
-						"trimestre", "T" & QUARTER([data]),
-						"numero_mes", MONTH([data]),
-						"mes", FORMAT([data], "MMM"),
-						"ano_mes", FORMAT([data], "YYYY-MM")
+						"ano", IF(ISBLANK([data]), BLANK(), YEAR([data])),
+						"numero_trimestre", IF(ISBLANK([data]), BLANK(), QUARTER([data])),
+						"trimestre", IF(ISBLANK([data]), BLANK(), "T" & QUARTER([data])),
+						"numero_mes", IF(ISBLANK([data]), BLANK(), MONTH([data])),
+						"mes", IF(ISBLANK([data]), BLANK(), FORMAT([data], "MMM")),
+						"ano_mes", IF(ISBLANK([data]), BLANK(), FORMAT([data], "YYYY-MM"))
 					)
 				RETURN
 					_ComColunas

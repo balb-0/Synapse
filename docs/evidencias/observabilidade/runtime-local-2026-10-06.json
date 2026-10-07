@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "scope": "Verificação local limitada, sem stack Docker nem telemetria coletada no Elasticsearch",
+  "runtime_commit": "cef8b159534525a584fc961458b2e995465c78c8",
+  "integration_reference": "ff760d6552a1d5d2d3d9d9da1f3467e2c913416a",
+  "source_blobs": {
+    "scripts/orchestration/health_monitor.py": {
+      "git_blob": "615e1930d034056ef0bf808a1ee0f530664e5c01",
+      "equal_to_integration_reference": true
+    },
+    "scripts/orchestration/health_check.py": {
+      "git_blob": "4a3d7ff74cd8d0d85b05149832f2a1bbc12b5a7d",
+      "equal_to_integration_reference": true
+    },
+    "src/etl/orchestration/health.py": {
+      "git_blob": "0d3260e255011fd2179014d5cff3c0807d8e65ef",
+      "equal_to_integration_reference": true
+    },
+    "observability/kibana/painel-operacional.ndjson": {
+      "git_blob": "c269c563f5a37c6cd32dcabbd6282c9490bd7760",
+      "equal_to_integration_reference": true
+    }
+  },
+  "periodic_health_cli": {
+    "mode": "processo CLI real com API local sem listener e DuckDB temporário isolado",
+    "interval_seconds": 2,
+    "check_timeout_seconds": 5,
+    "ticks": [
+      {
+        "status": "degraded",
+        "prefect_available": false,
+        "database_available": true,
+        "database_status": "available"
+      },
+      {
+        "status": "degraded",
+        "prefect_available": false,
+        "database_available": true,
+        "database_status": "available"
+      }
+    ],
+    "result": "duas falhas de API observadas em ciclos sucessivos; banco disponível"
+  },
+  "controlled_http": {
+    "mode": "API HTTP local controlada, sem servidor Prefect",
+    "responses": [
+      200,
+      200,
+      503
+    ],
+    "reported_statuses": [
+      "ok",
+      "ok",
+      "degraded"
+    ],
+    "result": "dois ciclos saudáveis e uma falha de serviço visível"
+  },
+  "saved_volume_panel": {
+    "object_id": "etl-viz-volumes",
+    "method": "leitura do objeto salvo e eventos agregados sintéticos; sem Kibana ativo",
+    "allowed_events": [
+      "extraction.batch.emitted",
+      "load.batch.emitted",
+      "orchestration.load.emitted",
+      "transformation.batch.emitted"
+    ],
+    "buckets": [
+      "source.keyword",
+      "stage.keyword"
+    ],
+    "show_total": false,
+    "old_flow_summary_excluded": true,
+    "example_loaded_by_stage": {
+      "load": 7,
+      "orchestration": 7
+    },
+    "interpretation": "A tabela mostra etapas separadas e não calcula total geral. Não somar loaded_count entre carga e orquestração como linhas únicas."
+  },
+  "focused_unit_tests": {
+    "runner": "unittest",
+    "tests_run": 13,
+    "result": "passed"
+  },
+  "limits": [
+    "Sem imagens locais Elasticsearch, Logstash e Kibana 8.15.0; nenhum download ou Compose iniciado.",
+    "Sem prova de entrega GELF, indexação Elasticsearch, renderização Kibana ou regras de alerta ativas.",
+    "Nenhuma notificação ou ação de alerta foi criada ou enviada.",
+    "Nenhuma fonte privada v3 ou banco de outros serviços foi acessado.",
+    "A igualdade de blobs listados não equivale à verificação da árvore inteira do commit de integração."
+  ]
+}

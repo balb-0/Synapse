@@ -264,7 +264,7 @@ dependem de medição.
 | Reduzir o esforço manual e o tempo de entrega das pesquisas | Pretende liberar capacidade para análise | I04 mede intervalos observáveis; ganho de esforço exige baseline operacional ainda ausente |
 | Ampliar a adesão e o engajamento das indústrias participantes | Pretende apoiar ações sobre participação | I07 é observável; I08 e I11 exigem universo elegível, e identidade não conciliada não representa pessoa única |
 | Sustentar decisões com dashboards operacionais e estratégicos | Pretende oferecer visão consolidada, sem afirmar atualização automática ou em tempo real | I01–I25 conforme disponibilidade da §5.6; frescor depende de I21 e metadado de carga |
-| Assegurar governança, segurança da informação e conformidade no tratamento de dados | Pretende proteger participantes e registrar responsabilidades | I16–I20 são observáveis; I23 e I25 dependem de política, decisão e logs aprovados |
+| Assegurar governança, segurança da informação e conformidade no tratamento de dados | Pretende proteger participantes e registrar responsabilidades | I17–I20 são observáveis no perfilamento; I16 aguarda regras homologadas de aplicabilidade; I23 e I25 dependem de política, decisão e logs aprovados |
 
 # 4. Arquitetura de Dados (ISO/IEC 10746)
 
@@ -772,7 +772,7 @@ abaixo agrupam essa leitura sem mudar as classificações de disponibilidade.
 | Portfólio e ciclo | I01–I05 calculáveis; I06 aguarda regra de atraso, prioridade e data de referência | Central de Pesquisas e gestores; D01, filtros, detalhe condicionado à autorização e relatório | Priorizar pesquisas, localizar marcos ausentes, comparar durações e avaliar prorrogação sem misturar dias corridos e úteis |
 | Adesão e participação | I07 calculável; I09–I10 exigem reconciliação; I08 e I11 aguardam o universo elegível | Central, áreas técnicas e gestores; D02 e tabelas com numerador, denominador e indisponibilidade | Identificar empresas participantes e públicos com menor participação; taxa de adesão ou engajamento só apoia decisão quando o denominador existir |
 | Resultados e questionários | I12–I14 calculáveis; I15 aguarda versão e decisão de validação | Áreas técnicas, Central e gestores; D03, filtros por questão e resultados agregados | Interpretar distribuições, avaliar a composição do instrumento e verificar validação sem tratar elemento de resposta como pessoa |
-| Qualidade, rastreabilidade e publicação | I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança ainda a designar; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções, investigar órfãos, avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
+| Qualidade, rastreabilidade e publicação | I17–I20 calculáveis no perfilamento; I16 aguarda regras homologadas de aplicabilidade; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança ainda a designar; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções, investigar órfãos, avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
 
 Os públicos de consumo são distintos e aparecem no canvas como UC01–UC04. A
 **Central de Pesquisas (UC01)** acompanha o fluxo operacional com detalhe
@@ -1387,7 +1387,7 @@ Os domínios de identificador reforçam a hipótese de múltiplos sistemas: há 
 
 A verificação da cópia denormalizada `questoes.pesquisa_titulo` contra `pesquisas.titulo` encontrou 188 pares comparáveis, 147 coincidentes e 41 divergências (21,8%), todas concentradas nos IDs 414 (13 linhas) e 415 (28 linhas). O título canônico deve vir de `pesquisas`; a divergência não deve criar uma segunda identidade nem ser corrigida sobrescrevendo a origem sem auditoria.
 
-`nulos_condicionais.csv` classifica cada campo de resposta por `questoes.tipo`, separando linhas aplicáveis, não aplicáveis, preenchidas, ausências condicionais e ausências inesperadas. Para `linha_matriz` e `coluna_matriz`, foram 4 ausências inesperadas em 4.008 linhas de `matriz_avaliacao` (0,1%); `alternativa` é obrigatória em `caixas_de_selecao` e não teve ausência inesperada. As regras são explícitas no manifesto e devem ser revisadas pelo Data Steward antes de virarem bloqueio de ingestão.
+`nulos_condicionais.csv` classifica cada campo de resposta por `questoes.tipo`, separando linhas aplicáveis, não aplicáveis, preenchidas, ausências condicionais e ausências inesperadas. Para `linha_matriz` e `coluna_matriz`, foram 4 ausências inesperadas em 4.008 linhas de `matriz_avaliacao` (0,1%); `alternativa` é obrigatória em `caixas_de_selecao` e não teve ausência inesperada. As regras exploratórias são explícitas no manifesto e devem ser homologadas pelo Data Steward antes de sustentar I16 normativo ou bloqueio de ingestão. As contagens desse snapshot são diagnósticos históricos, não uma publicação homologada de I16.
 
 ### 5.3.3 Indicadores, fórmulas, unidades e grãos
 
@@ -1518,7 +1518,7 @@ do painel continuam propostas.
 | I13 — Respondentes distintos na fonte de respostas | Calculável agora | C04 + futura `FATO_RESPOSTA` / `respostas.csv` | 542 `respondent_id` distintos na fonte; sem ponte para `respondentes.id_cliente` |
 | I14 — Questões por tipo | Calculável agora | C04 / `questoes.csv` | `id_pergunta`, `pesquisa_id` e `tipo`; 43 questões têm pesquisa ausente em `pesquisas.csv` |
 | I15 — Estado de validação e versão do questionário | Depende de integração futura | C04 + metadados do repositório de questionários | Versão, área revisora, decisão e timestamp de validação não existem no snapshot |
-| I16 — Completude aplicável | Calculável agora | Perfilamento / seis CSV | Ausências por campo e natureza documentadas na §5.3; quatro ausências inesperadas nas 4.008 células de matriz aplicáveis |
+| I16 — Completude aplicável | Indisponível até homologar e publicar regras de obrigatoriedade | Perfilamento exploratório / seis CSV | Diagnóstico histórico da §5.3: quatro ausências nas 4.008 células de matriz consideradas aplicáveis pela regra exploratória. Esse resultado não homologa nem publica I16 normativo. |
 | I17 — Taxa de duplicidade | Calculável agora | Perfilamento / seis CSV | Não foram observadas linhas ou IDs primários duplicados; FKs repetidas não são duplicatas |
 | I18 — Integridade referencial | Calculável agora | Perfilamento / chaves dos seis CSV | Por relação: `respondentes → pesquisas`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes → pesquisas`, 188/231, 43 órfãs (18,6%); `respostas → pesquisas`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas usam os IDs 424, 1116, 1139 e 1147; `s/i` é não informado antes do teste |
 | I19 — Parseabilidade por tipo | Calculável agora | Perfilamento / seis CSV | Datas, inteiros e medidas numéricas armazenadas como texto podem ser testados sem imputação; `s/i` é inválido/não informado, não valor de chave |
@@ -1541,7 +1541,7 @@ snapshot, mantendo visível a disponibilidade de cada bloco.
 | D01 — Operação: portfólio e prazos | Exige normalização ou mapeamento | Priorizar acompanhamento; PB01–PB03 / RF01–RF03 | I01–I06 | Período com `data_solicitacao` padrão, tipo, área, complexidade, status e tipo de resposta | I01–I05 usam `pesquisas.csv`; I06 aguarda referência temporal, elegibilidade e prioridade aprovadas |
 | D02 — Adesão e representatividade | Depende de integração futura | Avaliar alcance e públicos; PB04–PB05 / RF04–RF05 | I07–I11 | Pesquisa, marco temporal explícito, área, empresa e atributos empresariais; cargo/departamento após reconciliação | I07 é observável; mercado e identidades exigem normalização; taxas aguardam universos convidados |
 | D03 — Resultados e questionários | Depende de integração futura | Interpretar agregados e validar instrumentos; PB10–PB11 e PB13 / RF10–RF11 e RF13 | I12–I15 | Pesquisa, questão, tipo, alternativa, linha e coluna de matriz | Distribuições e contagens usam `questoes.csv`/`respostas.csv`; versão e validação aguardam metadados |
-| D04 — Qualidade e governança | Depende de integração futura | Decidir correção, custódia, acesso e publicação; PB06–PB09 e PB12 / RF06–RF09 e RF12 | I16–I25 | Fonte, campo, regra, natureza do nulo, execução, linhagem, perfil e publicação | Perfilamento atual sustenta I16–I20; demais blocos aguardam reconciliação, carga, política, catálogo ou decisão |
+| D04 — Qualidade e governança | Depende de integração futura | Decidir correção, custódia, acesso e publicação; PB06–PB09 e PB12 / RF06–RF09 e RF12 | I16–I25 | Fonte, campo, regra, natureza do nulo, execução, linhagem, perfil e publicação | Perfilamento atual sustenta diagnósticos de I17–I20 e de preenchimento; I16 aguarda regras homologadas de aplicabilidade; demais blocos aguardam reconciliação, carga, política, catálogo ou decisão |
 
 # 6. Requisitos e Governança de Dados
 
@@ -1973,10 +1973,10 @@ chave estrangeira não é removida.
 | I13 — Respondentes distintos na fonte de respostas; dimensionar a base interna dessa fonte | `contagem distinta de respondent_id não nulo`; IDs da fonte de respostas | Pesquisa e questão dentro de `respostas.csv`, sem dimensão pessoal externa | `respostas.csv`: `respondent_id`, `pesquisa_id`, `id_pergunta` | Nulo é excluído e contado; repetição é esperada entre respostas e conta uma vez; não há união com `respondentes.id_cliente` | Calculável agora |
 | I14 — Questões por tipo; avaliar composição do instrumento | `contagem distinta de id_pergunta`; questões | Pesquisa, tipo e quantidade declarada de alternativas | `questoes.csv`: `id_pergunta`, `pesquisa_id`, `tipo`, `qtd_alternativas`, `alternativas`, `linhas_matriz`, `colunas_matriz` | Campos condicionais nulos não são erro; `id_pergunta` duplicado é erro; pesquisa órfã permanece com ID original | Calculável agora |
 | I15 — Estado de validação e versão do questionário; decidir se está apto ao marco | Contagem de versões por estado de validação; versões, sem percentual implícito | Pesquisa, versão, área revisora, estado e marco | Fonte futura: `pesquisa_id`, `versao`, `area_revisora`, `estado_validacao`, `decisao_em`, `marco_associado` | Metadado ausente impede afirmar validação; chave pesquisa–versão duplicada é erro | Depende de integração futura |
-| I16 — Completude aplicável; priorizar correção | Numerador = células não nulas entre as aplicáveis à regra; denominador = células aplicáveis avaliadas; `numerador / denominador × 100`; células e % | Fonte, campo, regra, natureza e execução | Todos os campos dos seis CSV e regra de aplicabilidade | Nulo condicional fica fora da base quando não aplicável; nulo aplicável reduz o numerador; duplicata de linha não corrige completude | Calculável agora |
+| I16 — Completude aplicável; priorizar correção | Numerador = células não nulas entre as aplicáveis à regra; denominador = células aplicáveis avaliadas; `numerador / denominador × 100`; células e % | Fonte, campo, regra, natureza e execução | Todos os campos dos seis CSV e regra de aplicabilidade | Nulo condicional fica fora da base quando não aplicável; nulo aplicável reduz o numerador; duplicata de linha não corrige completude | Requisito indisponível até homologar e publicar regras de obrigatoriedade por campo e tipo/status; perfilamento exploratório não é aceite normativo |
 | I17 — Taxa de duplicidade; controlar reprocessamento | Numerador = linhas além da primeira na chave do grão; denominador = linhas avaliadas; `numerador / denominador × 100`; linhas e % | Fonte, chave candidata e execução | Seis CSV; chaves primárias descritas na §4.0.1 ou hash da linha completa | Nulo em chave é regra separada; FKs repetidas são legítimas; somente repetição da chave/grão entra no numerador | Calculável agora |
 | I18 — Integridade referencial; localizar elos órfãos | Por relação: numerador = FKs semanticamente informadas com correspondência; denominador = FKs semanticamente informadas avaliadas; `numerador / denominador × 100`; chaves e %; órfãs = denominador − numerador | Uma ocorrência da relação, fonte filha, chave e execução | Medido: `respondentes.id_pesq → pesquisas.id`, 18.680/18.735 correspondências, 55 órfãs (0,3%) no ID 304; `questoes.pesquisa_id → pesquisas.id`, 188/231, 43 órfãs (18,6%); `respostas.pesquisa_id → pesquisas.id`, 17.015/20.607, 3.592 órfãs (17,4%); as duas últimas concentram-se nos quatro IDs distintos 424, 1116, 1139 e 1147 | FK vazia é completude, não órfã; `s/i` é não informado antes do teste — 856 vazios e 1 `s/i` em `respondentes.id_cliente`, e 1 `s/i` em `clientes.id_cliente`; ocorrências repetidas são avaliadas no grão da relação, sem deduplicação silenciosa | Calculável agora |
-| I19 — Parseabilidade por tipo; validar uso analítico | Numerador = valores semanticamente informados convertíveis para o tipo declarado; denominador = valores semanticamente informados avaliados; `numerador / denominador × 100`; valores e % | Fonte, campo, tipo esperado e execução | Datas/horas, inteiros e textos numéricos das estruturas da §4.0.1 | Nulo físico é reportado por I16; sentinela `s/i` é inválido/não informado antes da conversão — 1 em `clientes.id_cliente`, 1 em `respondentes.id_cliente`, além dos 856 vazios nessa última fonte; valor repetido continua sendo ocorrência avaliada | Calculável agora |
+| I19 — Parseabilidade por tipo; validar uso analítico | Numerador = valores semanticamente informados convertíveis para o tipo declarado; denominador = valores semanticamente informados avaliados; `numerador / denominador × 100`; valores e % | Fonte, campo, tipo esperado e execução | Datas/horas, inteiros e textos numéricos das estruturas da §4.0.1 | Nulo físico é reportado pelo diagnóstico de preenchimento; I16 aplicável exige regra homologada; sentinela `s/i` é inválido/não informado antes da conversão — 1 em `clientes.id_cliente`, 1 em `respondentes.id_cliente`, além dos 856 vazios nessa última fonte; valor repetido continua sendo ocorrência avaliada | Calculável agora |
 | I20 — Divergência de título de pesquisa; evitar união por texto | Numerador = linhas de questão comparáveis cujo `pesquisa_titulo` difere do título da pesquisa de mesmo ID; denominador = linhas de questão com ID correspondente e ambos os títulos presentes; `numerador / denominador × 100`; linhas de questão e % | Uma linha de `questoes.csv` comparável à pesquisa de mesmo ID | `pesquisas.csv`: `id`, `titulo`; `questoes.csv`: `id_pergunta`, `pesquisa_id`, `pesquisa_titulo`; resultado medido 41/188 | Título nulo ou ID órfão fica fora e é contado; cada linha de questão comparável permanece no denominador; `id_pergunta` duplicado é erro | Calculável agora |
 | I21 — Frescor da fonte; decidir se o dado é atual | `instante da consulta − maior timestamp de carga concluída`; tempo decorrido, comparado à regra aprovada | Fonte e execução | Metadado futuro: fonte, `carregada_em`, estado e regra de frescor | Timestamp nulo torna o indicador indisponível; execuções duplicadas pela chave fonte–execução são erro | Depende de integração futura |
 | I22 — Cobertura da linhagem agregada; auditar produção | Numerador = elos observados com chave correspondente; denominador = elos elegíveis do caminho selecionado; `numerador / denominador × 100`; elos e % | Resultado agregado, elo, fonte e estado observado/em reconciliação/proposto | Chaves dos seis CSV + catálogo futuro de sistema de origem; caminho fonte–pesquisa–participação–questão–resposta | Chave nula ou órfã fica em reconciliação; aresta repetida conta uma vez e é sinalizada | Exige normalização ou mapeamento |
@@ -2161,9 +2161,11 @@ estão representadas no snapshot.
 Owner e auditor evidência para aceitar, corrigir, restringir ou publicar um dado.
 Atende RF06–RF09 e RF12 e PB06–PB09 e PB12. Apresenta I16–I25.
 
-**Visuais justificados.** Uma matriz fonte × regra mostra somente I16–I20 com
+**Visuais justificados (planejamento).** Uma matriz fonte × regra deve mostrar I16–I20 com
 contagem afetada e base avaliada; tabela é preferida porque expõe a definição e
-permite auditoria. Um fluxo textual fonte → pesquisa → participação → questão →
+permite auditoria. I16 normativo permanece indisponível até homologar e
+publicar regras de obrigatoriedade; o valor histórico do protótipo é apenas
+diagnóstico demonstrativo do snapshot. Um fluxo textual fonte → pesquisa → participação → questão →
 resposta apresenta I22 com cada elo marcado exatamente como **observado**, **em
 reconciliação** ou **proposto**. Uma tabela de execuções mostra I21 e I24 quando
 houver timestamps. Uma fila de decisões apresenta I23 somente com autorização,
@@ -2212,6 +2214,12 @@ A aprovação final de todas as células cabe ao Data Owner.
   <img src="./assets/prototipos-dashboards/imagens/dashboard-qualidade.png" alt="Dashboard de qualidade com indicadores de completude, duplicidade e divergência, matriz de regras I16 a I20 e estados de governança" width="100%">
   <p><sub>Protótipo visual do grupo. Fonte: agregados dos CSVs externos clientes.csv, empresas.csv, pesquisas.csv, questoes.csv, respondentes.csv e teste.csv, normalizado conceitualmente como respostas.csv. A natureza real ou sintética das linhas não foi confirmada; nenhum registro individual é exibido. Dados processados em 13/08/2026.</sub></p>
 </div>
+
+Esta captura é histórica e demonstrativa. O percentual de matriz nela exibido
+usa regras exploratórias do snapshot de agosto; não comprova homologação nem
+publicação do I16 normativo. O indicador permanece indisponível até homologar
+e publicar as regras de obrigatoriedade.
+
 
 ## 6.6 Governança, Segurança da Informação e LGPD
 
@@ -2449,7 +2457,9 @@ como confirmada.
 
 **Registro da revisão KP-08.** O catálogo proposto no `docs/dmc.json` passou a
 exigir, por fonte e campo, versão, classificação, responsável, regra e estado.
-Os KPIs I16–I20 conservam contrato mensurável; I21–I25 continuam indisponíveis
+Os KPIs I16–I20 conservam contrato proposto mensurável. I16 permanece
+indisponível até homologar e publicar regras de obrigatoriedade por campo e
+tipo/status; o diagnóstico exploratório não homologa o indicador. I21–I25 continuam indisponíveis
 enquanto não houver timestamp, linhagem, autorização, catálogo de execuções,
 política e logs. A maturidade observada permanece caracterizada por fontes
 fragmentadas, operação manual e linhagem parcial. Fonte integrada, governada e

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "project_source_commit": "ff760d6552a1d5d2d3d9d9da1f3467e2c913416a",
+  "package_sha256": "a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea",
+  "capture_time_scope": "UTC clock queried immediately before and after actual screenshot capture; not inferred from file timestamp",
+  "capture_time_resolution_seconds": 1,
+  "interval_interpretation": "Clock readings have one-second resolution; equal endpoints identify one UTC second, not an exact subsecond instant",
+  "captures": [
+    {
+      "name": "c01",
+      "captured_between_utc": [
+        "2026-10-06 15:45:00 UTC",
+        "2026-10-06 15:45:01 UTC"
+      ],
+      "synthetic": true,
+      "generation": "2c699f0b066847ee8559f1e31d88f49d",
+      "crop": [
+        27,
+        138,
+        1017,
+        696
+      ],
+      "file": "final-fixture-c01.png",
+      "sha256": "5e0fec6b4d2ebea05f28406a1c8a0e9f7a59558ae0af32d3c7c4209997e39e57",
+      "scope": "synthetic report visual screenshot; technical load metadata in independent Desktop query receipt"
+    },
+    {
+      "name": "c02",
+      "captured_between_utc": [
+        "2026-10-06 15:44:23 UTC",
+        "2026-10-06 15:44:23 UTC"
+      ],
+      "synthetic": true,
+      "generation": "2c699f0b066847ee8559f1e31d88f49d",
+      "crop": [
+        27,
+        138,
+        1017,
+        696
+      ],
+      "file": "final-fixture-c02.png",
+      "sha256": "21c83a2c2eeee97de925673c55ea2074dbaff4fefbe99bc4d2fb033f289b07d0",
+      "scope": "synthetic report visual screenshot; technical load metadata in independent Desktop query receipt"
+    },
+    {
+      "name": "c03_c04",
+      "captured_between_utc": [
+        "2026-10-06 15:45:13 UTC",
+        "2026-10-06 15:45:14 UTC"
+      ],
+      "synthetic": true,
+      "generation": "2c699f0b066847ee8559f1e31d88f49d",
+      "crop": [
+        27,
+        138,
+        1017,
+        696
+      ],
+      "file": "final-fixture-c03-c04.png",
+      "sha256": "f3ef7e3b7a8a531e4c6f1eabc129457c7f52d8bb759f827901f58fbc594113b8",
+      "scope": "synthetic report visual screenshot; technical load metadata in independent Desktop query receipt"
+    },
+    {
+      "name": "v3_summary",
+      "captured_between_utc": [
+        "2026-10-06 15:50:41 UTC",
+        "2026-10-06 15:50:42 UTC"
+      ],
+      "synthetic": false,
+      "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+      "crop": [
+        106,
+        133,
+        843,
+        389
+      ],
+      "file": "final-v3-summary.png",
+      "sha256": "64c7a009d25d4e1411e7894d61191b0ffc93f358e85b4ffeea9581946c87933d",
+      "scope": "native console summary of actual Desktop engine query receipts; aggregate metadata only"
+    }
+  ],
+  "original_metadata_receipt_sha256": "6483e862c004c4b4eff161294b89b73043e3c639109590d237076ab6eee2f18f",
+  "metadata_hash_scope": "original private screenshot metadata receipt before path sanitization"
+}

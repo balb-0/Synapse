@@ -5,12 +5,16 @@ Percorrido estático das três páginas finais do relatório
 com vínculos de filtros e drill conferidos pela definição PBIR. Evidência
 reproduzível: `tests/analytics/test_report_semantics.py`,
 `tests/analytics/test_report_bindings.py`, `test_report_filters.py` e
-`test_report_definition.py` — 26 testes passam com:
+`test_report_definition.py` — a suíte estática pode ser executada com:
 `PYTHONPATH=src python -m unittest tests.analytics.test_report_semantics tests.analytics.test_report_bindings tests.analytics.test_report_filters tests.analytics.test_report_definition -v`.
-O aceite técnico de refresh, consultas e capturas do pacote integrado no
+A conferência técnica histórica de refresh, consultas e capturas do pacote integrado no
 Power BI Desktop foi registrado em 2026-10-06; a evidência e seus limites
 estão descritos abaixo. As sessões humanas S1–S4 e a revisão externa de Anna
 continuam pendentes.
+
+As capturas são do snapshot anterior ao CF-05. As mudanças de C03 e
+completude após esse pacote ainda exigem nova rodada Desktop; o aceite
+final atual permanece pendente.
 
 ## Percurso estático por página (filtros simultâneos + drill)
 
@@ -26,9 +30,9 @@ nominal e I07/I09, entradas/saídas de C03, I19/I20. Nenhum visual vincula
 entidade ou coluna de grão individual (`D01_*/D02_*/D03_*/D04_*/BE_*`,
 `título`, `flag_prorrogada`); nenhum drill-through promete essas chaves.
 
-## Aceite técnico no Power BI Desktop
+## Evidência técnica histórica no Power BI Desktop
 
-O root confirmou o aceite técnico do pacote integrado. O pacote tem SHA-256
+A execução técnica do pacote integrado anterior ao CF-05 foi conferida. O pacote tem SHA-256
 `a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea` e foi
 gerado a partir do commit `ff760d6552a1d5d2d3d9d9da1f3467e2c913416a`, que
 contém o tip RP17 `94e91ef5e9c009a162b02c1986a8ce8b60628e8b`. A definição

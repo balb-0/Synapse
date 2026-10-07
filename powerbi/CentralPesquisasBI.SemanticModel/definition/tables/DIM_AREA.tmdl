@@ -3,7 +3,9 @@ table DIM_AREA
 	column area
 		dataType: string
 		summarizeBy: none
-		sourceColumn: area
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [area]
 
 	partition DIM_AREA = calculated
 		mode: import

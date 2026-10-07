@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "operation": "private PBIP parameter changed from corrected fixture to v3, project reopened and Desktop refreshed",
+  "before": {
+    "generation": "2c699f0b066847ee8559f1e31d88f49d",
+    "load_reference": "synthetic-bi02-fixture",
+    "synthetic": true,
+    "queried_at_utc": "2026-10-06T15:44:25.2528117Z",
+    "project_source_commit": "ff760d6552a1d5d2d3d9d9da1f3467e2c913416a",
+    "tables": {
+      "PUB_C01_CICLO": 2,
+      "PUB_C02_PARTICIPACAO": 3,
+      "PUB_C03_PIPELINE_MENSAL": 4,
+      "PUB_C04_INSTRUMENTO": 2,
+      "PUB_QUALIDADE_CAMPO": 64,
+      "PUB_QUALIDADE_RELACAO": 8,
+      "PUB_QUALIDADE_DUPLICIDADE": 5
+    }
+  },
+  "after": {
+    "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+    "load_reference": "afcde424-45e8-457b-8793-bf0866d142b2",
+    "synthetic": false,
+    "queried_at_utc": "2026-10-06T15:49:13.5533810Z",
+    "project_source_commit": "ff760d6552a1d5d2d3d9d9da1f3467e2c913416a",
+    "tables": {
+      "PUB_C01_CICLO": 57,
+      "PUB_C02_PARTICIPACAO": 32,
+      "PUB_C03_PIPELINE_MENSAL": 0,
+      "PUB_C04_INSTRUMENTO": 45,
+      "PUB_QUALIDADE_CAMPO": 64,
+      "PUB_QUALIDADE_RELACAO": 8,
+      "PUB_QUALIDADE_DUPLICIDADE": 5
+    }
+  },
+  "package_sha256": "a9b087e5a9e4e0d56af8d7b36fe0a687857b205e7c59b6dbd44c9dd7c2358cea",
+  "model_inventory_sha256": "1624eef9ad87a61af4146cc0c67e469014cb830829bc9562a04ba70eaeca8ac6",
+  "local_parameter_files_matched": true,
+  "both_semantic_projections_matched": true,
+  "paths_sanitized": {
+    "before": "C:\\BI\\<pacote>\\data\\g1",
+    "after": "C:\\BI\\<pacote>\\data\\v3"
+  },
+  "receipt_sha256": {
+    "before": "324c857a7042bb7819b4eebfa773389c292efdc8774213e437ba2f028720ab59",
+    "after": "d72c627e3175d44691e389f0cb8d71c2a85d36e9676788c1e61cd35d00cb2ee9"
+  },
+  "receipt_sha256_scope": "original private Desktop execution receipts before sanitization",
+  "status": "executed_and_counts_changed_as_expected",
+  "historical_missing_file_recovery": "executed_in_interim_package_f068a01; separate receipt"
+}
