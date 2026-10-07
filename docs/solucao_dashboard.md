@@ -210,39 +210,53 @@ decisão: a publicação não contém pesquisa, empresa nem pessoa, e o teste
 configuração que prometa essas chaves. O uso das hierarquias nos eixos é a
 proposta A06 (§6).
 
-## Regras DAX dos indicadores
+### 2.5 Medidas DAX personalizadas
 
-As medidas personalizadas implementam as regras de negócio abaixo:
+As colunas dos Parquet são somas e contagens por grupo; nenhuma média, taxa
+ou estado vem pronta da publicação. Todas as medidas do relatório são DAX
+personalizadas, escritas para respeitar o grão agregado (regras em
+[regras estatísticas das medidas](regras-estatisticas-medidas.md) e
+[especificação das medidas](especificacao-medidas-bi.md)):
 
-| Medida | Regra de cálculo |
-| :--- | :--- |
-| `Pesquisas` | Conta pesquisas distintas por `pesquisa_id_origem` no contexto atual. |
-| `Pesquisas Finalizadas` | Aplica `status = "Finalizada"` sobre `Pesquisas`. |
-| `Pesquisas em Aberto` | Considera os status `Em andamento`, `Em tabulação` e `Planejada`. |
-| `Taxa de Finalização` | Divide `Pesquisas Finalizadas` por `Pesquisas` usando `DIVIDE`, evitando erro de denominador zero. |
-| `Pesquisas Prorrogadas` | Filtra `flag_prorrogada = TRUE()` e conta pesquisas distintas. |
-| `Ciclo Médio em Dias Corridos` | Calcula a média de `dias_ciclo_total_corridos`, ignorando valores nulos. |
-| `Pesquisas com Participação` | Conta pesquisas distintas no fato `D02_Participacao`. |
-| `BE Empresas observadas` | Conta empresas distintas não nulas, removendo apenas o filtro da empresa e preservando o recorte de pesquisas. |
-| `BE Pesquisas da empresa` | Exige uma única empresa selecionada e aplica sua chave ao fato com `TREATAS`. |
-| `BE Demais empresas` | Remove a empresa selecionada e conta somente as demais empresas no mesmo recorte. |
-| `BE Percentual observado` | Divide as demais empresas pelo denominador observado do recorte; denominador zero resulta em vazio. |
-| `BE % empresa por área` | Divide as pesquisas da empresa pelo total da própria empresa nas áreas selecionadas. |
-| `BE % demais por área` | Calcula a média do percentual das demais empresas, preservando as áreas selecionadas. |
-| `BE Empresas por faixa` | Conta empresas dentro dos limites `Minimo` e `Maximo` da faixa selecionada, excluindo a empresa analisada. |
-| `BE Selecionada por faixa` | Marca a faixa que contém a quantidade de pesquisas da empresa selecionada. |
-| `BE Empresa participou` | Retorna `Sim` ou `Não` conforme exista registro da empresa na pesquisa; sem seleção única, solicita a seleção de uma empresa. |
-| `BE % observado Top 8` | Usa `RANKX` para limitar a exibição às oito pesquisas mais relevantes sem alterar a medida base. |
+<div align="center">
+<sub>Tabela 7 - Medidas personalizadas e ligação com o modelo</sub><br>
 
-As medidas do Benchmark usam `HASONEVALUE` para evitar interpretações sem uma
-empresa selecionada, `REMOVEFILTERS` para construir o grupo comparável,
-`KEEPFILTERS` para preservar os filtros ativos e `ALLSELECTED` para manter o
-recorte escolhido pelo usuário ao calcular denominadores e percentuais.
+| Família | Medidas | Regra DAX | Por que assim |
+| :--- | :--- | :--- | :--- |
+| Contagens aditivas | `Qtd Pesquisas`, `Qtd Participacoes`, `Qtd Perguntas` | `SUM` da contagem do grupo | Grupos disjuntos: a soma no recorte é exata e recompõe o total entre níveis |
+| Médias ponderadas de duração | `Media Dias Validacao`, `Media Dias Coleta`, `Media Dias Tabulacao`, `Media Dias Ciclo Total`, `Media Minutos Preenchimento` | `DIVIDE(SUM(soma_*), SUM(qtd_*_disponivel))` | Média ponderada pela base válida; denominador zero devolve vazio, nunca zero. A média das médias por grupo daria outro número (23,8 em vez de 28,6 no ciclo total da v3) |
+| Bases válidas | `Base Valida *` | `SUM(qtd_*_disponivel)` | Expõem o denominador de cada média e de cada taxa |
+| Taxas de qualidade | `Completude`, `Integridade Referencial`, `Taxa de Duplicidade` | `DIVIDE` de preenchidas ÷ linhas; correspondentes ÷ informadas; (linhas − distintas) ÷ linhas | Mesmas razões do contrato da publicação, ponderadas pelo volume de cada tabela |
+| Estoque semiaditivo | `Data de Referência do Estoque`, `Estoque no Último Mês Observado`, `Estoque no Status`, `Estado do Estoque` | Busca o último `data_fim_mes` observado no contexto e soma o estoque só nesse mês; o estado devolve texto quando não há fechamento | O estoque não pode ser somado entre meses; o mês sem linha fica `sem dado` |
+| Entradas e saídas | `Entradas no Mês`, `Saídas no Mês` e os estados correspondentes | `SUM` com estado textual | As colunas existem no contrato, mas ficam vazias sem histórico de transições |
+| Indicadores sem dado | `Taxa de Prorrogacao`, `Representatividade`, `Qtd Indicadores Sem Dado` | Medidas-texto com o motivo; contagem do catálogo `DIM_INDICADORES_BLOQUEADOS` | Indicador sem fonte aparece com motivo, nunca como zero ([sinalização](sinalizacao-indicadores-bloqueados.md)) |
 
-As medidas representam participação observada no conjunto disponível. Elas não
-calculam adesão, desempenho ou participação de mercado oficial. O campo
-`pct_mercado_na_participacao` permanece fora dos indicadores oficiais até que
-a fonte autoritativa seja homologada.
+<sup>Material produzido pelos autores (2026), a partir das tabelas TMDL do modelo integrado</sup>
+
+</div><br>
+
+As medidas ficam nas tabelas de fato e são avaliadas no contexto criado
+pelas dimensões conformadas: um slicer de `DIM_AREA` restringe as linhas de
+cada fato relacionado antes da agregação, e a medida recalcula numerador e
+denominador nesse recorte. É isso que mantém médias e taxas coerentes ao
+navegar entre níveis (§4.3).
+
+### 2.6 Adaptações em relação às páginas de demonstração
+
+As páginas da Sprint 4 usavam tabelas de demonstração em CSV no grão de
+pesquisa e empresa (`D01_CicloPesquisa`, `D02_Participacao`, `BE_*`). A
+publicação oficial é agregada, e as páginas foram migradas para ela (BI-01,
+RP-13 a RP-16):
+
+| Elemento da demonstração | Situação final | Justificativa |
+| :--- | :--- | :--- |
+| Taxa de finalização, pesquisas finalizadas e em aberto em cartões | Contagem por status no gráfico; cartão com total, médias e base válida | O antigo cartão repetia o mesmo valor com três rótulos; a distribuição por status é exata no grão publicado |
+| Tabela de pesquisas com título e data de entrega | Tabela agregada por área, status e tipo | Título, data e identificador não são publicados |
+| Prorrogação (cartão e tabela) | Aviso I05 sem dado | `flag_prorrogada` não está em C01 |
+| Slicers de ano de edição e complexidade | Avisos textuais | Campos ausentes em C01 (complexidade só existe em C03) |
+| Benchmark por empresa (empresa selecionada × demais, faixas) | Participação por área, tipo e mês; avisos de empresa e pesquisa | Empresa e pesquisa não são publicadas (I07); comparar empresas exigiria grão individual |
+| Média de preenchimento no lugar de um terceiro cartão de contagem | `Media Minutos Preenchimento` | Evitar dois cartões com o mesmo valor |
+| — | Página Estoque, Instrumento e Qualidade | C03, C04 e qualidade não tinham página na demonstração |
 
 ## Execução e validação
 
@@ -312,15 +326,6 @@ Foram priorizados os seguintes critérios:
 A verificação final de contraste, foco e navegação por teclado deve ser
 realizada no Power BI Desktop com as telas finais abertas, pois esses aspectos
 dependem também da renderização do ambiente.
-
-## Integração com a camada Gold
-
-O layout e a organização das páginas foram apresentados com uma camada de
-dados de demonstração em CSV, adequada à validação da composição, dos filtros
-e da leitura dos indicadores. O repositório também disponibiliza o modelo
-semântico de consumo dos cubos publicados em Parquet, descrito em
-[`acesso-cubos-bi.md`](acesso-cubos-bi.md). A integração das páginas a uma
-geração publicada é a etapa seguinte do report analítico.
 
 ## Referência de estrutura
 
