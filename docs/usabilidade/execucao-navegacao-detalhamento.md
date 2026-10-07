@@ -17,7 +17,7 @@ rodada final, conforme a [preparação](preparacao-sessoes.md).
 | Fonte dos valores de referência | _a preencher_ |
 | Formato | _a preencher_ |
 | Datas das sessões | _a preencher_ |
-| Moderadora / Observador | _a preencher_ |
+| Moderador / Observador | _a preencher_ |
 
 ## Rodada 0 — validação com o parceiro (sprint review)
 
