@@ -258,6 +258,54 @@ RP-13 a RP-16):
 | Média de preenchimento no lugar de um terceiro cartão de contagem | `Media Minutos Preenchimento` | Evitar dois cartões com o mesmo valor |
 | — | Página Estoque, Instrumento e Qualidade | C03, C04 e qualidade não tinham página na demonstração |
 
+## 3. Plano de tarefas para testes de usabilidade
+
+O plano está em [`docs/usabilidade/`](usabilidade/): perfis e critérios
+([`perfis-e-criterios.md`](usabilidade/perfis-e-criterios.md)), tarefas
+([navegação e filtros](usabilidade/tarefas-navegacao-filtros.md),
+[detalhamento](usabilidade/tarefas-detalhamento.md),
+[comparação e segmentação](usabilidade/tarefas-comparacao-segmentacao.md)),
+[roteiro](usabilidade/roteiro-execucao.md) e
+[preparação das sessões](usabilidade/preparacao-sessoes.md). Cada tarefa
+parte de uma situação real da Central, sem dica de caminho, e declara a
+página, o grão disponível, o estado esperado (valor, `sem dado` ou aviso), o
+critério de sucesso observável e o tempo aceitável.
+
+<div align="center">
+<sub>Tabela 8 - Tarefas, funcionalidade exercitada e sessão</sub><br>
+
+| Tarefa | Funcionalidade exercitada | Página | Critério de sucesso (resumo) | Sessão |
+| :--- | :--- | :--- | :--- | :--- |
+| T-NAV-01 | Leitura do estado geral | Produção e Volume | Total e status predominante com os valores exibidos | S1, S3 |
+| T-NAV-02 | Navegação entre painéis | as três | Nomeia cada página; lê estoque vazio como `sem dado` | S1 |
+| T-FIL-01 | Filtro + ausência de período | Produção e Volume | Contagem da área e reconhecimento de que C01 não tem período | S1 |
+| T-FIL-02 | Filtros combinados | Produção e Volume | Inclui todos os status não finalizados | S2 |
+| T-FIL-03 | Limpar filtros | Produção e Volume | Volta ao total inicial e confere antes/depois | S2 |
+| T-FIL-04 | Recorte vazio | Produção e Volume | Distingue vazio de erro | S1 |
+| T-DET-01 | Drill-down total → status → tipo | Produção e Volume | Cita subconjuntos do total | S1 |
+| T-DET-02 | Agregado → distribuição por área | Participação agregada | Usa "participações observadas" e reconhece que empresa não é publicada | S2 |
+| T-DET-03 | Detalhamento entre páginas | Produção → Estoque, Instrumento e Qualidade | Verifica se o filtro sobreviveu à navegação | S2 |
+| T-DET-04 | Indicador de qualidade → regra | Estoque, Instrumento e Qualidade | Registros afetados, denominador e natureza do nulo | S2 |
+| T-DET-05 | Drill-through até a pesquisa | Produção e Volume | Reconhece que a linha é um grupo e que o detalhe não é publicado | S1 |
+| T-CMP-01 | Métrica comparativa entre anos | Participação agregada | Compara com o marco nomeado ou declara `sem dado` | S3 |
+| T-CMP-02 | Evolução mensal | Participação agregada | Aponta o pico e nomeia o marco temporal | S3 |
+| T-SEG-01 | Dois filtros simultâneos | Produção e Volume | Enuncia o recorte completo | S3 |
+| T-SEG-02 | Três filtros cruzando painéis | Produção → Estoque, Instrumento e Qualidade | Identifica filtros perdidos e inaplicáveis | S4 |
+| T-SEG-03 | Segmentação que zera | Produção e Volume | Identifica o filtro que zerou o recorte | S4 |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Cobertura das funcionalidades pedidas: filtros hierárquicos por período,
+área, tipo e status (T-FIL-*, T-SEG-*); drill-down e drill-through
+(T-DET-01, T-DET-05); métricas comparativas ao longo do tempo (T-CMP-*);
+segmentações simultâneas e cruzamento entre painéis (T-SEG-*, T-DET-03).
+Os valores esperados de cada recorte foram calculados por consulta
+independente aos Parquet
+([`consultas-referencia.sql`](usabilidade/evidencias/consultas-referencia.sql),
+[`valores-referencia-v3.md`](usabilidade/evidencias/valores-referencia-v3.md)).
+
 ## Execução e validação
 
 Em 25/09/2026, o grupo apresentou as páginas de Produção e Benchmark ao
