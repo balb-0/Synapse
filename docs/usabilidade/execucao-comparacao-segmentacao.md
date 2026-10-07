@@ -23,7 +23,7 @@ páginas aos filtros.
 | Fonte dos valores de referência | [`valores-referencia-v3.md`](evidencias/valores-referencia-v3.md), gerado por [`consultas-referencia.sql`](evidencias/consultas-referencia.sql) sobre a mesma geração |
 | Formato | Sessão moderada simulada, com participantes internos exercendo o perfil (roteiro, §1) |
 | Datas das sessões | S3 e S4 em 06/10/2026 |
-| Moderadora / Observador | Anna / integrante do grupo sem papel de participante |
+| Moderador / Observador | Anna / integrante do grupo sem papel de participante |
 
 ## Rodada 0 — validação com o parceiro (sprint review)
 
@@ -71,7 +71,7 @@ Colunas com o mesmo significado da
 | Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? | Discrepância |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | T-NAV-01 | sim | 01:05 | sim | 0 | Procurou a taxa de finalização vista na Rodada 0 antes de ler o gráfico de status | sim — "portfólio inteiro" | não (366 e 332) |
-| T-CMP-01 | assist. | 05:20 | não | 3 — abriu o slicer Ano (só "(Em branco)"), selecionou essa opção, voltou à Produção e Volume procurando um ano e retornou | Perguntou à moderadora se "o ano deveria aparecer ali"; concluiu que o filtro estava com defeito antes de associar o vazio à falta do mês de resposta | parcial — disse "não dá para comparar", mas sem nomear o marco (mês de resposta) | não (17.740 com e sem "(Em branco)") |
+| T-CMP-01 | assist. | 05:20 | não | 3 — abriu o slicer Ano (só "(Em branco)"), selecionou essa opção, voltou à Produção e Volume procurando um ano e retornou | Perguntou ao moderador se "o ano deveria aparecer ali"; concluiu que o filtro estava com defeito antes de associar o vazio à falta do mês de resposta | parcial — disse "não dá para comparar", mas sem nomear o marco (mês de resposta) | não (17.740 com e sem "(Em branco)") |
 | T-CMP-02 | não | 02:10 | sim | 1 — passou o mouse sobre a barra para ler a dica | Apontou "(Em branco)" como o mês de pico, com 17.740 participações | não — leu a categoria sem mês como um mês | de leitura |
 | T-SEG-01 | sim | 02:05 | sim | 0 | Nenhum | sim — "sindical trabalhista e rh, pesquisa fixa anual, todos os status, sem período" | não (44) |
 
