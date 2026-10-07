@@ -181,12 +181,52 @@ por teclado.
 
 | Participante | "O que foi mais difícil?" | "Que número você não confiou?" |
 | :--- | :--- | :--- |
-| P3 | | |
-| P4 | | |
+| P3 | "Comparar com o ano anterior: o filtro de ano não tem nenhum ano." | "O gráfico por mês com uma barra 'em branco' — não sei a que período aquilo se refere." |
+| P4 | "Saber quais filtros valem para cada parte da terceira página." | "O estoque, que fica vazio em qualquer filtro sem explicar por quê." |
+
+## Encaminhamentos para RP-17 e BI-04
+
+Nenhum valor exibido diverge da referência, então nenhuma correção de
+**cálculo** volta para BI-04 antes do aceite. Os itens abaixo são falhas de
+**apresentação de estado** ou de **dado de origem** que impediram ou
+distorceram tarefas; foram encaminhados aos responsáveis do relatório e do
+modelo, com a correção proposta.
+
+| ID | Achado | Natureza | Destino | Correção proposta | Estado |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| E1 | Texto fixo "REGISTROS OBSERVADOS · DADOS SIMULADOS" no topo da página C02, exibido também com a geração real v3 | Apresentação; afeta a confiança nos números | RP-17 (visual `v2_status`) | Retirar o texto fixo ou substituí-lo por uma medida com a geração e o `load_reference` carregados | Encaminhado |
+| E2 | Estoque no último fechamento em branco, sem motivo, quando C03 não tem fechamento observado | Apresentação de estado `sem dado` | RP-17 (visual `qkpiestoque00001`) e BI-04 | Exibir a medida existente `Estado do Estoque` no cartão ou como subtítulo ("Indisponível: a geração publicada não contém linha C03…") | Encaminhado |
+| E3 | `mes_resposta` vazio nas 32 linhas de C02; `DIM_TEMPO` fica só com "(Em branco)", e o slicer Ano e o gráfico mensal não têm meses | Dado de origem/publicação; impeditivo para T-CMP-01 e T-CMP-02 | CB (carga e publicação) e BI-04 | Investigar a data de resposta na origem (a tabela de qualidade mostra `respondentes.hora_inicio` com 0% de completude); até lá, trocar a barra em branco por aviso "mês de resposta indisponível nesta geração" e ocultar o slicer Ano quando ele só tiver vazio | Encaminhado; impeditivo |
+| E4 | Média de minutos de preenchimento em branco (base 0), sem motivo | Apresentação de estado `sem dado` | BI-04 / RP-17 (visual `v2_kpi3`) | Medida-texto de estado no mesmo padrão de `Estado do Estoque` | Encaminhado |
 
 ## Síntese de S3–S4
 
-_A preencher após as sessões: precisão (quantos valores conferiram),
-coerência entre níveis, recortes enunciados errados, tarefas fora do tempo e
-tempo de resposta. Divergências de dado voltam para BI-04/RP-17 e alimentam
-o registro de [limitações e propostas](limitacoes-e-propostas.md)._
+<div align="center">
+<sub>Tabela 1 - Resultado por sessão (S3–S4)</sub><br>
+
+| Sessão | Tarefas | Sim | Com assistência | Não | Acima do tempo | Desvios | Recorte enunciado corretamente |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | :--- |
+| S3 | 4 | 2 | 1 | 1 | 1 | 4 | 2 de 4 (1 parcial, 1 não) |
+| S4 | 2 | 1 | 1 | 0 | 1 | 4 | 1 de 2 (1 parcial) |
+| **Total** | **6** | **3 (50%)** | **2 (33%)** | **1 (17%)** | **2 (33%)** | **8** | **3 de 6** |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+- **Precisão:** 6 de 6 valores conferidos (17 de 17 na rodada inteira);
+  nenhuma discrepância de dado.
+- **Coerência entre níveis:** 9 de 9 verificações coerentes; médias e
+  completude recompõem pelo numerador e denominador.
+- **Tempo de resposta:** todas as interações abaixo de 2 s.
+- **Comparação temporal:** as duas tarefas T-CMP falharam ou precisaram de
+  ajuda pelo mesmo motivo (E3). Sem mês de resposta, a pergunta "cresceu em
+  relação ao período anterior?" não tem resposta em nenhuma página, e o
+  relatório não explica isso.
+- **Segmentação simultânea:** filtros em uma mesma página foram bem
+  compreendidos (T-SEG-01 e T-SEG-03); o problema está entre páginas e
+  entre seções da terceira página, onde não fica claro qual filtro vale
+  para qual visual.
+
+Os achados e encaminhamentos alimentam o registro de
+[limitações e propostas](limitacoes-e-propostas.md).
