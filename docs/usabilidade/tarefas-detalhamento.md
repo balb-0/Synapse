@@ -100,6 +100,29 @@ quando diferir do drill.
   mesmo assim e a ausência vira achado (critério do RF06).
 - **Tempo aceitável:** 4 minutos.
 
+## T-DET-05 — Tentar o drill-through até a pesquisa individual
+
+- **Perfil-alvo:** UC01 (analista da Central).
+- **Situação real:** "Na tabela de acompanhamento, escolha uma linha com
+  pesquisas finalizadas e abra o detalhe de uma dessas pesquisas para ver o
+  título e a data de entrega."
+- **Página/visual:** Produção e Volume → tabela "Acompanhamento das
+  Pesquisas" → menu de contexto da linha (Detalhar / Drill-through).
+- **Níveis:** linha agregada (área × status × tipo) → página de detalhe por
+  pesquisa (**não publicada**).
+- **Grão disponível:** área × status × tipo; título, data de entrega e
+  identificador da pesquisa não fazem parte dos sete Parquet.
+- **Estado esperado:** `aviso` — não há página de drill-through, por desenho
+  ([RP-16](../solucao-dashboards/filtros-hierarquias-detalhamento.md)).
+- **Passos esperados:** localizar a linha → abrir o menu de contexto →
+  constatar a ausência de drill-through → ler o grão da tabela (colunas área,
+  status, tipo) e concluir que cada linha já é um grupo de pesquisas.
+- **Critério de sucesso:** explica que a linha representa **um grupo** de
+  pesquisas (citando quantas) e que o detalhe individual não está disponível
+  na publicação — sem concluir que o recurso falhou. Procurar o detalhe em
+  outra página antes de concluir conta como desvio, não como falha.
+- **Tempo aceitável:** 3 minutos.
+
 ## Dependências e limites declarados
 
 - T-DET-02 e T-DET-04 dependem de rótulos e distinções que são contrato das
