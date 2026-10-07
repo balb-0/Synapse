@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "operation": "private PBIP parameter changed from fixture path to v3 path, project reopened and Desktop refreshed",
+  "before": {
+    "generation": "665cb490f85d49529488b4910e094923",
+    "load_reference": "synthetic-bi02-fixture",
+    "synthetic": true,
+    "queried_at_utc": "2026-10-06T14:08:45.3131318Z",
+    "project_source_commit": "f068a0109613ff088ad1b53080d90bf722c26b47",
+    "tables": {
+      "PUB_C01_CICLO": 2,
+      "PUB_C02_PARTICIPACAO": 3,
+      "PUB_C03_PIPELINE_MENSAL": 4,
+      "PUB_C04_INSTRUMENTO": 2,
+      "PUB_QUALIDADE_CAMPO": 64,
+      "PUB_QUALIDADE_RELACAO": 8,
+      "PUB_QUALIDADE_DUPLICIDADE": 5
+    }
+  },
+  "after": {
+    "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+    "load_reference": "afcde424-45e8-457b-8793-bf0866d142b2",
+    "synthetic": false,
+    "queried_at_utc": "2026-10-06T14:15:30.3023170Z",
+    "project_source_commit": "f068a0109613ff088ad1b53080d90bf722c26b47",
+    "tables": {
+      "PUB_C01_CICLO": 57,
+      "PUB_C02_PARTICIPACAO": 32,
+      "PUB_C03_PIPELINE_MENSAL": 0,
+      "PUB_C04_INSTRUMENTO": 45,
+      "PUB_QUALIDADE_CAMPO": 64,
+      "PUB_QUALIDADE_RELACAO": 8,
+      "PUB_QUALIDADE_DUPLICIDADE": 5
+    }
+  },
+  "local_parameter_files_matched": true,
+  "both_semantic_projections_matched": true,
+  "paths_sanitized": {
+    "before": "C:\\BI\\<pacote>\\data\\g1",
+    "after": "C:\\BI\\<pacote>\\data\\v3"
+  },
+  "receipt_sha256": {
+    "before": "25207a70f4cc7ea40c1b79852c626b46999132c80d78ab320425a118329087fb",
+    "after": "a4f7dfacddaf155b277d06e699f8019a48fba2f5a13b2570d8eb54ea7812ff64"
+  },
+  "status": "executed_and_counts_changed_as_expected",
+  "missing_file_recovery": "executed_in_interim_package_f068a01; see desktop-recuperacao-v3-historica.json",
+  "report_visual_acceptance": "historical_before_report_fixes; latest package has separate final receipts",
+  "historical_fixture_quality_state": "historical_stale_publication"
+}

@@ -176,5 +176,8 @@ discordam entre si.
 O ADR 0001 exige um documento versionado de estimativa de custos, com cenário
 acadêmico local e cenário hospedado, separando processamento, armazenamento de
 objetos, banco de ingestão, execução do orquestrador, Elastic Stack,
-transferência e retenção. **Esse documento ainda não existe.** Todo o software
-listado aqui é livre de licença, o que não equivale a infraestrutura sem custo.
+transferência e retenção. A [estimativa de custos do ambiente](estimativa-custos-ambiente.md)
+registra esses cenários, premissas e limites. Trata-se de estimativa paramétrica,
+sem comprovação de implantação ou cobrança produtiva. As licenças e condições
+comerciais de cada ferramenta devem ser conferidas; uso acadêmico local não
+implica infraestrutura sem custo nem direito irrestrito de uso produtivo.

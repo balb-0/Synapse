@@ -3,7 +3,9 @@ table DIM_TIPO_PERGUNTA
 	column tipo_pergunta
 		dataType: string
 		summarizeBy: none
-		sourceColumn: tipo_pergunta
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [tipo_pergunta]
 
 	partition DIM_TIPO_PERGUNTA = calculated
 		mode: import

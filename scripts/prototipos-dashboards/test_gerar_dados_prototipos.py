@@ -259,6 +259,10 @@ class TestGeradorDadosPrototipos(unittest.TestCase):
         unicas = {r["id_regra"]: r for r in regras if r["id_regra"] != "I18"}
         self.assertEqual(set(r["id_regra"] for r in regras), {"I16", "I17", "I18", "I19", "I20"})
         self.assertEqual((unicas["I16"]["numerador"], unicas["I16"]["denominador"]), (4004, 4008))
+        self.assertEqual(unicas["I16"]["finalidade"], "demonstrativo_historico")
+        self.assertEqual(unicas["I16"]["estado_i16_normativo"], "indisponivel")
+        self.assertIs(unicas["I16"]["regra_homologada"], False)
+        self.assertIn("não homologa nem publica I16 normativo", unicas["I16"]["descricao"])
         self.assertEqual((unicas["I17"]["numerador"], unicas["I17"]["denominador"]), (0, 46148))
         relacoes_i18 = [
             (r["numerador"], r["denominador"]) for r in regras if r["id_regra"] == "I18"

@@ -1,0 +1,32 @@
+{
+  "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+  "load_reference": "afcde424-45e8-457b-8793-bf0866d142b2",
+  "synthetic": false,
+  "preparation": {
+    "status": "ok",
+    "tables": {
+      "PUB_C01_CICLO": 57,
+      "PUB_C02_PARTICIPACAO": 32,
+      "PUB_C03_PIPELINE_MENSAL": 0,
+      "PUB_C04_INSTRUMENTO": 45,
+      "PUB_QUALIDADE_CAMPO": 64,
+      "PUB_QUALIDADE_RELACAO": 8,
+      "PUB_QUALIDADE_DUPLICIDADE": 5
+    },
+    "source_control": {
+      "status": "confere",
+      "load_id": "afcde424-45e8-457b-8793-bf0866d142b2"
+    },
+    "aggregates": {
+      "PUB_C01_CICLO": 366,
+      "PUB_C02_PARTICIPACAO": 17740,
+      "PUB_C04_INSTRUMENTO": 3186
+    },
+    "c03_stock_by_month": [],
+    "c03_observation": "sem_fechamento_observado_na_publicacao"
+  },
+  "desktop": {
+    "status": "pendente"
+  },
+  "final_acceptance": "pendente"
+}

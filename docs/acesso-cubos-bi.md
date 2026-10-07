@@ -136,7 +136,7 @@ outros meios.
 | :--- | :--- | :--- |
 | `PUB_C01_CICLO` | Área, status e tipo | `soma_dias_* / qtd_*_disponivel` calcula média só onde a duração existe. A soma `NULL` com contagem 0 indica indisponibilidade no grupo. `qtd_pesquisas` conta pesquisas correntes. |
 | `PUB_C02_PARTICIPACAO` | Área, tipo e mês da resposta | `qtd_participacoes` conta ocorrências do snapshot selecionado, não pessoas distintas nem taxa de adesão. `soma_minutos_preenchimento / qtd_preenchimento_disponivel` só vale com denominador positivo. |
-| `PUB_C03_PIPELINE_MENSAL` | Mês observado, status, área, tipo e perfil | Some `qtd_pesquisas_no_status` apenas entre grupos disjuntos do mesmo mês. `qtd_entradas_no_mes` e `qtd_saidas_no_mes` ficam `NULL` sem histórico de transições. Meses não observados não viram linhas zero. |
+| `PUB_C03_PIPELINE_MENSAL` | Mês observado, status, área, tipo e perfil | Some `qtd_pesquisas_no_status` apenas entre grupos disjuntos do mesmo mês. `qtd_entradas_no_mes` e `qtd_saidas_no_mes` ficam `NULL` sem histórico de transições. Meses não observados não viram linhas zero. Fechamento observado vazio publica um marcador global com estoque zero e recortes NULL, conforme [contrato C03](publicacao-c03-fechamentos.md). |
 | `PUB_C04_INSTRUMENTO` | Área e tipo de pergunta | `qtd_perguntas` conta associações pesquisa-pergunta, não respostas. |
 
 ### Métricas sem fonte na publicação
@@ -162,6 +162,14 @@ explícitas e não exporta chaves substitutas, IDs de pessoa, empresa, pergunta
 ou pesquisa, `source_checksum`, `source_offset`, enunciado, alternativas,
 respostas, e-mail ou tabelas `ingestao_*`. A ausência dessas colunas e do
 arquivo DuckDB é a fronteira técnica do acesso publicado.
+
+## Pacote atual de consumo
+
+O contrato inicial de acesso cobria os quatro cubos. O publicador atual gera sete
+Parquet: quatro cubos e `PUB_QUALIDADE_CAMPO`, `PUB_QUALIDADE_RELACAO` e
+`PUB_QUALIDADE_DUPLICIDADE`, acompanhados de `manifest.json`. Entregue a geração
+inteira; consulte o [guia do projeto Power BI](../powerbi/README.md) para a
+configuração do parâmetro e a distinção entre arquivos de entrada e tabelas calculadas.
 
 ## Diagnóstico
 

@@ -34,8 +34,10 @@ DX-03).
 
 | Medida | Numerador | Denominador | Tratamento de nulo | Tratamento de duplicata |
 | :-- | :-- | :-- | :-- | :-- |
-| Qtd Pesquisas no Status | `SUM(qtd_pesquisas_no_status)` | — | Semiaditiva: somar entre grupos do **mesmo mês** é válido (grupos disjuntos); somar entre meses distintos conta a mesma pesquisa em snapshots diferentes. A medida deve fixar o contexto de mês (`ALLEXCEPT` pela coluna de mês) antes de somar entre as demais dimensões. Mês sem fechamento observado não vira linha zero. | Não aplicável, grão já é o snapshot mensal. |
-| Qtd Entradas / Qtd Saídas no Mês | `SUM(qtd_entradas_no_mes)` / `SUM(qtd_saidas_no_mes)` | — | Hoje sempre `NULL` (sem histórico de transições, `docs/contrato-fisico-cubos.md`). A medida deve testar `ISBLANK` e devolver o motivo textual em vez de somar um `NULL` silencioso — mesmo padrão de uma medida bloqueada da DX-10, mas condicional: volta a calcular sozinha se a coluna passar a vir preenchida. | — |
+| Estoque no Último Mês Observado | `SUM(qtd_pesquisas_no_status)` no mês de referência | — (contagem, não razão) | A data de referência é a maior `data_fim_mes` no contexto de `DIM_TEMPO`; os filtros categóricos das dimensões e das colunas C03 são removidos só para encontrá-la. Assim, os níveis brutos `PUB_C03_PIPELINE_MENSAL[area]` → `[tipo]` → `[perfil]` e o filtro de área não fazem cada grupo voltar a um fechamento antigo. Para recuperar o estoque, a medida remove `DIM_TEMPO` e filtra diretamente `PUB_C03_PIPELINE_MENSAL[data_fim_mes]` pela data de referência; os filtros de categoria continuam ativos. Se outro grupo tem linha no fechamento global e o pacote está reconciliado, um grupo sem linha nesse fechamento vale `0`; sem qualquer linha C03 no tempo selecionado, data, estoque e estado ficam indisponíveis. | Estoque é semiaditivo: somar entre grupos do mesmo mês é válido; somar snapshots de meses distintos conta a mesma pesquisa mais de uma vez. Não aplicar média simples ou ponderada. |
+| Qtd Entradas / Qtd Saídas no Mês | `SUM(qtd_entradas_no_mes)` / `SUM(qtd_saidas_no_mes)` | — | As medidas numéricas retornam `BLANK()` enquanto as colunas publicadas forem `NULL`. Medidas separadas de estado mostram “histórico de transições de status não publicado” quando há fechamento C03 global no tempo selecionado; se não houver nenhuma linha C03 nesse tempo, informam essa indisponibilidade. Quando a origem publicar transições, as somas passam a usar os valores disponíveis. Não combinar número e texto na mesma medida. | Entradas e saídas são fluxos aditivos no período selecionado; o contrato atual não publica histórico de transições. |
+
+**Limite de publicação do C03:** o ETL registra um fechamento observado mesmo quando o estoque total é zero, mas a geração BI publica apenas `FATO_PIPELINE_MENSAL`. Um fechamento vazio, portanto, não gera linha Parquet e fica indistinguível de um mês sem fechamento. As medidas atuais retornam estado indisponível nos dois casos; não criam linha sentinela nem convertem ausência em zero. A disponibilidade de um fechamento com estoque zero só poderá ser sinalizada após o contrato de publicação incluir o marcador correspondente, com mudança coordenada na carga/publicador/modelo. Até lá, esse cenário impede aceitar a distinção zero versus não observado no Power BI Desktop.
 
 ## PUB_C04_INSTRUMENTO — grão publicado: área × tipo de pergunta
 
@@ -52,9 +54,21 @@ perguntas por tipo é publicável.
 
 | Medida | Numerador | Denominador | Grão publicado | Tratamento de nulo | Tratamento de duplicata |
 | :-- | :-- | :-- | :-- | :-- | :-- |
-| Completude por Campo (I16) | `SUM(qtd_preenchidas)` de `PUB_QUALIDADE_CAMPO` | `SUM(qtd_linhas)` do mesmo arquivo | Uma linha por (tabela, campo) | `qtd_preenchidas` já é `COUNT(coluna)`, que ignora nulo por definição SQL; nenhum tratamento adicional necessário. | Não aplicável — cada (tabela, campo) é uma linha única no arquivo. |
+| Completude de preenchimento (`Completude`; não é I16 aplicável) | `SUM(qtd_preenchidas)` de `PUB_QUALIDADE_CAMPO` | `SUM(qtd_linhas)` do mesmo arquivo; todas as linhas por campo, sem filtro de aplicabilidade | Uma linha por (tabela, campo); total agrega células, não linhas distintas | `qtd_preenchidas` é `COUNT(coluna)` após transformação; nulo condicional permanece na base, sem representar defeito. Base zero retorna `BLANK()`. | Não aplicável — cada (tabela, campo) é uma linha única no arquivo. |
 | Integridade Referencial (I18) | `SUM(qtd_chaves_correspondentes)` de `PUB_QUALIDADE_RELACAO` | `SUM(qtd_chaves_informadas)` do mesmo arquivo | Uma linha por relação (ex.: `respondentes.empresa_id`) | Chave estrangeira nula é excluída do denominador na própria consulta de origem (`WHERE ... IS NOT NULL`); FK nula não conta como órfã nem como correspondente. | Não aplicável, mesmo motivo. |
-| Taxa de Duplicidade (I17) | `SUM(qtd_linhas) - SUM(qtd_chaves_distintas)` de `PUB_QUALIDADE_DUPLICIDADE` | `SUM(qtd_linhas)` do mesmo arquivo | Uma linha por tabela de origem com chave de negócio | Não se aplica (a medida mede duplicata, não trata nulo de chave). | É a própria medida: mede quanto do total é duplicata de chave de negócio na tabela de ingestão bruta, antes da view "_atual" escolher a versão corrente. |
+| Taxa de Duplicidade (I17) | `SUM(qtd_linhas) - SUM(qtd_chaves_distintas)` de `PUB_QUALIDADE_DUPLICIDADE` | `SUM(qtd_linhas)` do mesmo arquivo | Uma linha por tabela de origem com chave de negócio | Não se aplica (a medida mede duplicata, não trata nulo de chave). | É a própria medida: mede quanto do total é duplicata de chave de negócio na tabela física de ingestão tratada, antes da view "_atual" escolher a versão corrente. |
+
+I16 (completude aplicável) permanece indisponível na camada BI até a
+homologação e publicação das regras de obrigatoriedade por campo e
+tipo/status. A razão de preenchimento acima não substitui esse requisito
+nem sua meta de governança.
+
+As populações de preenchimento e integridade usam o snapshot conciliado de
+`respondentes` selecionado em C02 e as cinco views atuais das outras fontes.
+Snapshots antigos de `respondentes` não entram nessas bases; a duplicidade
+continua sobre o histórico físico tratado, antes das views atuais. Consulte
+o [contrato das populações de qualidade](qualidade-snapshot-respondentes.md)
+para seleção, snapshot vazio, fonte ausente, escopo no manifesto e reuso.
 
 ## Nota sobre proibição de contar linha como respondente
 

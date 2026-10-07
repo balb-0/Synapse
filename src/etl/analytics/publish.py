@@ -16,7 +16,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from etl.analytics.reconcile import reconcile_analytics
+from etl.analytics.reconcile import ReconciliationReport, reconcile_analytics
 from etl.load.config import load_duckdb_settings
 from etl.load.connection import connect_with_retry
 
@@ -165,25 +165,25 @@ CHAVES_QUALIDADE = {
 }
 
 
-def _view_atual(fonte: str) -> str:
+def _view_atual(fonte: str, respondentes: str) -> str:
     if fonte == "respondentes":
-        return "ingestao_respondentes"
+        return respondentes
     return f"ingestao_{fonte}_atual"
 
 
-def _sql_qualidade_campo() -> str:
+def _sql_qualidade_campo(respondentes: str = "ingestao_respondentes") -> str:
     partes = [
         f"""SELECT '{fonte}' AS tabela, '{coluna}' AS campo,
                COUNT(*)::BIGINT AS qtd_linhas,
                COUNT({coluna})::BIGINT AS qtd_preenchidas
-          FROM {_view_atual(fonte)}"""
+          FROM {_view_atual(fonte, respondentes)}"""
         for fonte, colunas in COLUNAS_QUALIDADE.items()
         for coluna in colunas
     ]
     return "\n         UNION ALL\n".join(partes)
 
 
-def _sql_qualidade_relacao() -> str:
+def _sql_qualidade_relacao(respondentes: str = "ingestao_respondentes") -> str:
     partes = []
     for filha, col_filha, pai, col_pai in RELACOES_QUALIDADE:
         predicate = f"p.{col_pai} = f.{col_filha}"
@@ -193,9 +193,9 @@ def _sql_qualidade_relacao() -> str:
             f"""SELECT '{filha}.{col_filha}' AS relacao,
                    COUNT(*)::BIGINT AS qtd_chaves_informadas,
                    COUNT(CASE WHEN EXISTS (
-                       SELECT 1 FROM {_view_atual(pai)} p WHERE {predicate}
+                       SELECT 1 FROM {_view_atual(pai, respondentes)} p WHERE {predicate}
                    ) THEN 1 END)::BIGINT AS qtd_chaves_correspondentes
-              FROM {_view_atual(filha)} f
+              FROM {_view_atual(filha, respondentes)} f
              WHERE f.{col_filha} IS NOT NULL"""
         )
     return "\n         UNION ALL\n".join(partes)
@@ -233,6 +233,92 @@ def _digest(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             sha.update(block)
     return sha.hexdigest()
+
+
+def _monthly_publication(report: ReconciliationReport | None) -> tuple[str, dict]:
+    """Preserve a verified empty closure as a global zero, without inventing a fact group."""
+    query = PUBLICATIONS["PUB_C03_PIPELINE_MENSAL"]
+    if report is None:
+        # A synthetic fixture without the ledger cannot establish observation.
+        return query, {"observation_state": "unverified"}
+    months = [
+        {
+            "month": row["month"],
+            "observed_at": row["observed_at"],
+            "groups": row["groups"],
+            "stock": row["stock"],
+            "state": "observed_zero" if row["groups"] == 0 else "observed_positive",
+        }
+        for row in report.monthly_closures
+    ]
+    query += """
+        UNION ALL
+        SELECT c.data_fim_mes, NULL::VARCHAR, NULL::VARCHAR, NULL::VARCHAR,
+               NULL::VARCHAR, NULL::VARCHAR, 0::BIGINT, NULL::BIGINT, NULL::BIGINT
+          FROM analytics_pipeline_closure c
+         WHERE NOT EXISTS (
+             SELECT 1 FROM FATO_PIPELINE_MENSAL f WHERE f.data_fim_mes = c.data_fim_mes
+         )
+    """
+    return query, {
+        "observation_state": "observed" if months else "not_observed",
+        "fact_rows": sum(row["groups"] for row in months),
+        "empty_closure_rows": sum(row["groups"] == 0 for row in months),
+        "empty_closure_row_rule": "observed_zero month; null cuts and flows; stock=0",
+        "observed_months": months,
+    }
+
+
+def publication_specification(name: str, report: ReconciliationReport | None) -> tuple[str, dict]:
+    """Return the effective query and manifest semantics for the same verified snapshot.
+
+    Publication and orchestrator retry validation must use this contract so
+    neither can omit empty monthly closures or their observation metadata.
+    A missing report is reserved for explicitly synthetic uncontrolled sources.
+    """
+    if name == "PUB_C03_PIPELINE_MENSAL":
+        return _monthly_publication(report)
+    if name in {"PUB_QUALIDADE_CAMPO", "PUB_QUALIDADE_RELACAO"}:
+        if report is None:
+            source = "ingestao_respondentes"
+            scope = "synthetic_unverified_physical_rows"
+        else:
+            if report.respondent_checksum is None:
+                raise ValueError("qualidade de respondentes exige snapshot conciliado de C02")
+            checksum = report.respondent_checksum.replace("'", "''")
+            source = f"(SELECT * FROM ingestao_respondentes WHERE source_checksum = '{checksum}')"
+            scope = "selected_reconciled_c02_snapshot"
+        builder = _sql_qualidade_campo if name == "PUB_QUALIDADE_CAMPO" else _sql_qualidade_relacao
+        return builder(source), {
+            "population_scope": {
+                "respondentes": scope,
+                "other_tables": "current_views",
+            }
+        }
+    if name == "PUB_QUALIDADE_DUPLICIDADE":
+        return PUBLICATIONS[name], {"population_scope": "physical_ingestion_history"}
+    return PUBLICATIONS[name], {}
+
+
+def publication_report(connection, load_reference: str) -> ReconciliationReport | None:
+    """Establish the same controlled or explicit synthetic context for every consumer.
+
+    The caller keeps a read transaction open across this check and all reads.
+    Any analytic control requires the full reconciled schema, even for a
+    synthetic reference. A partial schema cannot fall back to uncontrolled data.
+    """
+    controls = connection.execute(
+        "SELECT COUNT(*) FROM information_schema.tables "
+        "WHERE table_schema = current_schema() AND table_name LIKE 'analytics_%'"
+    ).fetchone()[0]
+    if controls:
+        report = reconcile_analytics(connection)
+        if not report.reconciled or report.load_id != load_reference:
+            raise ValueError("a origem mudou ou não reconciliou no snapshot de publicação")
+        return report
+    if not load_reference.startswith("synthetic-"):
+        raise ValueError("origem sem controle analítico exige referência synthetic-... explícita")
+    return None
 
 
 def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
@@ -273,23 +359,10 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
         )
         conn.execute("BEGIN TRANSACTION")
         in_transaction = True
-        control_tables = {
-            row[0]
-            for row in conn.execute(
-                "SELECT table_name FROM information_schema.tables "
-                "WHERE table_schema = current_schema() AND table_name LIKE 'analytics_%'"
-            ).fetchall()
-        }
-        if control_tables:
-            report = reconcile_analytics(conn)
-            if not report.reconciled or report.load_id != load_reference:
-                raise ValueError("a origem mudou ou não reconciliou no snapshot de publicação")
-        elif not load_reference.startswith("synthetic-"):
-            raise ValueError(
-                "origem sem controle analítico exige referência synthetic-... explícita"
-            )
+        report = publication_report(conn, load_reference)
         tables = {}
-        for name, query in PUBLICATIONS.items():
+        for name in PUBLICATIONS:
+            query, metadata = publication_specification(name, report)
             target = staging / f"{name}.parquet"
             conn.execute(
                 f"COPY ({query}) TO {_sql_literal(target)} (FORMAT PARQUET, COMPRESSION ZSTD)"
@@ -300,20 +373,25 @@ def publish_cubes(database: Path, output: Path, *, load_reference: str) -> dict:
             source_rows = conn.execute(f"SELECT COUNT(*) FROM ({query})").fetchone()[0]
             if rows != source_rows:
                 raise RuntimeError(f"{name}: contagem Parquet diferente da consulta")
-            source_columns = [column[0] for column in conn.execute(query + " LIMIT 0").description]
-            file_columns = [
-                column[0]
-                for column in conn.execute(
-                    f"SELECT * FROM read_parquet({parquet}) LIMIT 0"
-                ).description
-            ]
+            if report is not None and name == "PUB_C03_PIPELINE_MENSAL":
+                if rows != metadata["fact_rows"] + metadata["empty_closure_rows"]:
+                    raise RuntimeError(f"{name}: contagem diferente dos grupos e fechamentos")
+            source_schema = conn.execute(query + " LIMIT 0").description
+            file_schema = conn.execute(f"SELECT * FROM read_parquet({parquet}) LIMIT 0").description
+            source_columns = [column[0] for column in source_schema]
+            file_columns = [column[0] for column in file_schema]
             if source_columns != file_columns:
                 raise RuntimeError(f"{name}: colunas Parquet diferentes da consulta")
+            if [str(column[1]) for column in source_schema] != [
+                str(column[1]) for column in file_schema
+            ]:
+                raise RuntimeError(f"{name}: tipos Parquet diferentes da consulta")
             tables[name] = {
                 "file": f"{name}.parquet",
                 "rows": rows,
                 "columns": file_columns,
                 "sha256": _digest(target),
+                **metadata,
             }
         conn.execute("COMMIT")
         in_transaction = False

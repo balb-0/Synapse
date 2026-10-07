@@ -84,7 +84,7 @@ em produção.
 | I13 | **Respondentes distintos na fonte de respostas:** contagem distinta de `respondent_id`, sem união presumida com clientes. |
 | I14 | **Questões por tipo:** contagem distinta de perguntas; calculável agora. |
 | I15 | **Estado de validação e versão:** indisponível sem versão, área revisora, decisão e timestamp. |
-| I16 | **Completude aplicável:** células preenchidas sobre células aplicáveis; calculável agora. |
+| I16 | **Completude aplicável:** células preenchidas sobre células aplicáveis; requisito indisponível até homologar e publicar regras de obrigatoriedade por campo e tipo/status. O perfilamento é exploratório. |
 | I17 | **Taxa de duplicidade:** linhas além da primeira no grão sobre linhas avaliadas; calculável agora. |
 | I18 | **Integridade referencial:** chaves correspondentes sobre chaves informadas, calculada por relação. |
 | I19 | **Parseabilidade:** valores convertíveis sobre valores informados avaliados; calculável agora. |
@@ -107,7 +107,7 @@ ou metadado.
 | Portfólio e ciclo | I01–I05 calculáveis; I06 aguarda regra de atraso, prioridade e data de referência | Central de Pesquisas e gestores; D01, filtros, detalhe condicionado à autorização e relatório | Priorizar pesquisas, localizar marcos ausentes, comparar durações e avaliar prorrogação sem misturar dias corridos e úteis |
 | Adesão e participação | I07 calculável; I09–I10 exigem reconciliação; I08 e I11 aguardam universo elegível | Central, áreas técnicas e gestores; D02 e tabelas com numerador, denominador e indisponibilidade | Identificar empresas participantes e públicos com menor participação; calcular adesão ou engajamento somente quando o denominador existir |
 | Resultados e questionários | I12–I14 calculáveis; I15 aguarda versão e decisão de validação | Áreas técnicas, Central e gestores; D03, filtros por questão e resultados agregados | Interpretar distribuições, avaliar o instrumento e verificar validação sem tratar elemento de resposta como pessoa |
-| Qualidade, rastreabilidade e publicação | I16–I20 calculáveis; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções e avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
+| Qualidade, rastreabilidade e publicação | I17–I20 calculáveis no perfilamento; I16 aguarda regras homologadas de aplicabilidade; I22 exige mapeamento; I21 e I23–I25 aguardam integração | Central e papéis de governança; D04, relatórios de exceção, drill-down agregado e trilha futura | Priorizar correções e avaliar frescor, acesso e publicação somente quando metadados e decisões estiverem disponíveis |
 
 ### 1.5 Usuários e canais
 
@@ -207,9 +207,12 @@ futura.
 
 ### 2.10 KPIs de governança e qualidade
 
-São calculáveis pelo perfilamento atual: completude por campo e aplicabilidade,
+São calculáveis pelo perfilamento atual: preenchimento físico por campo,
 unicidade ou duplicidade por chave, integridade referencial, parseabilidade por
-tipo e divergência de título. Todo KPI deve registrar numerador, denominador,
+tipo e divergência de título. O diagnóstico condicional de matriz é
+exploratório e histórico; não homologa I16. A completude aplicável de I16
+permanece indisponível até homologar e publicar regras de obrigatoriedade
+por campo e tipo/status. Todo KPI deve registrar numerador, denominador,
 unidade, grão, fonte e regra.
 
 Dependem do pipeline: frescor por timestamp de carga, cobertura de linhagem,
@@ -862,7 +865,7 @@ fontes confirmadas e tenta novamente carga, reconciliação e publicação.
 | Métricas coletadas | Implementadas: duração, recebidos, carregados, rejeitados, duplicados, bytes, tentativas, latência e estado por etapa, em eventos JSON das quatro etapas coletados pela Elastic Stack e exibidos no painel Kibana. |
 | Alertas | Implementados no ambiente local: "ETL - falha de execução" (erro do pipeline ou health check degradado de Prefect/DuckDB) e "ETL - fila parada" (26 h sem evento de orquestração); divergência de reconciliação interrompe o lote (`UnbalancedLoadError`). |
 | Linhagem | `run_id`, `task_id`, fonte, bucket, objeto, versão, hash, lote, `source_offset`, schema e timestamps; o `event_id` do disparo compõe o `run_id` (ADR 0008). |
-| Custo estimado | Estimativa paramétrica em [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md): local medido com custo incremental zero; piloto e produção projetados por componente (processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção). Valores projetados não são cotação. |
+| Custo estimado | Estimativa paramétrica em [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md): local com premissa de contratação adicional de infraestrutura zero, sem medição ou fatura; piloto e produção projetados por componente (processamento, MinIO, DuckDB, Prefect, Elastic Stack, transferência e retenção). Valores projetados não são cotação. |
 
 O evento `orchestration.pipeline.emitted` registra `status=completed` somente
 depois da publicação. Em falha, `failed_stage` identifica a etapa; `stage`

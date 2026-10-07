@@ -27,9 +27,9 @@
                 }
               },
               "queryRef": "PUB_QUALIDADE_CAMPO.Completude",
-              "nativeQueryRef": "Completude aplicável (I16)",
+              "nativeQueryRef": "Completude de preenchimento",
               "active": true,
-              "displayName": "Completude aplicável (I16)"
+              "displayName": "Completude de preenchimento"
             }
           ]
         }
@@ -140,7 +140,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Completude aplicável (I16)'"
+                  "Value": "'Completude de preenchimento'"
                 }
               }
             },
@@ -343,7 +343,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Completude aplicável (I16)'"
+                  "Value": "'Completude de preenchimento'"
                 }
               }
             },

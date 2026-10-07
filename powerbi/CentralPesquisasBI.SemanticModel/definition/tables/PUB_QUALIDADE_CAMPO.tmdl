@@ -1,9 +1,11 @@
 table PUB_QUALIDADE_CAMPO
 
 	measure Completude = DIVIDE(SUM(PUB_QUALIDADE_CAMPO[qtd_preenchidas]), SUM(PUB_QUALIDADE_CAMPO[qtd_linhas]))
+		description: Completude de preenchimento: células não nulas sobre todas as linhas por campo na ingestão tratada. Não aplica regras condicionais de obrigatoriedade (I16).
 		formatString: 0.0%
 
 	measure 'Base Valida Completude' = SUM(PUB_QUALIDADE_CAMPO[qtd_linhas])
+		description: Células avaliadas: total de linhas para cada campo selecionado. Ao selecionar vários campos, a mesma linha contribui uma vez por campo; não representa pessoas ou linhas distintas.
 		formatString: #,0
 
 	column tabela

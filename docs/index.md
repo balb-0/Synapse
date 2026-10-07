@@ -2,6 +2,8 @@
 
 Este é o ponto de entrada para documentação, contratos e evidências do G05. O [README](../README.md) explica a instalação; o [documento principal](projeto.md) reúne o contexto, requisitos, modelagem e governança.
 
+A [versão PDF integral do documento principal](assets/documentacao/documentacao-principal.pdf) permite leitura offline. O [procedimento de exportação](exportacao-documentacao.md) explica proveniência, atualização e limites. Contratos e evidências ligados pelo documento continuam em arquivos separados.
+
 ## Comece pela sua atividade
 
 | Atividade | Entrada e próxima leitura |
@@ -11,6 +13,7 @@ Este é o ponto de entrada para documentação, contratos e evidências do G05. 
 | Consultar decisões e arquitetura | [Índice completo das ADRs](adrs/index.md), [visão computacional](visao-computacional-etl.md) e [diagramas UML](assets/uml/) |
 | Entender o consumo analítico e o BI | [Decisão de consumo](decisao-consumo-cubos.md), [solução dos dashboards](solucao_dashboard.md) e [validação de acesso](validacao-acesso-bi.md) |
 | Auditar a avaliação geral | [Matriz de conformidade](conformidade-geral.md) e [referências externas](referencias.md) |
+| Consultar a estrutura do banco, BI e testes | [Banco/DDL](../sql/duckdb/README.md), [apresentação Power BI](../powerbi/README.md) e [guia de testes](../tests/README.md) |
 | Desenvolver e verificar mudanças | [Regras de desenvolvimento](dev-rules.md), [gestão de configuração](gestao-configuração.md) e [matriz de rastreabilidade](matriz-rastreabilidade-sprint3.md) |
 
 Os documentos históricos registram a sprint e a data da evidência. Um plano, uma captura antiga ou uma checklist vazia não comprova validação da versão atual. Consulte a MR da mudança e seu pipeline no SHA de origem para o estado de entrega.
@@ -37,6 +40,8 @@ Os documentos históricos registram a sprint e a data da evidência. Um plano, u
 | [`inventario-fontes-etl.md`](inventario-fontes-etl.md) | Inventário técnico das seis fontes do ETL: formato, grão, chaves, volumes, integridade, acesso e disponibilidade |
 | [`matriz-evidencias-problem-canvas.md`](matriz-evidencias-problem-canvas.md) | Relação entre dores, causas, impactos, necessidades, objetivos, KPIs, públicos, governança e riscos |
 | [`usabilidade/`](usabilidade/) | Plano de usabilidade dos dashboards: perfis e critérios, tarefas de navegação, detalhamento e comparação, roteiro de execução e limitações |
+| [`usabilidade/preparacao-sessoes.md`](usabilidade/preparacao-sessoes.md) | Preparação das sessões S1–S4: participantes por perfil, versão do relatório, geração v3, checklist pré-sessão e regra de captura |
+| [`usabilidade/evidencias/valores-referencia-v3.md`](usabilidade/evidencias/valores-referencia-v3.md) | Valores de referência agregados por recorte de tarefa, calculados direto sobre a geração v3 com `consultas-referencia.sql` |
 | [`solucao-dashboards/`](solucao-dashboards/) | Documento da solução de dashboards: implementação a partir dos cubos, plano/execução/avaliação de qualidade e checklist contra os critérios |
 | [`smoke-observabilidade-sprint4.md`](smoke-observabilidade-sprint4.md) | Evidência real do smoke OB-11: execução concluída, falha controlada, alerta ativo, painel Kibana e histórico Prefect |
 | [`smoke-pipeline-completo-sprint5.md`](smoke-pipeline-completo-sprint5.md) | Evidência real do smoke do comando único: seis fontes, `load_id`, reconciliação aprovada, geração publicada com sete contagens e falha controlada com reexecução |
@@ -80,13 +85,14 @@ documento principal.
 
 - [Indicadores publicáveis, bloqueados e motivo](indicadores-publicaveis-bi.md): reclassifica o catálogo I01–I25 de `dmc.md` contra o que realmente chega ao Power BI (DX-01).
 - [Especificação das medidas](especificacao-medidas-bi.md): numerador, denominador, grão e tratamento de nulo e duplicata de cada medida (DX-02).
+- [Populações das publicações de qualidade](qualidade-snapshot-respondentes.md): snapshot conciliado de respondentes, histórico de duplicidade e validação do escopo no manifesto (CF-07).
 - [Regras estatísticas obrigatórias](regras-estatisticas-medidas.md): mediana vs. média, filtro de denominador, tamanho da base e proibição de contar linha como respondente (DX-03).
 - [Validação de acesso ponta a ponta ao BI](validacao-acesso-bi.md): checklist de conexão em máquina nova e gap-check indicador × coluna publicada (DX-04).
 - [Relacionamentos do modelo semântico](relacionamentos-modelo-bi.md): dimensões conformadas, cardinalidade e direção de filtro do projeto `powerbi/CentralPesquisasBI` (DX-05).
 - [Hierarquias do modelo semântico](hierarquias-modelo-bi.md): hierarquia de tempo (Ano-Trimestre-Mês) e de área, tipo e perfil, e como conferir o total por nível (DX-06).
 - [Medidas de portfólio, ciclo e prorrogação](medidas-portfolio-ciclo.md): medidas de `PUB_C01_CICLO`, regra aplicada e conferência contra a apuração de referência (DX-07).
 - [Medidas de participação e representatividade](medidas-participacao.md): medidas de `PUB_C02_PARTICIPACAO` e por que representatividade segue sem dado (DX-08).
-- [Medidas de questionários e qualidade do dado](medidas-questionarios-qualidade.md): medida de `PUB_C04_INSTRUMENTO` e as três publicações novas de qualidade (I16-I18) em `publish.py` (DX-09).
+- [Medidas de questionários e qualidade do dado](medidas-questionarios-qualidade.md): medida de `PUB_C04_INSTRUMENTO` e as três publicações de qualidade (preenchimento físico, I17 e I18; I16 aplicável indisponível) em `publish.py` (DX-09).
 - [Sinalização dos indicadores sem dado](sinalizacao-indicadores-bloqueados.md): medida de texto vs. `DIVIDE`/`BLANK()`, catálogo `DIM_INDICADORES_BLOQUEADOS` e como verificar que nada aparece como zero (DX-10).
 - [Conferência das medidas contra a apuração de referência](conferencia-medidas-dx11.md): script de conferência automatizada, checklist manual para as demais medidas e como tratar divergência de snapshot (DX-11).
 
