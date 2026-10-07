@@ -141,7 +141,19 @@ denominador antes de recalcular; para estoque, comparar o mesmo snapshot.
 
 | Indicador/visual | Nível agregado (valor) | Recomposição correta no detalhe | Coerente? | Observação |
 | :--- | :--- | :--- | :--- | :--- |
-| | | | | |
+| Pesquisas no recorte × Pesquisas por Status | 366 | soma das 7 barras de status = 366 | sim | Contagem aditiva em grupos disjuntos |
+| Pesquisas no recorte × Volume por Área | 366 | soma das 13 barras de área = 366 | sim | — |
+| Média de ciclo total (cartão) | 28,6 dias | (28,7 × 329 + 19,0 × 2) / 331 = 28,6, pela base válida de cada status | sim | A média simples das médias por status daria 23,8; o modelo usa `DIVIDE(soma, base)` e não a média das médias |
+| Média de coleta (cartão) × Tempo por Etapa e Tipo | 13,9 dias | Σ soma de dias / Σ base dos 8 tipos = 13,9 | sim | A média simples dos 8 tipos seria 14,2 |
+| Participações (cartão) × Participações por área | 17.740 | soma das 12 áreas = 17.740 | sim | — |
+| Participações (cartão) × Participações por mês | 17.740 | uma única categoria sem mês = 17.740 | sim | Coerente, mas não há níveis temporais para descer |
+| Associações pesquisa-pergunta × Perguntas por tipo | 3.186 | soma dos 5 tipos = 3.186; na área assuntos regulatórios, 682 = 400 + 200 + 43 + 38 + 1 | sim | — |
+| Completude aplicável (cartão) × Completude por tabela e campo | 71,4% | Σ preenchidas / Σ linhas dos 64 campos = 71,4% | sim | A média simples dos percentuais seria 84,0%; o cartão pondera pelo volume de linhas |
+| Estoque no último fechamento × estoque mensal | sem valor | nenhum fechamento observado em C03 | sim | Semiaditividade preservada (nada é somado entre meses); falta exibir o motivo |
+
+Nenhuma incoerência entre níveis. As medidas não aditivas recompõem pelo
+numerador e denominador, como exige a
+[regra estatística das medidas](../regras-estatisticas-medidas.md).
 
 ## Tempo de resposta das páginas
 
@@ -150,7 +162,20 @@ terminar de renderizar.
 
 | Interação | Página | Tempo observado | Acima de 2 s? | Observação |
 | :--- | :--- | :--- | :--- | :--- |
-| | | | | |
+| Selecionar Área | Produção e Volume | 0,4 s | não | 6 visuais de dados atualizados |
+| Selecionar Tipo com Área ativa | Produção e Volume | 0,3 s | não | — |
+| Seleção cruzada na barra "finalizada" | Produção e Volume | 0,3 s | não | Destaca os demais visuais da página |
+| Trocar para Participação agregada | — | 0,8 s | não | A página tem 3 visuais posicionados fora da área visível (1 × 1 px), que também consultam o modelo |
+| Selecionar Ano | Participação agregada (C02) | 0,3 s | não | Só a opção "(Em branco)" |
+| Trocar para Estoque, Instrumento e Qualidade | — | 1,1 s | não | Página com mais visuais de dados (9) |
+| Selecionar Status | Estoque, Instrumento e Qualidade | 0,4 s | não | Só a seção de estoque responde |
+
+Nenhuma interação passou de 2 s. O volume publicado é pequeno (57, 32, 0 e 45
+linhas nos cubos), então o tempo de resposta não limita o uso nesta geração.
+Os três visuais fora da área visível na página C02 (`v2_area`, `v2_detail`,
+`v2_time`) não têm efeito perceptível no tempo, mas consultam o modelo sem
+serem vistos e recebem foco ao navegar com Tab, o que atrapalha a leitura
+por teclado.
 
 ## Debrief (perguntas fixas, por participante)
 
