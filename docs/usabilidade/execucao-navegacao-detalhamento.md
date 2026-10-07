@@ -96,13 +96,25 @@ Think-aloud e observações da sessão:
 
 | Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte interpretado | Valor exibido × referência | Discrepância | Justificativa do número |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-FIL-02 | | | | | | | | | — |
-| T-FIL-03 | | | | | | | | | — |
-| T-DET-02 | | | | | | | | | |
-| T-DET-03 | | | | | | | | | |
-| T-DET-04 | | | | | | | | | |
+| T-FIL-02 | sim | 03:45 | não | 1 — selecionou só "em andamento" e leu 2; ao rever o gráfico de status, acrescentou "aguardando data predefinida" e "em análise da área técnica" | Primeira leitura (2) considerava apenas um dos três status não finalizados do tipo | "Pesquisa fixa anual que ainda não terminou" | 17 × 17 (primeira leitura: 2) | de leitura (corrigida) | — |
+| T-FIL-03 | assist. | 01:40 | não | 2 — limpou o slicer Tipo e clicou em um item do Status, deixando outros dois marcados | Leu 27 como "portfólio completo"; ao comparar com o 366 anotado antes, perguntou se havia um botão para limpar tudo | "Tudo de novo" (com Status ainda ativo) | 27 × 366 (após limpar o Status: 366) | de leitura | — |
+| T-DET-02 | sim | 03:30 | sim | 2 — procurou um filtro de empresa na faixa lateral e parou no aviso de empresa indisponível; voltou ao gráfico por área | Chamou as 17.740 participações de "pessoas que responderam"; perguntou o que era o "17" do cartão ao lado | "Todas as participações, por área" | 17.740 e 6.507 × 17.740 e 6.507 | de leitura | Incompleta: apontou a área certa (6.507), mas descreveu as participações como pessoas; o rodapé "conta ocorrências, não pessoas" não foi lido |
+| T-DET-03 | não | 02:30 | sim | 1 — aplicou Área na primeira página e foi direto ao gráfico "Perguntas por tipo" da terceira | Não verificou o slicer Área na terceira página e leu o total global como sendo da área | "Assuntos regulatórios, por tipo de pergunta" | múltipla escolha 1.551 × 400 (área) | de leitura | Errada: "1.551 perguntas de múltipla escolha em assuntos regulatórios" — o número é do conjunto inteiro |
+| T-DET-04 | assist. | 04:40 | não | 2 — selecionou um Status na faixa lateral esperando que as tabelas de qualidade mudassem; percorreu as quatro tabelas antes da de completude | Pediu à moderadora a quantidade de registros, porque a tabela só mostra o percentual; classificou `prorrogada_ate` como falha grave | "Campo prorrogada_ate da tabela pesquisas" | 18,6% × 18,6% (68 de 366 não exibidos) | de leitura | Errada: "faltam 81% das datas de prorrogação" — o campo só existe para pesquisas prorrogadas (ausência permitida) |
 
-Think-aloud e observações: _a preencher_
+Think-aloud e observações:
+
+- "Em andamento é o mesmo que não finalizada? Tem status demais e todos
+  parecem a mesma coisa." (T-FIL-02)
+- "Não tem um 'limpar filtros'? Vou ter que desmarcar um por um?" (T-FIL-03)
+- "Dezessete o quê? Ah, indicadores sem dado... por que isso está em destaque
+  numa tela de participação?" (T-DET-02, cartão "Indicadores sem dado")
+- "A média de preenchimento está vazia; não sei se é zero ou se não
+  carregou." (T-DET-02)
+- "Mudei o status e as tabelas de qualidade não mexeram. O filtro está
+  funcionando?" (T-DET-04)
+- "`multipla_escolha`, `caixas_de_selecao`... isso é nome de coluna, não é?"
+  (T-DET-03)
 
 ## Conferência dos valores exibidos
 
