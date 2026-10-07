@@ -20,14 +20,15 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Pesquisas"
+                  "Property": "Qtd Pesquisas"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Pesquisas",
+              "queryRef": "PUB_C01_CICLO.Qtd Pesquisas",
               "nativeQueryRef": "Pesquisas",
+              "active": true,
               "displayName": "Pesquisas"
             },
             {
@@ -35,45 +36,48 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Pesquisas Finalizadas"
+                  "Property": "Media Dias Ciclo Total"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Pesquisas Finalizadas",
-              "nativeQueryRef": "Pesquisas Finalizadas",
-              "displayName": "Pesquisas Finalizadas"
+              "queryRef": "PUB_C01_CICLO.Media Dias Ciclo Total",
+              "nativeQueryRef": "Ciclo médio (dias corridos)",
+              "active": true,
+              "displayName": "Ciclo médio (dias corridos)"
             },
             {
               "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Pesquisas em Aberto"
+                  "Property": "Base Valida Ciclo Total"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Pesquisas em Aberto",
-              "nativeQueryRef": "Pesquisas em Aberto",
-              "displayName": "Pesquisas em Aberto"
+              "queryRef": "PUB_C01_CICLO.Base Valida Ciclo Total",
+              "nativeQueryRef": "Com ciclo válido (base da média)",
+              "active": true,
+              "displayName": "Com ciclo válido (base da média)"
             },
             {
               "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Ciclo Médio em Dias Corridos"
+                  "Property": "Media Dias Coleta"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Ciclo Médio em Dias Corridos",
-              "nativeQueryRef": "Ciclo Médio em Dias Corridos",
-              "displayName": "Ciclo Médio em Dias Corridos"
+              "queryRef": "PUB_C01_CICLO.Media Dias Coleta",
+              "nativeQueryRef": "Ciclo médio de coleta (dias)",
+              "active": true,
+              "displayName": "Ciclo médio de coleta (dias)"
             }
           ]
         }

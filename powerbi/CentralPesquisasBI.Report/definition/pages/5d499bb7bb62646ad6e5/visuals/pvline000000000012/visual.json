@@ -20,15 +20,15 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D01_CicloPesquisa"
+                      "Entity": "PUB_C01_CICLO"
                     }
                   },
-                  "Property": "Taxa de Finalização"
+                  "Property": "Qtd Pesquisas"
                 }
               },
-              "queryRef": "D01_CicloPesquisa.Taxa de Finalização",
-              "nativeQueryRef": "Taxa de finalização",
-              "displayName": "Taxa de finalização"
+              "queryRef": "PUB_C01_CICLO.Qtd Pesquisas",
+              "nativeQueryRef": "Pesquisas no recorte",
+              "displayName": "Pesquisas no recorte"
             }
           ]
         }
@@ -40,10 +40,10 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "D01_CicloPesquisa"
+                    "Entity": "PUB_C01_CICLO"
                   }
                 },
-                "Property": "Taxa de Finalização"
+                "Property": "Qtd Pesquisas"
               }
             },
             "direction": "Descending"
@@ -157,7 +157,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'taxa de finalização'"
+                  "Value": "'Pesquisas no recorte'"
                 }
               }
             },
@@ -360,7 +360,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Insight em destaque'"
+                  "Value": "'Pesquisas no recorte'"
                 }
               }
             },
@@ -405,7 +405,39 @@
             "show": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Taxa de finalização não publicada em C01.'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Segoe UI'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#526477'"
+                    }
+                  }
                 }
               }
             }
