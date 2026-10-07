@@ -58,6 +58,13 @@ condicional e integridade, sem cruzamento analítico. Aberta/numérica exigem
 valor, seleção exige alternativa e matriz exige linha e coluna. Escolha única
 aceita a alternativa em `alternativa` ou `valor`, conforme formato de exportação.
 
+`respostas.respondent_id` é um identificador externo opaco obrigatório, tratado
+como `text`, sem relação inferida com `respondentes` ou `cliente_id`. Tokens em
+notação científica são preservados como recebidos, com a normalização NFC e o
+trim de texto; não são expandidos nem usados para reconstruir precisão perdida.
+Valores vazios continuam rejeitados. Um token arredondado não prova a identidade
+de uma pessoa, portanto sua contagem distinta não é uma contagem de pessoas.
+
 Países, status e demais categorias sem domínio homologado não terão uma lista
 fechada inventada a partir de um snapshot. Normalizações semânticas ficam
 restritas a mapas explícitos; valores novos devem ser preservados ou sinalizados.

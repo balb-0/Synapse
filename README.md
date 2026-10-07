@@ -22,29 +22,32 @@
 - <a href="https://www.linkedin.com/in/diogo-martins-gon%C3%A7alves-de-morais-96404732/">Diogo Martins Gonçalves de Morais</a> — Negócios
 - <a href="https://www.linkedin.com/in/geraldo-magela-severino-vasconcelos-22b1b220/">Geraldo Magela Severino Vasconcelos</a> — Matemática
 
-## 📝 Descrição
+## Descrição
 
-Construir a **espinha dorsal de dados da Central de Pesquisas do Sindusfarma** — integrando as fontes hoje dispersas (planilhas, formulários de coleta, gestão de tarefas e o repositório publicado), estruturando um banco de dados centralizado na nuvem, garantindo governança, qualidade e conformidade com a LGPD ao longo do ciclo de vida das pesquisas, e entregando um data app com dashboards operacionais e estratégicos que eliminam a dependência de atualizações manuais.
+O projeto integra as fontes da Central de Pesquisas do Sindusfarma em um ETL Python com ingestão tratada no DuckDB, camada analítica e consumo no Power BI. As regras de qualidade, rastreabilidade e governança acompanham a carga. O ambiente entregue é local, com serviços em Docker Compose e banco embutido em arquivo. Implantação em nuvem, publicação no Power BI Service e operação produtiva exigem provisionamento e aceite próprios.
 
-## 📝 LINKS
+## Documentação
 
-<a href="/docs/projeto.md">Link para a documentação geral</a> do projeto.
-<br>
-<a href="/docs/index.md">Índice da documentação</a> (estrutura completa e comandos de validação).
+Comece pelo [portal da documentação](docs/index.md). Ele liga o [documento principal](docs/projeto.md), as [decisões arquiteturais](docs/adrs/index.md), o [runbook de execução](docs/runbook-execucao.md) e os contratos por etapa.
 
-## 📊 Dashboards
+- [Matriz do feedback de conformidade](docs/conformidade-geral.md): evidência, correção e limite de cada critério.
+- [Referências técnicas e normativas](docs/referencias.md): fontes externas e sua aplicação no projeto.
 
-O projeto prevê uma camada de visualização com dashboards que consomem o banco central, hoje em fase de protótipo:
+## Dashboards
+
+A camada de apresentação usa Power BI (PBIP, PBIR e TMDL). `src/pbir dash/` contém o relatório legado de duas páginas; `powerbi/` contém o projeto de consumo dos agregados Parquet. A migração das páginas e a validação Desktop têm entregas próprias. A existência de um modelo semântico não comprova que todos os visuais já o consomem. O catálogo de dashboards prevê:
 
 - **Dashboard Operacional**: status das pesquisas em andamento, adesão por empresa e área, e tempos do ciclo (validação, coleta, tabulação).
 - **Dashboard Estratégico**: volume de pesquisas por período, evolução da adesão e representatividade de mercado das participantes.
 
-## 📁 Estrutura de pastas
+## Estrutura de pastas
 
 ```
 g05/
 ├─ docs/
-│  ├─ index.md                                        # Índice da documentação
+│  ├─ index.md                                        # Portal da documentação
+│  ├─ referencias.md                                  # Fontes técnicas e normativas
+│  ├─ conformidade-geral.md                            # Matriz dos 37 critérios recebidos
 │  ├─ projeto.md                                      # Documento principal do produto
 │  ├─ contexto_organizacional_+_requisitos_da_solução_analítica.md
 │  │                                                   # Entrada formal do Entregável A
@@ -87,7 +90,8 @@ g05/
 ├─ observability/kibana/                              # Saved objects do painel operacional (OB-08)
 ├─ observability/prefect-logging.yml                  # Perfil de logging JSON do Prefect para o coletor
 ├─ Dockerfile                                         # Imagem do runner do ETL
-├─ requirements.txt                                   # Dependências de execução (minio, prefect, duckdb)
+├─ requirements-transformation-dev.txt                # Ruff, cobertura e JUnit
+├─ requirements.txt                                   # Dependências de execução do ETL
 ├─ .env.example                                       # Modelo das variáveis de ambiente do ETL
 ├─ .gitlab/
 │  └─ merge_request_templates/                        # Template de Merge Request
@@ -96,28 +100,38 @@ g05/
 └─ README.md
 ```
 
-## ✅ Requisitos
+## Requisitos
 
-Para executar as validações localmente, utilize as versões abaixo (ou superiores compatíveis):
+O CI e o Dockerfile usam Python 3.12. Para reproduzir esse ambiente, use Python 3.12 e instale as versões fixadas nos arquivos de dependências:
 
 - **Git**: 2.40+
-- **Python**: 3.12+ (ETL, análise quantitativa e scripts de validação)
-- **Docker e Docker Compose** (ambiente local do ETL: MinIO + runner + Elastic Stack)
-- **matplotlib**: 3.9+ (geração dos gráficos da análise quantitativa)
-- **jq**: 1.6+ (validação estrutural do `dmc.json`)
+- **Python**: 3.12 para o ambiente de referência; versões posteriores precisam passar pelos mesmos gates. `requirements.txt` fixa as dependências de execução e `requirements-transformation-dev.txt` fixa lint, cobertura e JUnit.
+- **Docker Engine e Compose v2** (`docker compose`; ambiente local com MinIO, Prefect, runner e Elastic Stack). O Compose não representa um ambiente produtivo endurecido; imagens `latest` do MinIO e credenciais locais de exemplo exigem revisão antes de implantação.
+- **matplotlib**: 3.9+ somente para os scripts exploratórios de análise quantitativa; não é dependência do ETL em `requirements.txt`.
+- **jq**: 1.6+ para os comandos de validação estrutural do `dmc.json`.
+- **Power BI Desktop em Windows** para abrir e atualizar o PBIP. Versão e procedimento estão em [validação de acesso ao BI](docs/validacao-acesso-bi.md); Linux executa ETL e consultas, mas não substitui a prova no Desktop.
 
-## 💻 Configuração para desenvolvimento
+## Configuração para desenvolvimento
 
 ```bash
 git clone https://git.inteli.edu.br/graduacao/2026-2a/t13/g05
 cd g05
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt -r requirements-transformation-dev.txt
 ```
 
-> As bases brutas (CSV/XLS/XLSX) não fazem parte do repositório por conterem dados pessoais — os scripts de validação que dependem delas exigem as fontes em um diretório externo seguro.
+> As bases reais do parceiro, bancos DuckDB e gerações Parquet ficam em diretório externo restrito e não devem entrar no Git. Os CSVs de `tests/fixtures/` são sintéticos e versionados para os testes. Excluir dados brutos não prova sozinho a ausência de dados pessoais em capturas, PDF ou caches do Power BI; revise os artefatos antes de publicá-los, conforme [gestão de configuração](docs/gestao-configuração.md).
 
-## 🚀 Execução do ETL
+## Execução do ETL
+
+Verifique `python --version`, `git --version`, `docker compose version` e `jq --version` antes de seguir o runbook. `jq` é um executável do sistema; instale-o pelo gerenciador da sua plataforma. Se quiser apenas verificar a sintaxe JSON sem ele, use `python -m json.tool docs/dmc.json > /dev/null`; isso não substitui o validador de domínio.
+
+Para gerar os gráficos da análise quantitativa, instale a dependência opcional separadamente no ambiente virtual:
+
+```bash
+python -m pip install 'matplotlib==3.9.4'
+```
 
 O pipeline de ingestão (CSVs → MinIO → Prefect → DuckDB) sobe com Docker
 Compose e é executado pelos entrypoints em `scripts/orchestration/`:
@@ -132,7 +146,13 @@ O passo a passo completo — variáveis de ambiente, backfill, orquestração
 Prefect, logs, consulta ao DuckDB, CI e troubleshooting — está em
 [docs/runbook-execucao.md](docs/runbook-execucao.md).
 
-## 🗃 Histórico de lançamentos
+## Referências e repositórios complementares
+
+As [referências](docs/referencias.md) incluem documentação oficial do Python, DuckDB, Prefect, Docker e Power BI, além da LGPD e da licença CC BY 4.0. O [documento principal, seção 7](docs/projeto.md#7-referências), contém a bibliografia do contexto e da governança.
+
+O código e os artefatos entregues pela equipe estão neste repositório G05. Não há repositório auxiliar necessário declarado nos arquivos de execução ou na documentação de configuração. Ferramentas de terceiros são dependências externas, listadas nas referências; fontes restritas do parceiro não são repositórios públicos.
+
+## Histórico de lançamentos
 
 * 0.1.0 - Sprint 1 - 14/08/2026
     * Contexto Organizacional, Modelagem Quantitativa dos Dados e Data Model Canvas
@@ -145,6 +165,18 @@ Prefect, logs, consulta ao DuckDB, CI e troubleshooting — está em
 * 0.5.0 - Sprint 5 - 07/10/2026
     * Em andamento; entregas ainda não registradas neste histórico
 
-## 📋 Licença/License
+## Licença/License
 
-<p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://git.inteli.edu.br/graduacao/2026-2a/t13/g05">Governança e Integração de Dados da Central de Pesquisas</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://git.inteli.edu.br/graduacao/2026-2a/t13/g05">INTELI</a>, <a href="https://www.linkedin.com/in/anna-riciopo/">Anna Riciopo</a>, <a href="https://www.linkedin.com/in/karine-paixao/">Karine Paixão</a>, <a href="https://www.linkedin.com/in/lucas-nunes-matheus/">Lucas Nunes Matheus</a>, <a href="https://www.linkedin.com/in/marlos-do-carmo-guedes-366987250/">Marlos Guedes</a>, <a href="https://www.linkedin.com/in/milena-castro-vieira/">Milena Castro Vieira</a>, <a href="https://www.linkedin.com/in/otavio-vasc/">Otávio Vasconcelos</a>, <a href="https://www.linkedin.com/in/vitor-balbo/">Vitor Balbo</a> is licensed under <a href="http://creativecommons.org/licenses/by/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">Attribution 4.0 International<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1"></a></p>
+O projeto **Governança e Integração de Dados da Central de Pesquisas**, do grupo **Synapse (G05)** no [Inteli](https://www.inteli.edu.br/), usa a licença [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
+
+A atribuição inclui **Synapse (G05)**, [Inteli](https://www.inteli.edu.br/) e:
+
+- [Anna Riciopo](https://www.linkedin.com/in/anna-riciopo/)
+- [Karine Paixão](https://www.linkedin.com/in/karine-paixao/)
+- [Lucas Nunes Matheus](https://www.linkedin.com/in/lucas-nunes-matheus/)
+- [Marlos Guedes](https://www.linkedin.com/in/marlos-do-carmo-guedes-366987250/)
+- [Milena Castro Vieira](https://www.linkedin.com/in/milena-castro-vieira/)
+- [Otávio Vasconcelos](https://www.linkedin.com/in/otavio-vasc/)
+- [Vitor Balbo](https://www.linkedin.com/in/vitor-balbo/)
+
+ A licença do repositório não autoriza divulgar dados pessoais ou bases restritas recebidas do parceiro.

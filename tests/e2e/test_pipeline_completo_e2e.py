@@ -227,7 +227,7 @@ class PipelineCompletoE2ETests(unittest.TestCase):
         # 3. Execução subsequente com reprocess=True para disparar nova carga,
         # mas simulando falha na reconciliação
         with mock.patch(
-            "etl.orchestration.pipeline.reconcile_analytics", return_value=report_reprovado
+            "etl.orchestration.analytics.reconcile_analytics", return_value=report_reprovado
         ):
             with self.assertRaises(ReconciliationFailedError) as contexto:
                 run_pipeline(
@@ -257,7 +257,7 @@ class PipelineCompletoE2ETests(unittest.TestCase):
         # 7. Cenário complementar: erro de execução na reconciliação sobe como PipelineStageError
         # e também preserva o estado de publicação
         with mock.patch(
-            "etl.orchestration.pipeline.reconcile_analytics",
+            "etl.orchestration.analytics.reconcile_analytics",
             side_effect=RuntimeError("falha na conexão durante reconciliação"),
         ):
             with self.assertRaises(PipelineStageError) as contexto_erro:

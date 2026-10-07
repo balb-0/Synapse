@@ -128,7 +128,8 @@ SCHEMAS = {
         field("id_resposta", "resposta_id", "id", True),
         field("pesquisa_id", kind="id", required=True),
         field("id_pergunta", "pergunta_id", "id", True),
-        field("respondent_id", kind="id", required=True),
+        # Identificador externo opaco: não reconstruir precisão do token recebido.
+        field("respondent_id", required=True),
         field("id_empresa", "empresa_id", "id"),
         field("alternativa"),
         field("linha_matriz"),

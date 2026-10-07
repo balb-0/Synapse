@@ -4,5 +4,6 @@
     "byPath": {
       "path": "../CentralPesquisasBI.SemanticModel"
     }
-  }
+  },
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json"
 }

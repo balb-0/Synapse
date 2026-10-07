@@ -80,7 +80,7 @@ específico, para que uma tarefa não ensine a resposta da anterior:
 6. **Debrief** (5 min): impressões livres + as duas perguntas fixas: "o que
    foi mais difícil?" e "que número você não confiou?".
 
-Duração prevista por sessão: **30–45 minutos** (aquecimento + 2 a 6 tarefas
+Duração prevista por sessão: **10–45 minutos** (aquecimento + 1 a 6 tarefas
 por participante + debrief).
 
 ## 3. O que é medido
@@ -125,7 +125,7 @@ Por sessão: observações do think-aloud e respostas do debrief.
 
 ## 6. Critérios para considerar a execução válida
 
-- Toda tarefa executada por ao menos um participante, com ficha completa
+- Toda tarefa na rodada executada por ao menos um participante, com ficha completa
   (nenhuma célula vazia ou presumida).
 - A rodada final executa sobre as páginas validadas no RP-17
   ([validação das páginas finais](../solucao-dashboards/validacao-paginas-finais.md)),

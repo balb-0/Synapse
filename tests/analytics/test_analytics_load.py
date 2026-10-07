@@ -157,6 +157,53 @@ class AnalyticsLoadTests(unittest.TestCase):
             self.con.execute('SELECT count(*) FROM "FATO_CICLO_PESQUISA"').fetchone()[0], 1
         )
 
+    def test_each_stage_failure_preserves_facts_dimensions_closures_and_manifest(self):
+        self.insert("pesquisas", "p1-a", 1, pesquisa_id="p1", titulo="Original", status="Aberta")
+        self.insert("empresas", "e1-a", 1, empresa_id="e1", nome_fantasia="Original")
+        self.insert("clientes", "c1-a", 1, cliente_id="c1", empresa_id="e1", cargo="Original")
+        self.insert("respondentes", "r1", 1, pesquisa_id="p1", empresa_id="e1", cliente_id="c1")
+        self.insert("questoes", "q1", 1, pesquisa_id="p1", pergunta_id="q1", tipo="aberta")
+        self.reconcile()
+        observed = datetime(2026, 9, 30, 23)
+        load_analytics(self.con, observed_at=observed)
+        tables = (
+            "DIM_EMPRESA",
+            "DIM_PESSOA",
+            "DIM_PESQUISA",
+            "FATO_CICLO_PESQUISA",
+            "FATO_PARTICIPACAO",
+            "FATO_PESQUISA_PERGUNTA",
+            "FATO_PIPELINE_MENSAL",
+            "analytics_pipeline_membership",
+            "analytics_pipeline_closure",
+            "analytics_reconciliation",
+            "analytics_load_run",
+        )
+        before = {
+            table: self.con.execute(f'SELECT * FROM "{table}" ORDER BY ALL').fetchall()
+            for table in tables
+        }
+        self.insert("pesquisas", "p1-b", 2, pesquisa_id="p1", titulo="Corrigido", status="Fechada")
+        self.insert("empresas", "e1-b", 2, empresa_id="e1", nome_fantasia="Corrigido")
+        self.insert("clientes", "c1-b", 2, cliente_id="c1", empresa_id="e1", cargo="Corrigido")
+        for stage in ("dimensions", "cycle", "facts"):
+            with self.subTest(stage=stage):
+                with self.assertRaisesRegex(RuntimeError, "injected"):
+                    load_analytics(self.con, observed_at=datetime(2026, 10, 31), fail_after=stage)
+                after = {
+                    table: self.con.execute(f'SELECT * FROM "{table}" ORDER BY ALL').fetchall()
+                    for table in tables
+                }
+                self.assertEqual(after, before)
+        # A rollback must also leave the connection usable for the next full load.
+        recovered = load_analytics(self.con, observed_at=datetime(2026, 10, 31))
+        self.assertEqual(
+            (recovered.pesquisas, recovered.participacoes, recovered.perguntas), (1, 1, 1)
+        )
+        self.assertEqual(
+            self.con.execute('SELECT count(*) FROM "analytics_pipeline_closure"').fetchone()[0], 2
+        )
+
     def test_month_end_is_prospective(self):
         self.insert("pesquisas", "p1-a", 1, pesquisa_id="p1", status="Aberta")
         load_analytics(self.con)

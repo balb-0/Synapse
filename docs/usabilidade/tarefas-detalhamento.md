@@ -80,7 +80,9 @@ quando diferir do drill.
   não perceber é o erro que esta tarefa existe para capturar.
 - **Tempo aceitável:** 4 minutos.
 
-## T-DET-04 — Chegar à regra que explica um indicador de qualidade
+## T-DET-04 — Chegar à regra que explica um indicador de qualidade (fora da rodada)
+
+- **Estado:** fora da rodada; exige página Qualidade (D04), ausente no report entregue.
 
 - **Perfil-alvo:** papel de governança (participante interno exercendo o
   papel, conforme registro do levantamento de perfis).

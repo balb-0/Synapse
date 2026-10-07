@@ -41,7 +41,7 @@ o participante não deve inventar uma comparação a partir de outro número.
   e por quê.
 - **Tempo aceitável:** 4 minutos.
 
-## T-CMP-02 — Ler a evolução mensal sem misturar marcos temporais
+## T-CMP-02 — Ler a evolução anual da participação
 
 - **Perfil-alvo:** UC01 (analista da Central).
 - **Situação real:** "Aponte em qual mês houve mais participações e confirme
