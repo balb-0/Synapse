@@ -399,22 +399,26 @@ modelo ainda não chegam às páginas: as hierarquias `Calendario` e
 `Area, Tipo e Perfil` (sem uso nos eixos) e a medida `Estado do Estoque`
 (sem visual que a exiba).
 
-## Limitações e propostas
+## 6. Limitações efetivas e propostas
 
-| Limitação | Análise crítica | Proposta |
-| :--- | :--- | :--- |
-| Páginas sobre CSV de demonstração, não sobre a geração Parquet | Os valores validam a composição e a leitura das páginas, mas não a precisão contra os cubos publicados | Sprint 5: ligar as páginas ao `CentralPesquisasBI.SemanticModel` e conferir cada visual com o `manifest.json` |
-| Sem drill hierárquico nas páginas | O usuário chega ao detalhe por filtro cruzado, mas não desce um nível temporal ou de área | Sprint 5: trocar os eixos pelas hierarquias `Calendario` e `Area, Tipo e Perfil` e criar uma página de drill-through por pesquisa |
-| Ciclo apresentado em dias corridos | O parceiro pediu dias úteis na Rodada 0, e as duas métricas não são equivalentes | Incluir o calendário de dias úteis no C01 e rotular a unidade em cada visual |
-| Sessões moderadas S1–S4 ainda não executadas | Só a Rodada 0 (retorno do parceiro) tem resultados; ainda não há medidas de tempo nem de taxa de sucesso | Sprint 5: executar S1–S4 com as fichas preparadas depois da ligação ao Parquet |
-| Participação de mercado sem fonte homologada | Publicá-la como indicador seria incorreto | Manter como "participação observada" até a homologação (DR02) |
+Limitações confirmadas na rodada final, com análise crítica e proposta. As
+23 limitações, com evidência, severidade, destino e critério de reteste,
+estão em [`limitacoes-e-propostas.md`](usabilidade/limitacoes-e-propostas.md).
 
-O detalhamento das limitações L01–L08 e das encontradas nas sessões está em
-[`limitacoes-e-propostas.md`](usabilidade/limitacoes-e-propostas.md).
+| Limitação | Análise crítica | Proposta (não decidida) | Estado |
+| :--- | :--- | :--- | :--- |
+| Sem mês de resposta na geração v3 (A17, impeditivo) | `mes_resposta` vazio nas 32 linhas de C02; Ano e o gráfico mensal só têm o valor vazio, e a pergunta "cresceu em relação ao período anterior?" fica sem resposta | Recuperar a data de resposta na origem e na carga de C02; até lá, aviso textual no lugar da barra vazia e slicer Ano oculto | Encaminhado a CB e RP |
+| Estoque em branco sem motivo (A15, impeditivo) | C03 sem fechamento é estado legítimo, mas o cartão vazio é lido como erro | Exibir a medida `Estado do Estoque` no cartão e no gráfico mensal | Encaminhado a RP |
+| Filtros não acompanham a troca de página (A12) | O usuário lê um total global como se fosse do recorte; causou a única falha de detalhamento | Sincronizar Área, Tipo e Status entre páginas | Encaminhado a RP |
+| Drill-down não configurado nos eixos (A06) | As hierarquias existem no modelo, mas os visuais têm um nível só; o usuário contorna por slicer | Usar `tipo` como segundo nível, `Calendario` nos eixos de tempo e matriz com `Area, Tipo e Perfil` | Encaminhado a RP |
+| Produção sem período e ciclo em dias corridos (A18, A20) | C01 não publica data; a Central raciocina em dias úteis, pedido já feito na Rodada 0 | Publicar ano/mês de solicitação e a duração em dias úteis (`dias_uteis_para_entrega`, 90,4% preenchido na origem) em C01 | Proposta ao contrato de C01 (CB) |
+| Completude sem numerador e natureza do nulo (A13) | Ausência permitida (ex.: data de prorrogação) é lida como falha de qualidade | Mostrar linhas, preenchidas e registros afetados; classificar campos de preenchimento condicional | Encaminhado a RP e BI |
+| Participação de mercado e empresa sem fonte homologada | Publicá-las como indicador seria incorreto; o benchmark por empresa da demonstração não é reproduzível no grão publicado | Manter "participação observada" e os avisos até a homologação (DR02) | Mantida por decisão |
 
-## Acessibilidade e identidade visual
+## 7. Acessibilidade e identidade visual
 
-As telas utilizam uma identidade visual única, com navegação lateral, títulos
+As telas utilizam uma identidade visual única, com faixa lateral de marca e
+filtros, títulos
 descritivos, filtros agrupados e hierarquia visual consistente. Os indicadores
 foram organizados para que o usuário consiga identificar o contexto antes de
 interpretar os valores.
@@ -429,13 +433,24 @@ Foram priorizados os seguintes critérios:
 - indicação textual para resultados bloqueados ou indisponíveis;
 - ordem de leitura coerente entre filtros, indicadores e visuais.
 
-A verificação final de contraste, foco e navegação por teclado deve ser
-realizada no Power BI Desktop com as telas finais abertas, pois esses aspectos
-dependem também da renderização do ambiente.
+Nas sessões da rodada final, a leitura com teclado mostrou que três visuais
+posicionados fora da área visível da página C02 recebem foco (A21), e os
+códigos de catálogo (I05, I07, I16, C02) dificultam a leitura sem
+consulta à documentação (A22). Ambos estão no registro de limitações com
+proposta.
 
-## Referência de estrutura
+## 8. Referências
 
-A seleção das páginas, filtros, visuais e indicadores está detalhada em
-[`estrutura-dashboards.md`](solucao-dashboards/estrutura-dashboards.md), que consolida a relação
-entre os relatórios do parceiro, os cubos analíticos e a finalidade de cada
-tela.
+- [`estrutura-dashboards.md`](solucao-dashboards/estrutura-dashboards.md):
+  relação entre os relatórios do parceiro, os cubos e a finalidade de cada
+  tela.
+- [`implementacao-reports.md`](solucao-dashboards/implementacao-reports.md):
+  inventário dos 48 visuais de demonstração mapeados ao modelo Parquet (RP-12).
+- [`filtros-hierarquias-detalhamento.md`](solucao-dashboards/filtros-hierarquias-detalhamento.md)
+  e [`validacao-paginas-finais.md`](solucao-dashboards/validacao-paginas-finais.md):
+  filtros suportados e validação técnica das páginas finais (RP-16, RP-17).
+- [`acesso-cubos-bi.md`](acesso-cubos-bi.md) e
+  [`validacao-acesso-bi.md`](validacao-acesso-bi.md): contrato da geração e
+  conexão do Power BI.
+- [`checklist-avaliacao.md`](solucao-dashboards/checklist-avaliacao.md):
+  conferência deste documento contra os critérios de avaliação.
