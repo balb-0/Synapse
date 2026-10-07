@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "purpose": "Validação local do pacote Parquet recebido, sem republicação",
+  "generation": "6b1eaa686aac43b18b6d6545e1c2c5f1",
+  "load_reference": "afcde424-45e8-457b-8793-bf0866d142b2",
+  "manifest_sha256": "7593530089355c139f50529e9600d496e11a8262e00064364fe4fde378efc4e4",
+  "validation_scope": "hashes, esquemas, contagens e agregados dos sete arquivos",
+  "tables": {
+    "PUB_C01_CICLO": {"rows": 57, "qtd_pesquisas": 366},
+    "PUB_C02_PARTICIPACAO": {"rows": 32, "qtd_participacoes": 17740, "soma_minutos_preenchimento": null, "qtd_preenchimento_disponivel": 0},
+    "PUB_C03_PIPELINE_MENSAL": {"rows": 0, "observation": "not_observed"},
+    "PUB_C04_INSTRUMENTO": {"rows": 45, "qtd_perguntas": 3186},
+    "PUB_QUALIDADE_CAMPO": {"rows": 64},
+    "PUB_QUALIDADE_RELACAO": {"rows": 8},
+    "PUB_QUALIDADE_DUPLICIDADE": {"rows": 5}
+  },
+  "checks": {
+    "manifest_matches_receipt": true,
+    "all_file_hashes_match_manifest": true,
+    "all_schemas_match_manifest": true,
+    "all_row_counts_match_manifest": true,
+    "aggregates_match_receipt": true,
+    "divergences": 0
+  },
+  "result": "verified",
+  "parquet_files_versioned": false,
+  "duckdb_versioned": false
+}
