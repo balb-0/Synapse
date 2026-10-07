@@ -118,9 +118,30 @@ Think-aloud e observações:
 
 ## Conferência dos valores exibidos
 
-| Tarefa | Recorte | Valor exibido | Valor de referência | Confere? | Observação |
+Cada valor foi lido na página com o recorte exatamente como estava aplicado
+no momento (inclusive quando diferente do recorte pedido) e comparado com a
+consulta independente sobre a mesma geração.
+
+| Tarefa | Recorte aplicado na página | Valor exibido | Valor de referência | Confere? | Observação |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| | | | | | |
+| T-NAV-01 | nenhum | 366; finalizada 332; base válida 331; média de ciclo 28,6; média de coleta 13,9 | R-NAV-01: 366; 332; 331; 28,6; 13,9 | sim | Base válida (331) e finalizadas (332) diferem por um e foram confundidas na leitura |
+| T-NAV-02 | Estoque, Instrumento e Qualidade, sem filtros | estoque em branco; 3.186 associações; completude 71,4% | R-ESTOQUE: 0 linhas; R-DET-03 total 3.186; R-DET-04 71,4% | sim | O branco do estoque é o estado `sem dado` esperado, mas a página não exibe o motivo |
+| T-FIL-01 | Área = assuntos regulatórios | 88 | R-FIL-01: 88 | sim | — |
+| T-FIL-04 | Área = inovação; Tipo = pesquisa fixa anual | cartões em branco; gráficos vazios | R-FIL-04: 0 linhas | sim | Vazio correto, sem mensagem de recorte vazio |
+| T-DET-01 | Status = finalizada; depois Tipo = solicitação de associado | 332; 163 | R-DET-01: 332; 163 | sim | — |
+| T-DET-05 | linha assuntos regulatórios × finalizada × solicitação de associado | 37; 30,4 | R-DET-05: 37; 30,4 | sim | — |
+| T-FIL-02 | Tipo = pesquisa fixa anual; Status = em andamento | 2 | R-FIL-02 (parcial): em andamento 2 | sim | Recorte aplicado incompleto; após completar os status: 17 × 17 |
+| T-FIL-03 | Status = aguardando data predefinida, em andamento, em análise da área técnica | 27 | 19 + 5 + 3 = 27 (distribuição por status, R-DET-01) | sim | Valor certo para o filtro remanescente; sem o filtro: 366 × 366 |
+| T-DET-02 | nenhum | 17.740; maior área 6.507; média de preenchimento em branco | R-DET-02: 17.740; 6.507; base de preenchimento 0 | sim | Média em branco é `sem dado` (denominador zero), sem motivo exibido |
+| T-DET-03 | Área = assuntos regulatórios na 1ª página; nenhum filtro na 3ª | múltipla escolha 1.551 | R-DET-03 total: 1.551 (área: 400) | sim, para o recorte aplicado | O filtro de Área não acompanhou a navegação; o participante leu o total global como sendo da área |
+| T-DET-04 | nenhum | `prorrogada_ate` 18,6% | R-DET-04: 68 de 366, 18,6% | sim | Numerador, denominador e registros afetados (298) não aparecem na tabela |
+
+**Resultado:** 11 de 11 valores conferem com a referência no recorte
+efetivamente aplicado — nenhuma discrepância de dado. As seis discrepâncias
+das fichas são **de leitura**: o número estava certo, mas o recorte
+interpretado (T-FIL-02, depois corrigido; T-FIL-03; T-DET-03), o rótulo
+(T-DET-02), a natureza
+do nulo (T-DET-04) ou o estado vazio (T-NAV-02) foram lidos de forma errada.
 
 ## Debrief (perguntas fixas, por participante)
 
