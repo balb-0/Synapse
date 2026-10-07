@@ -24,6 +24,7 @@
 | [`usabilidade/`](usabilidade/) | Plano de usabilidade dos dashboards: perfis e critérios, tarefas de navegação, detalhamento e comparação, roteiro de execução e limitações |
 | [`solucao-dashboards/`](solucao-dashboards/) | Documento da solução de dashboards: implementação a partir dos cubos, plano/execução/avaliação de qualidade e checklist contra os critérios |
 | [`smoke-observabilidade-sprint4.md`](smoke-observabilidade-sprint4.md) | Evidência real do smoke OB-11: execução concluída, falha controlada, alerta ativo, painel Kibana e histórico Prefect |
+| [`smoke-pipeline-completo-sprint5.md`](smoke-pipeline-completo-sprint5.md) | Evidência real do smoke do comando único: seis fontes, `load_id`, reconciliação aprovada, geração publicada com sete contagens e falha controlada com reexecução |
 | [`solucao_dashboard.md`](solucao_dashboard.md) | Estado verificado das duas páginas Power BI, relação com os Parquet publicados, plano e pendências do barema |
 | [`estimativa-custos-ambiente.md`](estimativa-custos-ambiente.md) | Estimativa paramétrica dos ambientes local, piloto e de produção, com premissas, fórmulas, fontes e limites |
 | [`analise_financeira.md`](analise_financeira.md) | Resumo executivo, descrição técnica e convenções para os cenários financeiros da Sprint 5 |

@@ -1,0 +1,5 @@
+id_resposta;pesquisa_id;id_pergunta;respondent_id;id_empresa;alternativa;linha_matriz;coluna_matriz;valor
+3001;1;2001;501;101;A;;;
+3001;1;2001;501;101;A;;;
+3002;1;2001;502;101;Z;;;
+3003;1;2002;503;;;;;resposta sintética

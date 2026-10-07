@@ -170,6 +170,31 @@ class SchemaTests(unittest.TestCase):
             with self.assertRaises(c.ConversionError):
                 string_list(value)
 
+    def test_response_opaque_identifier_preserves_lexical_value(self):
+        for value in ("1.23456E+11", "1,23E+11", "00042", "external-user"):
+            with self.subTest(value=value):
+                result = run("respostas", [{**RAW["respostas"], "respondent_id": f" {value} "}])
+                self.assertEqual(len(result.accepted), 1, result.rejected)
+                self.assertEqual(result.accepted[0].data["respondent_id"], value)
+
+    def test_response_opaque_identifier_is_still_required(self):
+        for value in (None, "", " \t\n"):
+            with self.subTest(value=value):
+                result = run("respostas", [{**RAW["respostas"], "respondent_id": value}])
+                self.assertFalse(result.accepted)
+                self.assertIn(
+                    ("REQUIRED", "respondent_id"),
+                    [(v.code, v.field) for v in result.rejected[0].violations],
+                )
+
+    def test_response_opaque_identifier_does_not_reconstruct_numeric_input(self):
+        result = run("respostas", [{**RAW["respostas"], "respondent_id": 1.23456e11}])
+        self.assertFalse(result.accepted)
+        self.assertIn("INVALID_TEXT", [v.code for v in result.rejected[0].violations])
+        result = run("respostas", [{**RAW["respostas"], "id_resposta": "1E+11"}])
+        self.assertFalse(result.accepted)
+        self.assertIn("INVALID_ID", [v.code for v in result.rejected[0].violations])
+
     def test_input_is_not_mutated(self):
         original = copy.deepcopy(RAW)
         for source, row in RAW.items():

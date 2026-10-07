@@ -14,6 +14,7 @@ import os
 import sys
 import tempfile
 import unittest
+from dataclasses import asdict
 from datetime import date
 from pathlib import Path
 from unittest import mock
@@ -101,26 +102,26 @@ class PipelineCompletoTests(unittest.TestCase):
     def _backfill_falso(self, statuses: dict[str, str]):
         def backfill(*, sources, bucket, prefix, reprocess, db_path):
             self.chamadas.append(("backfill", tuple(sources), bucket, prefix, db_path))
-            return relatorio_backfill(statuses or dict.fromkeys(sources, "loaded"))
+            return relatorio_backfill({**dict.fromkeys(sources, "loaded"), **statuses})
 
         return backfill
 
     def _carga_falsa(self):
-        def load_analytics(con, *, observed_at=None):
+        def load_analytics(db_path, observed_at=None):
             self.chamadas.append(("analytics", observed_at))
-            return RESULTADO_ANALITICO
+            return {**asdict(RESULTADO_ANALITICO), "fechamento": "2026-09-30"}
 
         return load_analytics
 
     def _reconciliacao_falsa(self, report):
-        def reconcile_analytics(con):
+        def reconcile_analytics(db_path, load_reference):
             self.chamadas.append(("reconcile",))
-            return report
+            return report.as_dict()
 
         return reconcile_analytics
 
     def _publicacao_falsa(self):
-        def publish_cubes(database, output, *, load_reference):
+        def publish_cubes(database, output, load_reference):
             self.chamadas.append(("publish", str(database), str(output), load_reference))
             return manifesto(load_reference)
 
@@ -143,11 +144,11 @@ class PipelineCompletoTests(unittest.TestCase):
             dubles[falha_em] = quebrado
         with (
             mock.patch.object(pipeline_module, "backfill", dubles["backfill"]),
-            mock.patch.object(pipeline_module, "load_analytics", dubles["load_analytics"]),
+            mock.patch.object(pipeline_module, "load_warehouse", dubles["load_analytics"]),
             mock.patch.object(
-                pipeline_module, "reconcile_analytics", dubles["reconcile_analytics"]
+                pipeline_module, "reconcile_warehouse", dubles["reconcile_analytics"]
             ),
-            mock.patch.object(pipeline_module, "publish_cubes", dubles["publish_cubes"]),
+            mock.patch.object(pipeline_module, "publish_warehouse", dubles["publish_cubes"]),
         ):
             return run_pipeline(**kwargs)
 
@@ -168,7 +169,9 @@ class PipelineCompletoTests(unittest.TestCase):
         resultado = self.executar(statuses={"empresas": "loaded", "pesquisas": "ignored"})
 
         por_fonte = {r["source"]: r["status"] for r in resultado["backfill"]["results"]}
-        self.assertEqual(por_fonte, {"empresas": "loaded", "pesquisas": "ignored"})
+        self.assertEqual(por_fonte["empresas"], "loaded")
+        self.assertEqual(por_fonte["pesquisas"], "ignored")
+        self.assertEqual(len(por_fonte), 6)
         self.assertEqual(resultado["analytics"]["load_id"], LOAD_ID)
         self.assertTrue(resultado["reconciliation"]["reconciled"])
         self.assertEqual(resultado["publication"]["generation"], "geracao-teste")
