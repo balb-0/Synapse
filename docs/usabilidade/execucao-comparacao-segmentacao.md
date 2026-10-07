@@ -111,7 +111,7 @@ Think-aloud e observações:
 
 ## Precisão: valor exibido × valor de referência
 
-Preenchida pela moderadora imediatamente após cada tarefa, com o mesmo
+Preenchida pelo moderador imediatamente após cada tarefa, com o mesmo
 recorte aplicado na página e o valor de
 [`valores-referencia-v3.md`](evidencias/valores-referencia-v3.md):
 
@@ -157,7 +157,7 @@ numerador e denominador, como exige a
 
 ## Tempo de resposta das páginas
 
-Cronometrado pela observadora, do clique até o último visual da página
+Cronometrado pelo observador, do clique até o último visual da página
 terminar de renderizar.
 
 | Interação | Página | Tempo observado | Acima de 2 s? | Observação |

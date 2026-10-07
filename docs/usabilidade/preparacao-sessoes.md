@@ -35,7 +35,7 @@ sessões medem.
 
 | Papel | Responsável |
 | :--- | :--- |
-| Moderadora (apresenta as tarefas, cronometra, preenche a ficha) | Anna |
+| Moderador (apresenta as tarefas, cronometra, preenche a ficha) | Anna |
 | Observador (anota think-aloud e desvios; não fala com o participante) | Integrante do grupo que não participa como P1–P4 |
 
 <div align="center">
@@ -82,7 +82,7 @@ pela seção de estoque medem justamente se a página comunica esse estado.
 
 ## 4. Checklist pré-sessão
 
-Executado pela moderadora antes de cada sessão; a sessão só começa com todos
+Executado pelo moderador antes de cada sessão; a sessão só começa com todos
 os itens marcados.
 
 - [ ] `PastaPublicacaoBI` aponta para a subpasta da geração v3 e o refresh
@@ -90,7 +90,7 @@ os itens marcados.
 - [ ] As contagens de linhas carregadas conferem com o manifesto (Tabela 3).
 - [ ] O relatório abre na página **Produção e Volume**, sem nenhum slicer
   selecionado em nenhuma página.
-- [ ] Os valores de referência da sessão estão impressos para a moderadora
+- [ ] Os valores de referência da sessão estão impressos para o moderador
   ([`valores-referencia-v3.md`](evidencias/valores-referencia-v3.md)) e não
   ficam visíveis para o participante.
 - [ ] Cronômetro zerado; ficha em branco aberta no documento de execução.
@@ -104,5 +104,5 @@ os itens marcados.
 - As páginas exibem apenas agregados da publicação; mesmo assim, nenhuma
   captura mostra a pasta da geração, o DuckDB ou arquivos de origem.
 - Nada do participante é gravado: sem áudio, vídeo ou rosto. O think-aloud é
-  anotado em texto pela moderadora e pelo observador.
+  anotado em texto pelo moderador e pelo observador.
 - Nomeação e guarda seguem o [README das evidências](evidencias/README.md).

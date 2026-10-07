@@ -4,7 +4,7 @@ Resultado de [`consultas-referencia.sql`](consultas-referencia.sql) sobre a
 geração `6b1eaa686aac43b18b6d6545e1c2c5f1` (`load_reference`
 `afcde424-45e8-457b-8793-bf0866d142b2`), a mesma usada nas sessões S1–S4.
 Somente agregados da publicação; nenhum identificador de pesquisa, empresa
-ou pessoa. A moderadora usa esta tabela para conferir cada número lido pelo
+ou pessoa. O moderador usa esta tabela para conferir cada número lido pelo
 participante no mesmo recorte. Valores com uma casa decimal seguem o
 arredondamento da medida no relatório (`#,0.0`).
 
