@@ -1,146 +1,72 @@
 # Dashboard da Central de Pesquisas
 
-## Visão geral
+Documento da solução de dashboards da Sprint 5: como os reports foram
+implementados sobre os cubos publicados pela ETL, como foram testados com
+usuários e qual é a avaliação técnica e funcional resultante. As seções
+seguem os itens do enunciado "Dashboards — versão 2": implementação com
+base nos cubos (§2), plano de tarefas (§3), execução e validação (§4) e
+avaliação de qualidade (§5).
 
-O dashboard organiza a leitura da operação da Central de Pesquisas em duas
-perspectivas complementares:
+## 1. Visão geral
 
-- acompanhamento do volume e do ciclo das pesquisas;
-- comparação da participação observada de uma empresa com o benchmark do
-  recorte;
+### 1.1 Caminho do dado até a página
 
-A estrutura das telas foi definida a partir dos relatórios e rascunhos
-fornecidos pelo parceiro, preservando a finalidade de cada painel e adaptando
-os visuais aos indicadores e dimensões disponíveis no modelo analítico.
+```text
+fontes do parceiro → ETL (Prefect) → DuckDB (ingestão e cubos C01–C04)
+  → reconciliação → publicação Parquet (7 arquivos + manifest.json)
+  → Power BI (CentralPesquisasBI.pbip, parâmetro PastaPublicacaoBI)
+```
 
-## Produção e Volume
+O relatório não lê o DuckDB nem as fontes: consome somente a geração
+Parquet indicada por `current.json`, com quatro recortes agregados dos cubos
+e três tabelas de qualidade ([contrato da geração](acesso-cubos-bi.md)). A
+versão avaliada nesta sprint usa a geração v3
+`6b1eaa686aac43b18b6d6545e1c2c5f1`, publicada a partir da carga reconciliada
+`afcde424-45e8-457b-8793-bf0866d142b2`.
 
-![Tela Produção e Volume](assets/dashboard/relatorio-producao-volume.png)
+### 1.2 Páginas
 
-### Objetivo
+O relatório [`CentralPesquisasBI.Report`](../powerbi/CentralPesquisasBI.Report/)
+tem três páginas e 69 visuais (22 + 26 + 21), validados no RP-17
+([validação das páginas finais](solucao-dashboards/validacao-paginas-finais.md)):
 
-Apresentar uma visão operacional do portfólio de pesquisas, permitindo
-acompanhar volume, situação do ciclo, duração das etapas e prorrogações.
+| Página | Pergunta que responde | Perfis | Captura |
+| :--- | :--- | :--- | :--- |
+| Produção e Volume | Quantas pesquisas existem, em que status, de que área e tipo, e quanto dura cada etapa do ciclo? | UC01, UC03 | [C01](evidencias/bi06/final-fixture-c01.png) |
+| Participação agregada (C02) | Como as participações observadas se distribuem por área, tipo e mês de resposta? | UC01, UC03 | [C02](evidencias/bi06/final-fixture-c02.png) |
+| Estoque, Instrumento e Qualidade | Qual o estoque no último fechamento mensal, como os questionários se compõem por tipo de pergunta e qual a qualidade das fontes? | UC01, UC02, governança | [C03/C04](evidencias/bi06/final-fixture-c03-c04.png) |
 
-### Filtros
+As capturas por página foram feitas com a fixture sintética; a
+[captura-resumo da geração v3](evidencias/bi06/final-v3-summary.png) é a única
+com dado real. As três páginas compartilham a identidade visual definida na
+Sprint 4: faixa lateral com marca e filtros, título e subtítulo descritivos,
+cartões de síntese no topo e gráficos e tabelas abaixo.
 
-| Filtro | Uso |
-| :--- | :--- |
-| Ano | Define o período analisado. |
-| Área | Restringe o portfólio à área selecionada. |
-| Tipo | Restringe o portfólio ao tipo de pesquisa selecionado. |
-| Status | Permite analisar as pesquisas por situação no ciclo. |
-| Complexidade | Permite comparar o portfólio por nível de complexidade. |
+## 2. Implementação dos reports com base nos cubos
 
-### Indicadores e visuais
+### 2.1 Cubos utilizados
 
-| Visual | Informação apresentada |
-| :--- | :--- |
-| Taxa de finalização | Percentual de pesquisas finalizadas no recorte. |
-| Pesquisas | Quantidade total de pesquisas. |
-| Pesquisas finalizadas | Quantidade de pesquisas finalizadas. |
-| Pesquisas em aberto | Quantidade de pesquisas ainda abertas. |
-| Ciclo médio em dias corridos | Duração média do ciclo completo. |
-| Tempo por etapa e tipo | Duração média das etapas de validação, coleta e tabulação por tipo, apresentada em dias corridos nesta versão. |
-| Pesquisas por status | Distribuição do portfólio por situação. |
-| Volume por área | Distribuição das pesquisas por área. |
-| Pesquisas prorrogadas | Quantidade e relação das pesquisas com prorrogação. |
-| Acompanhamento das pesquisas | Pesquisa, status, área, tipo, ciclo total e entrega. |
+<div align="center">
+<sub>Tabela 1 - Cubos e tabelas publicadas, grão e uso nas páginas</sub><br>
 
-### Base analítica
+| Cubo / tabela publicada | Tema de negócio | Grão de uma linha | Linhas na v3 | Página |
+| :--- | :--- | :--- | ---: | :--- |
+| C01 — `PUB_C01_CICLO` | Portfólio e ciclo das pesquisas | área × status × tipo | 57 | Produção e Volume |
+| C02 — `PUB_C02_PARTICIPACAO` | Participação observada | área × tipo × mês de resposta | 32 | Participação agregada (C02) |
+| C03 — `PUB_C03_PIPELINE_MENSAL` | Estoque mensal do pipeline | fechamento do mês × status × área × tipo × perfil × tipo de resposta | 0 | Estoque, Instrumento e Qualidade |
+| C04 — `PUB_C04_INSTRUMENTO` | Composição dos questionários | área × tipo de pergunta | 45 | Estoque, Instrumento e Qualidade |
+| `PUB_QUALIDADE_CAMPO` | Completude | tabela × campo da fonte tratada | 64 | Estoque, Instrumento e Qualidade |
+| `PUB_QUALIDADE_RELACAO` | Integridade referencial | relação (tabela filha e chave) | 8 | Estoque, Instrumento e Qualidade |
+| `PUB_QUALIDADE_DUPLICIDADE` | Duplicidade de chave | tabela da ingestão | 5 | Estoque, Instrumento e Qualidade |
 
-A tela está alinhada ao tema do cubo C01 — Portfólio e Ciclo. Os principais
-recortes são status, área, tipo, complexidade e ano da edição. A dimensão
-temporal por `data_solicitacao` está definida no modelo analítico para a
-evolução das comparações por período.
+<sup>Material produzido pelos autores (2026), a partir do manifesto da geração v3</sup>
 
-## Implementação técnica — Produção e Volume
+</div><br>
 
-No modelo semântico do report, o tema do cubo C01 é representado pela tabela
-`D01_CicloPesquisa`. Os visuais da tela utilizam as medidas abaixo. Os campos
-de corte são mantidos na própria tabela do cubo porque esta versão do modelo
-utiliza os atributos categóricos diretamente na tabela importada.
-
-| Visual | Medida ou campos utilizados | Dimensões/cortes |
-| :--- | :--- | :--- |
-| Taxa de finalização | `Taxa de Finalização` | `status`, `area`, `tipo`, `complexidade`, `ano_edicao` |
-| Pesquisas | `Pesquisas` | `pesquisa_id_origem`, `status`, `area`, `tipo`, `complexidade`, `ano_edicao` |
-| Pesquisas finalizadas | `Pesquisas Finalizadas` | `status`, `area`, `tipo`, `complexidade`, `ano_edicao` |
-| Pesquisas em aberto | `Pesquisas em Aberto` | `status`, `area`, `tipo`, `complexidade`, `ano_edicao` |
-| Ciclo médio em dias corridos | `Ciclo Médio em Dias Corridos` | `area`, `tipo`, `status`, `ano_edicao` |
-| Tempo por etapa e tipo | `Ciclo Médio Validação em Dias Corridos`, `Ciclo Médio Coleta em Dias Corridos` e `Ciclo Médio Tabulação em Dias Corridos` | `tipo` e etapa do ciclo |
-| Pesquisas por status | `Pesquisas` | `status` |
-| Volume por área | `Pesquisas` | `area` |
-| Pesquisas prorrogadas — cartão | `Pesquisas Prorrogadas` | `flag_prorrogada = TRUE()` |
-| Pesquisas prorrogadas — tabela | Atributos do ciclo | `titulo`, `area`; filtro do visual por `flag_prorrogada` |
-| Acompanhamento das pesquisas | Atributos do ciclo | `titulo`, `status`, `area`, `tipo`, `dias_ciclo_total_corridos`, `data_entrega` |
-
-As colunas de duração são medidas em dias corridos. Valores ausentes não são
-convertidos em zero: a função `AVERAGE` considera somente os valores
-disponíveis, e um par de datas incompleto não representa uma duração válida.
-
-## Benchmark Externo — V2
-
-![Tela Benchmark Externo — V2](assets/dashboard/benchmark.png)
-
-### Objetivo
-
-Permitir que uma empresa compare sua participação observada com as demais
-empresas do recorte selecionado.
-
-O termo **participação observada** é utilizado porque o painel não representa
-adesão, desempenho ou participação de mercado homologada.
-
-### Filtros
-
-| Filtro | Uso |
-| :--- | :--- |
-| Empresa | Seleciona a empresa analisada. |
-| Pesquisa | Restringe o conjunto de pesquisas. |
-| Ano | Define o período da comparação. |
-| Área | Restringe a comparação à área selecionada. |
-| Tipo | Restringe a comparação ao tipo de pesquisa selecionado. |
-
-### Indicadores e visuais
-
-| Visual | Informação apresentada |
-| :--- | :--- |
-| Pesquisas com participação | Quantidade de pesquisas com participação observada. |
-| Empresas no recorte | Quantidade de empresas observadas. |
-| Pesquisas no recorte | Quantidade de pesquisas consideradas na comparação. |
-| Perfil de participação | Participação da empresa em comparação com o benchmark por área. |
-| Evolução da participação | Comparação anual entre a empresa selecionada e o benchmark. |
-| Posição no benchmark | Distribuição das empresas por faixa de participação. |
-| Participação por pesquisa | Pesquisas, percentual agregado das demais empresas e participação da empresa selecionada. |
-
-### Base analítica
-
-A tela está alinhada ao tema do cubo C02 — Participação e Representatividade,
-com apoio dos recortes de pesquisa e tempo. A comparação utiliza
-**participação observada**, preservando a distinção em relação à medida de
-participação de mercado sujeita à homologação da fonte oficial.
-
-## Implementação técnica — Benchmark Externo — V2
-
-No modelo semântico do report, o tema do cubo C02 é representado pela tabela
-`D02_Participacao`. O relatório também utiliza as tabelas calculadas
-`BE_Empresa`, `BE_Pesquisa` e `BE_Faixa` para representar a empresa escolhida,
-o catálogo de pesquisas e as faixas do benchmark.
-
-| Visual | Medida ou campos utilizados | Dimensões/cortes |
-| :--- | :--- | :--- |
-| Pesquisas com participação | `BE Pesquisas da empresa` (rótulo do cartão: "Pesquisas com participação") | `BE_Empresa[Empresa]`, `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]` |
-| Empresas no recorte | `BE Empresas observadas` | `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]`, `BE_Pesquisa[Área]`, `BE_Pesquisa[Tipo]` |
-| Pesquisas no recorte | `BE Pesquisas no recorte` | `BE_Pesquisa[Pesquisa]`, `BE_Pesquisa[Ano]`, `BE_Pesquisa[Área]`, `BE_Pesquisa[Tipo]` |
-| Perfil de participação | `BE % empresa por área` e `BE % demais por área` | `BE_Pesquisa[Área]`, `BE_Empresa[Empresa]` |
-| Evolução da participação | `BE Pesquisas por ano` e `BE Média demais por ano` | `BE_Pesquisa[Ano]`, `BE_Empresa[Empresa]` |
-| Posição no benchmark | `BE Empresas por faixa` e `BE Selecionada por faixa` | `BE_Faixa[Faixa]`, `BE_Empresa[Empresa]` |
-| Participação por pesquisa | `BE Percentual observado`, `BE % observado Top 8` e `BE Empresa participou` | `BE_Pesquisa[Pesquisa]`, `BE_Empresa[Empresa]` |
-
-O filtro de ano do Benchmark é derivado de `BE_Pesquisa[Ano]`, calculado a
-partir de `D01_CicloPesquisa[data_divulgacao]`. Os filtros de área e tipo
-também são disponibilizados por `BE_Pesquisa` e aplicados ao fato de
-participação pela chave de pesquisa.
+Totais conferidos no Power BI Desktop contra o manifesto e contra consultas
+diretas aos Parquet: 366 pesquisas (C01), 17.740 participações (C02) e 3.186
+associações pesquisa-pergunta (C04). C03 não tem fechamento observado na
+v3, e o estoque é tratado como `sem dado`, nunca como zero.
 
 ## Relacionamentos e propagação de filtros
 
