@@ -51,6 +51,7 @@ variáveis reais, lidas por `src/etl/extraction/config.py` e
 | `ETL_DUCKDB_PATH` | `data/duckdb/ingestao.duckdb` | Arquivo do banco de ingestão (caminho relativo ao diretório de execução) |
 | `ETL_DUCKDB_THREADS` / `ETL_DUCKDB_MEMORY_LIMIT` | — | Tuning da conexão DuckDB (ausente = padrão do DuckDB) |
 | `ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS` | `300` | Espera pelo lock de escrita do arquivo |
+| `ETL_PUBLISH_DIR` | — | Destino da publicação Parquet do pipeline completo (fora do checkout; no runner do Compose, `/data/publicacao`) |
 
 No runner do Compose, `ETL_DUCKDB_PATH` é `/data/warehouse.duckdb`, em volume persistente. Flow e repositório usam esse mesmo contrato de configuração; o TLS do MinIO é derivado do esquema do endpoint.
 
@@ -296,6 +297,48 @@ docker compose run --rm --no-deps runner python scripts/orchestration/run_backfi
 linha (ADR
 [`adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md`](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md))
 continua impedindo duplicatas.
+
+### Pipeline completo (backfill → cubos → reconciliação → publicação)
+
+Comando único que encadeia as quatro etapas no mesmo `ETL_DUCKDB_PATH` e só
+publica os sete Parquet quando a reconciliação aprova a carga
+(`reconciled=true`); o manifesto da geração aponta o `load_id` efetivo.
+
+```bash
+# fluxo completo das seis fontes, publicando em ETL_PUBLISH_DIR (/data/publicacao)
+docker compose run --rm --no-deps runner python scripts/orchestration/run_pipeline.py
+
+# subconjunto de fontes e destino explícito
+docker compose run --rm --no-deps runner python scripts/orchestration/run_pipeline.py \
+  --sources empresas pesquisas --publish-dir /data/publicacao
+```
+
+Parâmetros (todos opcionais no runner do Compose):
+
+| Parâmetro | Padrão | Papel |
+| :--- | :--- | :--- |
+| `--publish-dir` | `ETL_PUBLISH_DIR` | Destino dos Parquet, fora de qualquer checkout (validado pela publicação) |
+| `--sources` | as seis fontes | Subconjunto, na ordem de dependência (pais antes de filhos) |
+| `--reprocess` | desligado | Ignora a idempotência por objeto no backfill (recarga controlada) |
+| `--observed-at` | — | Fechamento observado do C03 (ISO, precisa ser o último dia do mês) |
+
+Saída e códigos de erro observáveis:
+
+- **Sucesso (exit 0)** — stdout termina com `PIPELINE: {"status": "completed",
+  ...}` incluindo o status por fonte do backfill, o `load_id` da carga, o
+  veredito da reconciliação e a geração publicada com linhas por tabela.
+- **Falha (exit 1)** — stderr termina com `PIPELINE FALHOU na etapa <stage>:
+  ...` (`backfill`, `load_analytics`, `reconciliation` ou `publication`), e o
+  marco JSON `orchestration.pipeline.emitted` com `status=failed` e o campo
+  `stage` chega ao Kibana como qualquer outro evento. Reexecutar após corrigir
+  a causa é seguro: a ingestão é idempotente, os fatos são substituídos (nunca
+  acumulados) e uma falha na publicação preserva o `current.json` anterior.
+- **Parâmetro inválido (exit 2)** — erro do argparse (ex.: sem `--publish-dir`
+  e sem `ETL_PUBLISH_DIR`).
+
+A geração publicada fica em `/data/publicacao/<generation>/` (sete `.parquet`
++ `manifest.json` com hash SHA-256 por arquivo), e `current.json` aponta a
+geração vigente — a troca é atômica e só acontece no fim.
 
 ## Orquestração Prefect
 
