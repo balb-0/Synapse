@@ -94,8 +94,60 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
   não perder a janela e **reexecutar** nas telas finais, mantendo os dois
   registros separados (regra já fixada no roteiro, §6).
 
-## 2. Limitações encontradas nas sessões de execução
+## 2. Resultados das sessões S1–S4
 
-_Reservado. Preenchido a partir das fichas de US-06/US-07 quando as rodadas
-ocorrerem, no mesmo formato (impacto, causa observada com a ficha/tarefa que
-a evidencia, proposta marcada como proposta)._
+Consolidação das fichas de
+[navegação e detalhamento](execucao-navegacao-detalhamento.md) (S1–S2) e de
+[comparação e segmentação](execucao-comparacao-segmentacao.md) (S3–S4),
+executadas sobre as páginas finais do RP-17 e a geração v3
+([preparação](preparacao-sessoes.md)). Foram 17 execuções de tarefa
+(16 tarefas; T-NAV-01 executada por dois perfis).
+
+**Taxa de sucesso** = tarefas concluídas sem ajuda ÷ tarefas executadas.
+**Taxa de conclusão** = (sem ajuda + com assistência) ÷ tarefas executadas.
+**Tempo médio** = média simples dos tempos cronometrados, comparada com a
+média dos tempos aceitáveis das mesmas tarefas.
+
+<div align="center">
+<sub>Tabela 1 - Sucesso e tempo por bloco do roteiro</sub><br>
+
+| Bloco | Execuções | Sem ajuda | Com assistência | Não concluída | Taxa de sucesso | Taxa de conclusão | Acima do tempo | Tempo médio | Tempo aceitável médio |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| A — navegação | 3 | 2 | 1 | 0 | 67% | 100% | 1 | 02:27 | 02:40 |
+| B — filtros | 4 | 3 | 1 | 0 | 75% | 100% | 3 | 02:41 | 02:15 |
+| C — detalhamento | 5 | 3 | 1 | 1 | 60% | 80% | 1 | 03:09 | 03:36 |
+| D — comparação e segmentação | 5 | 2 | 2 | 1 | 40% | 80% | 2 | 03:49 | 03:48 |
+| **Total** | **17** | **10** | **5** | **2** | **59%** | **88%** | **7 (41%)** | **03:07** | **03:11** |
+
+<sup>Material produzido pelos autores (2026), a partir das fichas S1–S4</sup>
+
+</div><br>
+
+<div align="center">
+<sub>Tabela 2 - Sucesso e tempo por sessão</sub><br>
+
+| Sessão | Perfil | Execuções | Sem ajuda | Com assistência | Não concluída | Tempo médio |
+| :--- | :--- | ---: | ---: | ---: | ---: | ---: |
+| S1 | UC01 — analista | 6 | 5 | 1 | 0 | 02:47 |
+| S2 | UC02 — área técnica/governança | 5 | 2 | 2 | 1 | 03:13 |
+| S3 | UC03 — gestor | 4 | 2 | 1 | 1 | 02:40 |
+| S4 | UC01 — analista | 2 | 1 | 1 | 0 | 04:45 |
+
+<sup>Material produzido pelos autores (2026), a partir das fichas S1–S4</sup>
+
+</div><br>
+
+Indicadores de qualidade técnica medidos nas mesmas sessões:
+
+| Verificação | Resultado |
+| :--- | :--- |
+| Precisão (valor exibido × referência no recorte aplicado) | 17 de 17 conferem; nenhuma discrepância de dado |
+| Coerência entre granularidades | 9 de 9 verificações coerentes (somas aditivas e médias/completude recompostas por numerador e denominador) |
+| Tempo de resposta | 7 de 7 interações medidas abaixo de 2 s (máximo 1,1 s) |
+| Justificativa do número (bloco C) | 2 de 5 corretas, 1 incompleta, 2 erradas |
+| Recorte enunciado corretamente (bloco D) | 3 de 6 (2 parciais, 1 errado) |
+
+Leitura: o relatório **calcula certo e responde rápido**; a perda está em
+**comunicação**. As médias de tempo ficam dentro do aceitável, mas 7 das 17
+execuções o ultrapassaram, e os blocos que dependem de saber qual recorte
+está ativo (C e D) concentram as duas falhas e três das cinco ajudas.
