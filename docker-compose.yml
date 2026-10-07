@@ -120,6 +120,11 @@ services:
       ETL_MINIO_SECRET_KEY: minioadmin
       ETL_MINIO_INPUT_PREFIX: landing
       ETL_DUCKDB_PATH: /data/warehouse.duckdb
+      # Destino padrão da publicação do pipeline completo (PL-05): no volume
+      # `duck-data`, fora de qualquer checkout (exigência do publish_cubes) e
+      # persistente entre execuções — `current.json` sobrevive ao ciclo
+      # down/up e a geração anterior permanece disponível após uma falha.
+      ETL_PUBLISH_DIR: /data/publicacao
     volumes:
       - duck-data:/data
       - ./src:/app/src

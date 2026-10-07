@@ -347,7 +347,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Tempo por Etapa e Tipo (dias úteis)'"
+                  "Value": "'Tempo por Etapa e Tipo (dias corridos)'"
                 }
               }
             },

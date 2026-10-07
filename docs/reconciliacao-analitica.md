@@ -30,4 +30,29 @@ Entradas e saídas mensais seguem indisponíveis, pois os snapshots não registr
 - `source_unavailable`: nenhum snapshot conciliado de `respondentes`; C02 não pode ser declarada vazia ou conciliada.
 - `not_observed`: não existe fechamento mensal registrado.
 
-`missing_keys` e `unexpected_keys` são diferenças de identidade entre origem e fato, ou de mês, grupo, instante e quantidade em C03; `difference` é a diferença aritmética. O relatório não altera tabelas. Se a carga falhar e o banco conservar o estado anterior, uma origem corrente nova produz `mismatch` até uma carga bem-sucedida. Repita o comando após a carga e arquive o JSON agregado junto ao commit e horário da execução, sem incluir dados individuais no Git.
+`missing_keys` e `unexpected_keys` são diferenças de identidade entre origem e fato, ou de mês, grupo, instante e quantidade em C03; `difference` é a diferença aritmética. O relatório não altera tabelas. Se a carga falhar e o banco conservar o estado anterior, uma origem corrente nova produz `mismatch` até uma carga bem-sucedida. Repita o comando após a carga e registre `load_id`, horário da carga, totais e estados agregados na documentação, sem incluir dados individuais no Git.
+
+## Resultado da execução
+
+Em 2026-10-06, `etl.analytics.reconcile` foi executado em modo somente leitura sobre `data/duckdb/cb13-v3-analitico.duckdb`, o DuckDB local não versionado da carga CB-13. O JSON retornou `load_id=65d139e0-488d-4601-9361-ae153731145c`, `loaded_at=2026-10-06T20:32:49.419493`, `source_digests_match=true` e `reconciled=true`. O resultado `reconciled=true` atesta a consistência dos dados disponíveis; não implica que exista um fechamento observado para C03.
+
+| Cubo | `eligible` | `loaded` | `discarded` | `difference` | `missing_keys` | `unexpected_keys` | `status` |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | :--- |
+| C01 | 366 | 366 | 0 | 0 | 0 | 0 | `ok` |
+| C02 | 17.740 | 17.740 | 0 | 0 | 0 | 0 | `ok` |
+| C03 | `null` | 0 | 0 | `null` | 0 | 0 | `not_observed` |
+| C04 | 3.186 | 3.186 | 0 | 0 | 0 | 0 | `ok` |
+
+As identidades de origem e fato conferem nos dois sentidos para C01, C02 e C04. Em C03, `eligible=null`, `difference=null` e `monthly_closures=[]` indicam ausência de fonte temporal observada; as zero linhas do fato não são um estoque zero. O retrato recebido do parceiro não permite reconstruir um fechamento mensal passado. Esta reconciliação não verifica `ingestao_respostas_atual` nem amplia a cobertura de respostas descrita na carga CB-13.
+
+`orphan_reasons=[]`: nenhum vínculo órfão foi registrado. A auditoria de identidades dos órfãos retornou os seguintes totais agregados, sem expor IDs de origem:
+
+| Fonte | Dimensão alvo | Motivo | `expected` | `logged` | `missing_ids` | `unexpected_ids` |
+| :--- | :--- | :--- | ---: | ---: | ---: | ---: |
+| `respondentes` | `DIM_PESQUISA` | `pesquisa_id_ausente` | 0 | 0 | 0 | 0 |
+| `respondentes` | `DIM_EMPRESA` | `empresa_id_ausente` | 0 | 0 | 0 | 0 |
+| `respondentes` | `DIM_PESSOA` | `cliente_id_ausente` | 0 | 0 | 0 | 0 |
+| `questoes` | `DIM_PESQUISA` | `sem_vinculo_unico` | 0 | 0 | 0 | 0 |
+| `questoes` | `DIM_PESQUISA` | `id_divergente` | 0 | 0 | 0 | 0 |
+
+Não houve `mismatch` nem correção localizada nesta execução. Uma mudança futura nas fontes exige nova carga e nova reconciliação do mesmo DuckDB; se houver falha, corrigir a causa identificada pelo JSON antes de registrar novos totais.

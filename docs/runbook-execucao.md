@@ -51,6 +51,7 @@ variáveis reais, lidas por `src/etl/extraction/config.py` e
 | `ETL_DUCKDB_PATH` | `data/duckdb/ingestao.duckdb` | Arquivo do banco de ingestão (caminho relativo ao diretório de execução) |
 | `ETL_DUCKDB_THREADS` / `ETL_DUCKDB_MEMORY_LIMIT` | — | Tuning da conexão DuckDB (ausente = padrão do DuckDB) |
 | `ETL_DUCKDB_WRITE_LOCK_TIMEOUT_SECONDS` | `300` | Espera pelo lock de escrita do arquivo |
+| `ETL_PUBLISH_DIR` | — | Destino da publicação Parquet do pipeline completo (fora do checkout; no runner do Compose, `/data/publicacao`) |
 
 No runner do Compose, `ETL_DUCKDB_PATH` é `/data/warehouse.duckdb`, em volume persistente. Flow e repositório usam esse mesmo contrato de configuração; o TLS do MinIO é derivado do esquema do endpoint.
 
@@ -153,7 +154,7 @@ ela configurada, a checagem falha explicitamente em vez de tentar adivinhar
 um endereço.
 
 A checagem do banco abre a conexão direto, sem o retry com espera que a
-carga real usa (`duckdb_repository._connect_with_retry`) — rodar o health
+carga real usa (`etl.load.connection.connect_with_retry`) — rodar o health
 check durante uma carga em andamento pode reportar `duckdb: falha` por um
 lock de escrita transitório que a carga em si esperaria passar. Não é um
 sinal de pipeline quebrado nesse caso, só de execução concorrente.
@@ -296,6 +297,53 @@ docker compose run --rm --no-deps runner python scripts/orchestration/run_backfi
 linha (ADR
 [`adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md`](adrs/0002-identidade-e-versoes-na-tabela-de-ingestao.md))
 continua impedindo duplicatas.
+
+### Pipeline completo (backfill → cubos → reconciliação → publicação)
+
+Comando único que encadeia as quatro etapas no mesmo `ETL_DUCKDB_PATH` e só
+publica os sete Parquet quando a reconciliação aprova a carga
+(`reconciled=true`); o manifesto da geração aponta o `load_id` efetivo.
+
+```bash
+# fluxo completo das seis fontes, publicando em ETL_PUBLISH_DIR (/data/publicacao)
+docker compose run --rm --no-deps runner python scripts/orchestration/run_pipeline.py
+
+# seis fontes explícitas; a ordem é normalizada pelo pipeline
+docker compose run --rm --no-deps runner python scripts/orchestration/run_pipeline.py \
+  --sources pesquisas empresas clientes questoes respondentes respostas \
+  --publish-dir /data/publicacao
+```
+
+Parâmetros (todos opcionais no runner do Compose):
+
+| Parâmetro | Padrão | Papel |
+| :--- | :--- | :--- |
+| `--publish-dir` | `ETL_PUBLISH_DIR` | Destino dos Parquet, fora de qualquer checkout (validado pela publicação) |
+| `--sources` | as seis fontes | Exige as seis fontes exatamente uma vez; normaliza a ordem de dependência (pais antes de filhos). Para subconjunto, usar `run_backfill.py`, limitado à ingestão tratada. |
+| `--reprocess` | desligado | Ignora a idempotência por objeto no backfill (recarga controlada) |
+| `--observed-at` | — | Fechamento observado do C03 (ISO, precisa ser o último dia do mês) |
+
+Saída e códigos de erro observáveis:
+
+- **Sucesso (exit 0)** — a última linha do stdout é um objeto JSON com
+  `status: "completed"`, o status por fonte do backfill, o `load_id` da carga,
+  o veredito da reconciliação e a geração publicada com linhas por tabela.
+- **Falha (exit 1)** — stderr recebe um objeto JSON com `status: "failed"`,
+  `failed_stage` (`backfill`, `load_analytics`, `reconciliation` ou `publication`)
+  e `error_type`, sem o texto original da causa. O evento
+  `orchestration.pipeline.emitted` registra a etapa em `failed_stage`;
+  `stage` permanece `orchestration`. Falha de reconciliação usa o status
+  `reconciliation_failed`, e fonte não concluída usa `aborted`.
+  Reexecutar após corrigir a causa preserva a idempotência da ingestão e a
+  contagem lógica dos fatos. Falha antes da troca do ponteiro preserva a
+  geração anterior; se a troca já ocorreu, a task só reutiliza a geração
+  após conferir carga, arquivos, hashes, schema e conteúdo contra a origem.
+- **Parâmetro inválido (exit 2)** — erro do argparse (ex.: sem `--publish-dir`
+  e sem `ETL_PUBLISH_DIR`).
+
+A geração publicada fica em `/data/publicacao/<generation>/` (sete `.parquet`
++ `manifest.json` com hash SHA-256 por arquivo), e `current.json` aponta a
+geração vigente — a troca é atômica e só acontece no fim.
 
 ## Orquestração Prefect
 

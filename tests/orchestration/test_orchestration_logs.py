@@ -226,7 +226,8 @@ class IngestObjectLogEventsTests(unittest.TestCase):
 
         self.assertEqual(ingest_event.status, "loaded")
         self.assertEqual(ingest_event.source, "empresas")
-        self.assertEqual(ingest_event.loaded_count, 3)
+        self.assertFalse(hasattr(ingest_event, "loaded_count"))
+        self.assertEqual(sum(getattr(event, "loaded_count", 0) for event in by_event.values()), 3)
 
         # run_id correlaciona os quatro marcos (ADR 0001) — nenhum deles pode
         # ficar `None` (regressão: antes vinha de `batches[0]`/`results[0]`,

@@ -1,0 +1,12 @@
+// Executar no modelo do protótipo dashboard.SemanticModel, não no modelo Parquet.
+// Substituir o ID pela empresa sintética escolhida no slicer, mantendo seleção única.
+// Comparar as linhas com percentuais por empresa calculados a partir dos CSVs.
+// Não declarar esta consulta executada sem guardar resultado e versão do modelo.
+EVALUATE
+SUMMARIZECOLUMNS (
+    BE_Pesquisa[Área],
+    TREATAS ( { "SUBSTITUIR_ID_EMPRESA" }, BE_Empresa[ID Empresa] ),
+    "Selecionada", [BE % empresa por área],
+    "MediaDemais", [BE % demais por área]
+)
+ORDER BY BE_Pesquisa[Área]

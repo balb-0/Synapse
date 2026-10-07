@@ -18,6 +18,7 @@ from prefect import flow, get_run_logger, task
 from prefect.cache_policies import NO_CACHE
 from prefect.runtime import flow_run, task_run
 
+from etl.analytics.reconcile import AnalyticsSchemaError
 from etl.extraction import (
     ClientesExtractor,
     EmpresasExtractor,
@@ -35,6 +36,7 @@ from etl.extraction import (
 )
 from etl.load import DuckDbLoadRepository, UnbalancedLoadError
 from etl.load.config import load_duckdb_settings
+from etl.orchestration.lock import database_lock
 from etl.transformation.consistency import RELATIONS, ReferenceData
 from etl.transformation.pipeline import transform_object
 from etl.transformation.schema import KEYS
@@ -54,6 +56,10 @@ TRANSFORM_TASK_EVENT = "orchestration.transform.emitted"
 LOAD_TASK_EVENT = "orchestration.load.emitted"
 INGEST_OBJECT_EVENT = "orchestration.ingest_object.emitted"
 BACKFILL_EVENT = "orchestration.backfill.emitted"
+
+
+class SourceChangedError(ValueError):
+    """O objeto mudou entre a verificação de identidade e a extração."""
 
 
 def _current_task_id() -> str | None:
@@ -167,7 +173,7 @@ def _should_retry(task, task_run, state) -> bool:
     """
     try:
         state.result(raise_on_failure=True)
-    except (ExtractionError, ValueError, KeyError, UnbalancedLoadError):
+    except (AnalyticsSchemaError, ExtractionError, ValueError, KeyError, UnbalancedLoadError):
         # Erros da extração já chegam terminais (transitório foi reexecutado
         # internamente); config/schema/objeto ausente também não se repetem.
         # Reconciliação desbalanceada é determinística para os mesmos lotes:
@@ -179,12 +185,22 @@ def _should_retry(task, task_run, state) -> bool:
 
 
 def _is_transient_unexpected(error: Exception) -> bool:
-    """Erro inesperado repete, exceto S3 permanente (ex.: ``NoSuchKey``).
+    """Repete transitórios; schema DuckDB, caminho e permissão falham rápido.
 
     O ``minio`` é importado tarde para não virar dependência dura do módulo:
     sem ele instalado, todo erro inesperado continua repetindo.
     """
 
+    import duckdb
+
+    if isinstance(error, (TypeError, AttributeError, AssertionError)):
+        return False
+    if isinstance(error, OSError) and not isinstance(
+        error, (TimeoutError, BlockingIOError, ConnectionError)
+    ):
+        return False
+    if isinstance(error, duckdb.Error) and not isinstance(error, duckdb.TransactionException):
+        return False
     try:
         from minio.error import S3Error
     except ImportError:
@@ -333,8 +349,7 @@ def load(db_path: str, results: list, tuning: dict, *, source: str, run_id: str)
     return reconciliations
 
 
-@flow(name="ingest-object")
-def ingest_object(
+def _ingest_object(
     source: str,
     bucket: str,
     key: str,
@@ -403,6 +418,21 @@ def ingest_object(
     batches = extract(
         reader, reference, source, run_id=run_id, checkpoint=checkpoint, settings=settings
     )
+    if any(
+        batch.metadata.source_checksum != checksum
+        or batch.checkpoint.source_version != f"sha256:{checksum}"
+        for batch in batches
+    ):
+        _log_event(
+            logger,
+            INGEST_OBJECT_EVENT,
+            status="failed",
+            source=source,
+            run_id=run_id,
+            error_type="SourceChangedError",
+            duration_ms=round((time.monotonic() - started) * 1000, 3),
+        )
+        raise SourceChangedError("o objeto mudou antes da carga; nenhum lote foi confirmado")
     results = transform(batches, source, references, previous, run_id)
     reconciliations = load(db_path, results, tuning, source=source, run_id=run_id)
 
@@ -420,7 +450,6 @@ def ingest_object(
         # lote; só falta marcar o objeto inteiro como concluído.
         repo.mark_object_loaded(source, checksum, run_id)
 
-    loaded = sum(r["loaded"] for r in reconciliations)
     _log_event(
         logger,
         INGEST_OBJECT_EVENT,
@@ -429,7 +458,6 @@ def ingest_object(
         run_id=run_id,
         object_key=key,
         source_checksum=checksum,
-        loaded_count=loaded,
         duration_ms=round((time.monotonic() - started) * 1000, 3),
     )
     return {
@@ -438,6 +466,35 @@ def ingest_object(
         "source_checksum": checksum,
         "reconciliation": reconciliations,
     }
+
+
+@flow(name="ingest-object")
+def ingest_object(
+    source: str,
+    bucket: str,
+    key: str,
+    *,
+    version_id: str | None = None,
+    event_id: str | None = None,
+    reprocess: bool = False,
+    db_path: str | None = None,
+) -> dict:
+    """Confirma um objeto sob o mesmo lock usado pelo trecho DW/publicação.
+
+    Este flow não publica um conjunto após receber apenas uma fonte. Use
+    ``run_pipeline(..., publish_dir=...)`` para concluir as seis fontes e DW.
+    """
+    settings = load_duckdb_settings({"database_path": db_path})
+    with database_lock(settings.database_path, settings.write_lock_timeout_seconds):
+        return _ingest_object(
+            source,
+            bucket,
+            key,
+            version_id=version_id,
+            event_id=event_id,
+            reprocess=reprocess,
+            db_path=str(settings.database_path),
+        )
 
 
 @flow(name="backfill")
