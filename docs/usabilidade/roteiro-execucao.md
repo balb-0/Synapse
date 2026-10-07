@@ -107,8 +107,9 @@ Por sessão: observações do think-aloud e respostas do debrief.
 - **Capturas**: tela ao final de cada tarefa (estado dos filtros visível).
 - **Guarda**: fichas e capturas versionadas em
   `docs/usabilidade/evidencias/` no MR da execução correspondente; nenhuma
-  evidência contém dado pessoal (as telas usam os agregados do protótipo,
-  já conformes à LGPD).
+  evidência contém dado pessoal (as páginas finais exibem apenas os
+  agregados da publicação; regras de captura em
+  [`preparacao-sessoes.md`](preparacao-sessoes.md#5-captura-de-evidência-sem-dado-pessoal)).
 - **Identificação**: sessões numeradas (S1–S4) com data, versão do
   protótipo/telas usada e nome do moderador; participantes aparecem só como
   P1–P4 com o perfil exercido.
