@@ -1,15 +1,15 @@
 table DIM_TIPO_PESQUISA
+	lineageTag: 9253e55c-c9ba-489c-9049-65f551443c4d
 
 	column tipo
-		dataType: string
+		lineageTag: 4a21433b-ba64-4927-acd7-b985b0be99ab
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [tipo]
 
 	partition DIM_TIPO_PESQUISA = calculated
 		mode: import
-		source = ```
+		source =
 				SELECTCOLUMNS(
 					DISTINCT(
 						UNION(
@@ -20,4 +20,4 @@ table DIM_TIPO_PESQUISA
 					),
 					"tipo", [tipo]
 				)
-				```
+

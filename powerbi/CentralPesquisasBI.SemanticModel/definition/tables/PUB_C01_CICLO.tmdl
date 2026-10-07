@@ -1,103 +1,126 @@
 table PUB_C01_CICLO
+	lineageTag: 8d10c7e1-6d7c-4f1b-9671-22cee7ae1e01
 
 	measure 'Qtd Pesquisas' = SUM(PUB_C01_CICLO[qtd_pesquisas])
 		formatString: #,0
+		lineageTag: f66d96ea-f10d-4390-b338-dd8dc7114837
 
 	measure 'Media Dias Validacao' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_validacao]), SUM(PUB_C01_CICLO[qtd_validacao_disponivel]))
 		formatString: #,0.0
+		lineageTag: a2d37903-a0d8-4506-b3e2-6a797b7ccee0
 
 	measure 'Base Valida Validacao' = SUM(PUB_C01_CICLO[qtd_validacao_disponivel])
 		formatString: #,0
+		lineageTag: 8b64295e-aa72-4212-8eea-2313c1bad415
 
 	measure 'Media Dias Coleta' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_coleta]), SUM(PUB_C01_CICLO[qtd_coleta_disponivel]))
 		formatString: #,0.0
+		lineageTag: d6a0d04c-aefa-4366-b7c9-ec33f7dd4ced
 
 	measure 'Base Valida Coleta' = SUM(PUB_C01_CICLO[qtd_coleta_disponivel])
 		formatString: #,0
+		lineageTag: cdbccda9-08f0-4277-8f3b-4cc3222535ba
 
 	measure 'Media Dias Tabulacao' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_tabulacao]), SUM(PUB_C01_CICLO[qtd_tabulacao_disponivel]))
 		formatString: #,0.0
+		lineageTag: 760e9f09-76ee-4ead-aa48-689d17473026
 
 	measure 'Base Valida Tabulacao' = SUM(PUB_C01_CICLO[qtd_tabulacao_disponivel])
 		formatString: #,0
+		lineageTag: d2896ad2-bc02-41e6-8068-dfe1f818a936
 
 	measure 'Media Dias Ciclo Total' = DIVIDE(SUM(PUB_C01_CICLO[soma_dias_ciclo_total]), SUM(PUB_C01_CICLO[qtd_ciclo_total_disponivel]))
 		formatString: #,0.0
+		lineageTag: 724c5697-67b1-4267-8ab4-ffe4cdbbdfec
 
 	measure 'Base Valida Ciclo Total' = SUM(PUB_C01_CICLO[qtd_ciclo_total_disponivel])
 		formatString: #,0
+		lineageTag: 58f11aff-22d0-42d9-9c99-5f455051363f
 
 	measure 'Taxa de Prorrogacao' = "Indisponivel: coluna de prorrogacao nao publicada no cubo BI (ver docs/indicadores-publicaveis-bi.md, I05)"
+		lineageTag: f8eebad4-5453-4f10-af1d-9cfe85aded91
 
 	column area
 		dataType: string
 		isHidden
+		lineageTag: d0004b93-0453-477e-b377-517a2382af6b
 		summarizeBy: none
 		sourceColumn: area
 
 	column status
 		dataType: string
 		isHidden
+		lineageTag: 75dc117c-b467-4441-bc41-ea58a7e25fa1
 		summarizeBy: none
 		sourceColumn: status
 
 	column tipo
 		dataType: string
 		isHidden
+		lineageTag: b7e8ce91-4ca8-4613-a589-c4cb38cd3e67
 		summarizeBy: none
 		sourceColumn: tipo
 
 	column qtd_pesquisas
 		dataType: int64
 		isHidden
+		lineageTag: b1857cb2-7fe8-4b5c-8e23-084f1ecd98b1
 		summarizeBy: none
 		sourceColumn: qtd_pesquisas
 
 	column soma_dias_validacao
 		dataType: int64
 		isHidden
+		lineageTag: 148f4d51-0679-47e3-b101-3c454b1d0596
 		summarizeBy: none
 		sourceColumn: soma_dias_validacao
 
 	column qtd_validacao_disponivel
 		dataType: int64
 		isHidden
+		lineageTag: bd65aa88-1f61-4df9-b911-7e1c08542e83
 		summarizeBy: none
 		sourceColumn: qtd_validacao_disponivel
 
 	column soma_dias_coleta
 		dataType: int64
 		isHidden
+		lineageTag: 694eef2f-2f38-4b68-983f-7a2ed8eed997
 		summarizeBy: none
 		sourceColumn: soma_dias_coleta
 
 	column qtd_coleta_disponivel
 		dataType: int64
 		isHidden
+		lineageTag: dda5ccc3-9f12-437e-971f-90404cd34de7
 		summarizeBy: none
 		sourceColumn: qtd_coleta_disponivel
 
 	column soma_dias_tabulacao
 		dataType: int64
 		isHidden
+		lineageTag: 07180da8-44ef-4132-ac2c-10d6d8c7d500
 		summarizeBy: none
 		sourceColumn: soma_dias_tabulacao
 
 	column qtd_tabulacao_disponivel
 		dataType: int64
 		isHidden
+		lineageTag: d0312016-f9ea-41a7-a400-485fb21e5199
 		summarizeBy: none
 		sourceColumn: qtd_tabulacao_disponivel
 
 	column soma_dias_ciclo_total
 		dataType: int64
 		isHidden
+		lineageTag: 2acbe041-f588-413c-8bc4-ca371a9d4400
 		summarizeBy: none
 		sourceColumn: soma_dias_ciclo_total
 
 	column qtd_ciclo_total_disponivel
 		dataType: int64
 		isHidden
+		lineageTag: 0fdff82c-3a64-4941-be84-dd7e37d03f50
 		summarizeBy: none
 		sourceColumn: qtd_ciclo_total_disponivel
 
@@ -108,3 +131,4 @@ table PUB_C01_CICLO
 					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_C01_CICLO.parquet"))
 				in
 					Origem
+

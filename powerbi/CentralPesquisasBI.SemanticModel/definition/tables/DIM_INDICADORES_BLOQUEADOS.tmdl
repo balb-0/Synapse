@@ -1,39 +1,37 @@
 table DIM_INDICADORES_BLOQUEADOS
+	lineageTag: 68c0809c-f7e0-421e-8b09-7bd71aa9adfb
 
 	measure 'Qtd Indicadores Sem Dado' = COUNTROWS(FILTER(DIM_INDICADORES_BLOQUEADOS, DIM_INDICADORES_BLOQUEADOS[status] = "Sem dado"))
 		formatString: #,0
+		lineageTag: 84ee5229-ccb0-4fb0-9896-8fa40ca08f07
 
 	column indicador
-		dataType: string
+		lineageTag: 99e3d59a-d20b-4361-abe0-b6e82689cad7
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [indicador]
 
 	column medida
-		dataType: string
+		lineageTag: d1cd2366-703b-4251-9996-fe0309ae407d
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [medida]
 
 	column status
-		dataType: string
+		lineageTag: 575d16ba-5e6e-4efa-aa22-cacfad4c74ae
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [status]
 
 	column motivo
-		dataType: string
+		lineageTag: 383c0094-35f5-44f9-b626-d5dd0e6adabe
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [motivo]
 
 	partition DIM_INDICADORES_BLOQUEADOS = calculated
 		mode: import
-		source = ```
+		source =
 				DATATABLE(
 					"indicador", STRING,
 					"medida", STRING,
@@ -61,4 +59,4 @@ table DIM_INDICADORES_BLOQUEADOS
 						{"I25", "Conformidade de acesso", "Sem dado", "Falta politica e logs, mesmo motivo da camada de dados."}
 					}
 				)
-				```
+

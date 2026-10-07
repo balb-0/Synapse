@@ -1,15 +1,15 @@
 table DIM_STATUS_PESQUISA
+	lineageTag: f9bf89cf-2c8b-43b0-8f5d-fb9aafe9367e
 
 	column status
-		dataType: string
+		lineageTag: 15255fd8-07ce-43c8-892f-2b4a3e36e8a7
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [status]
 
 	partition DIM_STATUS_PESQUISA = calculated
 		mode: import
-		source = ```
+		source =
 				SELECTCOLUMNS(
 					DISTINCT(
 						UNION(
@@ -19,4 +19,4 @@ table DIM_STATUS_PESQUISA
 					),
 					"status", [status]
 				)
-				```
+

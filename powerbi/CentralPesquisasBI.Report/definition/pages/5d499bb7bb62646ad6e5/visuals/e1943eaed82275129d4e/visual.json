@@ -3,10 +3,10 @@
   "name": "e1943eaed82275129d4e",
   "position": {
     "x": 298,
-    "y": 272,
+    "y": 258,
     "z": 21000,
-    "height": 466,
-    "width": 628,
+    "height": 408,
+    "width": 832,
     "tabOrder": 21000
   },
   "visual": {
@@ -189,44 +189,6 @@
           }
         }
       ],
-      "categoryAxis": [
-        {
-          "properties": {
-            "labelColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#526477'"
-                    }
-                  }
-                }
-              }
-            },
-            "titleText": {
-              "expr": {
-                "Literal": {
-                  "Value": "''"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "13D"
-                }
-              }
-            },
-            "showAxisTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
       "legend": [
         {
           "properties": {
@@ -329,6 +291,32 @@
           },
           "selector": {
             "metadata": "PUB_C01_CICLO.Media Dias Tabulacao"
+          }
+        }
+      ],
+      "categoryAxis": [
+        {
+          "properties": {
+            "innerPadding": {
+              "expr": {
+                "Literal": {
+                  "Value": "22L"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "layout": [
+        {
+          "properties": {
+            "clusteredGapSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
+                }
+              }
+            }
           }
         }
       ]
@@ -537,5 +525,65 @@
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "811c1af4b9224a14e946",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "PUB_C01_CICLO"
+              }
+            },
+            "Property": "tipo"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "7984258ff7bbfa49d500",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "PUB_C01_CICLO"
+              }
+            },
+            "Property": "Media Dias Validacao"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "426e9465cac2919380fd",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "PUB_C01_CICLO"
+              }
+            },
+            "Property": "Media Dias Coleta"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "0fe9ac39e2ff1e795981",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "PUB_C01_CICLO"
+              }
+            },
+            "Property": "Media Dias Tabulacao"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

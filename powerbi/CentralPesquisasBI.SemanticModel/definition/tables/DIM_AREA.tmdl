@@ -1,15 +1,15 @@
 table DIM_AREA
+	lineageTag: 9cd20d42-4f5e-4b6e-afe0-f5acf032f702
 
 	column area
-		dataType: string
+		lineageTag: 9a8ee4f0-58e1-4693-a8b0-618494448fae
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [area]
 
 	partition DIM_AREA = calculated
 		mode: import
-		source = ```
+		source =
 				SELECTCOLUMNS(
 					DISTINCT(
 						UNION(
@@ -21,4 +21,4 @@ table DIM_AREA
 					),
 					"area", [area]
 				)
-				```
+
