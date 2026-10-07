@@ -1,4 +1,4 @@
-"""Conferência independente da geração BI e do recibo do Desktop."""
+"""Validação dos arquivos da geração BI e do recibo do Desktop."""
 
 from __future__ import annotations
 
@@ -12,7 +12,8 @@ import duckdb
 
 from etl.analytics.load import current_source_digests
 from etl.analytics.publish import publish_cubes
-from scripts.analytics.conferir_geracao_bi import conferir
+from etl.analytics.reconcile import AnalyticsSchemaError
+from scripts.analytics.conferir_geracao_bi import _check_load_reference, conferir
 from scripts.analytics.gerar_fixture_bi import create_database
 
 
@@ -72,6 +73,14 @@ class ConferirGeracaoBITest(unittest.TestCase):
         self._write_manifest()
         with self.assertRaisesRegex(ValueError, "contagem Parquet/manifesto"):
             conferir(self.generation, self.database, sintetico=True)
+
+    def test_manifest_version_cannot_be_boolean_or_float(self) -> None:
+        for version in (True, 1.0, "1"):
+            with self.subTest(version=version):
+                self.manifest["version"] = version
+                self._write_manifest()
+                with self.assertRaisesRegex(ValueError, "versão do manifesto inválida"):
+                    conferir(self.generation, self.database, sintetico=True)
 
     def test_desktop_reference_binds_receipt_to_load(self) -> None:
         receipt = self._receipt()
@@ -191,6 +200,18 @@ class ConferirGeracaoBITest(unittest.TestCase):
                         package_receipt=package_path,
                         **args,
                     )
+        receipt.write_text(json.dumps(data))
+        for version in (True, 1.0, "1"):
+            with self.subTest(package_version=version):
+                package_path.write_text(json.dumps(dict(package, version=version)))
+                with self.assertRaisesRegex(ValueError, "revisão do pacote divergente"):
+                    conferir(
+                        self.generation,
+                        self.database,
+                        receipt,
+                        package_receipt=package_path,
+                        **args,
+                    )
 
     def test_cube_aggregate_detects_rehashed_bad_values(self) -> None:
         path = self.generation / "PUB_C01_CICLO.parquet"
@@ -206,7 +227,7 @@ class ConferirGeracaoBITest(unittest.TestCase):
         path.write_bytes(changed.read_bytes())
         self.manifest["tables"]["PUB_C01_CICLO"]["sha256"] = self._original_hash()
         self._write_manifest()
-        with self.assertRaisesRegex(ValueError, "agregado diverge"):
+        with self.assertRaisesRegex(ValueError, "conteúdo Parquet/DuckDB divergente"):
             conferir(self.generation, self.database, sintetico=True)
 
     def test_different_generation_and_bad_desktop_aggregate(self) -> None:
@@ -247,7 +268,7 @@ class ConferirGeracaoBITest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "fechamento C03 não observado"):
             conferir(self.generation, self.database, receipt, sintetico=True)
 
-    def test_real_source_control_binds_reference_and_current_digests(self) -> None:
+    def test_source_control_helper_binds_reference_and_current_digests(self) -> None:
         con = duckdb.connect(str(self.database))
         for source, key in (
             ("pesquisas", "pesquisa_id"),
@@ -272,20 +293,26 @@ class ConferirGeracaoBITest(unittest.TestCase):
             "INSERT INTO analytics_load_run VALUES ('synthetic-bi02-fixture', now(), ?, ?, ?, ?, NULL)",
             [digests[source] for source in ("pesquisas", "empresas", "clientes", "questoes")],
         )
-        con.close()
-        report = conferir(self.generation, self.database, sintetico=True)
-        self.assertEqual(report["preparation"]["source_control"]["status"], "confere")
-        con = duckdb.connect(str(self.database))
+        report = _check_load_reference(con, "synthetic-bi02-fixture")
+        self.assertEqual(report["status"], "confere")
         con.execute("UPDATE analytics_load_run SET load_id = 'another-load'")
-        con.close()
         with self.assertRaisesRegex(ValueError, "load_reference diverge"):
-            conferir(self.generation, self.database, sintetico=True)
-        con = duckdb.connect(str(self.database))
+            _check_load_reference(con, "synthetic-bi02-fixture")
         con.execute("UPDATE analytics_load_run SET load_id = 'synthetic-bi02-fixture'")
         con.execute("UPDATE analytics_load_run SET pesquisas_digest = 'bad'")
-        con.close()
         with self.assertRaisesRegex(ValueError, "fonte pesquisas diverge"):
+            _check_load_reference(con, "synthetic-bi02-fixture")
+        con.close()
+
+    def test_partial_analytic_controls_cannot_fall_back_to_synthetic_context(self) -> None:
+        with duckdb.connect(str(self.database)) as con:
+            con.execute("CREATE TABLE analytics_partial (value BIGINT)")
+        with self.assertRaises(AnalyticsSchemaError):
             conferir(self.generation, self.database, sintetico=True)
+        with self.assertRaises(AnalyticsSchemaError):
+            publish_cubes(
+                self.database, Path(self.temp.name) / "partial", load_reference="synthetic-partial"
+            )
 
     def test_c03_compares_each_month_without_summing_stock(self) -> None:
         result = conferir(self.generation, self.database, sintetico=True)

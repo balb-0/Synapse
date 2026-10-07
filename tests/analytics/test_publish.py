@@ -126,6 +126,11 @@ class PublishCubesTests(unittest.TestCase):
             manifest["tables"]["PUB_C03_PIPELINE_MENSAL"]["observation_state"], "unverified"
         )
         self.assertNotIn("observed_months", manifest["tables"]["PUB_C03_PIPELINE_MENSAL"])
+        for name in ("PUB_QUALIDADE_CAMPO", "PUB_QUALIDADE_RELACAO"):
+            self.assertEqual(
+                manifest["tables"][name]["population_scope"]["respondentes"],
+                "synthetic_unverified_physical_rows",
+            )
         self.assertEqual(set(manifest["tables"]), set(PUBLICATIONS))
         self.assertEqual(
             {item.name for item in generation.iterdir()},

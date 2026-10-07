@@ -42,6 +42,20 @@ O JSON registra `source_control.status: confere`. Sem essa tabela, registra
 mas o vínculo à execução de carga fica sem prova. O ID no manifesto, sozinho,
 não comprova que a carga é a final CB16 autorizada.
 
+## Atualização do verificador em CF-07
+
+O conferidor e o publicador passam a compartilhar `publication_report` e
+`publication_specification` para contexto, consultas efetivas e escopo de
+qualidade. O conferidor continua validando arquivos, hashes, colunas,
+contagens, metadados e recibos; a consulta de referência das tabelas de
+qualidade é compartilhada com o publicador. Os testes diretos de duas cargas
+calculam os resultados esperados de cada população sem usar essa consulta
+como oráculo. Consulte [populações de qualidade](qualidade-snapshot-respondentes.md).
+
+As capturas e os recibos históricos abaixo conservam a revisão e a geração
+originalmente executadas. Os testes de CF-07 não constituem uma nova atualização
+nem execução no Desktop.
+
 ## Conferir no Power BI Desktop
 
 No Windows, abra `powerbi/CentralPesquisasBI.pbip`, aponte

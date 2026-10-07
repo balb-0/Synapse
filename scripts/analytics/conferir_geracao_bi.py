@@ -12,7 +12,7 @@ from pathlib import Path
 import duckdb
 
 from etl.analytics.load import current_source_digests, selected_respondentes
-from etl.analytics.publish import PUBLICATIONS
+from etl.analytics.publish import PUBLICATIONS, publication_report, publication_specification
 
 EXPECTED_COLUMNS = {
     "PUB_C01_CICLO": [
@@ -128,7 +128,10 @@ def conferir(
     _require(geracao.is_dir(), "geração deve ser um diretório")
     _require(database.is_file(), "database deve ser um arquivo DuckDB")
     manifest = json.loads((geracao / "manifest.json").read_text())
-    _require(manifest.get("version") == 1, "versão do manifesto inválida")
+    _require(
+        type(manifest.get("version")) is int and manifest["version"] == 1,
+        "versão do manifesto inválida",
+    )
     _require(manifest.get("generation") == geracao.name, "ID da geração diverge do diretório")
     reference = manifest.get("load_reference")
     _require(isinstance(reference, str) and bool(reference), "load_reference ausente")
@@ -159,10 +162,19 @@ def conferir(
     }
     con = duckdb.connect(str(database), read_only=True)
     try:
+        con.execute("BEGIN TRANSACTION")
         report["preparation"]["source_control"] = _check_load_reference(con, reference)
+        source_report = publication_report(con, reference)
         for name, columns in EXPECTED_COLUMNS.items():
+            query, expected_semantics = publication_specification(name, source_report)
             entry = tables[name]
             _require(isinstance(entry, dict), f"{name}: entrada inválida")
+            actual_semantics = {field: entry.get(field) for field in expected_semantics}
+            _require(
+                json.dumps(actual_semantics, sort_keys=True)
+                == json.dumps(expected_semantics, sort_keys=True),
+                f"{name}: semântica do manifesto diverge da origem",
+            )
             _require(entry.get("file") == f"{name}.parquet", f"{name}: nome do arquivo inválido")
             _require(entry.get("columns") == columns, f"{name}: colunas do manifesto divergentes")
             _require(
@@ -176,17 +188,29 @@ def conferir(
             path = geracao / entry["file"]
             _require(path.is_file() and not path.is_symlink(), f"{name}: Parquet ausente ou link")
             _require(_sha256(path) == entry["sha256"], f"{name}: SHA256 divergente")
-            observed_columns = [
-                column[0]
-                for column in con.execute(
-                    "SELECT * FROM read_parquet(?) LIMIT 0", [str(path)]
-                ).description
-            ]
+            observed_schema = con.execute(
+                "SELECT * FROM read_parquet(?) LIMIT 0", [str(path)]
+            ).description
+            observed_columns = [column[0] for column in observed_schema]
             _require(observed_columns == columns, f"{name}: colunas físicas divergentes")
+            expected_schema = con.execute(query + " LIMIT 0").description
+            _require(
+                [str(column[1]) for column in observed_schema]
+                == [str(column[1]) for column in expected_schema],
+                f"{name}: tipos físicos divergentes",
+            )
             rows = _parquet(con, path, "SELECT COUNT(*) FROM read_parquet(?)")[0][0]
             _require(rows == entry["rows"], f"{name}: contagem Parquet/manifesto divergente")
-            source_rows = con.execute(f"SELECT COUNT(*) FROM ({PUBLICATIONS[name]})").fetchone()[0]
+            source_rows = con.execute(f"SELECT COUNT(*) FROM ({query})").fetchone()[0]
             _require(rows == source_rows, f"{name}: contagem Parquet/DuckDB divergente")
+            file_query = "SELECT * FROM read_parquet(?)"
+            difference = con.execute(
+                f"SELECT COUNT(*) FROM (({query}) EXCEPT ALL ({file_query}))", [str(path)]
+            ).fetchone()[0]
+            reverse = con.execute(
+                f"SELECT COUNT(*) FROM (({file_query}) EXCEPT ALL ({query}))", [str(path)]
+            ).fetchone()[0]
+            _require(difference == reverse == 0, f"{name}: conteúdo Parquet/DuckDB divergente")
             report["preparation"]["tables"][name] = rows
 
         report["preparation"]["aggregates"] = {}
@@ -202,10 +226,12 @@ def conferir(
             report["preparation"]["aggregates"][name] = actual
 
         # Estoque de C03 é semiaditivo: comparar cada fechamento observado isoladamente.
+        monthly_query, _ = publication_specification("PUB_C03_PIPELINE_MENSAL", source_report)
         source_months = [
             (str(month), total)
             for month, total in con.execute(
-                "SELECT data_fim_mes, SUM(qtd_pesquisas_no_status)::BIGINT FROM FATO_PIPELINE_MENSAL GROUP BY 1 ORDER BY 1"
+                "SELECT data_fim_mes, SUM(qtd_pesquisas_no_status)::BIGINT "
+                f"FROM ({monthly_query}) GROUP BY 1 ORDER BY 1"
             ).fetchall()
         ]
         file_months = [
@@ -249,7 +275,8 @@ def conferir(
                     package = json.loads(package_receipt.read_text())
                     _require(isinstance(package, dict), "Desktop: recibo do pacote inválido")
                     _require(
-                        package.get("version") == 1
+                        type(package.get("version")) is int
+                        and package["version"] == 1
                         and package.get("source_commit") == model_source_commit,
                         "Desktop: revisão do pacote divergente",
                     )
