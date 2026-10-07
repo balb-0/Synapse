@@ -68,6 +68,70 @@ diretas aos Parquet: 366 pesquisas (C01), 17.740 participações (C02) e 3.186
 associações pesquisa-pergunta (C04). C03 não tem fechamento observado na
 v3, e o estoque é tratado como `sem dado`, nunca como zero.
 
+### 2.2 Medidas e dimensões por visual
+
+Visuais analíticos de cada página, com a tabela do modelo, as medidas e os
+campos de dimensão vinculados na definição PBIR. Os demais visuais são de
+layout (fundo, faixa lateral, marca, título) ou avisos textuais de dado não
+publicado.
+
+<div align="center">
+<sub>Tabela 2 - Produção e Volume (22 visuais: 6 analíticos, 3 slicers, 4 avisos, 9 de layout)</sub><br>
+
+| Visual | Tipo | Tabela | Medidas | Dimensões |
+| :--- | :--- | :--- | :--- | :--- |
+| Pesquisas no recorte | cartão | `PUB_C01_CICLO` | `Qtd Pesquisas` | contexto dos slicers |
+| Indicadores principais | cartão múltiplo | `PUB_C01_CICLO` | `Qtd Pesquisas`, `Media Dias Ciclo Total`, `Base Valida Ciclo Total`, `Media Dias Coleta` | contexto dos slicers |
+| Tempo por Etapa e Tipo (dias corridos) | colunas agrupadas | `PUB_C01_CICLO` | `Media Dias Validacao`, `Media Dias Coleta`, `Media Dias Tabulacao` | `tipo` |
+| Pesquisas por Status | barras | `PUB_C01_CICLO` | `Qtd Pesquisas` | `status` |
+| Volume por Área | barras | `PUB_C01_CICLO` | `Qtd Pesquisas` | `area` |
+| Acompanhamento das Pesquisas | tabela | `PUB_C01_CICLO` | `Qtd Pesquisas`, `Media Dias Ciclo Total` | `area`, `status`, `tipo` |
+| Slicers Área, Tipo, Status | segmentação | `DIM_AREA`, `DIM_TIPO_PESQUISA`, `DIM_STATUS_PESQUISA` | — | `area`, `tipo`, `status` |
+| Avisos de ano de edição, complexidade e prorrogação (I05) | texto | — | — | não filtram |
+
+<sup>Material produzido pelos autores (2026), a partir da definição PBIR do RP-17</sup>
+
+</div><br>
+
+<div align="center">
+<sub>Tabela 3 - Participação agregada (C02) (26 visuais: 7 analíticos, 3 fora da área visível, 3 slicers, 5 avisos, 8 de layout)</sub><br>
+
+| Visual | Tipo | Tabela | Medidas | Dimensões |
+| :--- | :--- | :--- | :--- | :--- |
+| Participações observadas | cartão | `PUB_C02_PARTICIPACAO` | `Qtd Participacoes` | contexto dos slicers |
+| Indicadores sem dado | cartão | `DIM_INDICADORES_BLOQUEADOS` | `Qtd Indicadores Sem Dado` | — |
+| Média de preenchimento | cartão | `PUB_C02_PARTICIPACAO` | `Media Minutos Preenchimento` | contexto dos slicers |
+| Participações por área | barras | `PUB_C02_PARTICIPACAO` | `Qtd Participacoes` | `area` |
+| Participações por mês | colunas | `PUB_C02_PARTICIPACAO` | `Qtd Participacoes` | `mes_resposta` |
+| Participações agregadas por área, tipo e mês | tabela | `PUB_C02_PARTICIPACAO` | `Qtd Participacoes`, `Media Minutos Preenchimento` | `area`, `tipo`, `mes_resposta` |
+| Indicadores sem dado por motivo | colunas | `DIM_INDICADORES_BLOQUEADOS` | `Qtd Indicadores Sem Dado` | `motivo` |
+| Slicers Ano, Área, Tipo | segmentação | `DIM_TEMPO`, `DIM_AREA`, `DIM_TIPO_PESQUISA` | — | `ano`, `area`, `tipo` |
+| Avisos de empresa (I07), pesquisa individual, grão e privacidade | texto | — | — | não filtram |
+
+<sup>Material produzido pelos autores (2026), a partir da definição PBIR do RP-17</sup>
+
+</div><br>
+
+<div align="center">
+<sub>Tabela 4 - Estoque, Instrumento e Qualidade (21 visuais: 9 analíticos, 3 slicers, 9 de layout e texto)</sub><br>
+
+| Visual | Tipo | Tabela | Medidas | Dimensões |
+| :--- | :--- | :--- | :--- | :--- |
+| Estoque no último fechamento observado | cartão | `PUB_C03_PIPELINE_MENSAL` | `Estoque no Status` | contexto dos slicers |
+| Associações pesquisa-pergunta (I14) | cartão | `PUB_C04_INSTRUMENTO` | `Qtd Perguntas` | Área |
+| Completude aplicável (I16) | cartão | `PUB_QUALIDADE_CAMPO` | `Completude` | — |
+| Estoque no fechamento mensal | colunas | `PUB_C03_PIPELINE_MENSAL` | `Estoque no Status` | `data_fim_mes` |
+| Perguntas por tipo | barras | `PUB_C04_INSTRUMENTO` | `Qtd Perguntas` | `tipo_pergunta` |
+| Estoque por área, status e tipo | tabela | `PUB_C03_PIPELINE_MENSAL` | `Estoque no Status` | `area`, `status`, `tipo` |
+| Completude por tabela e campo | tabela | `PUB_QUALIDADE_CAMPO` | `Completude` | `tabela`, `campo` |
+| Integridade por relação | tabela | `PUB_QUALIDADE_RELACAO` | `Integridade Referencial` | `relacao` |
+| Duplicidade por fonte | tabela | `PUB_QUALIDADE_DUPLICIDADE` | `Taxa de Duplicidade` | `tabela` |
+| Slicers Status, Área, Mês | segmentação | `DIM_STATUS_PESQUISA`, `DIM_AREA`, `DIM_TEMPO` | — | `status`, `area`, `ano_mes` |
+
+<sup>Material produzido pelos autores (2026), a partir da definição PBIR do RP-17</sup>
+
+</div><br>
+
 ## Relacionamentos e propagação de filtros
 
 Os fatos `D01_CicloPesquisa` e `D02_Participacao` são tabelas importadas
