@@ -70,12 +70,24 @@ Colunas com o mesmo significado da
 
 | Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? | Discrepância |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-NAV-01 | | | | | | | |
-| T-CMP-01 | | | | | | | |
-| T-CMP-02 | | | | | | | |
-| T-SEG-01 | | | | | | | |
+| T-NAV-01 | sim | 01:05 | sim | 0 | Procurou a taxa de finalização vista na Rodada 0 antes de ler o gráfico de status | sim — "portfólio inteiro" | não (366 e 332) |
+| T-CMP-01 | assist. | 05:20 | não | 3 — abriu o slicer Ano (só "(Em branco)"), selecionou essa opção, voltou à Produção e Volume procurando um ano e retornou | Perguntou à moderadora se "o ano deveria aparecer ali"; concluiu que o filtro estava com defeito antes de associar o vazio à falta do mês de resposta | parcial — disse "não dá para comparar", mas sem nomear o marco (mês de resposta) | não (17.740 com e sem "(Em branco)") |
+| T-CMP-02 | não | 02:10 | sim | 1 — passou o mouse sobre a barra para ler a dica | Apontou "(Em branco)" como o mês de pico, com 17.740 participações | não — leu a categoria sem mês como um mês | de leitura |
+| T-SEG-01 | sim | 02:05 | sim | 0 | Nenhum | sim — "sindical trabalhista e rh, pesquisa fixa anual, todos os status, sem período" | não (44) |
 
-Think-aloud e observações: _a preencher_
+Think-aloud e observações:
+
+- "Na demonstração tinha taxa de finalização e dava para ver por empresa;
+  agora não aparece." (T-NAV-01)
+- "Vinte e oito dias corridos. Para a diretoria eu preciso disso em dias
+  úteis." (T-NAV-01)
+- "O filtro de ano só tem 'em branco'. Os dados não têm ano ou o filtro
+  quebrou?" (T-CMP-01)
+- "Se eu não consigo comparar com o ano passado, essa tela não responde a
+  pergunta que a diretoria mais faz." (T-CMP-01)
+- "Um mês só, o 'em branco', com tudo." (T-CMP-02)
+- "Na produção não tem data nenhuma; não sei quando essas 366 pesquisas
+  foram pedidas." (T-SEG-01)
 
 ## Ficha S4 — P4 (UC01, analista da Central)
 
