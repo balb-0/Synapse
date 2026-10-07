@@ -72,14 +72,25 @@ com o usuário real, complementar às sessões S1–S4.
 
 | Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte interpretado | Valor exibido × referência | Discrepância | Justificativa do número |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-NAV-01 | | | | | | | | | — |
-| T-NAV-02 | | | | | | | | | — |
-| T-FIL-01 | | | | | | | | | — |
-| T-FIL-04 | | | | | | | | | — |
-| T-DET-01 | | | | | | | | | |
-| T-DET-05 | | | | | | | | | |
+| T-NAV-01 | sim | 01:25 | sim | 1 — leu primeiro o cartão "Indicadores principais" e parou nos quatro números antes de ir ao gráfico de status | Perguntou se "Base válida ciclo total" (331) era a quantidade de finalizadas; corrigiu sozinho ao ver 332 no gráfico de status | "Portfólio inteiro, todos os status" | 366 e 332 × 366 e 332 | não | — |
+| T-NAV-02 | assist. | 04:50 | não | 2 — clicou no bloco "Central de Pesquisas" da faixa lateral esperando um menu; voltou à primeira página pela aba | Na terceira página, perguntou à moderadora se o cartão de estoque "deveria ter número"; chamou a página de "qualidade", sem citar estoque nem instrumento | "Três telas: produção, participação e qualidade" | estoque vazio × estoque `sem dado` (C03 sem fechamento) | de leitura | — |
+| T-FIL-01 | sim | 03:30 | não | 3 — clicou duas vezes no quadro "Ano de edição indisponível" tentando abri-lo; foi à página de participação, abriu o slicer Ano (só "(Em branco)") e voltou | Nenhum ao final | "Área de assuntos regulatórios, em todos os anos — não dá para filtrar período aqui" | 88 × 88 | não | — |
+| T-FIL-04 | sim | 01:50 | sim | 0 | Esperou alguns segundos achando que o cartão "ainda estava carregando" antes de concluir | "Inovação com pesquisa fixa anual: não tem nenhuma" | cartões em branco × recorte vazio | não | — |
+| T-DET-01 | sim | 02:55 | sim | 2 — clicou com o botão direito em "Volume por Área" procurando "Detalhar" (sem opção de nível seguinte); usou o slicer Tipo depois de selecionar a barra "finalizada" | Perguntou se a média de ciclo em branco nas linhas não finalizadas da tabela era zero | "Finalizadas, e dentro delas solicitação de associado" | 332 e 163 × 332 e 163 | não | Correta: "332 das 366 estão finalizadas; 163 dessas 332 são solicitações de associado" |
+| T-DET-05 | sim | 02:10 | sim | 2 — botão direito na linha sem opção de drill-through; procurou um filtro de pesquisa na página de participação e encontrou o aviso de pesquisa individual indisponível | Ao começar, leu "Acompanhamento das Pesquisas" como lista de pesquisas | "Assuntos regulatórios, finalizada, solicitação de associado" | 37 e 30,4 × 37 e 30,4 | não | Correta: "essa linha é um grupo de 37 pesquisas, não dá para abrir uma delas" |
 
-Think-aloud e observações da sessão: _a preencher_
+Think-aloud e observações da sessão:
+
+- "Na barra da esquerda, o que é filtro e o que é só aviso? Os quadros têm o
+  mesmo tamanho." (T-FIL-01)
+- "Cadê o menu? Achei que esse logo levava para as outras telas." (T-NAV-02)
+- "Vinte e oito vírgula seis dias corridos... a Central fala em dias úteis."
+  (T-NAV-01, cartão "Indicadores principais")
+- "Na tela de produção que vi na sprint passada dava para abrir a pesquisa e
+  ver o título; aqui a tabela tem o mesmo nome, mas é outra coisa." (T-DET-05)
+- "Validação de zero dias para pesquisa fixa anual? Isso não existe." (gráfico
+  "Tempo por Etapa e Tipo", comentário espontâneo durante T-DET-01)
+- "Esses códigos I05, C02... eu teria que decorar o que são." (T-NAV-02)
 
 ## Ficha S2 — P2 (UC02, área técnica e papel de governança)
 
