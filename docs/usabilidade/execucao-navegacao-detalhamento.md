@@ -4,20 +4,20 @@ Registro das sessões que executam os blocos A (navegação), B (filtros) e C
 (detalhamento) do [roteiro](roteiro-execucao.md): sessões **S1** e **S2** da
 rodada final, conforme a [preparação](preparacao-sessoes.md).
 
-> **Estado: aguardando execução.** As fichas abaixo são preenchidas **durante
-> as sessões**, nunca de memória, sobre as páginas finais validadas no RP-17.
+> **Estado: executada (S1 e S2).** Fichas preenchidas durante as sessões,
+> sobre as páginas finais validadas no RP-17.
 
 ## Identificação da rodada final
 
 | Campo | Valor |
 | :--- | :--- |
-| Alvo | _a preencher_ |
-| Versão do relatório | _a preencher_ |
-| Geração Parquet | _a preencher_ |
-| Fonte dos valores de referência | _a preencher_ |
-| Formato | _a preencher_ |
-| Datas das sessões | _a preencher_ |
-| Moderadora / Observador | _a preencher_ |
+| Alvo | Páginas finais do RP-17: Produção e Volume; Participação agregada (C02); Estoque, Instrumento e Qualidade |
+| Versão do relatório | Tip RP-17 `94e91ef`, pacote SHA-256 `a9b087e5…c358cea` ([preparação, Tabela 3](preparacao-sessoes.md#3-versão-do-relatório-e-geração-usadas)) |
+| Geração Parquet | v3 `6b1eaa686aac43b18b6d6545e1c2c5f1`; refresh sem erro e contagens 57/32/0/45 conferidas com o manifesto antes de cada sessão |
+| Fonte dos valores de referência | [`valores-referencia-v3.md`](evidencias/valores-referencia-v3.md), gerado por [`consultas-referencia.sql`](evidencias/consultas-referencia.sql) sobre a mesma geração |
+| Formato | Sessão moderada simulada, com participantes internos exercendo o perfil (roteiro, §1) |
+| Datas das sessões | S1 e S2 em 06/10/2026 |
+| Moderadora / Observador | Anna / integrante do grupo sem papel de participante |
 
 ## Rodada 0 — validação com o parceiro (sprint review)
 
