@@ -132,32 +132,83 @@ publicado.
 
 </div><br>
 
-## Relacionamentos e propagação de filtros
+### 2.3 Relacionamentos entre fatos e dimensões
 
-Os fatos `D01_CicloPesquisa` e `D02_Participacao` são tabelas importadas
-independentes. Não há relacionamento fato–fato entre elas. O relacionamento
-entre a seleção do Benchmark e o fato de participação é virtual, aplicado
-pelas medidas DAX com `TREATAS`:
+O modelo [`CentralPesquisasBI.SemanticModel`](../powerbi/CentralPesquisasBI.SemanticModel/)
+é uma constelação de fatos agregados com dimensões conformadas. Os 12
+relacionamentos são todos **muitos para um, da dimensão para o fato, com
+filtro em direção única** ([`relationships.tmdl`](../powerbi/CentralPesquisasBI.SemanticModel/definition/relationships.tmdl);
+decisões em [relacionamentos do modelo BI](relacionamentos-modelo-bi.md)):
 
-- `BE_Pesquisa[ID Pesquisa]` é aplicado sobre
-  `D02_Participacao[pesquisa_id_origem]`;
-- `BE_Empresa[ID Empresa]` é aplicado sobre
-  `D02_Participacao[empresa_id_duravel]`;
-- `BE_Faixa` fornece os limites `Minimo` e `Maximo` usados no cálculo das
-  faixas e não precisa de relacionamento físico com o fato.
+<div align="center">
+<sub>Tabela 5 - Dimensões conformadas e fatos que elas filtram</sub><br>
 
-`BE_Pesquisa` é derivada de `D01_CicloPesquisa`, enquanto `BE_Empresa` é
-derivada de `D02_Participacao`. Por isso, os filtros dessas tabelas auxiliares
-não devem ser interpretados como relacionamentos físicos tradicionais entre
-os cubos. A propagação é controlada explicitamente pelas medidas, evitando
-criar uma relação direta entre participação e ciclo que poderia duplicar ou
-alterar a granularidade dos dados.
+| Dimensão | C01 | C02 | C03 | C04 | Qualidade |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| `DIM_AREA` | ✓ | ✓ | ✓ | ✓ | — |
+| `DIM_TIPO_PESQUISA` | ✓ | ✓ | ✓ | — | — |
+| `DIM_STATUS_PESQUISA` | ✓ | — | ✓ | — | — |
+| `DIM_TEMPO` | — | ✓ (`mes_resposta`) | ✓ (`data_fim_mes`) | — | — |
+| `DIM_TIPO_PERGUNTA` | — | — | — | ✓ | — |
 
-Na tela Produção e Volume, os filtros são aplicados diretamente às colunas de
-`D01_CicloPesquisa`. Na tela Benchmark, os filtros de empresa, pesquisa, ano,
-área e tipo são aplicados pelas medidas sobre o recorte de `D02_Participacao`.
-Quando uma medida precisa comparar a empresa selecionada com as demais, ela
-remove somente o filtro de empresa e preserva os demais filtros do usuário.
+<sup>Material produzido pelos autores (2026), a partir de `relationships.tmdl`</sup>
+
+</div><br>
+
+Decisões que afetam a leitura das páginas:
+
+- **Sem relacionamento fato–fato.** Os cubos têm grãos diferentes; o
+  cruzamento entre eles acontece só pela dimensão comum (por exemplo, Área
+  filtra C01 e C04 ao mesmo tempo), o que evita duplicar ou mudar o grão.
+- **Direção única.** Um filtro aplicado num fato não volta para a dimensão
+  nem passa para outro fato; não há caminho ambíguo no modelo.
+- **Escopo por desenho.** C04 não tem status nem tempo, e as tabelas de
+  qualidade descrevem a fonte inteira; por isso, Status e Mês da terceira
+  página filtram só o estoque.
+- **`DIM_TEMPO` é calculada** a partir dos meses observados em C02 e C03.
+  Quando a geração não tem mês de resposta nem fechamento (caso da v3), a
+  dimensão fica só com o valor vazio.
+
+### 2.4 Filtros, segmentações e hierarquias
+
+<div align="center">
+<sub>Tabela 6 - Filtros por página</sub><br>
+
+| Página | Slicer | Campo | Alcance |
+| :--- | :--- | :--- | :--- |
+| Produção e Volume | Área, Tipo, Status | `DIM_AREA.area`, `DIM_TIPO_PESQUISA.tipo`, `DIM_STATUS_PESQUISA.status` | Todos os visuais de C01 |
+| Participação agregada (C02) | Ano, Área, Tipo | `DIM_TEMPO.ano`, `DIM_AREA.area`, `DIM_TIPO_PESQUISA.tipo` | Todos os visuais de C02 |
+| Estoque, Instrumento e Qualidade | Status, Área, Mês | `DIM_STATUS_PESQUISA.status`, `DIM_AREA.area`, `DIM_TEMPO.ano_mes` | Status e Mês: só C03; Área: C03 e C04; qualidade: escopo global |
+
+<sup>Material produzido pelos autores (2026), a partir da definição PBIR do RP-17 e do [RP-16](solucao-dashboards/filtros-hierarquias-detalhamento.md)</sup>
+
+</div><br>
+
+Além dos slicers, os gráficos de barras de status e de área filtram os
+demais visuais da página por seleção cruzada (`drillFilterOtherVisuals`). Os
+slicers **não são sincronizados entre páginas**: cada página guarda a sua
+própria seleção.
+
+Ano de edição e complexidade (C01), empresa e pesquisa individual (C02) não
+são publicados. Onde a página de demonstração tinha esses slicers, há agora
+um aviso textual, que não filtra.
+
+**Hierarquias.** O modelo define duas hierarquias:
+
+| Hierarquia | Níveis | Tabela |
+| :--- | :--- | :--- |
+| `Calendario` | Ano → Trimestre → Mês | `DIM_TEMPO` |
+| `Area, Tipo e Perfil` | Área → Tipo → Perfil | `PUB_C03_PIPELINE_MENSAL` |
+
+**Drill-down e drill-through — estado real.** Nos visuais publicados, os
+eixos usam um único campo (`area`, `status`, `tipo`, `mes_resposta`,
+`data_fim_mes`) e a tabela de estoque é plana. Por isso, nenhum visual
+oferece hoje o comando de descer um nível: o usuário chega ao detalhe por
+seleção cruzada ou por slicer. Não existe página de drill-through, por
+decisão: a publicação não contém pesquisa, empresa nem pessoa, e o teste
+`test_no_drillthrough_to_individual_keys` do RP-17 reprova qualquer
+configuração que prometa essas chaves. O uso das hierarquias nos eixos é a
+proposta A06 (§6).
 
 ## Regras DAX dos indicadores
 
@@ -192,67 +243,6 @@ As medidas representam participação observada no conjunto disponível. Elas n�
 calculam adesão, desempenho ou participação de mercado oficial. O campo
 `pct_mercado_na_participacao` permanece fora dos indicadores oficiais até que
 a fonte autoritativa seja homologada.
-
-## Consumo dos cubos publicados
-
-O projeto também contém o
-[`CentralPesquisasBI.SemanticModel`](../powerbi/CentralPesquisasBI.SemanticModel/),
-preparado para importar a geração Parquet produzida pela ETL. A publicação
-reúne quatro recortes analíticos — C01 (ciclo), C02 (participação), C03
-(pipeline mensal) e C04 (instrumento) — e três tabelas de qualidade. O
-[manifesto da geração](acesso-cubos-bi.md) identifica os arquivos e suas contagens
-para a conferência de cada geração.
-
-Nesse modelo, as dimensões de área, tipo de pesquisa e status oferecem cortes
-compartilhados aos cubos correspondentes. A dimensão de tempo organiza o mês
-de resposta de C02 e o fechamento mensal de C03. Os relacionamentos
-[`DIM_* → PUB_*`](../powerbi/CentralPesquisasBI.SemanticModel/definition/relationships.tmdl)
-usam filtro da dimensão para o fato. A média de duração de C01 utiliza a soma
-dos dias dividida pela quantidade de durações disponíveis, preservando a
-ponderação quando o usuário combina grupos. O estoque de C03 representa o
-fechamento do período selecionado.
-
-As páginas de Produção e Benchmark usam o grão por pesquisa e empresa da
-camada de demonstração. O modelo Parquet publica agregados por categoria; essa
-separação preserva a finalidade de cada artefato e orienta a adaptação dos
-visuais à geração oficial.
-
-## Hierarquias, drill-down e drill-through
-
-| Recurso | Onde está implementado | Estado |
-| :--- | :--- | :--- |
-| Hierarquia temporal Ano → Trimestre → Mês | `DIM_TEMPO.Calendario` no [modelo de consumo](../powerbi/CentralPesquisasBI.SemanticModel/definition/tables/DIM_TEMPO.tmdl), ligada a C02 (mês de resposta) e C03 (fechamento mensal) | Implementado no modelo semântico |
-| Hierarquia Área → Tipo → Perfil | `PUB_C03_PIPELINE_MENSAL.'Area, Tipo e Perfil'` no [modelo de consumo](../powerbi/CentralPesquisasBI.SemanticModel/definition/tables/PUB_C03_PIPELINE_MENSAL.tmdl) | Implementado no modelo semântico |
-| Filtro cruzado entre visuais | Gráficos "Pesquisas por status" e "Volume por área" filtram os demais visuais de Produção e Volume (cross-highlight) | Implementado nas páginas |
-| Do agregado ao detalhe | Selecionar status ou área filtra a tabela "Acompanhamento das pesquisas", que mostra a pesquisa individual; em Benchmark, a tabela "Participação por pesquisa" detalha o recorte dos cartões | Implementado nas páginas |
-| Drill-down por nível hierárquico e drill-through para página de detalhe | Dependem das hierarquias acima, disponíveis no modelo de consumo | Não implementado nas páginas de demonstração; previsto para a Sprint 5 |
-
-As duas páginas usam colunas planas das tabelas de demonstração
-(`D01_CicloPesquisa`, `D02_Participacao`, `BE_*`). Por isso, o detalhamento é
-feito por filtro cruzado e tabela de detalhe, e não por drill hierárquico.
-**Atendimento parcial delimitado:** a navegação por nível (Ano → Trimestre →
-Mês, Área → Tipo → Perfil) e o drill-through serão concluídos na **Sprint 5**, quando as páginas forem
-ligadas à geração Parquet (ver [Integração com a camada Gold](#integração-com-a-camada-gold)).
-As tarefas T-DET de [`tarefas-detalhamento.md`](usabilidade/tarefas-detalhamento.md)
-estão escritas para os dois modos. Para medidas não aditivas, a coerência
-entre níveis é verificada pelos componentes da medida (numerador e
-denominador). Estoque mensal não é somado entre meses.
-
-
-
-O [roteiro de execução](usabilidade/roteiro-execucao.md) organiza 15 tarefas
-para quatro perfis de uso. As atividades reproduzem consultas típicas da
-Central e associam cada interação a um resultado observável.
-
-| Grupo de tarefas | Interação proposta | Evidência registrada |
-| :--- | :--- | :--- |
-| [Navegação e filtros](usabilidade/tarefas-navegacao-filtros.md) | Localizar o painel, selecionar ano, área, tipo e status e combinar segmentações. | Contexto selecionado, mudança dos visuais e leitura do resultado. |
-| [Detalhamento](usabilidade/tarefas-detalhamento.md) | Partir de um indicador agregado e localizar a pesquisa correspondente na tabela. | Caminho percorrido e explicação do número apresentado. |
-| [Comparação e segmentação](usabilidade/tarefas-comparacao-segmentacao.md) | Comparar períodos e aplicar recortes simultâneos. | Valores do mesmo recorte, interpretação da medida e resposta dos painéis. |
-
-O plano prevê registro de conclusão, tempo, desvios, erros de interpretação e
-observações do participante. Cada sessão identifica a versão das páginas e
-os filtros utilizados, permitindo reproduzir a leitura feita pelo usuário.
 
 ## Execução e validação
 
