@@ -23,7 +23,7 @@ páginas aos filtros.
 | Fonte dos valores de referência | _a preencher_ |
 | Formato | _a preencher_ |
 | Datas das sessões | _a preencher_ |
-| Moderadora / Observador | _a preencher_ |
+| Moderador / Observador | _a preencher_ |
 
 ## Rodada 0 — validação com o parceiro (sprint review)
 
@@ -88,7 +88,7 @@ Think-aloud e observações: _a preencher_
 
 ## Precisão: valor exibido × valor de referência
 
-Preenchida pela moderadora imediatamente após cada tarefa, com o mesmo
+Preenchida pelo moderador imediatamente após cada tarefa, com o mesmo
 recorte aplicado na página e o valor de
 [`valores-referencia-v3.md`](evidencias/valores-referencia-v3.md):
 
@@ -116,7 +116,7 @@ denominador antes de recalcular; para estoque, comparar o mesmo snapshot.
 
 ## Tempo de resposta das páginas
 
-Cronometrado pela observadora, do clique até o último visual da página
+Cronometrado pelo observador, do clique até o último visual da página
 terminar de renderizar.
 
 | Interação | Página | Tempo observado | Acima de 2 s? | Observação |
