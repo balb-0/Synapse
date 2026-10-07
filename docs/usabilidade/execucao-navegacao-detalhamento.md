@@ -147,12 +147,47 @@ do nulo (T-DET-04) ou o estado vazio (T-NAV-02) foram lidos de forma errada.
 
 | Participante | "O que foi mais difícil?" | "Que número você não confiou?" |
 | :--- | :--- | :--- |
-| P1 | | |
-| P2 | | |
+| P1 | "Saber o que é filtro e o que é aviso na barra da esquerda, e entender se a página de estoque estava vazia ou com erro." | "A validação de 0,0 dia para pesquisa fixa anual e o estoque em branco." |
+| P2 | "Perceber que o filtro de área não foi junto para a outra página; e limpar os filtros um a um." | "Os da página de participação: no topo está escrito 'dados simulados', então não sei se aqueles números são reais." |
 
 ## Síntese de S1–S2
 
-_A preencher após as sessões: taxa de conclusão por bloco, tarefas fora do
-tempo aceitável, desvios recorrentes e erros por tipo (estado confundido,
-recorte não percebido, número sem justificativa). Alimenta o registro de
-[limitações e propostas](limitacoes-e-propostas.md)._
+<div align="center">
+<sub>Tabela 1 - Resultado por sessão (S1–S2)</sub><br>
+
+| Sessão | Tarefas | Sim | Com assistência | Não | Acima do tempo | Desvios | Justificativas corretas (bloco C) |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | :--- |
+| S1 | 6 | 5 | 1 | 0 | 2 | 10 | 2 de 2 |
+| S2 | 5 | 2 | 2 | 1 | 3 | 8 | 0 de 3 (1 incompleta, 2 erradas) |
+| **Total** | **11** | **7 (64%)** | **3 (27%)** | **1 (9%)** | **5 (45%)** | **18** | **2 de 5** |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Erros por tipo, a partir das fichas:
+
+| Tipo de erro | Ocorrências | Tarefas |
+| :--- | ---: | :--- |
+| Estado confundido (vazio, `sem dado`, ausência permitida) | 4 | T-NAV-02, T-FIL-04, T-DET-02 (média em branco), T-DET-04 |
+| Recorte não percebido (filtro perdido, remanescente ou incompleto) | 3 | T-DET-03, T-FIL-03, T-FIL-02 |
+| Rótulo lido com outro significado | 3 | T-NAV-01 (base válida), T-DET-02 (participações como pessoas), T-DET-05 (título da tabela) |
+| Recurso procurado que a página não oferece | 5 | T-FIL-01 (período), T-DET-01 (drill), T-DET-05 (drill-through), T-NAV-02 (menu), T-DET-02 (empresa) |
+
+Leitura da rodada:
+
+- **Precisão sem falha de dado**: os 11 valores conferidos batem com a
+  referência no recorte aplicado. Os problemas estão na comunicação do
+  recorte e dos estados, não no cálculo.
+- **Navegação e filtros simples funcionam**; os desvios se concentram nos
+  pontos em que a página **parece** oferecer algo que a publicação não tem
+  (avisos no formato de slicer, tabela com nome de lista, ausência de menu).
+- **Detalhamento é o bloco mais frágil**: só 2 das 5 justificativas foram
+  corretas, e o único "não" da rodada (T-DET-03) é a perda do filtro entre
+  páginas, exatamente o erro-alvo da tarefa.
+- **Confiança**: dois elementos sem relação com o cálculo — a faixa "dados
+  simulados" na página C02 e médias exibidas sem base (0,0 dia de validação
+  sobre uma única pesquisa) — foram citados como números "não confiáveis".
+
+Os achados alimentam o registro de
+[limitações e propostas](limitacoes-e-propostas.md).
