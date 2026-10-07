@@ -5,8 +5,9 @@ exigido: **impacto** (no usuário/decisão), **causa observada** (com a
 evidência que a sustenta) e **proposta de solução**. Toda proposta está
 marcada como **proposta** — nenhuma é decisão tomada. Cada limitação aponta a
 decisão aberta (DR01–DR06, §5.1 do [`projeto.md`](../projeto.md)) ou a tarefa
-de usabilidade que a evidencia; as limitações vindas das sessões de execução
-(US-06/US-07) serão acrescentadas na seção 2 quando as rodadas ocorrerem.
+de usabilidade que a evidencia. A seção 1 traz as limitações estruturais
+previstas no planejamento, com o estado verificado na rodada final; as seções
+2 a 5 consolidam as sessões S1–S4 da Sprint 5.
 
 ## 1. Limitações estruturais observadas no planejamento
 
@@ -21,6 +22,8 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
   convidado por pesquisa; até lá, telas mantêm o rótulo "participação
   observada" e o estado "denominador indisponível" — comportamento cuja
   compreensão é testada em T-DET-02.
+- **Estado na Sprint 5:** confirmada. A página C02 não exibe taxa e rotula
+  "participações observadas", mas S2 leu o total como pessoas (A09).
 
 ### L02 — Participação e resposta sem ponte de identidade
 
@@ -32,6 +35,8 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
 - **Proposta (não decidida):** contrato de identidade entre os dois sistemas
   de origem; enquanto não existir, o elo aparece "em reconciliação" (RF07) e
   nenhuma tela soma respostas como pessoas.
+- **Estado na Sprint 5:** confirmada. A publicação não exporta respondente
+  nem resposta; I13 segue `sem dado` no catálogo exibido na página C02.
 
 ### L03 — Pipeline mensal sem histórico retroativo
 
@@ -42,14 +47,22 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
   de status não foi recebido (§5.2).
 - **Proposta (não decidida):** iniciar a captura mensal imediatamente na
   implantação e comunicar na tela a data de início da série.
+- **Estado na Sprint 5:** agravada. A geração v3 não tem nenhum fechamento
+  mensal observado (C03 com 0 linhas), e a página não informa o motivo (A15,
+  impeditivo).
 
 ### L04 — Cobertura do instrumento de questionários
 
-- **Impacto:** a tela de resultados (D03) representa hoje apenas 10 pesquisas
-  (2,7% do acervo); leituras generalizantes a partir dela são inválidas.
+- **Impacto:** a tela de resultados (D03) representava, no planejamento, apenas
+  10 pesquisas (2,7% do acervo); leituras generalizantes a partir dela eram
+  inválidas.
 - **Causa observada:** cobertura declarada do C04 (§5.2).
 - **Proposta (não decidida):** ingestão completa dos questionários junto ao
   parceiro; até lá, a tela expõe a cobertura ao lado da distribuição.
+- **Estado na Sprint 5:** reduzida. A geração v3 publica 3.186 associações
+  pesquisa-pergunta em 11 áreas, e a seção de instrumento foi lida sem
+  dificuldade de cobertura; os rótulos técnicos dos tipos de pergunta seguem
+  como achado (A16).
 
 ### L05 — Classificação de atraso sem regra aprovada
 
@@ -60,6 +73,9 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
 - **Proposta (não decidida):** aprovar com o parceiro a regra de referência
   temporal e prioridade; até lá, telas exibem prazos e prorrogações sem
   rótulo de atraso.
+- **Estado na Sprint 5:** confirmada e ampliada. I06 segue `sem dado`, e a
+  prorrogação (I05) também deixou de ser publicada em C01; a página mostra
+  aviso textual em lugar do cartão.
 
 ### L06 — Papéis de governança sem titular
 
@@ -70,6 +86,9 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
   levantamento de perfis).
 - **Proposta (não decidida):** designação formal pelo parceiro; os registros
   de sessão anotam "papel exercido" para não inflar a evidência.
+- **Estado na Sprint 5:** confirmada. Em S2, o papel de governança foi
+  exercido por P2, que também representou a área técnica, como registrado na
+  [preparação](preparacao-sessoes.md).
 
 ### L07 — Validação funcional sem métricas de uso
 
@@ -82,6 +101,9 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
 - **Proposta (não decidida):** manter o plano desta pasta como etapa
   obrigatória de validação, com as métricas de conclusão/tempo/desvio/erro do
   [roteiro](roteiro-execucao.md).
+- **Estado na Sprint 5:** resolvida. As sessões S1–S4 mediram conclusão,
+  tempo, desvio e erro (seção 2) e mostraram exatamente o risco previsto:
+  páginas com 17 de 17 valores corretos e taxa de sucesso de 59%.
 
 ### L08 — Janela de execução dependente das telas finais
 
@@ -93,6 +115,8 @@ de usabilidade que a evidencia; as limitações vindas das sessões de execuçã
 - **Proposta (não decidida):** executar o piloto no protótipo navegável para
   não perder a janela e **reexecutar** nas telas finais, mantendo os dois
   registros separados (regra já fixada no roteiro, §6).
+- **Estado na Sprint 5:** resolvida. A rodada final foi executada sobre as
+  páginas do RP-17 e a geração v3, sem piloto intermediário.
 
 ## 2. Resultados das sessões S1–S4
 
