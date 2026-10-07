@@ -198,3 +198,44 @@ Distribuição: 23 achados — 12 técnicos e 11 de compreensão; 2 impeditivos,
 6 graves, 10 moderados e 5 leves. **Nenhum achado é erro de cálculo**: os
 dois impeditivos vêm da falta de dado na geração (A17) e da forma de exibir
 um estado `sem dado` (A15).
+
+## 4. Propostas e destino de cada achado
+
+Todas as propostas estão marcadas como **proposta** — a decisão é de quem
+responde pela frente de destino. **RP** = páginas do relatório
+(`powerbi/CentralPesquisasBI.Report/`); **BI** = modelo semântico
+(`powerbi/CentralPesquisasBI.SemanticModel/`); **CB** = carga e publicação
+dos cubos (`src/etl/analytics/`).
+
+<div align="center">
+<sub>Tabela 4 - Proposta, destino e critério de reteste</sub><br>
+
+| ID | Proposta (não decidida) | Destino | Reteste |
+| :--- | :--- | :--- | :--- |
+| A15 | Exibir `Estado do Estoque` no cartão de estoque (valor textual quando não há fechamento) e no subtítulo do gráfico mensal | RP (`qkpiestoque00001`, `qestoque000000004`) | T-NAV-02 |
+| A17 | Investigar a data de resposta na origem e na carga de C02; enquanto faltar, substituir a barra vazia por aviso "mês de resposta indisponível nesta geração" e ocultar o slicer Ano quando ele só tiver vazio | CB (C02) e RP (`v2_absent`, `3307368b9b0eb3020a56`) | T-CMP-01, T-CMP-02 |
+| A12 | Sincronizar os slicers Área, Tipo e Status entre as páginas em que se aplicam (mesmo grupo de sincronização) | RP (slicers das três páginas) | T-DET-03, T-SEG-02 |
+| A06 | Colocar `tipo` como segundo nível nos eixos de área e usar a hierarquia `Calendario` nos eixos de tempo; trocar a tabela de estoque por matriz com `Area, Tipo e Perfil` | RP (`pvarea000000000010`, `v2_frequent`, `v2_absent`, `qtabestoque000006`) | T-DET-01 |
+| A10 | Remover o texto fixo "DADOS SIMULADOS" ou trocá-lo por medida com a geração e o `load_reference` carregados | RP (`v2_status`) e BI (medida de identificação da geração) | Debrief |
+| A13 | Acrescentar `qtd_linhas`, `qtd_preenchidas` e registros sem valor à tabela de completude; distinguir campos de preenchimento condicional (ex.: `prorrogada_ate`) | RP (`qtabcompletud00007`) e BI (classificação do nulo) | T-DET-04 |
+| A18 | Publicar o ano/mês de solicitação no grão de C01 para permitir período na página de produção | CB (contrato de C01) e BI | T-FIL-01, T-CMP-01 |
+| A09 | Levar "conta ocorrências, não pessoas" para o subtítulo do cartão de participações; manter a explicação de empresa indisponível ao lado dos filtros | RP (`v2_kpi1`, `v2_privacy`) | T-DET-02 |
+| A05 | Medida-texto de recorte vazio ("Nenhuma pesquisa no recorte selecionado") nos cartões de contagem | BI e RP | T-FIL-04, T-SEG-03 |
+| A11 | Medida-texto de estado para a média de preenchimento; mover o cartão "Indicadores sem dado" para junto do gráfico de motivos | BI e RP (`v2_kpi2`, `v2_kpi3`) | T-DET-02 |
+| A19 | Mostrar a base válida de cada etapa na dica do gráfico e marcar médias com base inferior a 5 pesquisas | RP (`e1943eaed82275129d4e`) | T-DET-01 |
+| A20 | Publicar a duração em dias úteis a partir de `dias_uteis_para_entrega` e rotular a unidade em cada visual | CB (C01), BI e RP | T-NAV-01 |
+| A01 | Diferenciar visualmente os avisos dos slicers (ícone, fundo neutro, texto em itálico) ou agrupá-los num bloco "Não disponível neste cubo" | RP (faixa lateral das páginas 1 e 2) | T-FIL-01 |
+| A03 | Renomear "Base válida ciclo total" para "Pesquisas com ciclo medido" e retirar a repetição do total | RP (`655b60cbe268a86e200c`) | T-NAV-01 |
+| A04 | Botão "Limpar filtros" (indicador de estado) e linha de resumo dos filtros ativos | RP | T-FIL-03 |
+| A07 | Renomear para "Pesquisas por área, status e tipo" e indicar o grão no subtítulo | RP (`7ca374f79a7cd6921a48`) | T-DET-05 |
+| A14 | Separar os filtros da terceira página por seção, com o rótulo "filtra só o estoque" | RP (página 3) | T-SEG-02 |
+| A23 | Coluna de agrupamento de status (finalizada / não finalizada) em `DIM_STATUS_PESQUISA` | BI | T-FIL-02 |
+| A02 | Botões de navegação entre páginas na faixa lateral | RP | T-NAV-02 |
+| A08 | Formatar a média vazia como "sem ciclo concluído" | BI | T-DET-01 |
+| A16 | Coluna de rótulo legível em `DIM_TIPO_PERGUNTA` | BI | T-SEG-02 |
+| A21 | Excluir os três visuais fora da área visível | RP (`v2_area`, `v2_detail`, `v2_time`) | Medição de resposta |
+| A22 | Substituir códigos por nomes na interface (código na dica) e alinhar nome da aba e título | RP | T-NAV-02 |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
