@@ -20,16 +20,16 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Pesquisa"
+                      "Entity": "DIM_AREA"
                     }
                   },
-                  "Property": "Área"
+                  "Property": "area"
                 }
               },
-              "queryRef": "BE_Pesquisa.Área",
-              "nativeQueryRef": "Área",
+              "queryRef": "DIM_AREA.area",
+              "nativeQueryRef": "area",
               "active": true,
-              "displayName": "Área"
+              "displayName": "area"
             }
           ]
         }

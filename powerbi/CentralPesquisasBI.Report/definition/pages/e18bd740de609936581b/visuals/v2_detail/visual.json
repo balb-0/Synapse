@@ -20,45 +20,80 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Pesquisa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "Pesquisa"
+                  "Property": "area"
                 }
               },
-              "queryRef": "BE_Pesquisa.Pesquisa",
-              "nativeQueryRef": "Pesquisa",
-              "displayName": "Pesquisa"
+              "queryRef": "PUB_C02_PARTICIPACAO.area",
+              "nativeQueryRef": "Área",
+              "active": true,
+              "displayName": "Área"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "PUB_C02_PARTICIPACAO"
+                    }
+                  },
+                  "Property": "tipo"
+                }
+              },
+              "queryRef": "PUB_C02_PARTICIPACAO.tipo",
+              "nativeQueryRef": "Tipo",
+              "active": true,
+              "displayName": "Tipo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "PUB_C02_PARTICIPACAO"
+                    }
+                  },
+                  "Property": "mes_resposta"
+                }
+              },
+              "queryRef": "PUB_C02_PARTICIPACAO.mes_resposta",
+              "nativeQueryRef": "Mês",
+              "active": true,
+              "displayName": "Mês"
             },
             {
               "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "BE Empresa participou"
+                  "Property": "Qtd Participacoes"
                 }
               },
-              "queryRef": "BE_Empresa.BE Empresa participou",
-              "nativeQueryRef": "Sua empresa",
-              "displayName": "Sua empresa"
+              "queryRef": "PUB_C02_PARTICIPACAO.Qtd Participacoes",
+              "nativeQueryRef": "Participações (ocorrências)",
+              "active": true,
+              "displayName": "Participações (ocorrências)"
             },
             {
               "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "BE Percentual observado"
+                  "Property": "Media Minutos Preenchimento"
                 }
               },
-              "queryRef": "BE_Empresa.BE Percentual observado",
-              "nativeQueryRef": "% agregado",
-              "displayName": "% agregado"
+              "queryRef": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento",
+              "nativeQueryRef": "Média preench. (min)",
+              "active": true,
+              "displayName": "Média preench. (min)"
             }
           ]
         }
@@ -70,13 +105,13 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "BE_Empresa"
+                    "Entity": "PUB_C02_PARTICIPACAO"
                   }
                 },
-                "Property": "BE Percentual observado"
+                "Property": "Qtd Participacoes"
               }
             },
-            "direction": "Ascending"
+            "direction": "Descending"
           }
         ]
       }
@@ -265,7 +300,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE Percentual observado"
+            "metadata": "PUB_C02_PARTICIPACAO.Qtd Participacoes"
           }
         },
         {
@@ -279,7 +314,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE Empresa participou"
+            "metadata": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento"
           }
         },
         {
@@ -293,7 +328,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Pesquisa.Pesquisa"
+            "metadata": "PUB_C02_PARTICIPACAO.area"
           }
         }
       ]
@@ -392,7 +427,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Detalhe da sua empresa'"
+                  "Value": "'Detalhe agregado por área, tipo e mês'"
                 }
               }
             },

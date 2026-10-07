@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Pesquisa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "Área"
+                  "Property": "area"
                 }
               },
-              "queryRef": "BE_Pesquisa.Área",
+              "queryRef": "PUB_C02_PARTICIPACAO.area",
               "nativeQueryRef": "Área",
               "active": true,
               "displayName": "Área"
@@ -40,30 +40,16 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "BE_Empresa"
+                      "Entity": "PUB_C02_PARTICIPACAO"
                     }
                   },
-                  "Property": "BE % empresa por área"
+                  "Property": "Qtd Participacoes"
                 }
               },
-              "queryRef": "BE_Empresa.BE % empresa por área",
-              "nativeQueryRef": "Sua empresa",
-              "displayName": "Sua empresa"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "BE_Empresa"
-                    }
-                  },
-                  "Property": "BE % demais por área"
-                }
-              },
-              "queryRef": "BE_Empresa.BE % demais por área",
-              "nativeQueryRef": "Demais empresas",
-              "displayName": "Demais empresas"
+              "queryRef": "PUB_C02_PARTICIPACAO.Qtd Participacoes",
+              "nativeQueryRef": "Participações por área",
+              "active": true,
+              "displayName": "Participações por área"
             }
           ]
         }
@@ -75,10 +61,10 @@
               "Measure": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "BE_Empresa"
+                    "Entity": "PUB_C02_PARTICIPACAO"
                   }
                 },
-                "Property": "BE % empresa por área"
+                "Property": "Qtd Participacoes"
               }
             },
             "direction": "Descending"
@@ -164,13 +150,6 @@
               "expr": {
                 "Literal": {
                   "Value": "false"
-                }
-              }
-            },
-            "end": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
                 }
               }
             }
@@ -265,25 +244,7 @@
             }
           },
           "selector": {
-            "metadata": "BE_Empresa.BE % empresa por área"
-          }
-        },
-        {
-          "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#8996A5'"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "BE_Empresa.BE % demais por área"
+            "metadata": "PUB_C02_PARTICIPACAO.Qtd Participacoes"
           }
         }
       ]
@@ -382,7 +343,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Distribuição por área'"
+                  "Value": "'Participações por área'"
                 }
               }
             },
