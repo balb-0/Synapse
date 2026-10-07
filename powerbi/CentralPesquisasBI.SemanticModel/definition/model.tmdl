@@ -7,6 +7,8 @@ model Model
 		legacyRedirects
 		returnErrorValuesAsNull
 
+annotation PBI_ProTooling = ["DevMode"]
+
 ref table PUB_C01_CICLO
 ref table PUB_C02_PARTICIPACAO
 ref table PUB_C03_PIPELINE_MENSAL
@@ -20,3 +22,6 @@ ref table PUB_QUALIDADE_CAMPO
 ref table PUB_QUALIDADE_RELACAO
 ref table PUB_QUALIDADE_DUPLICIDADE
 ref table DIM_INDICADORES_BLOQUEADOS
+
+ref cultureInfo pt-BR
+

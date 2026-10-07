@@ -1,23 +1,28 @@
 table PUB_C04_INSTRUMENTO
+	lineageTag: 5caed475-50c8-4867-9f08-403aaea1d675
 
 	measure 'Qtd Perguntas' = SUM(PUB_C04_INSTRUMENTO[qtd_perguntas])
 		formatString: #,0
+		lineageTag: 0798c30c-ec13-4273-934b-26f180e8c65c
 
 	column area
 		dataType: string
 		isHidden
+		lineageTag: 7d158186-3502-4d8e-8377-90e761bffc07
 		summarizeBy: none
 		sourceColumn: area
 
 	column tipo_pergunta
 		dataType: string
 		isHidden
+		lineageTag: 246a6c10-9bbf-4cd3-b0e8-55605e093a78
 		summarizeBy: none
 		sourceColumn: tipo_pergunta
 
 	column qtd_perguntas
 		dataType: int64
 		isHidden
+		lineageTag: 46e73ad0-4bf0-4be5-a2b1-3e94e498091c
 		summarizeBy: none
 		sourceColumn: qtd_perguntas
 
@@ -28,3 +33,4 @@ table PUB_C04_INSTRUMENTO
 					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_C04_INSTRUMENTO.parquet"))
 				in
 					Origem
+

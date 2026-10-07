@@ -5,7 +5,7 @@
     "x": 712,
     "y": 114,
     "z": 20000,
-    "height": 144,
+    "height": 128,
     "width": 1176,
     "tabOrder": 20000
   },
@@ -15,22 +15,6 @@
       "queryState": {
         "Data": {
           "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "PUB_C01_CICLO"
-                    }
-                  },
-                  "Property": "Qtd Pesquisas"
-                }
-              },
-              "queryRef": "PUB_C01_CICLO.Qtd Pesquisas",
-              "nativeQueryRef": "Pesquisas",
-              "active": true,
-              "displayName": "Pesquisas"
-            },
             {
               "field": {
                 "Measure": {
@@ -81,6 +65,24 @@
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "PUB_C01_CICLO"
+                  }
+                },
+                "Property": "Media Dias Ciclo Total"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
       }
     },
     "objects": {

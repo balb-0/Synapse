@@ -2,18 +2,18 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "eebbcb005a12b1c98030",
   "position": {
-    "x": 295.5487377702621,
-    "y": 661.2276845029593,
+    "x": 295.54873777026211,
+    "y": 661.22768450295928,
     "z": 26000,
     "height": 382.376615533277,
-    "width": 783.1206667471918,
+    "width": 783.12066674719176,
     "tabOrder": 26000
   },
   "visual": {
-    "visualType": "clusteredColumnChart",
+    "visualType": "tableEx",
     "query": {
       "queryState": {
-        "Category": {
+        "Values": {
           "projections": [
             {
               "field": {
@@ -28,13 +28,8 @@
               },
               "queryRef": "DIM_INDICADORES_BLOQUEADOS.motivo",
               "nativeQueryRef": "Motivo de indisponibilidade",
-              "active": true,
               "displayName": "Motivo de indisponibilidade"
-            }
-          ]
-        },
-        "Y": {
-          "projections": [
+            },
             {
               "field": {
                 "Measure": {
@@ -48,7 +43,6 @@
               },
               "queryRef": "DIM_INDICADORES_BLOQUEADOS.Qtd Indicadores Sem Dado",
               "nativeQueryRef": "Indicadores sem dado",
-              "active": true,
               "displayName": "Indicadores sem dado"
             }
           ]
@@ -58,13 +52,13 @@
         "sort": [
           {
             "field": {
-              "Column": {
+              "Measure": {
                 "Expression": {
                   "SourceRef": {
                     "Entity": "DIM_INDICADORES_BLOQUEADOS"
                   }
                 },
-                "Property": "motivo"
+                "Property": "Qtd Indicadores Sem Dado"
               }
             },
             "direction": "Ascending"
@@ -73,117 +67,51 @@
       }
     },
     "objects": {
-      "categoryAxis": [
+      "grid": [
         {
           "properties": {
-            "showAxisTitle": {
+            "gridVertical": {
               "expr": {
                 "Literal": {
                   "Value": "false"
                 }
               }
             },
-            "fontSize": {
+            "gridHorizontal": {
               "expr": {
                 "Literal": {
-                  "Value": "13D"
+                  "Value": "true"
                 }
               }
             },
-            "labelColor": {
+            "gridHorizontalColor": {
               "solid": {
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#526477'"
+                      "Value": "'#E6ECF2'"
                     }
                   }
                 }
               }
             },
-            "innerPadding": {
+            "rowPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "22D"
-                }
-              }
-            },
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+                  "Value": "10D"
                 }
               }
             }
           }
         }
       ],
-      "valueAxis": [
+      "columnHeaders": [
         {
           "properties": {
-            "showAxisTitle": {
+            "fontFamily": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "start": {
-              "expr": {
-                "Literal": {
-                  "Value": "0D"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "12D"
-                }
-              }
-            },
-            "labelColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#526477'"
-                    }
-                  }
-                }
-              }
-            },
-            "gridlineShow": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "labelDisplayUnits": {
-              "expr": {
-                "Literal": {
-                  "Value": "'None'"
-                }
-              }
-            },
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "labels": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
+                  "Value": "'Segoe UI Semibold'"
                 }
               }
             },
@@ -194,7 +122,56 @@
                 }
               }
             },
-            "color": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#002D78'"
+                    }
+                  }
+                }
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E8EEF5'"
+                    }
+                  }
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Segoe UI'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "14D"
+                }
+              }
+            },
+            "fontColorPrimary": {
               "solid": {
                 "color": {
                   "expr": {
@@ -205,103 +182,104 @@
                 }
               }
             },
-            "labelPosition": {
-              "expr": {
-                "Literal": {
-                  "Value": "'OutsideEnd'"
+            "backColorPrimary": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
                 }
               }
             },
-            "labelDisplayUnits": {
-              "expr": {
-                "Literal": {
-                  "Value": "'None'"
+            "fontColorSecondary": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#152D49'"
+                    }
+                  }
                 }
               }
-            }
-          }
-        }
-      ],
-      "legend": [
-        {
-          "properties": {
-            "show": {
+            },
+            "backColorSecondary": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#F4F7FA'"
+                    }
+                  }
+                }
+              }
+            },
+            "wordWrap": {
               "expr": {
                 "Literal": {
                   "Value": "true"
                 }
               }
-            },
-            "showTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "position": {
-              "expr": {
-                "Literal": {
-                  "Value": "'BottomCenter'"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "12D"
-                }
-              }
-            },
-            "labelColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#526477'"
-                    }
-                  }
-                }
-              }
             }
           }
         }
       ],
-      "dataPoint": [
+      "columnWidth": [
         {
           "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#8996A5'"
-                    }
-                  }
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "290.64204964514147D"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "DIM_INDICADORES_BLOQUEADOS.Qtd Indicadores Sem Dado"
+            "metadata": "PUB_C02_PARTICIPACAO.area"
           }
         },
         {
           "properties": {
-            "fill": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#2875A9'"
-                    }
-                  }
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "243.6096302775117D"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "DIM_INDICADORES_BLOQUEADOS.Qtd Indicadores Sem Dado"
+            "metadata": "PUB_C02_PARTICIPACAO.Qtd Participacoes"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "227.90706277629334D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "PUB_C02_PARTICIPACAO.Media Minutos Preenchimento"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "637.6106907804511D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "DIM_INDICADORES_BLOQUEADOS.motivo"
           }
         }
       ]
@@ -348,10 +326,28 @@
                 }
               }
             },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E6E6E6'"
+                    }
+                  }
+                }
+              }
+            },
             "radius": {
               "expr": {
                 "Literal": {
                   "Value": "4D"
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
                 }
               }
             }
@@ -408,6 +404,13 @@
       "title": [
         {
           "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Indicadores sem dado por motivo'"
+                }
+              }
+            },
             "show": {
               "expr": {
                 "Literal": {
@@ -415,10 +418,21 @@
                 }
               }
             },
-            "text": {
+            "titleWrap": {
               "expr": {
                 "Literal": {
-                  "Value": "'Indicadores sem dado por motivo'"
+                  "Value": "true"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#152D49'"
+                    }
+                  }
                 }
               }
             },
@@ -435,17 +449,6 @@
                   "Value": "'Segoe UI Semibold'"
                 }
               }
-            },
-            "fontColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#152D49'"
-                    }
-                  }
-                }
-              }
             }
           }
         }
@@ -453,13 +456,6 @@
       "subTitle": [
         {
           "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
             "text": {
               "expr": {
                 "Literal": {
@@ -467,10 +463,10 @@
                 }
               }
             },
-            "fontSize": {
+            "show": {
               "expr": {
                 "Literal": {
-                  "Value": "11D"
+                  "Value": "false"
                 }
               }
             },
@@ -482,6 +478,13 @@
                       "Value": "'#526477'"
                     }
                   }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
                 }
               }
             }
@@ -498,10 +501,106 @@
                 }
               }
             },
+            "preset": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Custom'"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "86D"
+                }
+              }
+            },
             "shadowSpread": {
               "expr": {
                 "Literal": {
                   "Value": "1D"
+                }
+              }
+            },
+            "shadowBlur": {
+              "expr": {
+                "Literal": {
+                  "Value": "3D"
+                }
+              }
+            },
+            "angle": {
+              "expr": {
+                "Literal": {
+                  "Value": "90D"
+                }
+              }
+            },
+            "shadowDistance": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "spacing": [
+        {
+          "properties": {
+            "customizeSpacing": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "verticalSpacing": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            },
+            "spaceBelowSubTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            },
+            "spaceAbovePlotArea": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            },
+            "spaceAboveDivider": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            },
+            "spaceAboveSubtitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "stylePreset": [
+        {
+          "properties": {
+            "name": {
+              "expr": {
+                "Literal": {
+                  "Value": "'None'"
                 }
               }
             }

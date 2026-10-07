@@ -2,8 +2,8 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "pvslicerarea0000004",
   "position": {
-    "x": 20,
-    "y": 332,
+    "x": 19.906265860928727,
+    "y": 201.56277035435485,
     "z": 14000,
     "height": 100,
     "width": 224,
@@ -43,6 +43,13 @@
               "expr": {
                 "Literal": {
                   "Value": "'Dropdown'"
+                }
+              }
+            },
+            "isInvertedSelectionMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
                 }
               }
             }

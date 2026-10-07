@@ -1,25 +1,31 @@
 table PUB_QUALIDADE_DUPLICIDADE
+	lineageTag: b9c98da3-d68f-441a-b8c2-1fe88e93da95
 
 	measure 'Taxa de Duplicidade' = DIVIDE(SUM(PUB_QUALIDADE_DUPLICIDADE[qtd_linhas]) - SUM(PUB_QUALIDADE_DUPLICIDADE[qtd_chaves_distintas]), SUM(PUB_QUALIDADE_DUPLICIDADE[qtd_linhas]))
 		formatString: 0.0%
+		lineageTag: 86dfc4dd-219c-473c-a9d6-8b26edb108ef
 
 	measure 'Base Valida Duplicidade' = SUM(PUB_QUALIDADE_DUPLICIDADE[qtd_linhas])
 		formatString: #,0
+		lineageTag: 06e373b8-253b-4f56-8277-d4cd4ab65e27
 
 	column tabela
 		dataType: string
+		lineageTag: 7e5cec29-5b8d-4556-91d3-99f02e9dbfff
 		summarizeBy: none
 		sourceColumn: tabela
 
 	column qtd_linhas
 		dataType: int64
 		isHidden
+		lineageTag: 2a3f7d86-f610-4f4f-9b25-27914422e083
 		summarizeBy: none
 		sourceColumn: qtd_linhas
 
 	column qtd_chaves_distintas
 		dataType: int64
 		isHidden
+		lineageTag: f9013e4a-bdb2-47a4-93e4-e71eeb813e3f
 		summarizeBy: none
 		sourceColumn: qtd_chaves_distintas
 
@@ -30,3 +36,4 @@ table PUB_QUALIDADE_DUPLICIDADE
 					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_QUALIDADE_DUPLICIDADE.parquet"))
 				in
 					Origem
+

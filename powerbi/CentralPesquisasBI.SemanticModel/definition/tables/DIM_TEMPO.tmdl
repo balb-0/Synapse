@@ -1,81 +1,79 @@
 table DIM_TEMPO
+	lineageTag: 9143db66-c9e5-4f35-b6d0-2ccd89fb03e2
 
 	column data
-		dataType: dateTime
 		isHidden
-		summarizeBy: none
 		formatString: Short Date
+		lineageTag: e014255d-3845-4417-a1d0-2093a3746be8
+		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [data]
 
 	column ano
-		dataType: int64
+		lineageTag: 82107bc2-c128-4ff9-b263-f6e88439f33d
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [ano]
 
 	column numero_trimestre
-		dataType: int64
 		isHidden
+		lineageTag: 418c494f-7622-4aa8-8df7-11fc9d62c9b5
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [numero_trimestre]
 
 	column trimestre
-		dataType: string
+		lineageTag: a6738636-7fa1-49e3-aa4c-e5797cdadd4e
 		summarizeBy: none
-		sortByColumn: numero_trimestre
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [trimestre]
+		sortByColumn: numero_trimestre
 
 	column numero_mes
-		dataType: int64
 		isHidden
+		lineageTag: d72a6c3f-2816-4bbc-93f2-19f91be5109e
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [numero_mes]
 
 	column mes
-		dataType: string
+		lineageTag: fbaf5320-1b84-4ba8-abef-8e200717a67a
 		summarizeBy: none
-		sortByColumn: numero_mes
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [mes]
+		sortByColumn: numero_mes
 
 	column ano_mes
-		dataType: string
+		lineageTag: e3bdb9c1-6de3-4d31-863d-1ad560155ff2
 		summarizeBy: none
-		sortByColumn: ano_mes_ordenacao
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [ano_mes]
+		sortByColumn: ano_mes_ordenacao
 
 	column ano_mes_ordenacao = IF(ISBLANK([data]), BLANK(), YEAR([data]) * 100 + MONTH([data]))
 		dataType: int64
 		isHidden
+		lineageTag: a446ee08-6f01-47e7-b1b6-8ee03243b937
 		summarizeBy: none
 
 	hierarchy Calendario
 		lineageTag: calendario-hierarchy
 
 		level Ano
+			lineageTag: 9b11c071-bed9-4903-b992-fc51e26a1bdd
 			column: ano
 
 		level Trimestre
+			lineageTag: 0d782c2d-428b-4ca9-823f-96f23c6eb6dd
 			column: trimestre
 
-		level 'Mes'
+		level Mes
+			lineageTag: 88428145-e055-4205-b4db-ca223bb117fc
 			column: mes
 
 	partition DIM_TEMPO = calculated
 		mode: import
-		source = ```
+		source =
 				VAR _DatasParticipacao = SELECTCOLUMNS(PUB_C02_PARTICIPACAO, "data", [mes_resposta])
 				VAR _DatasPipeline = SELECTCOLUMNS(PUB_C03_PIPELINE_MENSAL, "data", [data_fim_mes])
 				VAR _Datas =
@@ -95,4 +93,4 @@ table DIM_TEMPO
 					)
 				RETURN
 					_ComColunas
-				```
+

@@ -1,4 +1,5 @@
 table PUB_C03_PIPELINE_MENSAL
+	lineageTag: 7a9045e5-05cc-4d0e-ad25-3b1ab0957b1b
 
 	measure 'Data de Referência do Estoque' =
 			CALCULATE(
@@ -14,6 +15,7 @@ table PUB_C03_PIPELINE_MENSAL
 				REMOVEFILTERS(PUB_C03_PIPELINE_MENSAL[tipo_resposta])
 			)
 		formatString: Short Date
+		lineageTag: a22aebb0-46e7-4ce5-99a8-d79179f533d8
 
 	measure 'Estoque no Último Mês Observado' =
 			VAR DataReferencia = [Data de Referência do Estoque]
@@ -26,6 +28,7 @@ table PUB_C03_PIPELINE_MENSAL
 			RETURN
 				IF(ISBLANK(DataReferencia), BLANK(), COALESCE(EstoqueNoMes, 0))
 		formatString: #,0
+		lineageTag: c68a4378-75ab-43d0-ac45-663ce875e5ac
 
 	measure 'Estado do Estoque' =
 			VAR DataReferencia = [Data de Referência do Estoque]
@@ -35,9 +38,11 @@ table PUB_C03_PIPELINE_MENSAL
 					"Indisponível: a geração publicada não contém linha C03 para o período selecionado.",
 					"Disponível no fechamento de " & FORMAT(DataReferencia, "dd/MM/yyyy")
 				)
+		lineageTag: 26229c31-29ba-4068-98f3-3e051f5a1b00
 
 	measure 'Entradas no Mês' = SUM(PUB_C03_PIPELINE_MENSAL[qtd_entradas_no_mes])
 		formatString: #,0
+		lineageTag: aa3642f8-4018-4106-a006-26a60fa2698f
 
 	measure 'Estado das Entradas no Mês' =
 			VAR DataReferencia = [Data de Referência do Estoque]
@@ -52,9 +57,11 @@ table PUB_C03_PIPELINE_MENSAL
 						"Disponível"
 					)
 				)
+		lineageTag: a88293f6-66af-4e39-95c6-c777ddbadf1c
 
 	measure 'Saídas no Mês' = SUM(PUB_C03_PIPELINE_MENSAL[qtd_saidas_no_mes])
 		formatString: #,0
+		lineageTag: 2a20c0bd-58c7-4e2c-92fc-73ea91d944f0
 
 	measure 'Estado das Saídas no Mês' =
 			VAR DataReferencia = [Data de Referência do Estoque]
@@ -69,80 +76,95 @@ table PUB_C03_PIPELINE_MENSAL
 						"Disponível"
 					)
 				)
+		lineageTag: 7becaf58-b0ab-42d3-bb60-a612a8c14e20
 
 	measure 'Estoque no Status' = [Estoque no Último Mês Observado]
 		formatString: #,0
+		lineageTag: 24af3b0f-3b05-45b7-a0c6-25c4d129d9f3
 
 	column data_fim_mes
 		dataType: dateTime
 		isHidden
-		summarizeBy: none
 		formatString: Short Date
+		lineageTag: e2b27c63-c8b1-4ca0-97dd-b7ee38ec9d33
+		summarizeBy: none
 		sourceColumn: data_fim_mes
 
 	column status
 		dataType: string
 		isHidden
+		lineageTag: 2adad192-58f5-42ad-9ffa-70424a86e516
 		summarizeBy: none
 		sourceColumn: status
 
 	column area
 		dataType: string
 		isHidden
+		lineageTag: aa41b531-30e8-4942-aba8-e3874e669b8a
 		summarizeBy: none
 		sourceColumn: area
 
 	column tipo
 		dataType: string
 		isHidden
+		lineageTag: 6f42b65e-330e-4637-a1ed-191544312d0f
 		summarizeBy: none
 		sourceColumn: tipo
 
 	column complexidade
 		dataType: string
 		isHidden
+		lineageTag: 96ad622e-7fcc-46d0-933e-b870fce90083
 		summarizeBy: none
 		sourceColumn: complexidade
 
 	column tipo_resposta
 		dataType: string
 		isHidden
+		lineageTag: 6c51bd8f-cae7-4210-af30-4b8548a6c703
 		summarizeBy: none
 		sourceColumn: tipo_resposta
 
 	column qtd_pesquisas_no_status
 		dataType: int64
 		isHidden
+		lineageTag: 43b6be5b-c0d5-45fa-802b-bf38a0edef05
 		summarizeBy: none
 		sourceColumn: qtd_pesquisas_no_status
 
 	column qtd_entradas_no_mes
 		dataType: int64
 		isHidden
+		lineageTag: 69746ecf-fd5a-4d3c-aea6-5ecb4c8f8cc8
 		summarizeBy: none
 		sourceColumn: qtd_entradas_no_mes
 
 	column qtd_saidas_no_mes
 		dataType: int64
 		isHidden
+		lineageTag: 7fe6ab1d-3da9-4209-8c8c-8abd50c03af7
 		summarizeBy: none
 		sourceColumn: qtd_saidas_no_mes
 
 	column perfil = IF(ISBLANK([complexidade]) && ISBLANK([tipo_resposta]), BLANK(), COALESCE([complexidade], "Indisponível") & " / " & COALESCE([tipo_resposta], "Indisponível"))
 		dataType: string
 		isHidden
+		lineageTag: 9c825d13-6c01-4ebd-82ae-2c4867934699
 		summarizeBy: none
 
 	hierarchy 'Area, Tipo e Perfil'
 		lineageTag: area-tipo-perfil-hierarchy
 
 		level Area
+			lineageTag: 16d9b00c-4646-40d8-9a25-db2a68c5f781
 			column: area
 
 		level Tipo
+			lineageTag: 182104aa-41c5-4475-b9c9-f154ab73a5a1
 			column: tipo
 
 		level Perfil
+			lineageTag: c0d43555-15be-443b-9131-182592dd69a4
 			column: perfil
 
 	partition PUB_C03_PIPELINE_MENSAL = m
@@ -152,3 +174,4 @@ table PUB_C03_PIPELINE_MENSAL
 					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_C03_PIPELINE_MENSAL.parquet"))
 				in
 					Origem
+

@@ -1,25 +1,31 @@
 table PUB_QUALIDADE_RELACAO
+	lineageTag: 92d81c90-9e2f-4a71-b6c5-257eb25058ed
 
 	measure 'Integridade Referencial' = DIVIDE(SUM(PUB_QUALIDADE_RELACAO[qtd_chaves_correspondentes]), SUM(PUB_QUALIDADE_RELACAO[qtd_chaves_informadas]))
 		formatString: 0.0%
+		lineageTag: 29c29a02-62e3-42bd-8c0b-7f5f6f927bc1
 
 	measure 'Base Valida Integridade' = SUM(PUB_QUALIDADE_RELACAO[qtd_chaves_informadas])
 		formatString: #,0
+		lineageTag: eed78c35-4228-44e9-8476-64590280999e
 
 	column relacao
 		dataType: string
+		lineageTag: ec310ae4-7cfe-46fd-ac8d-4b3e1fd523f0
 		summarizeBy: none
 		sourceColumn: relacao
 
 	column qtd_chaves_informadas
 		dataType: int64
 		isHidden
+		lineageTag: cda25bdb-e6d8-4846-8877-408e7f7d3e2c
 		summarizeBy: none
 		sourceColumn: qtd_chaves_informadas
 
 	column qtd_chaves_correspondentes
 		dataType: int64
 		isHidden
+		lineageTag: 8ff258f2-d05c-48c6-88f0-c7dc4e013182
 		summarizeBy: none
 		sourceColumn: qtd_chaves_correspondentes
 
@@ -30,3 +36,4 @@ table PUB_QUALIDADE_RELACAO
 					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_QUALIDADE_RELACAO.parquet"))
 				in
 					Origem
+

@@ -1,17 +1,17 @@
 table DIM_TIPO_PERGUNTA
+	lineageTag: 1e7a3c85-6a42-43e9-90a2-ae46a463a78f
 
 	column tipo_pergunta
-		dataType: string
+		lineageTag: a5463100-d420-42d1-95ac-9563b4ee11ec
 		summarizeBy: none
 		isNameInferred
-		isDataTypeInferred
 		sourceColumn: [tipo_pergunta]
 
 	partition DIM_TIPO_PERGUNTA = calculated
 		mode: import
-		source = ```
+		source =
 				SELECTCOLUMNS(
 					DISTINCT(ALLNOBLANKROW(PUB_C04_INSTRUMENTO[tipo_pergunta])),
 					"tipo_pergunta", [tipo_pergunta]
 				)
-				```
+

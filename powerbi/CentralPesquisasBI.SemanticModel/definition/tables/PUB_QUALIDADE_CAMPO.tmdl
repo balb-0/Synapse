@@ -1,32 +1,39 @@
 table PUB_QUALIDADE_CAMPO
+	lineageTag: bde8ae9b-cce6-46fb-9c8f-4c7b42c5a236
 
+	/// Completude de preenchimento: células não nulas sobre todas as linhas por campo na ingestão tratada. Não aplica regras condicionais de obrigatoriedade (I16).
 	measure Completude = DIVIDE(SUM(PUB_QUALIDADE_CAMPO[qtd_preenchidas]), SUM(PUB_QUALIDADE_CAMPO[qtd_linhas]))
-		description: Completude de preenchimento: células não nulas sobre todas as linhas por campo na ingestão tratada. Não aplica regras condicionais de obrigatoriedade (I16).
 		formatString: 0.0%
+		lineageTag: 48e9e4c9-b81f-4b6b-8e57-d8fa659f6597
 
+	/// Células avaliadas: total de linhas para cada campo selecionado. Ao selecionar vários campos, a mesma linha contribui uma vez por campo; não representa pessoas ou linhas distintas.
 	measure 'Base Valida Completude' = SUM(PUB_QUALIDADE_CAMPO[qtd_linhas])
-		description: Células avaliadas: total de linhas para cada campo selecionado. Ao selecionar vários campos, a mesma linha contribui uma vez por campo; não representa pessoas ou linhas distintas.
 		formatString: #,0
+		lineageTag: 9bf0ad78-3958-4d7d-ad89-4f40cd970c21
 
 	column tabela
 		dataType: string
+		lineageTag: 066bffde-4524-4524-8ee5-9a75c9bdf6bf
 		summarizeBy: none
 		sourceColumn: tabela
 
 	column campo
 		dataType: string
+		lineageTag: b1625c8b-4d16-4217-a083-4fb86d16f3b0
 		summarizeBy: none
 		sourceColumn: campo
 
 	column qtd_linhas
 		dataType: int64
 		isHidden
+		lineageTag: 34a8887f-4503-4132-9800-76bf48e11c62
 		summarizeBy: none
 		sourceColumn: qtd_linhas
 
 	column qtd_preenchidas
 		dataType: int64
 		isHidden
+		lineageTag: 8da6dd97-72eb-4f96-8046-7d2e6016eb27
 		summarizeBy: none
 		sourceColumn: qtd_preenchidas
 
@@ -37,3 +44,4 @@ table PUB_QUALIDADE_CAMPO
 					Origem = Parquet.Document(File.Contents(PastaPublicacaoBI & "\PUB_QUALIDADE_CAMPO.parquet"))
 				in
 					Origem
+
