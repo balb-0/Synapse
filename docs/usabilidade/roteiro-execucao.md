@@ -47,21 +47,23 @@ parceiro).
 <div align="center">
 <sub>Tabela 1 - Participantes por perfil e tarefas atribuídas</sub><br>
 
-| Participante | Perfil exercido | Tarefas |
-| :--- | :--- | :--- |
-| P1 | UC01 — analista da Central | T-NAV-01, T-FIL-01, T-FIL-04, T-DET-01, T-CMP-02, T-SEG-03 |
-| P2 | UC03 — gestor | T-NAV-01, T-FIL-02, T-CMP-01, T-SEG-01, T-DET-02 |
-| P3 | UC02 — área técnica | T-NAV-02, T-DET-03, T-SEG-02 |
-| P4 | Governança (papel exercido) | T-FIL-03, T-DET-04 |
+| Sessão | Participante | Perfil exercido | Tarefas | Ficha |
+| :--- | :--- | :--- | :--- | :--- |
+| S1 | P1 | UC01 — analista da Central | T-NAV-01, T-NAV-02, T-FIL-01, T-FIL-04, T-DET-01, T-DET-05 | [navegação e detalhamento](execucao-navegacao-detalhamento.md) |
+| S2 | P2 | UC02 — área técnica, exercendo também o papel de governança | T-FIL-02, T-FIL-03, T-DET-02, T-DET-03, T-DET-04 | [navegação e detalhamento](execucao-navegacao-detalhamento.md) |
+| S3 | P3 | UC03 — gestor | T-NAV-01, T-CMP-01, T-CMP-02, T-SEG-01 | [comparação e segmentação](execucao-comparacao-segmentacao.md) |
+| S4 | P4 | UC01 — analista da Central | T-SEG-02, T-SEG-03 | [comparação e segmentação](execucao-comparacao-segmentacao.md) |
 
 <sup>Material produzido pelos autores (2026)</sup>
 
 </div><br>
 
-Regras de alocação: cada tarefa é executada por **ao menos um participante**;
-T-NAV-01 é executada por dois perfis distintos (comparação de leitura); um
-participante nunca executa duas variantes que se revelam mutuamente
-(ex.: T-FIL-04 e T-SEG-03 podem, pois o vazio nasce de causas diferentes).
+Regras de alocação: cada uma das 16 tarefas é executada por **ao menos um
+participante**; T-NAV-01 é executada por dois perfis distintos (P1 e P3,
+comparação de leitura); S1 e S2 concentram navegação, filtros e drill, e S3 e
+S4 concentram tempo e filtros simultâneos; um participante nunca executa duas
+variantes que se revelam mutuamente (T-FIL-04 e T-SEG-03 ficam com
+participantes diferentes).
 
 ## 2. Ordem das tarefas na sessão
 
@@ -124,6 +126,10 @@ Por sessão: observações do think-aloud e respostas do debrief.
 
 - Toda tarefa executada por ao menos um participante, com ficha completa
   (nenhuma célula vazia ou presumida).
-- Tarefas dependentes das telas finais (RP-08) só executam quando as telas
-  existirem; execução sobre o protótipo é registrada como **piloto** e
-  identificada como tal na ficha — os dois registros não se misturam.
+- A rodada final executa sobre as páginas validadas no RP-17
+  ([validação das páginas finais](../solucao-dashboards/validacao-paginas-finais.md)),
+  com a versão do relatório e a geração Parquet registradas na ficha;
+  execução sobre o protótipo é registrada como **piloto** e identificada como
+  tal — os dois registros não se misturam.
+- Todo número lido pelo participante é comparado com o valor de referência
+  calculado diretamente sobre a mesma geração Parquet, no mesmo recorte.
