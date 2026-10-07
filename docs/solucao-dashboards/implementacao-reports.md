@@ -97,3 +97,60 @@ semântico, com a regra estatística correspondente (§ regras DX-03):
   essas entregas ocorrerem, os marcadores **[pendente]** são resolvidos e
   esta seção passa a afirmar comportamento verificado — a conferência final
   é objeto do [checklist de avaliação](checklist-avaliacao.md).
+
+## 6. Anexo Sprint 5 — Inventário PBIP → Parquet (RP-12, issue #317)
+
+Inventário dos **48 visuais** das duas páginas já estruturadas em
+`src/pbir dash/dashboard.pbip` (`dashboard.Report/definition/pages/`),
+mapeados ao contrato publicado de sete Parquet
+(`docs/acesso-cubos-bi.md`, parâmetro `PastaPublicacaoBI`):
+`PUB_C01_CICLO` (grão área/status/tipo), `PUB_C02_PARTICIPACAO` (grão
+área/tipo/mês), `PUB_C03_PIPELINE_MENSAL` (grão mês/status/área/tipo/perfil),
+`PUB_C04_INSTRUMENTO` (grão área/tipo de pergunta) e as três tabelas de
+qualidade. Classificação de publicáveis segue
+`docs/indicadores-publicaveis-bi.md`: 7 calculáveis na camada BI (I01, I02,
+I04 só em média, I14, I16–I18), I03 parcial, demais sem dado (sinalizar com
+motivo textual, nunca zero — DX-10). Nenhum visual final promete chave
+individual (pesquisa/empresa/pessoa) ausente da publicação.
+
+### 6.1 Página Produção e Volume (`5d499bb7bb62646ad6e5`, 22 visuais)
+
+| Visual | Tipo | Referência atual | Cubo/medida Parquet | Dimensão Parquet | Situação |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| `655b60cbe268a86e200c` | cardVisual | `D01_CicloPesquisa.Pesquisas`, `Pesquisas Finalizadas`, `Pesquisas em Aberto`, `Ciclo Médio em Dias Corridos` | `PUB_C01_CICLO.'Qtd Pesquisas'` (I01/I02); `'Media Dias Ciclo Total'` = `soma_dias_ciclo_total / qtd_ciclo_total_disponivel` (I04, só média) | status/área/tipo via filtro; sem dado → indisponível, nunca zero | Adaptável em RP-13; rótulos Finalizadas/Em Aberto (mesmo valor triplicado) viram total + médias honestas; o recorte por status fica no gráfico de barras, sem afirmar dia útil |
+| `7ca374f79a7cd6921a48` | tableEx | `D01` `titulo`, `area`, `tipo`, `status`, `data_entrega`, `dias_ciclo_total_corridos` | `PUB_C01_CICLO.qtd_pesquisas` agregado | área, status, tipo | `titulo`/`data_entrega`/valor por pesquisa **não publicados** → tabela vira agregado por área/status/tipo (RP-13) |
+| `e1943eaed82275129d4e` | clusteredColumnChart | `Ciclo Médio Validação/Coleta/Tabulação` por `tipo` | `PUB_C01_CICLO.'Media Dias Validacao/Coleta/Tabulacao'` (I04) | tipo | Adaptável; denominador `qtd_*_disponivel` explícito |
+| `pvarea000000000010` | barChart | `Pesquisas` por `area` | `PUB_C01_CICLO.'Qtd Pesquisas'` (I01/I02) | área | Adaptável direto |
+| `pvstatus0000000009` | barChart | `Pesquisas` por `status` | `PUB_C01_CICLO.'Qtd Pesquisas'` (I02) | status | Adaptável direto |
+| `pvline000000000012` | cardVisual | `Taxa de Finalização` | Derivada de `Qtd Pesquisas` por status no recorte | status | Adaptável como razão; denominador zero → indisponível |
+| `pvprorrocard0000015` | cardVisual | `Pesquisas Prorrogadas` | — (I05) | — | **Sem dado**: `flag_prorrogada` não publicada em `PUB_C01_CICLO` → sinalizar motivo (RP-13) |
+| `pvprorrotable000016` | tableEx | `titulo`, `area`, `flag_prorrogada` | — (I05) | área | **Sem dado** pelo mesmo motivo; sem coluna individual → sinalizar/retirar (RP-13) |
+| `pvslicerarea0000004` | slicer | `D01.area` | `PUB_C01_CICLO.area` / `DIM_AREA` | área | Adaptável |
+| `pvslicertipo0000005` | slicer | `D01.tipo` | `PUB_C01_CICLO.tipo` / `DIM_TIPO_PESQUISA` | tipo | Adaptável |
+| `pvslicerstat0000006` | slicer | `D01.status` | `PUB_C01_CICLO.status` / `DIM_STATUS_PESQUISA` | status | Adaptável |
+| `pvslicercomp0000007` | slicer | `D01.complexidade` | — em C01 | — | **Sem dado em C01** (`complexidade` só existe em `PUB_C03_PIPELINE_MENSAL`); não filtrar C01 por ele (RP-13/RP-16) |
+| `pvslicerano00000003` | slicer | `D01.ano_edicao` | — | — | **Sem dado**: `ano_edicao` sem origem homologada; `DIM_TEMPO.Calendario` só cobre C02/C03 → sinalizar (RP-13/RP-16) |
+| `908f2a6c26962900d75c` | image | logo | — | — | Preservar |
+| `pvbg…`, `pvhead…`, `pvline…`, `pvtitle…`, `pvsubtl…`, `pvfilter…`, `pvbrand…` (8) | textbox | textos de layout | — | — | Preservar identidade visual; revisar textos que prometam grão individual |
+
+### 6.2 Página Benchmark Externo — V2 (`e18bd740de609936581b`, 26 visuais)
+
+| Visual | Tipo | Referência atual | Cubo/medida Parquet | Dimensão Parquet | Situação |
+| :-- | :-- | :-- | :-- | :-- | :-- |
+| `v2_kpi1` | cardVisual | `BE_Empresa.'BE Pesquisas da empresa'` | — (I07 sem dado) | — | **Sem dado individual**: `PUB_C02` agrega por área/tipo/mês sem empresa → virar `Qtd Participacoes` do recorte ou sinalizar (RP-14) |
+| `v2_kpi2` | cardVisual | `BE_Empresa.'BE Empresas observadas'` | — (I07 sem dado) | — | **Sem dado**: contagem distinta de empresa não sobrevive à agregação → sinalizar (RP-14) |
+| `v2_kpi3` | cardVisual | `BE_Empresa.'BE Pesquisas no recorte'` | `PUB_C02_PARTICIPACAO.'Qtd Participacoes'` (ocorrências, não pessoas — I13 não substituir) | área/tipo/mês | Adaptável como ocorrências do recorte |
+| `v2_area`, `v2_frequent` | barChart | `BE % empresa/demais por área` | `PUB_C02_PARTICIPACAO.'Qtd Participacoes'` por área (comparação área/tipo/mês, sem empresa) | área | Adaptável sem seleção de empresa (RP-14) |
+| `v2_time`, `v2_absent` | clusteredColumnChart | `BE Média demais/pesquisas por ano` | `PUB_C02_PARTICIPACAO.'Qtd Participacoes'` por mês (`mes_resposta` → `DIM_TEMPO.Calendario`) | tempo | Adaptável por mês; ano deriva do mês observado |
+| `eebbcb005a12b1c98030` | clusteredColumnChart | `BE Empresas/Selecionada por faixa` | — | — | **Sem dado**: faixa/empresa individual não publicadas → retirar ou sinalizar (RP-14) |
+| `v2_detail`, `5a299fc93da0a4eb0d07` | tableEx | `BE Empresa participou`, `% observado`, `Pesquisa` | `PUB_C02_PARTICIPACAO` agregado por área/tipo/mês | área, tipo, mês | Sem `Pesquisa`/empresa nominal → tabela agregada (RP-14) |
+| `3307368b9b0eb3020a56` | slicer | `BE_Pesquisa.Ano` | `DIM_TEMPO.ano` (meses de C02) | tempo | Adaptável via mês observado |
+| `9eae5b36e00a27061ac9` | slicer | `BE_Pesquisa.Área` | `PUB_C02_PARTICIPACAO.area` | área | Adaptável |
+| `93a811b00a01082002b3` | slicer | `BE_Pesquisa.Tipo` | `PUB_C02_PARTICIPACAO.tipo` | tipo | Adaptável |
+| `d3ee05e7e9ee90a905a0` | slicer | `BE_Empresa.Empresa` | — | — | **Sem dado**: empresa nominal não publicada → retirar/sinalizar (RP-14/RP-16) |
+| `f8529f56a2b696a08788` | slicer | `BE_Pesquisa.Pesquisa` | — | — | **Sem dado**: pesquisa nominal não publicada → retirar/sinalizar (RP-14/RP-16) |
+| Textos/imagem (`0011…`, `54dc…`, `7aea…`, `a8cb…`, `ac10…`, `e740…`, `v2_context`, `v2_privacy`, `v2_status`, `v2_title`, `b6a69…`) (11) | textbox/image | layout e avisos | — | — | Preservar; `v2_privacy` passa a declarar grão agregado |
+
+### 6.3 Colunas não publicadas (fronteira técnica, `docs/acesso-cubos-bi.md`)
+
+Chaves e atributos individuais nunca saem do DuckDB: `pesquisa_id`/`empresa_id`/`cliente_id`/`pergunta_id`, `titulo`, enunciado/alternativas/respostas, e-mail, `source_checksum`/`source_offset`, datas-marco por pesquisa, `flag_prorrogada`, `qtd_empresas_na_pesquisa`, `ano_edicao`, `cargo`/`departamento`, `pct_mercado`, `minutos` por ocorrência. Medidas I05–I13/I15/I19–I25 sem dado usam `DIM_INDICADORES_BLOQUEADOS` + motivo textual (DX-10), nunca zero. Drill-through para chave individual é proibido (RP-16).

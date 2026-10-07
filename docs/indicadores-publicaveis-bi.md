@@ -67,7 +67,7 @@ publicação não seleciona, fica indisponível na camada BI mesmo quando
 | ID | Indicador | Camada de dados | Camada BI | Fonte publicada | Motivo do bloqueio (BI) |
 | :-- | :-- | :-- | :-- | :-- | :-- |
 | I16 | Completude aplicável | Perfilamento exploratório; requisito indisponível sem regras homologadas | **Sem dado** | — | Regras homologadas de obrigatoriedade por campo e tipo/status não publicadas. `PUB_QUALIDADE_CAMPO` mede preenchimento sobre todas as linhas, incluindo nulos condicionais, e não substitui I16. |
-| I17 | Taxa de duplicidade | Calculável | **Calculável** | `PUB_QUALIDADE_DUPLICIDADE.qtd_linhas` / `qtd_chaves_distintas` por tabela | — (idem) |
+| I17 | Taxa de duplicidade | Calculável | **Calculável** | (`PUB_QUALIDADE_DUPLICIDADE.qtd_linhas` - `qtd_chaves_distintas`) / `qtd_linhas` por tabela | — (idem) |
 | I18 | Integridade referencial | Calculável | **Calculável** | `PUB_QUALIDADE_RELACAO.qtd_chaves_correspondentes` / `qtd_chaves_informadas` por relação | — (idem) |
 | I19 | Parseabilidade | Calculável | **Sem dado** | — | Não publicado nesta rodada; exigiria testar conversão de tipo por campo e publicar a taxa (candidato a uma próxima extensão de `publish.py`, mesmo padrão das publicações de qualidade existentes). |
 | I20 | Divergência de título | Calculável | **Sem dado** | — | Não publicado nesta rodada; a comparação de título entre fontes não tem consulta equivalente em `publish.py`. |

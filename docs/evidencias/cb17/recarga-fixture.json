@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "fixture": "fixture-cb17",
+  "synthetic_only": true,
+  "before": {
+    "load_reference": "run-test-1",
+    "current_pointer": "first_generation",
+    "status": "verified"
+  },
+  "reload": {
+    "load_reference": "run-test-2",
+    "cubes": ["C01", "C02", "C03", "C04"],
+    "status": "converged",
+    "facts_replaced_without_accumulation": true
+  },
+  "after": {
+    "current_pointer": "second_generation",
+    "generation_changed": true,
+    "previous_manifest_preserved": true,
+    "status": "verified"
+  },
+  "failure_case": {
+    "load_reference": "fixture-cb17-falha-digest",
+    "current_pointer_preserved": true,
+    "pending_directory_removed": true,
+    "status": "verified"
+  },
+  "tests": {
+    "publish_atomic_reload": "passed",
+    "publish_failure_preserves_current": "passed",
+    "analytics_reload_reconciliation": "passed",
+    "source_change_detected": "passed"
+  },
+  "real_source_data_versioned": false
+}
