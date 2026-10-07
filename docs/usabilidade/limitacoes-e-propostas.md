@@ -151,3 +151,50 @@ Leitura: o relatório **calcula certo e responde rápido**; a perda está em
 **comunicação**. As médias de tempo ficam dentro do aceitável, mas 7 das 17
 execuções o ultrapassaram, e os blocos que dependem de saber qual recorte
 está ativo (C e D) concentram as duas falhas e três das cinco ajudas.
+
+## 3. Achados das sessões — classificação
+
+Cada achado aponta a ficha que o evidencia e a causa observada na definição
+do relatório ou na geração. **Tipo**: *técnico* (a causa está no dado, no
+modelo ou na configuração do relatório) ou *compreensão* (o dado e a
+configuração estão corretos, mas a página induz leitura errada).
+**Severidade** (escala de Nielsen): 4 = impeditivo (impede a tarefa ou leva a
+conclusão errada sem saída), 3 = grave, 2 = moderado, 1 = leve.
+
+<div align="center">
+<sub>Tabela 3 - Achados, evidência, causa, tipo e severidade</sub><br>
+
+| ID | Achado | Evidência | Causa observada | Tipo | Sev. |
+| :--- | :--- | :--- | :--- | :--- | :---: |
+| A15 | Estoque aparece em branco, sem motivo; o usuário não distingue "sem fechamento" de erro | S1 T-NAV-02 (assist.); S4 think-aloud; debrief P4 | C03 tem 0 linhas na v3; o cartão `qkpiestoque00001` usa `Estoque no Status`, e a medida `Estado do Estoque`, que tem o motivo textual, não é exibida | técnico (relatório) | 4 |
+| A17 | Comparação temporal impossível: slicer Ano só com "(Em branco)" e gráfico mensal com uma barra sem mês | S3 T-CMP-01 (assist.), T-CMP-02 (não); debrief P3 | `mes_resposta` vazio nas 32 linhas de C02; `DIM_TEMPO` é calculada de C02 e C03 e fica só com o vazio | técnico (dado de origem) | 4 |
+| A12 | Filtro de Área não acompanha a troca de página; o total global é lido como sendo da área | S2 T-DET-03 (não); S4 T-SEG-02 | Nenhum slicer do relatório tem grupo de sincronização (`syncGroup`) | técnico (relatório) | 3 |
+| A06 | Drill-down Área → Tipo não existe nos visuais, embora documentado | S1 T-DET-01 (2 desvios) | `Volume por Área` e `Participações por área` têm um único campo no eixo; a tabela de estoque é plana e os eixos de tempo usam a coluna, não a hierarquia `Calendario` | técnico (relatório) | 3 |
+| A10 | Texto "DADOS SIMULADOS" na página C02 faz o usuário desconfiar de todos os números | S2 debrief | Texto fixo no visual `v2_status`, herdado da página de demonstração | técnico (relatório) | 3 |
+| A13 | Completude sem registros afetados nem natureza do nulo; ausência permitida lida como falha | S2 T-DET-04 (assist.; justificativa errada) | A tabela mostra só `Completude`; `qtd_linhas` e `qtd_preenchidas` existem em `PUB_QUALIDADE_CAMPO`, mas não estão no visual | técnico (relatório) | 3 |
+| A18 | Produção e Volume não tem período: "quando foram pedidas?" não tem resposta | S1 T-FIL-01; S3 T-SEG-01 | C01 não publica data nem ano de edição (contrato CB-12) | técnico (contrato da publicação) | 3 |
+| A09 | Participações lidas como pessoas; recorte por empresa procurado e ausente | S2 T-DET-02 (justificativa incompleta); S3 think-aloud | O aviso "conta ocorrências, não pessoas" está no rodapé; empresa não é publicada em C02 | compreensão | 3 |
+| A05 | Recorte vazio aparece como cartões em branco, sem mensagem | S1 T-FIL-04; S4 T-SEG-03 | As medidas retornam vazio, sem texto alternativo para recorte sem linha | técnico (relatório) | 2 |
+| A11 | Média de preenchimento em branco sem motivo; cartão "Indicadores sem dado" em destaque e sem contexto | S2 T-DET-02 | Base de preenchimento 0 na v3; o cartão `v2_kpi2` ocupa a posição de indicador principal | técnico (relatório) | 2 |
+| A19 | Médias exibidas sem a base: 0,0 dia de validação calculado sobre uma única pesquisa | S1 think-aloud; debrief P1 | O gráfico de etapas não mostra `Base Valida *`; a validação tem base de 20 pesquisas (`data_aprov` com 5,5% de completude) | técnico (relatório e dado) | 2 |
+| A20 | Durações em dias corridos; a Central raciocina em dias úteis | S1 e S3 think-aloud; Rodada 0 | C01 publica só dias corridos; a origem tem `dias_uteis_para_entrega` com 90,4% de preenchimento | técnico (contrato da publicação) | 2 |
+| A01 | Avisos de ano de edição e complexidade têm o formato dos slicers e são clicados como filtro | S1 T-FIL-01 (3 desvios) | Caixas de texto no mesmo tamanho e posição dos slicers retirados | compreensão | 2 |
+| A03 | "Base válida ciclo total" (331) confundida com finalizadas (332); total repetido em dois cartões | S1 T-NAV-01 | Rótulo técnico da medida; `Qtd Pesquisas` aparece em "Pesquisas no recorte" e em "Indicadores principais" | compreensão | 2 |
+| A04 | Não há ação única para limpar filtros; um slicer fica ativo sem ser notado | S2 T-FIL-03 (assist.) | O relatório não tem botão de redefinição nem resumo dos filtros ativos | compreensão | 2 |
+| A07 | "Acompanhamento das Pesquisas" sugere lista de pesquisas, mas é agregado | S1 T-DET-05 | Título herdado da página de demonstração | compreensão | 2 |
+| A14 | Não fica claro que Status e Mês da terceira página filtram só o estoque | S2 T-DET-04; S4 T-SEG-02 (assist.) | Sem relacionamento de C04 e qualidade com status e tempo (por desenho); a página não indica o escopo dos filtros | compreensão | 2 |
+| A23 | Sete status sem agrupamento "não finalizada"; o usuário filtra só "em andamento" | S2 T-FIL-02 | Os status de origem aparecem como estão, sem categoria de agrupamento | compreensão | 2 |
+| A02 | Sem navegação dentro do relatório; o usuário procura um menu na faixa lateral | S1 T-NAV-02 | Navegação só pelas abas de página | compreensão | 1 |
+| A08 | Média de ciclo em branco nas linhas não finalizadas lida como zero | S1 T-DET-01 | Base válida 0 nesses grupos; a célula fica vazia sem rótulo | compreensão | 1 |
+| A16 | Tipos de pergunta exibidos com nomes técnicos (`multipla_escolha`) | S2 e S4 think-aloud | Valores de origem sem coluna de rótulo em `DIM_TIPO_PERGUNTA` | compreensão | 1 |
+| A21 | Três visuais fora da área visível consultam o modelo e recebem foco por teclado | Medição de tempo de resposta (S3–S4) | `v2_area`, `v2_detail` e `v2_time` posicionados em (-100, -100) com 1 × 1 px | técnico (relatório) | 1 |
+| A22 | Códigos (I05, I07, I16, C02) nos títulos e avisos; nome da aba difere do título da página | S1 think-aloud | Rótulos de catálogo usados na interface; aba "Estoque e Qualidade (C03/C04)" × título "Estoque, Instrumento e Qualidade" | compreensão | 1 |
+
+<sup>Material produzido pelos autores (2026)</sup>
+
+</div><br>
+
+Distribuição: 23 achados — 12 técnicos e 11 de compreensão; 2 impeditivos,
+6 graves, 10 moderados e 5 leves. **Nenhum achado é erro de cálculo**: os
+dois impeditivos vêm da falta de dado na geração (A17) e da forma de exibir
+um estado `sem dado` (A15).
