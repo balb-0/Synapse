@@ -28,6 +28,11 @@ os papéis de dados.
 
 </div><br>
 
+Na Sprint 5, os códigos D01–D04 correspondem às páginas finais do relatório
+conforme a [Tabela 0 do roteiro](roteiro-execucao.md#0-páginas-finais-avaliadas-sprint-5):
+D01 → Produção e Volume; D02 → Participação agregada (C02); D03 e D04 →
+Estoque, Instrumento e Qualidade.
+
 Papéis de governança (Data Owner, Data Steward, Data Custodian/TI e auditor)
 são **propostos e ainda sem designação formal** (§5.1); os testes que dependem
 deles usam massa de teste identificada como tal (§6.1.2).
