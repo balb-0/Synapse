@@ -2,25 +2,28 @@
 
 Registro das sessões que executam o bloco D do
 [roteiro](roteiro-execucao.md) (tarefas T-CMP-* e T-SEG-* de
-[`tarefas-comparacao-segmentacao.md`](tarefas-comparacao-segmentacao.md)).
-Além das métricas padrão, este bloco confere **precisão do dado exibido**
-contra valores de referência e a **coerência do indicador entre
-granularidades** — as duas exigências do card.
+[`tarefas-comparacao-segmentacao.md`](tarefas-comparacao-segmentacao.md)):
+sessões **S3** e **S4** da rodada final, conforme a
+[preparação](preparacao-sessoes.md). Além das métricas padrão, este bloco
+confere **precisão do dado exibido** contra valores de referência, a
+**coerência do indicador entre granularidades** e o **tempo de resposta** das
+páginas aos filtros.
 
-> **Estado: aguardando execução.** Fichas preenchidas durante as sessões;
-> este documento só entra em revisão (MR) com as fichas completas. Alvo:
-> telas RP-08; na indisponibilidade, piloto sobre o protótipo D01–D04,
-> identificado na ficha.
+> **Estado: aguardando execução.** Fichas preenchidas durante as sessões, sobre
+> as páginas finais validadas no RP-17. Erro de dado encontrado aqui volta
+> para BI-04/RP-17 antes do aceite.
 
-## Identificação da rodada
+## Identificação da rodada final
 
 | Campo | Valor |
 | :--- | :--- |
-| Alvo | Telas Power BI de Operação (RP-03) e Participação (RP-04) na `develop`; Resultados/Qualidade pendentes |
-| Versão/commit do alvo | _a preencher_ |
-| Fonte dos valores de referência | _a preencher_ (ex.: `dados-dashboard.json` da mesma versão, consultas do repositório analítico) |
+| Alvo | _a preencher_ |
+| Versão do relatório | _a preencher_ |
+| Geração Parquet | _a preencher_ |
+| Fonte dos valores de referência | _a preencher_ |
+| Formato | _a preencher_ |
 | Datas das sessões | _a preencher_ |
-| Moderador / Observador | _a preencher_ |
+| Moderadora / Observador | _a preencher_ |
 
 ## Rodada 0 — validação com o parceiro (sprint review)
 
@@ -32,10 +35,10 @@ granularidades** — as duas exigências do card.
 | Formato | Demonstração conduzida pelo grupo, com feedback verbal do parceiro |
 | Ressalva declarada | O grupo informou explicitamente que os dados exibidos eram sintéticos (mockados) |
 
-Registro de validação com o usuário real, complementar às sessões moderadas
-(pendentes). Os dois achados desta rodada são exatamente da natureza que as
-tarefas de comparação temporal existem para capturar — semântica de tempo e
-relevância das medidas de ciclo:
+Registro de validação com o usuário real, complementar às sessões moderadas.
+Os dois achados desta rodada são exatamente da natureza que as tarefas de
+comparação temporal existem para capturar — semântica de tempo e relevância
+das medidas de ciclo:
 
 ### Achados sobre medidas e semântica temporal
 
@@ -58,21 +61,44 @@ relevância das medidas de ciclo:
 - A troca da métrica principal é ajuste de composição da tela (RP), sem
   mudança de modelo.
 - Ambos entram como insumo do registro de limitações e propostas
-  ([`limitacoes-e-propostas.md`](limitacoes-e-propostas.md)) e do backlog da
-  próxima sprint.
+  ([`limitacoes-e-propostas.md`](limitacoes-e-propostas.md)).
+
+## Ficha S3 — P3 (UC03, gestor)
+
+Colunas com o mesmo significado da
+[ficha de navegação](execucao-navegacao-detalhamento.md#como-preencher-as-fichas).
+
+| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? | Discrepância |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| T-NAV-01 | | | | | | | |
+| T-CMP-01 | | | | | | | |
+| T-CMP-02 | | | | | | | |
+| T-SEG-01 | | | | | | | |
+
+Think-aloud e observações: _a preencher_
+
+## Ficha S4 — P4 (UC01, analista da Central)
+
+| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? | Discrepância |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| T-SEG-02 | | | | | | | |
+| T-SEG-03 | | | | | | | |
+
+Think-aloud e observações: _a preencher_
 
 ## Precisão: valor exibido × valor de referência
 
-Preenchida pelo moderador imediatamente após cada tarefa de comparação, com
-o mesmo recorte aplicado na tela:
+Preenchida pela moderadora imediatamente após cada tarefa, com o mesmo
+recorte aplicado na página e o valor de
+[`valores-referencia-v3.md`](evidencias/valores-referencia-v3.md):
 
 | Tarefa | Recorte usado (filtros e período) | Valor exibido | Valor de referência | Confere? | Observação |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-CMP-01 (período A) | | | | | |
-| T-CMP-01 (período B) | | | | | |
-| T-CMP-02 (mês de pico) | | | | | |
+| T-CMP-01 | | | | | |
+| T-CMP-02 | | | | | |
 | T-SEG-01 | | | | | |
 | T-SEG-02 | | | | | |
+| T-SEG-03 | | | | | |
 
 Divergência é registrada com os dois valores e o recorte — nunca ajustada na
 ficha.
@@ -88,29 +114,25 @@ denominador antes de recalcular; para estoque, comparar o mesmo snapshot.
 | :--- | :--- | :--- | :--- | :--- |
 | | | | | |
 
-## Ficha S2 — P2 (UC03, gestor): T-CMP-01, T-SEG-01
+## Tempo de resposta das páginas
 
-| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-CMP-01 | | | | | | |
-| T-SEG-01 | | | | | | |
+Cronometrado pela observadora, do clique até o último visual da página
+terminar de renderizar.
 
-## Ficha S1 — P1 (UC01): T-CMP-02, T-SEG-03
+| Interação | Página | Tempo observado | Acima de 2 s? | Observação |
+| :--- | :--- | :--- | :--- | :--- |
+| | | | | |
 
-| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-CMP-02 | | | | | | |
-| T-SEG-03 | | | | | | |
+## Debrief (perguntas fixas, por participante)
 
-## Ficha S3 — P3 (UC02): T-SEG-02
+| Participante | "O que foi mais difícil?" | "Que número você não confiou?" |
+| :--- | :--- | :--- |
+| P3 | | |
+| P4 | | |
 
-| Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-SEG-02 | | | | | | |
-
-## Síntese da rodada
+## Síntese de S3–S4
 
 _A preencher após as sessões: precisão (quantos valores conferiram),
-coerência entre níveis, recortes enunciados errados e tarefas fora do tempo.
-Divergências de dado alimentam a conferência de valores (RP-11) e o registro
-de limitações (US-08)._
+coerência entre níveis, recortes enunciados errados, tarefas fora do tempo e
+tempo de resposta. Divergências de dado voltam para BI-04/RP-17 e alimentam
+o registro de [limitações e propostas](limitacoes-e-propostas.md)._
