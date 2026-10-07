@@ -93,10 +93,21 @@ Think-aloud e observações:
 
 | Tarefa | Conclusão | Tempo | Aceitável? | Desvios | Erros observados | Recorte enunciado corretamente? | Discrepância |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| T-SEG-02 | | | | | | | |
-| T-SEG-03 | | | | | | | |
+| T-SEG-02 | assist. | 06:10 | não | 3 — na terceira página, reaplicou a Área; selecionou também o Status na faixa lateral esperando que o gráfico de perguntas mudasse; percorreu as tabelas de qualidade | Percebeu que a Área não acompanhou a navegação (sucesso parcial); perguntou se o Status "vale para as perguntas" | parcial — após a ajuda: "só a área vale aqui; tipo e status não chegam nas perguntas" | não (37 em C01; 400 em C04 para a área) |
+| T-SEG-03 | sim | 03:20 | sim | 1 — antes de remover um filtro, clicou de novo no slicer Status achando que a seleção não tinha sido aplicada | Disse "deu erro?" ao ver os cartões em branco; corrigiu sozinho ao remover o Status | sim — "sindical, pesquisa fixa anual, em tabulação: nenhuma; sem o status, 44" | não (vazio; 44) |
 
-Think-aloud e observações: _a preencher_
+Think-aloud e observações:
+
+- "O filtro de área sumiu quando troquei de página; ainda bem que olhei."
+  (T-SEG-02)
+- "Mudei o status aqui e o gráfico de perguntas não mexeu. O status não vale
+  para isso?" (T-SEG-02)
+- "`multipla_escolha`, `matriz_avaliacao`... parece nome de campo de banco."
+  (T-SEG-02)
+- "Os cartões ficaram em branco; na hora achei que tinha dado erro. Não
+  aparece nenhuma mensagem de 'sem resultado'." (T-SEG-03)
+- "O estoque está vazio em qualquer filtro que eu escolho." (T-SEG-02,
+  comentário sobre a seção de estoque)
 
 ## Precisão: valor exibido × valor de referência
 
