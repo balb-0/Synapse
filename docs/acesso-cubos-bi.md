@@ -209,3 +209,12 @@ A [conferência CB-16](publicacao-cb16.md) registra a origem e a reconciliação
 da carga. A ingestão executou `fd6864e` com adaptador privado de
 `respondent_id` opaco; a carga analítica e a publicação executaram `894445d`.
 O refresh no Power BI Desktop pertence às tarefas BI.
+
+Nesta cópia de trabalho, o DuckDB privado usado nessa execução não está
+disponível para uma segunda publicação. A validação local foi feita sobre a
+subpasta recebida: os sete hashes, esquemas, contagens e agregados conferem
+com o manifesto e o recibo da geração. O resumo dessa validação está em
+[`evidencias/cb16/validacao-pacote-local.json`](evidencias/cb16/validacao-pacote-local.json).
+Os Parquets permanecem fora do Git; uma nova publicação só deve ser feita na
+máquina que possui a carga reconciliada original, preservando o
+`load_reference` correspondente.
