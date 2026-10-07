@@ -306,25 +306,67 @@ independente aos Parquet
 ([`consultas-referencia.sql`](usabilidade/evidencias/consultas-referencia.sql),
 [`valores-referencia-v3.md`](usabilidade/evidencias/valores-referencia-v3.md)).
 
-## Execução e validação
+## 4. Execução e validação das tarefas
 
-Em 25/09/2026, o grupo apresentou as páginas de Produção e Benchmark ao
-parceiro com dados de demonstração. O
-[registro da Rodada 0](usabilidade/execucao-navegacao-detalhamento.md)
-destaca a boa recepção das tabelas expansíveis e da leitura por tipo de
-pesquisa. O parceiro também sugeriu priorizar o tempo médio de duração e
-expressar o ciclo em dias úteis; essas sugestões orientam a evolução das
-medidas e da hierarquia visual.
+### 4.1 Rodadas executadas
 
-As fichas das sessões S1–S4 estão preparadas em
-[`execucao-navegacao-detalhamento.md`](usabilidade/execucao-navegacao-detalhamento.md)
-e
-[`execucao-comparacao-segmentacao.md`](usabilidade/execucao-comparacao-segmentacao.md).
-Elas organizam a conferência dos valores exibidos com a fonte de referência,
-a resposta dos filtros, a leitura entre níveis de detalhe e o tempo de
-resposta. Para médias e percentuais, a conferência usa seus componentes no
-mesmo recorte; para C03, compara o fechamento selecionado. Os resultados
-serão consolidados nessas fichas após cada sessão.
+| Rodada | Data | Alvo | Registro |
+| :--- | :--- | :--- | :--- |
+| Rodada 0 — parceiro | 25/09/2026 | Páginas de demonstração da Sprint 4 | Retorno verbal do parceiro ([navegação](usabilidade/execucao-navegacao-detalhamento.md#rodada-0--validação-com-o-parceiro-sprint-review), [comparação](usabilidade/execucao-comparacao-segmentacao.md#rodada-0--validação-com-o-parceiro-sprint-review)) |
+| S1–S2 | 06/10/2026 | Páginas finais do RP-17 sobre a geração v3 | [Execução de navegação, filtros e detalhamento](usabilidade/execucao-navegacao-detalhamento.md) |
+| S3–S4 | 06/10/2026 | Páginas finais do RP-17 sobre a geração v3 | [Execução de comparação e segmentação](usabilidade/execucao-comparacao-segmentacao.md) |
+
+As sessões S1–S4 foram moderadas e simuladas, com participantes internos
+exercendo os perfis UC01, UC02 (com o papel de governança) e UC03, conforme
+o roteiro. A versão do relatório (tip RP-17 `94e91ef`) e a geração foram
+fixadas antes da primeira sessão.
+
+### 4.2 Precisão dos dados apresentados
+
+Todo número lido pelo participante foi comparado com o valor do mesmo
+recorte calculado direto sobre os Parquet: **17 de 17 valores conferem**.
+As seis discrepâncias anotadas nas fichas são de leitura (recorte, rótulo
+ou estado interpretados de forma errada), não de dado.
+
+### 4.3 Coerência entre níveis de granularidade
+
+Nove verificações, todas coerentes
+([tabela de coerência](usabilidade/execucao-comparacao-segmentacao.md#coerência-entre-granularidades)):
+as contagens por status e por área somam o total (366); as participações
+por área somam 17.740; as associações por tipo de pergunta somam 3.186 e
+recompõem a área. As médias de ciclo (28,6 dias) e de coleta (13,9 dias) e a
+completude (71,4%) recompõem pelo numerador e pelo denominador, e não pela
+média das médias (que daria 23,8, 14,2 e 84,0). O estoque não é somado
+entre meses.
+
+### 4.4 Resposta aos filtros e desempenho
+
+As sete interações medidas (slicers, seleção cruzada e troca de página)
+responderam entre 0,3 s e 1,1 s; nenhuma passou de 2 s. O volume publicado é
+pequeno, e não houve erro de consulta nem lentidão. Os filtros responderam
+como modelado (§2.3–2.4); os problemas observados foram de **escopo não
+comunicado**: filtro que não acompanha a troca de página e filtros da
+terceira página que valem só para o estoque.
+
+### 4.5 Resultado de usabilidade
+
+| Indicador | Resultado |
+| :--- | :--- |
+| Execuções de tarefa | 17 (16 tarefas; T-NAV-01 por dois perfis) |
+| Concluídas sem ajuda (taxa de sucesso) | 10 (59%) |
+| Concluídas com assistência | 5 (29%) |
+| Não concluídas | 2 (12%) — T-DET-03 e T-CMP-02 |
+| Acima do tempo aceitável | 7 (41%); tempo médio 03:07 contra 03:11 aceitável |
+| Justificativas corretas no detalhamento | 2 de 5 |
+| Recorte enunciado corretamente (comparação e segmentação) | 3 de 6 |
+
+Por bloco, a taxa de sucesso foi de 67% em navegação, 75% em filtros, 60%
+em detalhamento e 40% em comparação e segmentação
+([consolidação](usabilidade/limitacoes-e-propostas.md#2-resultados-das-sessões-s1s4)).
+O padrão é claro: **o relatório calcula certo e responde rápido; a perda está
+na comunicação do recorte e dos estados sem dado**. A comparação temporal
+foi o único ponto em que o dado em si impediu a tarefa (mês de resposta
+vazio na v3).
 
 ## Qualidade técnica e funcional
 
